@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { 
+  insertAddressSchema, addresses,
   insertProductSchema, products, 
   insertClientSchema, clients, 
   insertAccountSchema, accounts, 
@@ -40,6 +41,30 @@ export const api = {
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
         401: errorSchemas.unauthorized,
+      }
+    }
+  },
+  addresses: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/addresses' as const,
+      responses: {
+        200: z.array(z.custom<typeof addresses.$inferSelect>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/addresses' as const,
+      input: insertAddressSchema,
+      responses: {
+        201: z.custom<typeof addresses.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/addresses/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
       }
     }
   },

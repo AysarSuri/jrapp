@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import ProductsPage from "@/pages/products";
 import CustomersPage from "@/pages/customers";
 import SuppliersPage from "@/pages/suppliers";
+import AddressesPage from "@/pages/addresses";
 import AccountsPage from "@/pages/accounts";
 import InvoicesPage from "@/pages/invoices";
 import TransactionsPage from "@/pages/transactions";
@@ -55,6 +56,9 @@ function Router() {
       </Route>
       <Route path="/suppliers">
         <ProtectedRoute component={SuppliersPage} />
+      </Route>
+      <Route path="/addresses">
+        <ProtectedRoute component={AddressesPage} />
       </Route>
       <Route path="/accounts">
         <ProtectedRoute component={AccountsPage} />

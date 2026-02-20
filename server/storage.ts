@@ -1,6 +1,7 @@
 import { db } from "./db";
 import {
-  users, products, clients, accounts, invoices, transactions,
+  addresses, users, products, clients, accounts, invoices, transactions,
+  type Address, type InsertAddress,
   type User, type InsertUser,
   type Product, type InsertProduct,
   type Client, type InsertClient,
@@ -12,6 +13,10 @@ import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
+  getAddresses(): Promise<Address[]>;
+  createAddress(address: InsertAddress): Promise<Address>;
+  deleteAddress(id: number): Promise<void>;
+
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -33,6 +38,19 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  async getAddresses(): Promise<Address[]> {
+    return await db.select().from(addresses);
+  }
+
+  async createAddress(address: InsertAddress): Promise<Address> {
+    const [created] = await db.insert(addresses).values(address).returning();
+    return created;
+  }
+
+  async deleteAddress(id: number): Promise<void> {
+    await db.delete(addresses).where(eq(addresses.id, id));
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;

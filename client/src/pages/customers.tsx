@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertClientSchema } from "@shared/routes";
 import { z } from "zod";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useAddresses } from "@/hooks/use-addresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,9 +18,6 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { Plus, Search, Users, Loader2, MapPin, ChevronsUpDown, Check } from "lucide-react";
@@ -28,33 +26,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const IRAQI_CITIES = [
-  "بغداد",
-  "أربيل",
-  "السليمانية",
-  "دهوك",
-  "البصرة",
-  "الموصل",
-  "كركوك",
-  "النجف",
-  "كربلاء",
-  "الحلة",
-  "الديوانية",
-  "الناصرية",
-  "العمارة",
-  "الكوت",
-  "الرمادي",
-  "بعقوبة",
-  "تكريت",
-  "السماوة",
-  "حلبجة",
-  "زاخو",
-  "عنكاوا",
-  "رانية",
-  "شقلاوة",
-  "سوران",
-];
-
 const customerSchema = insertClientSchema.extend({
   type: z.literal("customer").default("customer"),
 });
@@ -62,6 +33,7 @@ const customerSchema = insertClientSchema.extend({
 export default function CustomersPage() {
   const { t } = useTranslation();
   const { data: allClients, isLoading } = useClients();
+  const { data: dbAddresses } = useAddresses();
   const { mutate: createClient, isPending } = useCreateClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -97,13 +69,10 @@ export default function CustomersPage() {
   const totalOldDebtUsd = customers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
   const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
 
-  const existingAddresses = Array.from(new Set(customers.map(c => c.address).filter(Boolean))) as string[];
-  const allAddresses = Array.from(new Set([...IRAQI_CITIES, ...existingAddresses]));
+  const addressNames = dbAddresses?.map(a => a.name) || [];
   const filteredAddresses = addressSearch
-    ? allAddresses.filter(a => a.includes(addressSearch))
-    : allAddresses;
-
-  const currentAddress = form.watch("address");
+    ? addressNames.filter(a => a.includes(addressSearch))
+    : addressNames;
 
   return (
     <div className="space-y-8">
@@ -199,22 +168,7 @@ export default function CustomersPage() {
                               {addr}
                             </button>
                           ))}
-                          {addressSearch && !filteredAddresses.includes(addressSearch) && (
-                            <button
-                              type="button"
-                              className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors cursor-pointer text-primary"
-                              onClick={() => {
-                                field.onChange(addressSearch);
-                                setAddressSearch("");
-                                setAddressOpen(false);
-                              }}
-                              data-testid="address-option-custom"
-                            >
-                              <Plus className="h-4 w-4" />
-                              {t('Add')}: "{addressSearch}"
-                            </button>
-                          )}
-                          {filteredAddresses.length === 0 && !addressSearch && (
+                          {filteredAddresses.length === 0 && (
                             <div className="px-3 py-2 text-sm text-muted-foreground">{t('No addresses found')}</div>
                           )}
                         </div>

@@ -76,6 +76,37 @@ export async function registerRoutes(
     next();
   };
 
+  app.get(api.addresses.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getAddresses();
+    res.json(data);
+  });
+
+  app.post(api.addresses.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.addresses.create.input.parse(req.body);
+      const data = await storage.createAddress(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Address already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.addresses.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteAddress(id);
+      res.json({ message: "Deleted" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.products.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getProducts();
     res.json(data);
@@ -172,6 +203,19 @@ export async function registerRoutes(
 }
 
 async function seedDatabase() {
+  const addressList = await storage.getAddresses();
+  if (addressList.length === 0) {
+    const defaultAddresses = [
+      "بغداد", "أربيل", "السليمانية", "دهوك", "البصرة", "الموصل",
+      "كركوك", "النجف", "كربلاء", "الحلة", "الديوانية", "الناصرية",
+      "العمارة", "الكوت", "الرمادي", "بعقوبة", "تكريت", "السماوة",
+      "حلبجة", "زاخو",
+    ];
+    for (const name of defaultAddresses) {
+      await storage.createAddress({ name });
+    }
+  }
+
   const existing = await storage.getUserByUsername("admin");
   if (!existing) {
     const hashed = await bcrypt.hash("admin123", 12);

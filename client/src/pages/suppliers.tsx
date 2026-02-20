@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertClientSchema } from "@shared/routes";
 import { z } from "zod";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useAddresses } from "@/hooks/use-addresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,9 +17,14 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, Truck, Loader2 } from "lucide-react";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { Plus, Search, Truck, Loader2, MapPin, ChevronsUpDown, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
@@ -27,14 +33,17 @@ const supplierSchema = insertClientSchema.extend({
 export default function SuppliersPage() {
   const { t } = useTranslation();
   const { data: allClients, isLoading } = useClients();
+  const { data: dbAddresses } = useAddresses();
   const { mutate: createClient, isPending } = useCreateClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [addressSearch, setAddressSearch] = useState("");
 
   const form = useForm<z.infer<typeof supplierSchema>>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: { name: "", type: "supplier", contact: "", oldDebtUsd: "0", oldDebtIqd: "0" },
+    defaultValues: { name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
@@ -53,11 +62,17 @@ export default function SuppliersPage() {
   const suppliers = allClients?.filter(c => c.type === "supplier") || [];
   const filtered = suppliers.filter((c) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.contact?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalOldDebtUsd = suppliers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
   const totalOldDebtIqd = suppliers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
+
+  const addressNames = dbAddresses?.map(a => a.name) || [];
+  const filteredAddresses = addressSearch
+    ? addressNames.filter(a => a.includes(addressSearch))
+    : addressNames;
 
   return (
     <div className="space-y-8">
@@ -91,6 +106,74 @@ export default function SuppliersPage() {
                   <FormItem>
                     <FormLabel>{t('Contact')}</FormLabel>
                     <FormControl><Input data-testid="input-supplier-contact" placeholder="0770-000-0000" {...field} value={field.value ?? ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="address" render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>{t('Address')}</FormLabel>
+                    <Popover open={addressOpen} onOpenChange={setAddressOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={addressOpen}
+                            className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                            data-testid="combobox-supplier-address"
+                          >
+                            {field.value ? (
+                              <span className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {field.value}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {t('Select address...')}
+                              </span>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                        <div className="p-2 border-b">
+                          <Input
+                            placeholder={t('Search or type address...')}
+                            value={addressSearch}
+                            onChange={(e) => setAddressSearch(e.target.value)}
+                            data-testid="input-supplier-address-search"
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="max-h-[200px] overflow-y-auto p-1">
+                          {filteredAddresses.map((addr) => (
+                            <button
+                              key={addr}
+                              type="button"
+                              className={cn(
+                                "flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors cursor-pointer",
+                                field.value === addr && "bg-primary/10 text-primary"
+                              )}
+                              onClick={() => {
+                                field.onChange(addr);
+                                setAddressSearch("");
+                                setAddressOpen(false);
+                              }}
+                              data-testid={`supplier-address-option-${addr}`}
+                            >
+                              <Check className={cn("h-4 w-4", field.value === addr ? "opacity-100" : "opacity-0")} />
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              {addr}
+                            </button>
+                          ))}
+                          {filteredAddresses.length === 0 && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">{t('No addresses found')}</div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -174,6 +257,7 @@ export default function SuppliersPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Name')}</TableHead>
+                    <TableHead>{t('Address')}</TableHead>
                     <TableHead>{t('Contact')}</TableHead>
                     <TableHead className="text-right">{t('Old Debt (USD)')}</TableHead>
                     <TableHead className="text-right">{t('Old Debt (IQD)')}</TableHead>
@@ -185,6 +269,14 @@ export default function SuppliersPage() {
                     <TableRow key={client.id} data-testid={`row-supplier-${client.id}`}>
                       <TableCell className="font-mono text-xs">{client.id}</TableCell>
                       <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell>
+                        {client.address ? (
+                          <Badge variant="outline" className="gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {client.address}
+                          </Badge>
+                        ) : '-'}
+                      </TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
                       <TableCell className="text-right font-mono">${Number(client.oldDebtUsd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>

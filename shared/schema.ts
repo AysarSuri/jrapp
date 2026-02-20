@@ -3,6 +3,11 @@ import { pgTable, text, serial, integer, timestamp, numeric, varchar } from "dri
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const addresses = pgTable("addresses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
@@ -69,6 +74,7 @@ export const transactions = pgTable("transactions", {
   date: timestamp("date").defaultNow().notNull(),
 });
 
+export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, balance: true }).extend({
@@ -80,6 +86,8 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true,
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, date: true });
 
 // Types
+export type Address = typeof addresses.$inferSelect;
+export type InsertAddress = z.infer<typeof insertAddressSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Product = typeof products.$inferSelect;
