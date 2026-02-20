@@ -13,6 +13,8 @@ import {
   insertAccountSchema, accounts, 
   insertInvoiceSchema, invoices, 
   insertTransactionSchema, transactions, 
+  insertSalesInvoiceSchema, salesInvoices,
+  insertSalesInvoiceItemSchema, salesInvoiceItems,
   loginSchema, users 
 } from './schema';
 
@@ -363,6 +365,37 @@ export const api = {
       responses: {
         201: z.custom<typeof invoices.$inferSelect>(),
       }
+    }
+  },
+  salesInvoices: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices' as const,
+      responses: { 200: z.array(z.custom<typeof salesInvoices.$inferSelect>()) }
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/:id' as const,
+      responses: { 200: z.custom<typeof salesInvoices.$inferSelect>() }
+    },
+    getItems: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof salesInvoiceItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/sales-invoices' as const,
+      input: z.object({
+        invoice: insertSalesInvoiceSchema,
+        items: z.array(insertSalesInvoiceItemSchema.omit({ invoiceId: true })),
+      }),
+      responses: { 201: z.custom<typeof salesInvoices.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
     }
   },
   transactions: {
