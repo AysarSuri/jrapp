@@ -15,11 +15,11 @@ export function useClients() {
 export function useCreateClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertClient) => {
+    mutationFn: async (client: InsertClient) => {
       const res = await fetch(api.clients.create.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(client),
       });
       if (!res.ok) throw new Error("Failed to create client");
       return api.clients.create.responses[201].parse(await res.json());

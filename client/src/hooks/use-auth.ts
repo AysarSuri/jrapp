@@ -24,10 +24,14 @@ export function useLogin() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
       });
+
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Login failed");
+        if (res.status === 401) {
+          throw new Error("Invalid username or password");
+        }
+        throw new Error("Login failed");
       }
+
       return api.auth.login.responses[200].parse(await res.json());
     },
     onSuccess: (user) => {
@@ -45,7 +49,6 @@ export function useLogout() {
     },
     onSuccess: () => {
       queryClient.setQueryData([api.auth.me.path], null);
-      window.location.href = "/auth";
     },
   });
 }

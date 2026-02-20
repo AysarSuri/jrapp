@@ -1,7 +1,4 @@
-import { useProducts } from "@/hooks/use-products";
-import { useInvoices } from "@/hooks/use-financials";
-import { useAccounts } from "@/hooks/use-financials";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { 
   BarChart, 
   Bar, 
@@ -10,158 +7,260 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line
-} from 'recharts';
-import { DollarSign, ShoppingCart, TrendingUp, Users } from "lucide-react";
-import { useTranslation } from "react-i18next";
+  AreaChart,
+  Area
+} from "recharts";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  Package, 
+  DollarSign, 
+  ArrowUpRight 
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useInvoices } from "@/hooks/use-invoices";
+
+// Mock data for visualization since we might not have enough real data yet
+const salesData = [
+  { name: 'Jan', total: 1200 },
+  { name: 'Feb', total: 2100 },
+  { name: 'Mar', total: 1800 },
+  { name: 'Apr', total: 2400 },
+  { name: 'May', total: 3200 },
+  { name: 'Jun', total: 2800 },
+];
+
+const revenueData = [
+  { name: 'Mon', revenue: 4000 },
+  { name: 'Tue', revenue: 3000 },
+  { name: 'Wed', revenue: 5000 },
+  { name: 'Thu', revenue: 2780 },
+  { name: 'Fri', revenue: 6890 },
+  { name: 'Sat', revenue: 2390 },
+  { name: 'Sun', revenue: 3490 },
+];
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { data: products } = useProducts();
+  const { data: transactions } = useTransactions();
   const { data: invoices } = useInvoices();
-  const { data: accounts } = useAccounts();
-
-  // Metrics calculation
-  const totalSales = invoices
-    ?.filter(i => i.type === 'sale')
-    .reduce((acc, curr) => acc + Number(curr.total), 0) || 0;
-
-  const totalPurchases = invoices
-    ?.filter(i => i.type === 'purchase')
-    .reduce((acc, curr) => acc + Number(curr.total), 0) || 0;
-
-  const totalBalance = accounts
-    ?.reduce((acc, curr) => acc + Number(curr.balance), 0) || 0;
-
-  const productCount = products?.length || 0;
-
-  // Chart data preparation
-  const salesData = [
-    { name: 'Jan', sales: 4000 },
-    { name: 'Feb', sales: 3000 },
-    { name: 'Mar', sales: 2000 },
-    { name: 'Apr', sales: 2780 },
-    { name: 'May', sales: 1890 },
-    { name: 'Jun', sales: 2390 },
-  ];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">{t('nav.dashboard')}</h2>
-        <p className="text-muted-foreground mt-2">Overview of your business performance.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Dashboard')}</h1>
+          <p className="text-muted-foreground mt-1">Overview of your business performance</p>
+        </div>
       </div>
 
+      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard 
-          title={t('dashboard.totalSales')} 
-          value={`$${totalSales.toLocaleString()}`} 
-          icon={TrendingUp}
-          trend="+12.5% from last month"
-          color="text-green-500"
-        />
-        <MetricCard 
-          title={t('dashboard.totalPurchases')} 
-          value={`$${totalPurchases.toLocaleString()}`} 
-          icon={ShoppingCart}
-          trend="+4.3% from last month"
-          color="text-blue-500"
-        />
-        <MetricCard 
-          title={t('dashboard.cashBalance')} 
-          value={`$${totalBalance.toLocaleString()}`} 
-          icon={DollarSign}
-          trend="Current available"
-          color="text-emerald-500"
-        />
-        <MetricCard 
-          title={t('dashboard.activeProducts')} 
-          value={productCount.toString()} 
-          icon={Users}
-          trend="Total active items"
-          color="text-purple-500"
-        />
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Total Sales')}</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$45,231.89</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <span className="text-emerald-500 flex items-center font-medium">
+                <TrendingUp className="w-3 h-3 mr-1" /> +20.1%
+              </span>
+              <span className="ml-2">from last month</span>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Active Clients')}</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+2350</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <span className="text-emerald-500 flex items-center font-medium">
+                <TrendingUp className="w-3 h-3 mr-1" /> +180.1%
+              </span>
+              <span className="ml-2">from last month</span>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Products')}</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+12,234</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <span className="text-rose-500 flex items-center font-medium">
+                <TrendingDown className="w-3 h-3 mr-1" /> -4.5%
+              </span>
+              <span className="ml-2">from last month</span>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Net Profit')}</CardTitle>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$12,234.00</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              <span className="text-emerald-500 flex items-center font-medium">
+                <TrendingUp className="w-3 h-3 mr-1" /> +12.3%
+              </span>
+              <span className="ml-2">from last month</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 shadow-sm border-slate-100">
+        <Card className="col-span-4 hover:shadow-md transition-all">
           <CardHeader>
-            <CardTitle>Sales Overview</CardTitle>
+            <CardTitle>Revenue Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#888888" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#888888" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => `$${value}`} 
-                />
-                <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Bar 
-                  dataKey="sales" 
-                  fill="hsl(var(--primary))" 
-                  radius={[4, 4, 0, 0]} 
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#888888" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="#888888" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `$${value}`} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3 hover:shadow-md transition-all">
+          <CardHeader>
+            <CardTitle>Monthly Sales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#888888" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="#888888" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                    cursor={{fill: 'hsl(var(--muted))'}}
+                  />
+                  <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {transactions?.slice(0, 3).map((tx, i) => (
+                <div key={i} className="flex items-center">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    $
+                  </div>
+                  <div className="ml-4 space-y-1">
+                    <p className="text-sm font-medium leading-none">{tx.type} - {tx.reference}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="ml-auto font-medium">
+                    {tx.type === 'deposit' ? '+' : '-'}${tx.amount}
+                  </div>
+                </div>
+              ))}
+              {!transactions?.length && (
+                <p className="text-muted-foreground text-sm">No recent transactions.</p>
+              )}
+            </div>
           </CardContent>
         </Card>
         
-        <Card className="col-span-3 shadow-sm border-slate-100">
+        <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>Recent Invoices</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-8">
-              {/* Dummy Recent Activity List */}
-              {[1, 2, 3, 4, 5].map((_, i) => (
+            <div className="space-y-4">
+              {invoices?.slice(0, 3).map((inv, i) => (
                 <div key={i} className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">New Invoice Generated</p>
-                    <p className="text-sm text-muted-foreground">
-                      Client: Olivia Martin
-                    </p>
+                  <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex items-center justify-center font-bold">
+                    <FileText className="h-4 w-4" />
                   </div>
-                  <div className="ml-auto font-medium">+$1,999.00</div>
+                  <div className="ml-4 space-y-1">
+                    <p className="text-sm font-medium leading-none">{inv.type} #{inv.id}</p>
+                    <p className="text-sm text-muted-foreground">{inv.status}</p>
+                  </div>
+                  <div className="ml-auto font-medium">
+                    ${inv.total}
+                  </div>
                 </div>
               ))}
+              {!invoices?.length && (
+                <p className="text-muted-foreground text-sm">No recent invoices.</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
-}
-
-function MetricCard({ title, value, icon: Icon, trend, color }: any) {
-  return (
-    <Card className="shadow-sm border-slate-100 hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-slate-500">
-          {title}
-        </CardTitle>
-        <Icon className={`h-4 w-4 ${color}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-slate-900">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">
-          {trend}
-        </p>
-      </CardContent>
-    </Card>
   );
 }

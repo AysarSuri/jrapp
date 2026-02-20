@@ -1,89 +1,124 @@
 import { useState } from "react";
 import { useLogin } from "@/hooks/use-auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@shared/schema";
+import { z } from "zod";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Loader2, Lock } from "lucide-react";
-import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, ShieldCheck } from "lucide-react";
 
 export default function AuthPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const login = useLogin();
   const [, setLocation] = useLocation();
+  const { mutate: login, isPending } = useLogin();
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await login.mutateAsync({ username, password });
-      setLocation("/");
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof loginSchema>) {
+    login(values, {
+      onSuccess: () => {
+        toast({ title: "Welcome back!", description: "Successfully logged in." });
+        setLocation("/");
+      },
+      onError: (error) => {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md animate-enter">
-        <div className="text-center mb-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background z-0 pointer-events-none" />
+      
+      <div className="w-full max-w-md z-10">
+        <div className="mb-8 text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
-            <Lock className="w-8 h-8" />
+            <ShieldCheck className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Access</h1>
-          <p className="text-slate-500 mt-2">Sign in to manage your ERP system</p>
+          <h1 className="text-4xl font-bold tracking-tight">ProERP</h1>
+          <p className="text-muted-foreground text-lg">Enterprise Resource Planning</p>
         </div>
 
-        <Card className="shadow-xl border-slate-200">
+        <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Sign in</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
+            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access the admin panel
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="admin"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="admin" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" className="h-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              {login.isError && (
-                <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm">
-                  {login.error?.message || "Invalid credentials"}
-                </div>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/25"
-                disabled={login.isPending}
-              >
-                {login.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
-              </Button>
-            </form>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 text-base font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
         
-        <p className="text-center text-sm text-slate-400 mt-6">
-          &copy; 2024 ERP System. All rights reserved.
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Protected System • Authorized Personnel Only
         </p>
       </div>
     </div>

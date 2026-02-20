@@ -15,13 +15,11 @@ export function useProducts() {
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertProduct) => {
-      // Coerce numeric fields to strings/numbers as expected by schema if needed
-      // Zod schema handles parsing, but we ensure correct types here
+    mutationFn: async (product: InsertProduct) => {
       const res = await fetch(api.products.create.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(product),
       });
       if (!res.ok) throw new Error("Failed to create product");
       return api.products.create.responses[201].parse(await res.json());

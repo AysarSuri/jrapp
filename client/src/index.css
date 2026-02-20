@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,9 +6,9 @@
 
 :root {
   --font-sans: 'Inter', sans-serif;
-  --font-arabic: 'Cairo', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-arabic: 'Tajawal', sans-serif;
 
-  /* Professional Enterprise Palette - Blue/Slate/White */
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;
 
@@ -25,7 +25,7 @@
   --secondary-foreground: 222 47% 11.2%;
 
   --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted-foreground: 215 16% 47%;
 
   --accent: 210 40% 96.1%;
   --accent-foreground: 222 47% 11.2%;
@@ -71,38 +71,33 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-sans);
   }
-  
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+
+  /* Support RTL fonts */
   [dir="rtl"] body {
     font-family: var(--font-arabic);
   }
-
-  [dir="ltr"] body {
-    font-family: var(--font-sans);
-  }
 }
 
-.glass-card {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl dark:bg-black/40 dark:border-white/10;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-
-.animate-enter {
-  animation: enter 0.4s ease-out forwards;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/40;
 }
