@@ -28,7 +28,7 @@ export const users = pgTable("users", {
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   barcode: text("barcode").notNull().unique(),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
   category: text("category").notNull(),
   bigUnitPriceUsd: numeric("big_unit_price_usd").notNull(),
   bigUnitPriceIqd: numeric("big_unit_price_iqd").notNull(),
@@ -48,7 +48,7 @@ export const inventory = pgTable("inventory", {
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
   type: text("type").notNull(), // 'supplier' | 'customer'
   contact: text("contact"),
   address: text("address"),
