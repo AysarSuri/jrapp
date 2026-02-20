@@ -18,6 +18,21 @@ export const categories = pgTable("categories", {
   name: text("name").notNull().unique(),
 });
 
+export const transferOffices = pgTable("transfer_offices", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
+export const banks = pgTable("banks", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
+export const customsClearances = pgTable("customs_clearances", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
@@ -89,6 +104,9 @@ export const transactions = pgTable("transactions", {
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
+export const insertTransferOfficeSchema = createInsertSchema(transferOffices).omit({ id: true });
+export const insertBankSchema = createInsertSchema(banks).omit({ id: true });
+export const insertCustomsClearanceSchema = createInsertSchema(customsClearances).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -112,6 +130,12 @@ export type Unit = typeof units.$inferSelect;
 export type InsertUnit = z.infer<typeof insertUnitSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type TransferOffice = typeof transferOffices.$inferSelect;
+export type InsertTransferOffice = z.infer<typeof insertTransferOfficeSchema>;
+export type Bank = typeof banks.$inferSelect;
+export type InsertBank = z.infer<typeof insertBankSchema>;
+export type CustomsClearance = typeof customsClearances.$inferSelect;
+export type InsertCustomsClearance = z.infer<typeof insertCustomsClearanceSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Product = typeof products.$inferSelect;

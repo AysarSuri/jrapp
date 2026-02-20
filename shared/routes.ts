@@ -3,6 +3,9 @@ import {
   insertAddressSchema, addresses,
   insertUnitSchema, units,
   insertCategorySchema, categories,
+  insertTransferOfficeSchema, transferOffices,
+  insertBankSchema, banks,
+  insertCustomsClearanceSchema, customsClearances,
   insertProductSchema, products, 
   insertClientSchema, clients, 
   insertAccountSchema, accounts, 
@@ -140,6 +143,78 @@ export const api = {
       responses: {
         200: z.object({ message: z.string() }),
       }
+    }
+  },
+  transferOffices: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/transfer-offices' as const,
+      responses: { 200: z.array(z.custom<typeof transferOffices.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/transfer-offices' as const,
+      input: insertTransferOfficeSchema,
+      responses: { 201: z.custom<typeof transferOffices.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/transfer-offices/:id' as const,
+      input: insertTransferOfficeSchema,
+      responses: { 200: z.custom<typeof transferOffices.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/transfer-offices/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  banks: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/banks' as const,
+      responses: { 200: z.array(z.custom<typeof banks.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/banks' as const,
+      input: insertBankSchema,
+      responses: { 201: z.custom<typeof banks.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/banks/:id' as const,
+      input: insertBankSchema,
+      responses: { 200: z.custom<typeof banks.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/banks/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  customsClearances: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/customs-clearances' as const,
+      responses: { 200: z.array(z.custom<typeof customsClearances.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/customs-clearances' as const,
+      input: insertCustomsClearanceSchema,
+      responses: { 201: z.custom<typeof customsClearances.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/customs-clearances/:id' as const,
+      input: insertCustomsClearanceSchema,
+      responses: { 200: z.custom<typeof customsClearances.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/customs-clearances/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
     }
   },
   products: {

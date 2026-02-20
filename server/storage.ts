@@ -1,9 +1,13 @@
 import { db } from "./db";
 import {
-  addresses, units, categories, users, products, clients, accounts, invoices, transactions,
+  addresses, units, categories, transferOffices, banks, customsClearances,
+  users, products, clients, accounts, invoices, transactions,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
+  type TransferOffice, type InsertTransferOffice,
+  type Bank, type InsertBank,
+  type CustomsClearance, type InsertCustomsClearance,
   type User, type InsertUser,
   type Product, type InsertProduct,
   type Client, type InsertClient,
@@ -29,6 +33,21 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: InsertCategory): Promise<Category>;
   deleteCategory(id: number): Promise<void>;
+
+  getTransferOffices(): Promise<TransferOffice[]>;
+  createTransferOffice(office: InsertTransferOffice): Promise<TransferOffice>;
+  updateTransferOffice(id: number, office: InsertTransferOffice): Promise<TransferOffice>;
+  deleteTransferOffice(id: number): Promise<void>;
+
+  getBanks(): Promise<Bank[]>;
+  createBank(bank: InsertBank): Promise<Bank>;
+  updateBank(id: number, bank: InsertBank): Promise<Bank>;
+  deleteBank(id: number): Promise<void>;
+
+  getCustomsClearances(): Promise<CustomsClearance[]>;
+  createCustomsClearance(cc: InsertCustomsClearance): Promise<CustomsClearance>;
+  updateCustomsClearance(id: number, cc: InsertCustomsClearance): Promise<CustomsClearance>;
+  deleteCustomsClearance(id: number): Promise<void>;
 
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -107,6 +126,51 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: number): Promise<void> {
     await db.delete(categories).where(eq(categories.id, id));
+  }
+
+  async getTransferOffices(): Promise<TransferOffice[]> {
+    return await db.select().from(transferOffices);
+  }
+  async createTransferOffice(office: InsertTransferOffice): Promise<TransferOffice> {
+    const [created] = await db.insert(transferOffices).values(office).returning();
+    return created;
+  }
+  async updateTransferOffice(id: number, office: InsertTransferOffice): Promise<TransferOffice> {
+    const [updated] = await db.update(transferOffices).set(office).where(eq(transferOffices.id, id)).returning();
+    return updated;
+  }
+  async deleteTransferOffice(id: number): Promise<void> {
+    await db.delete(transferOffices).where(eq(transferOffices.id, id));
+  }
+
+  async getBanks(): Promise<Bank[]> {
+    return await db.select().from(banks);
+  }
+  async createBank(bank: InsertBank): Promise<Bank> {
+    const [created] = await db.insert(banks).values(bank).returning();
+    return created;
+  }
+  async updateBank(id: number, bank: InsertBank): Promise<Bank> {
+    const [updated] = await db.update(banks).set(bank).where(eq(banks.id, id)).returning();
+    return updated;
+  }
+  async deleteBank(id: number): Promise<void> {
+    await db.delete(banks).where(eq(banks.id, id));
+  }
+
+  async getCustomsClearances(): Promise<CustomsClearance[]> {
+    return await db.select().from(customsClearances);
+  }
+  async createCustomsClearance(cc: InsertCustomsClearance): Promise<CustomsClearance> {
+    const [created] = await db.insert(customsClearances).values(cc).returning();
+    return created;
+  }
+  async updateCustomsClearance(id: number, cc: InsertCustomsClearance): Promise<CustomsClearance> {
+    const [updated] = await db.update(customsClearances).set(cc).where(eq(customsClearances.id, id)).returning();
+    return updated;
+  }
+  async deleteCustomsClearance(id: number): Promise<void> {
+    await db.delete(customsClearances).where(eq(customsClearances.id, id));
   }
 
   async getUser(id: string): Promise<User | undefined> {

@@ -222,6 +222,114 @@ export async function registerRoutes(
     }
   });
 
+  // Transfer Offices CRUD
+  app.get(api.transferOffices.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getTransferOffices();
+    res.json(data);
+  });
+  app.post(api.transferOffices.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.transferOffices.create.input.parse(req.body);
+      const data = await storage.createTransferOffice(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Transfer office already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.patch(api.transferOffices.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.transferOffices.update.input.parse(req.body);
+      const data = await storage.updateTransferOffice(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Transfer office already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.delete(api.transferOffices.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteTransferOffice(id);
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  // Banks CRUD
+  app.get(api.banks.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getBanks();
+    res.json(data);
+  });
+  app.post(api.banks.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.banks.create.input.parse(req.body);
+      const data = await storage.createBank(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Bank already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.patch(api.banks.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.banks.update.input.parse(req.body);
+      const data = await storage.updateBank(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Bank already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.delete(api.banks.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteBank(id);
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  // Customs Clearances CRUD
+  app.get(api.customsClearances.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCustomsClearances();
+    res.json(data);
+  });
+  app.post(api.customsClearances.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.customsClearances.create.input.parse(req.body);
+      const data = await storage.createCustomsClearance(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Customs clearance already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.patch(api.customsClearances.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.customsClearances.update.input.parse(req.body);
+      const data = await storage.updateCustomsClearance(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Customs clearance already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.delete(api.customsClearances.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteCustomsClearance(id);
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
   app.get(api.products.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getProducts();
     res.json(data);
