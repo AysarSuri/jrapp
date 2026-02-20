@@ -97,6 +97,23 @@ export async function registerRoutes(
     }
   });
 
+  app.patch(api.addresses.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.addresses.update.input.parse(req.body);
+      const data = await storage.updateAddress(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Address already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete(api.addresses.delete.path, requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
@@ -139,6 +156,30 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.clients.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.clients.update.input.parse(req.body);
+      const data = await storage.updateClient(id, input);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.clients.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteClient(id);
+      res.json({ message: "Deleted" });
+    } catch {
       res.status(500).json({ message: "Internal server error" });
     }
   });

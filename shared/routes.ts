@@ -60,6 +60,14 @@ export const api = {
         201: z.custom<typeof addresses.$inferSelect>(),
       }
     },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/addresses/:id' as const,
+      input: insertAddressSchema,
+      responses: {
+        200: z.custom<typeof addresses.$inferSelect>(),
+      }
+    },
     delete: {
       method: 'DELETE' as const,
       path: '/api/addresses/:id' as const,
@@ -99,6 +107,21 @@ export const api = {
       input: insertClientSchema,
       responses: {
         201: z.custom<typeof clients.$inferSelect>(),
+      }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/clients/:id' as const,
+      input: insertClientSchema.partial(),
+      responses: {
+        200: z.custom<typeof clients.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/clients/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
       }
     }
   },

@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertAddressSchema } from "@shared/routes";
+import { insertAddressSchema, type Address } from "@shared/routes";
 import { z } from "zod";
-import { useAddresses, useCreateAddress, useDeleteAddress } from "@/hooks/use-addresses";
+import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress } from "@/hooks/use-addresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,7 +20,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MapPin, Loader2, Trash2 } from "lucide-react";
+import { Plus, Search, MapPin, Loader2, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,10 +28,12 @@ import { Badge } from "@/components/ui/badge";
 export default function AddressesPage() {
   const { t } = useTranslation();
   const { data: addresses, isLoading } = useAddresses();
-  const { mutate: createAddress, isPending } = useCreateAddress();
-  const { mutate: deleteAddress, isPending: isDeleting } = useDeleteAddress();
+  const { mutate: createAddress, isPending: isCreating } = useCreateAddress();
+  const { mutate: updateAddress, isPending: isUpdating } = useUpdateAddress();
+  const { mutate: deleteAddress } = useDeleteAddress();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const form = useForm<z.infer<typeof insertAddressSchema>>({
@@ -39,17 +41,43 @@ export default function AddressesPage() {
     defaultValues: { name: "" },
   });
 
+  const openCreateDialog = () => {
+    setEditingAddress(null);
+    form.reset({ name: "" });
+    setOpen(true);
+  };
+
+  const openEditDialog = (addr: Address) => {
+    setEditingAddress(addr);
+    form.reset({ name: addr.name });
+    setOpen(true);
+  };
+
   const onSubmit = (values: z.infer<typeof insertAddressSchema>) => {
-    createAddress(values, {
-      onSuccess: () => {
-        setOpen(false);
-        form.reset();
-        toast({ title: t("Address added successfully") });
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to add address"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (editingAddress) {
+      updateAddress({ id: editingAddress.id, data: values }, {
+        onSuccess: () => {
+          setOpen(false);
+          setEditingAddress(null);
+          form.reset();
+          toast({ title: t("Address updated successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to update address"), description: err.message, variant: "destructive" });
+        },
+      });
+    } else {
+      createAddress(values, {
+        onSuccess: () => {
+          setOpen(false);
+          form.reset();
+          toast({ title: t("Address added successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to add address"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -67,6 +95,8 @@ export default function AddressesPage() {
     a.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const isSaving = isCreating || isUpdating;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -74,16 +104,16 @@ export default function AddressesPage() {
           <h1 className="text-3xl font-bold tracking-tight">{t('Addresses')}</h1>
           <p className="text-muted-foreground mt-1">{t('Manage addresses for customers and suppliers')}</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingAddress(null); }}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-address">
+            <Button data-testid="button-add-address" onClick={openCreateDialog}>
               <Plus className="w-4 h-4 mr-2" />
               {t('Add Address')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>
-              <DialogTitle>{t('Add New Address')}</DialogTitle>
+              <DialogTitle>{editingAddress ? t('Edit Address') : t('Add New Address')}</DialogTitle>
               <DialogDescription>{t('Enter the address name (city, neighborhood, etc.)')}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -96,9 +126,9 @@ export default function AddressesPage() {
                   </FormItem>
                 )} />
                 <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isPending} data-testid="button-save-address">
-                    {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingAddress(null); }}>{t('Cancel')}</Button>
+                  <Button type="submit" disabled={isSaving} data-testid="button-save-address">
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -157,27 +187,32 @@ export default function AddressesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-address-${addr.id}`}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t('Delete Address')}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t('Are you sure you want to delete this address?')} ({addr.name})
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(addr.id)} data-testid={`button-confirm-delete-${addr.id}`}>
-                                {t('Delete')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(addr)} data-testid={`button-edit-address-${addr.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-address-${addr.id}`}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Delete Address')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t('Are you sure you want to delete this address?')} ({addr.name})
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(addr.id)} data-testid={`button-confirm-delete-${addr.id}`}>
+                                  {t('Delete')}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

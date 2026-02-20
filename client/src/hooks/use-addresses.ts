@@ -33,6 +33,27 @@ export function useCreateAddress() {
   });
 }
 
+export function useUpdateAddress() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: InsertAddress }) => {
+      const res = await fetch(`/api/addresses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to update address");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.addresses.list.path] });
+    },
+  });
+}
+
 export function useDeleteAddress() {
   const queryClient = useQueryClient();
   return useMutation({

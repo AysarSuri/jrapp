@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertClientSchema } from "@shared/routes";
+import { insertClientSchema, type Client } from "@shared/routes";
 import { z } from "zod";
-import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
 import { useAddresses } from "@/hooks/use-addresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,11 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Plus, Search, Truck, Loader2, MapPin, ChevronsUpDown, Check } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, Truck, Loader2, MapPin, ChevronsUpDown, Check, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +38,12 @@ export default function SuppliersPage() {
   const { t } = useTranslation();
   const { data: allClients, isLoading } = useClients();
   const { data: dbAddresses } = useAddresses();
-  const { mutate: createClient, isPending } = useCreateClient();
+  const { mutate: createClient, isPending: isCreating } = useCreateClient();
+  const { mutate: updateClient, isPending: isUpdating } = useUpdateClient();
+  const { mutate: deleteClient } = useDeleteClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [addressOpen, setAddressOpen] = useState(false);
   const [addressSearch, setAddressSearch] = useState("");
@@ -46,15 +53,59 @@ export default function SuppliersPage() {
     defaultValues: { name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
+  const openCreateDialog = () => {
+    setEditingClient(null);
+    form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" });
+    setOpen(true);
+  };
+
+  const openEditDialog = (client: Client) => {
+    setEditingClient(client);
+    form.reset({
+      name: client.name,
+      type: "supplier",
+      contact: client.contact || "",
+      address: client.address || "",
+      oldDebtUsd: client.oldDebtUsd || "0",
+      oldDebtIqd: client.oldDebtIqd || "0",
+    });
+    setOpen(true);
+  };
+
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
-    createClient({ ...values, type: "supplier" }, {
+    if (editingClient) {
+      updateClient({ id: editingClient.id, data: { ...values, type: "supplier" } }, {
+        onSuccess: () => {
+          setOpen(false);
+          setEditingClient(null);
+          form.reset();
+          toast({ title: t("Supplier updated successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to update supplier"), description: err.message, variant: "destructive" });
+        },
+      });
+    } else {
+      createClient({ ...values, type: "supplier" }, {
+        onSuccess: () => {
+          setOpen(false);
+          form.reset();
+          toast({ title: t("Supplier created successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to create supplier"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    deleteClient(id, {
       onSuccess: () => {
-        setOpen(false);
-        form.reset();
-        toast({ title: t("Supplier created successfully") });
+        toast({ title: t("Supplier deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to create supplier"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete supplier"), description: err.message, variant: "destructive" });
       },
     });
   };
@@ -74,6 +125,8 @@ export default function SuppliersPage() {
     ? addressNames.filter(a => a.includes(addressSearch))
     : addressNames;
 
+  const isSaving = isCreating || isUpdating;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -81,16 +134,16 @@ export default function SuppliersPage() {
           <h1 className="text-3xl font-bold tracking-tight">{t('Suppliers')}</h1>
           <p className="text-muted-foreground mt-1">{t('Manage your suppliers')}</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null); }}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-supplier">
+            <Button data-testid="button-add-supplier" onClick={openCreateDialog}>
               <Plus className="w-4 h-4 mr-2" />
               {t('Add Supplier')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{t('Add New Supplier')}</DialogTitle>
+              <DialogTitle>{editingClient ? t('Edit Supplier') : t('Add New Supplier')}</DialogTitle>
               <DialogDescription>{t('Fill in the supplier details below.')}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -161,7 +214,6 @@ export default function SuppliersPage() {
                                 setAddressSearch("");
                                 setAddressOpen(false);
                               }}
-                              data-testid={`supplier-address-option-${addr}`}
                             >
                               <Check className={cn("h-4 w-4", field.value === addr ? "opacity-100" : "opacity-0")} />
                               <MapPin className="h-3 w-3 text-muted-foreground" />
@@ -194,9 +246,9 @@ export default function SuppliersPage() {
                   )} />
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isPending} data-testid="button-save-supplier">
-                    {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingClient(null); }}>{t('Cancel')}</Button>
+                  <Button type="submit" disabled={isSaving} data-testid="button-save-supplier">
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -262,6 +314,7 @@ export default function SuppliersPage() {
                     <TableHead className="text-right">{t('Old Debt (USD)')}</TableHead>
                     <TableHead className="text-right">{t('Old Debt (IQD)')}</TableHead>
                     <TableHead className="text-right">{t('Balance')}</TableHead>
+                    <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -281,6 +334,34 @@ export default function SuppliersPage() {
                       <TableCell className="text-right font-mono">${Number(client.oldDebtUsd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.balance).toLocaleString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(client)} data-testid={`button-edit-supplier-${client.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-supplier-${client.id}`}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Delete Supplier')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t('Are you sure you want to delete this supplier?')} ({client.name})
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(client.id)} data-testid={`button-confirm-delete-supplier-${client.id}`}>
+                                  {t('Delete')}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

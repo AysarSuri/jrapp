@@ -15,6 +15,7 @@ import { randomUUID } from "crypto";
 export interface IStorage {
   getAddresses(): Promise<Address[]>;
   createAddress(address: InsertAddress): Promise<Address>;
+  updateAddress(id: number, address: InsertAddress): Promise<Address>;
   deleteAddress(id: number): Promise<void>;
 
   getUser(id: string): Promise<User | undefined>;
@@ -26,6 +27,8 @@ export interface IStorage {
   
   getClients(): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: number, client: Partial<InsertClient>): Promise<Client>;
+  deleteClient(id: number): Promise<void>;
   
   getAccounts(): Promise<Account[]>;
   createAccount(account: InsertAccount): Promise<Account>;
@@ -45,6 +48,11 @@ export class DatabaseStorage implements IStorage {
   async createAddress(address: InsertAddress): Promise<Address> {
     const [created] = await db.insert(addresses).values(address).returning();
     return created;
+  }
+
+  async updateAddress(id: number, address: InsertAddress): Promise<Address> {
+    const [updated] = await db.update(addresses).set(address).where(eq(addresses.id, id)).returning();
+    return updated;
   }
 
   async deleteAddress(id: number): Promise<void> {
@@ -82,6 +90,15 @@ export class DatabaseStorage implements IStorage {
   async createClient(client: InsertClient): Promise<Client> {
     const [created] = await db.insert(clients).values(client).returning();
     return created;
+  }
+
+  async updateClient(id: number, client: Partial<InsertClient>): Promise<Client> {
+    const [updated] = await db.update(clients).set(client).where(eq(clients.id, id)).returning();
+    return updated;
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    await db.delete(clients).where(eq(clients.id, id));
   }
 
   async getAccounts(): Promise<Account[]> {
