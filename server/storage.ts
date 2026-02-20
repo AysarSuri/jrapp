@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  addresses, units, categories, transferOffices, banks, customsClearances, representatives,
+  addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
@@ -8,6 +8,7 @@ import {
   type TransferOffice, type InsertTransferOffice,
   type Bank, type InsertBank,
   type CustomsClearance, type InsertCustomsClearance,
+  type Warehouse, type InsertWarehouse,
   type Representative, type InsertRepresentative,
   type User, type InsertUser,
   type Product, type InsertProduct,
@@ -49,6 +50,11 @@ export interface IStorage {
   createCustomsClearance(cc: InsertCustomsClearance): Promise<CustomsClearance>;
   updateCustomsClearance(id: number, cc: InsertCustomsClearance): Promise<CustomsClearance>;
   deleteCustomsClearance(id: number): Promise<void>;
+
+  getWarehouses(): Promise<Warehouse[]>;
+  createWarehouse(wh: InsertWarehouse): Promise<Warehouse>;
+  updateWarehouse(id: number, wh: InsertWarehouse): Promise<Warehouse>;
+  deleteWarehouse(id: number): Promise<void>;
 
   getRepresentatives(): Promise<Representative[]>;
   createRepresentative(rep: InsertRepresentative): Promise<Representative>;
@@ -177,6 +183,21 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCustomsClearance(id: number): Promise<void> {
     await db.delete(customsClearances).where(eq(customsClearances.id, id));
+  }
+
+  async getWarehouses(): Promise<Warehouse[]> {
+    return await db.select().from(warehouses);
+  }
+  async createWarehouse(wh: InsertWarehouse): Promise<Warehouse> {
+    const [created] = await db.insert(warehouses).values(wh).returning();
+    return created;
+  }
+  async updateWarehouse(id: number, wh: InsertWarehouse): Promise<Warehouse> {
+    const [updated] = await db.update(warehouses).set(wh).where(eq(warehouses.id, id)).returning();
+    return updated;
+  }
+  async deleteWarehouse(id: number): Promise<void> {
+    await db.delete(warehouses).where(eq(warehouses.id, id));
   }
 
   async getRepresentatives(): Promise<Representative[]> {

@@ -33,6 +33,11 @@ export const customsClearances = pgTable("customs_clearances", {
   name: text("name").notNull().unique(),
 });
 
+export const warehouses = pgTable("warehouses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const representatives = pgTable("representatives", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -112,6 +117,7 @@ export const insertCategorySchema = createInsertSchema(categories).omit({ id: tr
 export const insertTransferOfficeSchema = createInsertSchema(transferOffices).omit({ id: true });
 export const insertBankSchema = createInsertSchema(banks).omit({ id: true });
 export const insertCustomsClearanceSchema = createInsertSchema(customsClearances).omit({ id: true });
+export const insertWarehouseSchema = createInsertSchema(warehouses).omit({ id: true });
 export const insertRepresentativeSchema = createInsertSchema(representatives).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
@@ -142,6 +148,8 @@ export type Bank = typeof banks.$inferSelect;
 export type InsertBank = z.infer<typeof insertBankSchema>;
 export type CustomsClearance = typeof customsClearances.$inferSelect;
 export type InsertCustomsClearance = z.infer<typeof insertCustomsClearanceSchema>;
+export type Warehouse = typeof warehouses.$inferSelect;
+export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
 export type Representative = typeof representatives.$inferSelect;
 export type InsertRepresentative = z.infer<typeof insertRepresentativeSchema>;
 export type User = typeof users.$inferSelect;

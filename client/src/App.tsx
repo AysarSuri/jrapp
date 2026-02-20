@@ -16,6 +16,7 @@ import AddressesPage from "@/pages/addresses";
 import AccountsPage from "@/pages/accounts";
 import InvoicesPage from "@/pages/invoices";
 import TransactionsPage from "@/pages/transactions";
+import WarehousesPage from "@/pages/warehouses";
 import RepresentativesPage from "@/pages/representatives";
 import TransferOfficesPage from "@/pages/transfer-offices";
 import BanksPage from "@/pages/banks";
@@ -71,6 +72,9 @@ function Router() {
       </Route>
       <Route path="/addresses">
         <ProtectedRoute component={AddressesPage} />
+      </Route>
+      <Route path="/warehouses">
+        <ProtectedRoute component={WarehousesPage} />
       </Route>
       <Route path="/representatives">
         <ProtectedRoute component={RepresentativesPage} />

@@ -330,6 +330,42 @@ export async function registerRoutes(
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
 
+  // Warehouses CRUD
+  app.get(api.warehouses.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getWarehouses();
+    res.json(data);
+  });
+  app.post(api.warehouses.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.warehouses.create.input.parse(req.body);
+      const data = await storage.createWarehouse(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Warehouse already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.patch(api.warehouses.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.warehouses.update.input.parse(req.body);
+      const data = await storage.updateWarehouse(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Warehouse already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.delete(api.warehouses.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteWarehouse(id);
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
   // Representatives CRUD
   app.get(api.representatives.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getRepresentatives();
