@@ -61,8 +61,10 @@ export default function ProductsPage() {
       name: "",
       barcode: "",
       category: "",
-      priceUsd: "0",
-      priceIqd: "0",
+      bigUnitPriceUsd: "0",
+      bigUnitPriceIqd: "0",
+      smallUnitPriceUsd: "0",
+      smallUnitPriceIqd: "0",
       minStock: 0,
       bigUnit: "",
       smallUnit: "",
@@ -180,12 +182,12 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="priceUsd"
+                    name="bigUnitPriceUsd"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('Price (USD)')}</FormLabel>
+                        <FormLabel>{t('Big Unit Price (USD)')}</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input type="number" step="0.01" {...field} data-testid="input-big-unit-price-usd" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -193,12 +195,41 @@ export default function ProductsPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="priceIqd"
+                    name="bigUnitPriceIqd"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('Price (IQD)')}</FormLabel>
+                        <FormLabel>{t('Big Unit Price (IQD)')}</FormLabel>
                         <FormControl>
-                          <Input type="number" step="250" {...field} />
+                          <Input type="number" step="250" {...field} data-testid="input-big-unit-price-iqd" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="smallUnitPriceUsd"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Small Unit Price (USD)')}</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} data-testid="input-small-unit-price-usd" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="smallUnitPriceIqd"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Small Unit Price (IQD)')}</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="250" {...field} data-testid="input-small-unit-price-iqd" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -332,9 +363,11 @@ export default function ProductsPage() {
                     <TableHead>{t('Barcode')}</TableHead>
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Category')}</TableHead>
-                    <TableHead className="text-right">{t('Price (USD)')}</TableHead>
-                    <TableHead className="text-right">{t('Price (IQD)')}</TableHead>
-                    <TableHead className="text-center">Units</TableHead>
+                    <TableHead className="text-right">{t('Big Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right">{t('Big Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-right">{t('Small Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right">{t('Small Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-center">{t('Units')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -347,8 +380,10 @@ export default function ProductsPage() {
                           {product.category}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">${product.priceUsd}</TableCell>
-                      <TableCell className="text-right">{product.priceIqd} IQD</TableCell>
+                      <TableCell className="text-right">${product.bigUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right">{product.bigUnitPriceIqd} IQD</TableCell>
+                      <TableCell className="text-right">${product.smallUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right">{product.smallUnitPriceIqd} IQD</TableCell>
                       <TableCell className="text-center text-muted-foreground text-sm">
                         1 {product.bigUnit} = {product.conversionFactor} {product.smallUnit}
                       </TableCell>

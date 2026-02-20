@@ -386,9 +386,9 @@ async function seedDatabase() {
 
   const productsList = await storage.getProducts();
   if (productsList.length === 0) {
-    await storage.createProduct({ barcode: "PRD-001", name: "Samsung Galaxy A15", category: "Electronics", priceUsd: "150", priceIqd: "220000", minStock: 5, bigUnit: "Box", smallUnit: "Piece", conversionFactor: 10 });
-    await storage.createProduct({ barcode: "PRD-002", name: "Pepsi Cola 330ml", category: "Beverages", priceUsd: "0.50", priceIqd: "750", minStock: 100, bigUnit: "Carton", smallUnit: "Can", conversionFactor: 24 });
-    await storage.createProduct({ barcode: "PRD-003", name: "Notebook A4", category: "Stationery", priceUsd: "2", priceIqd: "3000", minStock: 50, bigUnit: "Pack", smallUnit: "Piece", conversionFactor: 12 });
+    await storage.createProduct({ barcode: "PRD-001", name: "Samsung Galaxy A15", category: "Electronics", bigUnitPriceUsd: "1500", bigUnitPriceIqd: "2200000", smallUnitPriceUsd: "150", smallUnitPriceIqd: "220000", minStock: 5, bigUnit: "Box", smallUnit: "Piece", conversionFactor: 10 });
+    await storage.createProduct({ barcode: "PRD-002", name: "Pepsi Cola 330ml", category: "Beverages", bigUnitPriceUsd: "12", bigUnitPriceIqd: "18000", smallUnitPriceUsd: "0.50", smallUnitPriceIqd: "750", minStock: 100, bigUnit: "Carton", smallUnit: "Can", conversionFactor: 24 });
+    await storage.createProduct({ barcode: "PRD-003", name: "Notebook A4", category: "Stationery", bigUnitPriceUsd: "24", bigUnitPriceIqd: "36000", smallUnitPriceUsd: "2", smallUnitPriceIqd: "3000", minStock: 50, bigUnit: "Pack", smallUnit: "Piece", conversionFactor: 12 });
   }
 
   const clientsList = await storage.getClients();
