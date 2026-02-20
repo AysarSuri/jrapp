@@ -157,6 +157,21 @@ export const api = {
       responses: {
         201: z.custom<typeof products.$inferSelect>(),
       }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/products/:id' as const,
+      input: insertProductSchema.partial(),
+      responses: {
+        200: z.custom<typeof products.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/products/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
     }
   },
   clients: {

@@ -240,6 +240,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/products/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const input = api.products.update.input.parse(req.body);
+      const data = await storage.updateProduct(id, input);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/products/:id', requireAuth, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteProduct(id);
+      res.json({ message: "Product deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.clients.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getClients();
     res.json(data);

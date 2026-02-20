@@ -90,7 +90,13 @@ export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true });
+export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
+  barcode: z.string().min(1, "Barcode is required"),
+  name: z.string().min(1, "Name is required"),
+  category: z.string().min(1, "Category is required"),
+  bigUnit: z.string().min(1, "Big unit is required"),
+  smallUnit: z.string().min(1, "Small unit is required"),
+});
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, balance: true }).extend({
   oldDebtUsd: z.string().optional().default('0'),
   oldDebtIqd: z.string().optional().default('0'),
