@@ -35,7 +35,8 @@ export const clients = pgTable("clients", {
   type: text("type").notNull(), // 'supplier' | 'customer'
   contact: text("contact"),
   balance: numeric("balance").notNull().default('0'),
-  oldDebt: numeric("old_debt").notNull().default('0'),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default('0'),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default('0'),
 });
 
 export const accounts = pgTable("accounts", {
@@ -70,7 +71,8 @@ export const transactions = pgTable("transactions", {
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, balance: true }).extend({
-  oldDebt: z.string().optional().default('0'),
+  oldDebtUsd: z.string().optional().default('0'),
+  oldDebtIqd: z.string().optional().default('0'),
 });
 export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true, balance: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, date: true });

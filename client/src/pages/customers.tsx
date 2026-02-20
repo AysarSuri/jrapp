@@ -22,7 +22,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const customerSchema = insertClientSchema.extend({
   type: z.literal("customer").default("customer"),
-  oldDebt: z.string().optional().default("0"),
 });
 
 export default function CustomersPage() {
@@ -35,7 +34,7 @@ export default function CustomersPage() {
 
   const form = useForm<z.infer<typeof customerSchema>>({
     resolver: zodResolver(customerSchema),
-    defaultValues: { name: "", type: "customer", contact: "", oldDebt: "0" },
+    defaultValues: { name: "", type: "customer", contact: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
   const onSubmit = (values: z.infer<typeof customerSchema>) => {
@@ -57,7 +56,8 @@ export default function CustomersPage() {
     c.contact?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalOldDebt = customers.reduce((sum, c) => sum + Number(c.oldDebt || 0), 0);
+  const totalOldDebtUsd = customers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
+  const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -94,13 +94,22 @@ export default function CustomersPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="oldDebt" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Old Debt')}</FormLabel>
-                    <FormControl><Input data-testid="input-customer-old-debt" type="number" step="0.01" placeholder="0.00" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt (USD)')}</FormLabel>
+                      <FormControl><Input data-testid="input-customer-old-debt-usd" type="number" step="0.01" placeholder="0.00" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt (IQD)')}</FormLabel>
+                      <FormControl><Input data-testid="input-customer-old-debt-iqd" type="number" step="1" placeholder="0" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isPending} data-testid="button-save-customer">
@@ -114,7 +123,7 @@ export default function CustomersPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Customers')}</CardTitle>
@@ -126,11 +135,18 @@ export default function CustomersPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Old Debts')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">{t('Total Old Debts (USD)')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalOldDebt.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${totalOldDebtUsd.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Total Old Debts (IQD)')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalOldDebtIqd.toLocaleString()} IQD</div>
           </CardContent>
         </Card>
       </div>
@@ -159,7 +175,8 @@ export default function CustomersPage() {
                     <TableHead>#</TableHead>
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Contact')}</TableHead>
-                    <TableHead className="text-right">{t('Old Debt')}</TableHead>
+                    <TableHead className="text-right">{t('Old Debt (USD)')}</TableHead>
+                    <TableHead className="text-right">{t('Old Debt (IQD)')}</TableHead>
                     <TableHead className="text-right">{t('Balance')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -169,7 +186,8 @@ export default function CustomersPage() {
                       <TableCell className="font-mono text-xs">{client.id}</TableCell>
                       <TableCell className="font-medium">{client.name}</TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
-                      <TableCell className="text-right font-mono">{Number(client.oldDebt || 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono">${Number(client.oldDebtUsd || 0).toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.balance).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
