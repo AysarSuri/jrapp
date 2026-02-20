@@ -16,7 +16,8 @@ import {
   Users, 
   Package, 
   DollarSign, 
-  ArrowUpRight 
+  ArrowUpRight,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/hooks/use-transactions";
