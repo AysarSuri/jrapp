@@ -330,6 +330,42 @@ export async function registerRoutes(
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
 
+  // Representatives CRUD
+  app.get(api.representatives.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getRepresentatives();
+    res.json(data);
+  });
+  app.post(api.representatives.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.representatives.create.input.parse(req.body);
+      const data = await storage.createRepresentative(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Representative already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.patch(api.representatives.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.representatives.update.input.parse(req.body);
+      const data = await storage.updateRepresentative(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
+      if (err?.code === '23505') return res.status(400).json({ message: "Representative already exists" });
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app.delete(api.representatives.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteRepresentative(id);
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
   app.get(api.products.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getProducts();
     res.json(data);

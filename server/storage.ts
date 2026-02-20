@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  addresses, units, categories, transferOffices, banks, customsClearances,
+  addresses, units, categories, transferOffices, banks, customsClearances, representatives,
   users, products, clients, accounts, invoices, transactions,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
@@ -8,6 +8,7 @@ import {
   type TransferOffice, type InsertTransferOffice,
   type Bank, type InsertBank,
   type CustomsClearance, type InsertCustomsClearance,
+  type Representative, type InsertRepresentative,
   type User, type InsertUser,
   type Product, type InsertProduct,
   type Client, type InsertClient,
@@ -48,6 +49,11 @@ export interface IStorage {
   createCustomsClearance(cc: InsertCustomsClearance): Promise<CustomsClearance>;
   updateCustomsClearance(id: number, cc: InsertCustomsClearance): Promise<CustomsClearance>;
   deleteCustomsClearance(id: number): Promise<void>;
+
+  getRepresentatives(): Promise<Representative[]>;
+  createRepresentative(rep: InsertRepresentative): Promise<Representative>;
+  updateRepresentative(id: number, rep: InsertRepresentative): Promise<Representative>;
+  deleteRepresentative(id: number): Promise<void>;
 
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -171,6 +177,21 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCustomsClearance(id: number): Promise<void> {
     await db.delete(customsClearances).where(eq(customsClearances.id, id));
+  }
+
+  async getRepresentatives(): Promise<Representative[]> {
+    return await db.select().from(representatives);
+  }
+  async createRepresentative(rep: InsertRepresentative): Promise<Representative> {
+    const [created] = await db.insert(representatives).values(rep).returning();
+    return created;
+  }
+  async updateRepresentative(id: number, rep: InsertRepresentative): Promise<Representative> {
+    const [updated] = await db.update(representatives).set(rep).where(eq(representatives.id, id)).returning();
+    return updated;
+  }
+  async deleteRepresentative(id: number): Promise<void> {
+    await db.delete(representatives).where(eq(representatives.id, id));
   }
 
   async getUser(id: string): Promise<User | undefined> {

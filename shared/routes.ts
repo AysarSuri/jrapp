@@ -6,6 +6,7 @@ import {
   insertTransferOfficeSchema, transferOffices,
   insertBankSchema, banks,
   insertCustomsClearanceSchema, customsClearances,
+  insertRepresentativeSchema, representatives,
   insertProductSchema, products, 
   insertClientSchema, clients, 
   insertAccountSchema, accounts, 
@@ -214,6 +215,30 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/customs-clearances/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  representatives: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/representatives' as const,
+      responses: { 200: z.array(z.custom<typeof representatives.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/representatives' as const,
+      input: insertRepresentativeSchema,
+      responses: { 201: z.custom<typeof representatives.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/representatives/:id' as const,
+      input: insertRepresentativeSchema,
+      responses: { 200: z.custom<typeof representatives.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/representatives/:id' as const,
       responses: { 200: z.object({ message: z.string() }) }
     }
   },

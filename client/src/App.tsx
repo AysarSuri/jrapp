@@ -16,6 +16,7 @@ import AddressesPage from "@/pages/addresses";
 import AccountsPage from "@/pages/accounts";
 import InvoicesPage from "@/pages/invoices";
 import TransactionsPage from "@/pages/transactions";
+import RepresentativesPage from "@/pages/representatives";
 import TransferOfficesPage from "@/pages/transfer-offices";
 import BanksPage from "@/pages/banks";
 import CustomsClearancesPage from "@/pages/customs-clearances";
@@ -70,6 +71,9 @@ function Router() {
       </Route>
       <Route path="/addresses">
         <ProtectedRoute component={AddressesPage} />
+      </Route>
+      <Route path="/representatives">
+        <ProtectedRoute component={RepresentativesPage} />
       </Route>
       <Route path="/transfer-offices">
         <ProtectedRoute component={TransferOfficesPage} />
