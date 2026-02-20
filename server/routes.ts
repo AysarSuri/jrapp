@@ -187,10 +187,10 @@ async function seedDatabase() {
 
   const clientsList = await storage.getClients();
   if (clientsList.length === 0) {
-    await storage.createClient({ name: "Ali Hassan", type: "customer", contact: "0770-123-4567" });
-    await storage.createClient({ name: "Baghdad Electronics", type: "supplier", contact: "0780-987-6543" });
-    await storage.createClient({ name: "Mohammed Store", type: "customer", contact: "0750-111-2222" });
-    await storage.createClient({ name: "Gulf Trading Co.", type: "supplier", contact: "0790-333-4444" });
+    await storage.createClient({ name: "Ali Hassan", type: "customer", contact: "0770-123-4567", oldDebt: "500000" });
+    await storage.createClient({ name: "Baghdad Electronics", type: "supplier", contact: "0780-987-6543", oldDebt: "1200000" });
+    await storage.createClient({ name: "Mohammed Store", type: "customer", contact: "0750-111-2222", oldDebt: "0" });
+    await storage.createClient({ name: "Gulf Trading Co.", type: "supplier", contact: "0790-333-4444", oldDebt: "750000" });
   }
 
   const accountsList = await storage.getAccounts();

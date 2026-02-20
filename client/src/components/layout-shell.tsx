@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Package,
   Users,
+  Truck,
   CreditCard,
   FileText,
   ArrowRightLeft,
@@ -72,7 +73,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
-    { href: "/clients", icon: Users, label: "Clients" },
+    { href: "/customers", icon: Users, label: "Customers" },
+    { href: "/suppliers", icon: Truck, label: "Suppliers" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
