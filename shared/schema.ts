@@ -30,8 +30,10 @@ export const products = pgTable("products", {
   barcode: text("barcode").notNull().unique(),
   name: text("name").notNull(),
   category: text("category").notNull(),
-  priceUsd: numeric("price_usd").notNull(),
-  priceIqd: numeric("price_iqd").notNull(),
+  bigUnitPriceUsd: numeric("big_unit_price_usd").notNull(),
+  bigUnitPriceIqd: numeric("big_unit_price_iqd").notNull(),
+  smallUnitPriceUsd: numeric("small_unit_price_usd").notNull(),
+  smallUnitPriceIqd: numeric("small_unit_price_iqd").notNull(),
   minStock: integer("min_stock").notNull().default(0),
   bigUnit: text("big_unit").notNull(), // e.g. Box
   smallUnit: text("small_unit").notNull(), // e.g. Piece
