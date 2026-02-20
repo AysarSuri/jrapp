@@ -307,7 +307,7 @@ export default function ProductsPage() {
         addForm.reset(defaultValues);
         toast({ title: t('Product added successfully') });
       },
-      onError: (err) => toast({ title: t('Failed to add product'), description: err.message, variant: "destructive" }),
+      onError: (err) => toast({ title: t('Failed to add product'), description: t(err.message), variant: "destructive" }),
     });
   };
 
@@ -319,7 +319,7 @@ export default function ProductsPage() {
         setEditProduct(null);
         toast({ title: t('Product updated successfully') });
       },
-      onError: (err) => toast({ title: t('Failed to update product'), description: err.message, variant: "destructive" }),
+      onError: (err) => toast({ title: t('Failed to update product'), description: t(err.message), variant: "destructive" }),
     });
   };
 

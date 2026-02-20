@@ -63,7 +63,7 @@ export default function AddressesPage() {
           toast({ title: t("Address updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update address"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to update address"), description: t(err.message), variant: "destructive" });
         },
       });
     } else {
@@ -74,7 +74,7 @@ export default function AddressesPage() {
           toast({ title: t("Address added successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to add address"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to add address"), description: t(err.message), variant: "destructive" });
         },
       });
     }
@@ -86,7 +86,7 @@ export default function AddressesPage() {
         toast({ title: t("Address deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete address"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete address"), description: t(err.message), variant: "destructive" });
       },
     });
   };

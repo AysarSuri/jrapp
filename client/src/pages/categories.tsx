@@ -63,7 +63,7 @@ export default function CategoriesPage() {
           toast({ title: t("Category updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update category"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to update category"), description: t(err.message), variant: "destructive" });
         },
       });
     } else {
@@ -74,7 +74,7 @@ export default function CategoriesPage() {
           toast({ title: t("Category added successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to add category"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to add category"), description: t(err.message), variant: "destructive" });
         },
       });
     }
@@ -86,7 +86,7 @@ export default function CategoriesPage() {
         toast({ title: t("Category deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete category"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete category"), description: t(err.message), variant: "destructive" });
       },
     });
   };

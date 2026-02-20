@@ -82,7 +82,7 @@ export default function SuppliersPage() {
           toast({ title: t("Supplier updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update supplier"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to update supplier"), description: t(err.message), variant: "destructive" });
         },
       });
     } else {
@@ -93,7 +93,7 @@ export default function SuppliersPage() {
           toast({ title: t("Supplier created successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to create supplier"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to create supplier"), description: t(err.message), variant: "destructive" });
         },
       });
     }
@@ -105,7 +105,7 @@ export default function SuppliersPage() {
         toast({ title: t("Supplier deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete supplier"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete supplier"), description: t(err.message), variant: "destructive" });
       },
     });
   };

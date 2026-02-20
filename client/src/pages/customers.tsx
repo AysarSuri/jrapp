@@ -82,7 +82,7 @@ export default function CustomersPage() {
           toast({ title: t("Customer updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update customer"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to update customer"), description: t(err.message), variant: "destructive" });
         },
       });
     } else {
@@ -93,7 +93,7 @@ export default function CustomersPage() {
           toast({ title: t("Customer created successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to create customer"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to create customer"), description: t(err.message), variant: "destructive" });
         },
       });
     }
@@ -105,7 +105,7 @@ export default function CustomersPage() {
         toast({ title: t("Customer deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete customer"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete customer"), description: t(err.message), variant: "destructive" });
       },
     });
   };

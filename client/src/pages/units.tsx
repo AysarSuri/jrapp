@@ -63,7 +63,7 @@ export default function UnitsPage() {
           toast({ title: t("Unit updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update unit"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to update unit"), description: t(err.message), variant: "destructive" });
         },
       });
     } else {
@@ -74,7 +74,7 @@ export default function UnitsPage() {
           toast({ title: t("Unit added successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to add unit"), description: err.message, variant: "destructive" });
+          toast({ title: t("Failed to add unit"), description: t(err.message), variant: "destructive" });
         },
       });
     }
@@ -86,7 +86,7 @@ export default function UnitsPage() {
         toast({ title: t("Unit deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete unit"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete unit"), description: t(err.message), variant: "destructive" });
       },
     });
   };

@@ -232,9 +232,16 @@ export async function registerRoutes(
       const input = api.products.create.input.parse(req.body);
       const data = await storage.createProduct(input);
       res.status(201).json(data);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        const detail = err?.detail || '';
+        if (detail.includes('barcode')) {
+          return res.status(400).json({ message: "Barcode already exists" });
+        }
+        return res.status(400).json({ message: "Product name already exists" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -246,9 +253,16 @@ export async function registerRoutes(
       const input = api.products.update.input.parse(req.body);
       const data = await storage.updateProduct(id, input);
       res.json(data);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        const detail = err?.detail || '';
+        if (detail.includes('barcode')) {
+          return res.status(400).json({ message: "Barcode already exists" });
+        }
+        return res.status(400).json({ message: "Product name already exists" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -274,9 +288,12 @@ export async function registerRoutes(
       const input = api.clients.create.input.parse(req.body);
       const data = await storage.createClient(input);
       res.status(201).json(data);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Client name already exists" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -288,9 +305,12 @@ export async function registerRoutes(
       const input = api.clients.update.input.parse(req.body);
       const data = await storage.updateClient(id, input);
       res.json(data);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Client name already exists" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
