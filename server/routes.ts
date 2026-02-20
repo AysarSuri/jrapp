@@ -124,6 +124,104 @@ export async function registerRoutes(
     }
   });
 
+  // Units CRUD
+  app.get(api.units.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getUnits();
+    res.json(data);
+  });
+
+  app.post(api.units.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.units.create.input.parse(req.body);
+      const data = await storage.createUnit(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Unit already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.units.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.units.update.input.parse(req.body);
+      const data = await storage.updateUnit(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Unit already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.units.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteUnit(id);
+      res.json({ message: "Deleted" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Categories CRUD
+  app.get(api.categories.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCategories();
+    res.json(data);
+  });
+
+  app.post(api.categories.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.categories.create.input.parse(req.body);
+      const data = await storage.createCategory(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Category already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.categories.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.categories.update.input.parse(req.body);
+      const data = await storage.updateCategory(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Category already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.categories.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteCategory(id);
+      res.json({ message: "Deleted" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.products.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getProducts();
     res.json(data);
@@ -254,6 +352,29 @@ async function seedDatabase() {
     ];
     for (const name of defaultAddresses) {
       await storage.createAddress({ name });
+    }
+  }
+
+  const unitsList = await storage.getUnits();
+  if (unitsList.length === 0) {
+    const defaultUnits = [
+      "قطعة", "صندوق", "كرتون", "باكيت", "كيلو", "طن",
+      "لتر", "متر", "دزينة", "علبة", "كيس", "رول",
+    ];
+    for (const name of defaultUnits) {
+      await storage.createUnit({ name });
+    }
+  }
+
+  const categoriesList = await storage.getCategories();
+  if (categoriesList.length === 0) {
+    const defaultCategories = [
+      "إلكترونيات", "مواد غذائية", "مشروبات", "قرطاسية",
+      "أدوات منزلية", "ملابس", "مواد بناء", "أدوية",
+      "مواد تنظيف", "عطور ومستحضرات",
+    ];
+    for (const name of defaultCategories) {
+      await storage.createCategory({ name });
     }
   }
 

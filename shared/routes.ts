@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { 
   insertAddressSchema, addresses,
+  insertUnitSchema, units,
+  insertCategorySchema, categories,
   insertProductSchema, products, 
   insertClientSchema, clients, 
   insertAccountSchema, accounts, 
@@ -71,6 +73,70 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/addresses/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
+    }
+  },
+  units: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/units' as const,
+      responses: {
+        200: z.array(z.custom<typeof units.$inferSelect>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/units' as const,
+      input: insertUnitSchema,
+      responses: {
+        201: z.custom<typeof units.$inferSelect>(),
+      }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/units/:id' as const,
+      input: insertUnitSchema,
+      responses: {
+        200: z.custom<typeof units.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/units/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
+    }
+  },
+  categories: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/categories' as const,
+      responses: {
+        200: z.array(z.custom<typeof categories.$inferSelect>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/categories' as const,
+      input: insertCategorySchema,
+      responses: {
+        201: z.custom<typeof categories.$inferSelect>(),
+      }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/categories/:id' as const,
+      input: insertCategorySchema,
+      responses: {
+        200: z.custom<typeof categories.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/categories/:id' as const,
       responses: {
         200: z.object({ message: z.string() }),
       }

@@ -8,6 +8,16 @@ export const addresses = pgTable("addresses", {
   name: text("name").notNull().unique(),
 });
 
+export const units = pgTable("units", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
@@ -75,6 +85,8 @@ export const transactions = pgTable("transactions", {
 });
 
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
+export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
+export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, balance: true }).extend({
@@ -88,6 +100,10 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 // Types
 export type Address = typeof addresses.$inferSelect;
 export type InsertAddress = z.infer<typeof insertAddressSchema>;
+export type Unit = typeof units.$inferSelect;
+export type InsertUnit = z.infer<typeof insertUnitSchema>;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Product = typeof products.$inferSelect;

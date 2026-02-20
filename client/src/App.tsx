@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react";
 
 import Dashboard from "@/pages/dashboard";
 import ProductsPage from "@/pages/products";
+import UnitsPage from "@/pages/units";
+import CategoriesPage from "@/pages/categories";
 import CustomersPage from "@/pages/customers";
 import SuppliersPage from "@/pages/suppliers";
 import AddressesPage from "@/pages/addresses";
@@ -50,6 +52,12 @@ function Router() {
       </Route>
       <Route path="/products">
         <ProtectedRoute component={ProductsPage} />
+      </Route>
+      <Route path="/units">
+        <ProtectedRoute component={UnitsPage} />
+      </Route>
+      <Route path="/categories">
+        <ProtectedRoute component={CategoriesPage} />
       </Route>
       <Route path="/customers">
         <ProtectedRoute component={CustomersPage} />

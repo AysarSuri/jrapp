@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Package,
+  Ruler,
+  FolderOpen,
   Users,
   Truck,
   MapPin,
@@ -74,6 +76,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
+    { href: "/units", icon: Ruler, label: "Units" },
+    { href: "/categories", icon: FolderOpen, label: "Categories" },
     { href: "/customers", icon: Users, label: "Customers" },
     { href: "/suppliers", icon: Truck, label: "Suppliers" },
     { href: "/addresses", icon: MapPin, label: "Addresses" },

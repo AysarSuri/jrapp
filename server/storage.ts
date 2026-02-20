@@ -1,7 +1,9 @@
 import { db } from "./db";
 import {
-  addresses, users, products, clients, accounts, invoices, transactions,
+  addresses, units, categories, users, products, clients, accounts, invoices, transactions,
   type Address, type InsertAddress,
+  type Unit, type InsertUnit,
+  type Category, type InsertCategory,
   type User, type InsertUser,
   type Product, type InsertProduct,
   type Client, type InsertClient,
@@ -17,6 +19,16 @@ export interface IStorage {
   createAddress(address: InsertAddress): Promise<Address>;
   updateAddress(id: number, address: InsertAddress): Promise<Address>;
   deleteAddress(id: number): Promise<void>;
+
+  getUnits(): Promise<Unit[]>;
+  createUnit(unit: InsertUnit): Promise<Unit>;
+  updateUnit(id: number, unit: InsertUnit): Promise<Unit>;
+  deleteUnit(id: number): Promise<void>;
+
+  getCategories(): Promise<Category[]>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, category: InsertCategory): Promise<Category>;
+  deleteCategory(id: number): Promise<void>;
 
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -57,6 +69,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAddress(id: number): Promise<void> {
     await db.delete(addresses).where(eq(addresses.id, id));
+  }
+
+  async getUnits(): Promise<Unit[]> {
+    return await db.select().from(units);
+  }
+
+  async createUnit(unit: InsertUnit): Promise<Unit> {
+    const [created] = await db.insert(units).values(unit).returning();
+    return created;
+  }
+
+  async updateUnit(id: number, unit: InsertUnit): Promise<Unit> {
+    const [updated] = await db.update(units).set(unit).where(eq(units.id, id)).returning();
+    return updated;
+  }
+
+  async deleteUnit(id: number): Promise<void> {
+    await db.delete(units).where(eq(units.id, id));
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return await db.select().from(categories);
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const [created] = await db.insert(categories).values(category).returning();
+    return created;
+  }
+
+  async updateCategory(id: number, category: InsertCategory): Promise<Category> {
+    const [updated] = await db.update(categories).set(category).where(eq(categories.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCategory(id: number): Promise<void> {
+    await db.delete(categories).where(eq(categories.id, id));
   }
 
   async getUser(id: string): Promise<User | undefined> {
