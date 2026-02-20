@@ -187,10 +187,10 @@ async function seedDatabase() {
 
   const clientsList = await storage.getClients();
   if (clientsList.length === 0) {
-    await storage.createClient({ name: "Ali Hassan", type: "customer", contact: "0770-123-4567", oldDebtUsd: "500", oldDebtIqd: "750000" });
-    await storage.createClient({ name: "Baghdad Electronics", type: "supplier", contact: "0780-987-6543", oldDebtUsd: "1200", oldDebtIqd: "1800000" });
-    await storage.createClient({ name: "Mohammed Store", type: "customer", contact: "0750-111-2222", oldDebtUsd: "0", oldDebtIqd: "0" });
-    await storage.createClient({ name: "Gulf Trading Co.", type: "supplier", contact: "0790-333-4444", oldDebtUsd: "750", oldDebtIqd: "1100000" });
+    await storage.createClient({ name: "Ali Hassan", type: "customer", contact: "0770-123-4567", address: "بغداد", oldDebtUsd: "500", oldDebtIqd: "750000" });
+    await storage.createClient({ name: "Baghdad Electronics", type: "supplier", contact: "0780-987-6543", address: "بغداد", oldDebtUsd: "1200", oldDebtIqd: "1800000" });
+    await storage.createClient({ name: "Mohammed Store", type: "customer", contact: "0750-111-2222", address: "أربيل", oldDebtUsd: "0", oldDebtIqd: "0" });
+    await storage.createClient({ name: "Gulf Trading Co.", type: "supplier", contact: "0790-333-4444", address: "البصرة", oldDebtUsd: "750", oldDebtIqd: "1100000" });
   }
 
   const accountsList = await storage.getAccounts();

@@ -34,6 +34,7 @@ export const clients = pgTable("clients", {
   name: text("name").notNull(),
   type: text("type").notNull(), // 'supplier' | 'customer'
   contact: text("contact"),
+  address: text("address"),
   balance: numeric("balance").notNull().default('0'),
   oldDebtUsd: numeric("old_debt_usd").notNull().default('0'),
   oldDebtIqd: numeric("old_debt_iqd").notNull().default('0'),

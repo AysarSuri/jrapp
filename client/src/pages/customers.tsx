@@ -16,9 +16,44 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, Users, Loader2 } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { Plus, Search, Users, Loader2, MapPin, ChevronsUpDown, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const IRAQI_CITIES = [
+  "بغداد",
+  "أربيل",
+  "السليمانية",
+  "دهوك",
+  "البصرة",
+  "الموصل",
+  "كركوك",
+  "النجف",
+  "كربلاء",
+  "الحلة",
+  "الديوانية",
+  "الناصرية",
+  "العمارة",
+  "الكوت",
+  "الرمادي",
+  "بعقوبة",
+  "تكريت",
+  "السماوة",
+  "حلبجة",
+  "زاخو",
+  "عنكاوا",
+  "رانية",
+  "شقلاوة",
+  "سوران",
+];
 
 const customerSchema = insertClientSchema.extend({
   type: z.literal("customer").default("customer"),
@@ -31,10 +66,12 @@ export default function CustomersPage() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [addressOpen, setAddressOpen] = useState(false);
+  const [addressSearch, setAddressSearch] = useState("");
 
   const form = useForm<z.infer<typeof customerSchema>>({
     resolver: zodResolver(customerSchema),
-    defaultValues: { name: "", type: "customer", contact: "", oldDebtUsd: "0", oldDebtIqd: "0" },
+    defaultValues: { name: "", type: "customer", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
   const onSubmit = (values: z.infer<typeof customerSchema>) => {
@@ -53,11 +90,20 @@ export default function CustomersPage() {
   const customers = allClients?.filter(c => c.type === "customer") || [];
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.contact?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalOldDebtUsd = customers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
   const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
+
+  const existingAddresses = Array.from(new Set(customers.map(c => c.address).filter(Boolean))) as string[];
+  const allAddresses = Array.from(new Set([...IRAQI_CITIES, ...existingAddresses]));
+  const filteredAddresses = addressSearch
+    ? allAddresses.filter(a => a.includes(addressSearch))
+    : allAddresses;
+
+  const currentAddress = form.watch("address");
 
   return (
     <div className="space-y-8">
@@ -91,6 +137,89 @@ export default function CustomersPage() {
                   <FormItem>
                     <FormLabel>{t('Contact')}</FormLabel>
                     <FormControl><Input data-testid="input-customer-contact" placeholder="0770-000-0000" {...field} value={field.value ?? ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="address" render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>{t('Address')}</FormLabel>
+                    <Popover open={addressOpen} onOpenChange={setAddressOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={addressOpen}
+                            className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                            data-testid="combobox-customer-address"
+                          >
+                            {field.value ? (
+                              <span className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {field.value}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {t('Select address...')}
+                              </span>
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                        <div className="p-2 border-b">
+                          <Input
+                            placeholder={t('Search or type address...')}
+                            value={addressSearch}
+                            onChange={(e) => setAddressSearch(e.target.value)}
+                            data-testid="input-address-search"
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="max-h-[200px] overflow-y-auto p-1">
+                          {filteredAddresses.map((addr) => (
+                            <button
+                              key={addr}
+                              type="button"
+                              className={cn(
+                                "flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors cursor-pointer",
+                                field.value === addr && "bg-primary/10 text-primary"
+                              )}
+                              onClick={() => {
+                                field.onChange(addr);
+                                setAddressSearch("");
+                                setAddressOpen(false);
+                              }}
+                              data-testid={`address-option-${addr}`}
+                            >
+                              <Check className={cn("h-4 w-4", field.value === addr ? "opacity-100" : "opacity-0")} />
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              {addr}
+                            </button>
+                          ))}
+                          {addressSearch && !filteredAddresses.includes(addressSearch) && (
+                            <button
+                              type="button"
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors cursor-pointer text-primary"
+                              onClick={() => {
+                                field.onChange(addressSearch);
+                                setAddressSearch("");
+                                setAddressOpen(false);
+                              }}
+                              data-testid="address-option-custom"
+                            >
+                              <Plus className="h-4 w-4" />
+                              {t('Add')}: "{addressSearch}"
+                            </button>
+                          )}
+                          {filteredAddresses.length === 0 && !addressSearch && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">{t('No addresses found')}</div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -174,6 +303,7 @@ export default function CustomersPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Name')}</TableHead>
+                    <TableHead>{t('Address')}</TableHead>
                     <TableHead>{t('Contact')}</TableHead>
                     <TableHead className="text-right">{t('Old Debt (USD)')}</TableHead>
                     <TableHead className="text-right">{t('Old Debt (IQD)')}</TableHead>
@@ -185,6 +315,14 @@ export default function CustomersPage() {
                     <TableRow key={client.id} data-testid={`row-customer-${client.id}`}>
                       <TableCell className="font-mono text-xs">{client.id}</TableCell>
                       <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell>
+                        {client.address ? (
+                          <Badge variant="outline" className="gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {client.address}
+                          </Badge>
+                        ) : '-'}
+                      </TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
                       <TableCell className="text-right font-mono">${Number(client.oldDebtUsd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
