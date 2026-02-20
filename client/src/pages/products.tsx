@@ -5,8 +5,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema } from "@shared/routes";
 import { z } from "zod";
 import { useProducts, useCreateProduct } from "@/hooks/use-products";
+import { useUnits } from "@/hooks/use-units";
+import { useCategories } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -39,6 +48,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { data: products, isLoading } = useProducts();
+  const { data: unitsList } = useUnits();
+  const { data: categoriesList } = useCategories();
   const { mutate: createProduct, isPending } = useCreateProduct();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -53,8 +64,8 @@ export default function ProductsPage() {
       priceUsd: "0",
       priceIqd: "0",
       minStock: 0,
-      bigUnit: "Box",
-      smallUnit: "Piece",
+      bigUnit: "",
+      smallUnit: "",
       conversionFactor: 1,
     },
   });
@@ -132,9 +143,20 @@ export default function ProductsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('Category')}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Electronics" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-category">
+                              <SelectValue placeholder={t('Select Category')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categoriesList?.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.name} data-testid={`option-category-${cat.id}`}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -190,10 +212,21 @@ export default function ProductsPage() {
                     name="bigUnit"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Big Unit</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Box" {...field} />
-                        </FormControl>
+                        <FormLabel>{t('Big Unit')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-big-unit">
+                              <SelectValue placeholder={t('Select Unit')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {unitsList?.map((unit) => (
+                              <SelectItem key={unit.id} value={unit.name} data-testid={`option-big-unit-${unit.id}`}>
+                                {unit.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -203,10 +236,21 @@ export default function ProductsPage() {
                     name="smallUnit"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Small Unit</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Piece" {...field} />
-                        </FormControl>
+                        <FormLabel>{t('Small Unit')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-small-unit">
+                              <SelectValue placeholder={t('Select Unit')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {unitsList?.map((unit) => (
+                              <SelectItem key={unit.id} value={unit.name} data-testid={`option-small-unit-${unit.id}`}>
+                                {unit.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
