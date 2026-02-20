@@ -16,6 +16,9 @@ import AddressesPage from "@/pages/addresses";
 import AccountsPage from "@/pages/accounts";
 import InvoicesPage from "@/pages/invoices";
 import TransactionsPage from "@/pages/transactions";
+import TransferOfficesPage from "@/pages/transfer-offices";
+import BanksPage from "@/pages/banks";
+import CustomsClearancesPage from "@/pages/customs-clearances";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -67,6 +70,15 @@ function Router() {
       </Route>
       <Route path="/addresses">
         <ProtectedRoute component={AddressesPage} />
+      </Route>
+      <Route path="/transfer-offices">
+        <ProtectedRoute component={TransferOfficesPage} />
+      </Route>
+      <Route path="/banks">
+        <ProtectedRoute component={BanksPage} />
+      </Route>
+      <Route path="/customs-clearances">
+        <ProtectedRoute component={CustomsClearancesPage} />
       </Route>
       <Route path="/accounts">
         <ProtectedRoute component={AccountsPage} />
