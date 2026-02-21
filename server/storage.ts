@@ -41,7 +41,8 @@ import {
   type Expense, type InsertExpense,
   type CustomerReceipt, type InsertCustomerReceipt,
   type AgentPayment, type InsertAgentPayment,
-  customerReceipts
+  type CurrencyExchange, type InsertCurrencyExchange,
+  customerReceipts, currencyExchanges
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -195,6 +196,10 @@ export interface IStorage {
   getAgentPayments(): Promise<AgentPayment[]>;
   getAgentPaymentsByAgentId(agentId: number): Promise<AgentPayment[]>;
   createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment>;
+
+  getCurrencyExchanges(): Promise<CurrencyExchange[]>;
+  createCurrencyExchange(exchange: InsertCurrencyExchange): Promise<CurrencyExchange>;
+  deleteCurrencyExchange(id: number): Promise<void>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -715,6 +720,19 @@ export class DatabaseStorage implements IStorage {
   async createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment> {
     const [created] = await db.insert(agentPayments).values(payment).returning();
     return created;
+  }
+
+  async getCurrencyExchanges(): Promise<CurrencyExchange[]> {
+    return await db.select().from(currencyExchanges).orderBy(sql`${currencyExchanges.createdAt} DESC`);
+  }
+
+  async createCurrencyExchange(exchange: InsertCurrencyExchange): Promise<CurrencyExchange> {
+    const [created] = await db.insert(currencyExchanges).values(exchange).returning();
+    return created;
+  }
+
+  async deleteCurrencyExchange(id: number): Promise<void> {
+    await db.delete(currencyExchanges).where(eq(currencyExchanges.id, id));
   }
 
   async markNotificationRead(id: number): Promise<void> {

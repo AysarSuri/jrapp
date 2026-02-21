@@ -307,6 +307,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
+    { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },

@@ -1513,6 +1513,49 @@ export async function registerRoutes(
     }
   });
 
+  // Currency Exchanges
+  app.get(api.currencyExchanges.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCurrencyExchanges();
+    res.json(data);
+  });
+
+  app.post(api.currencyExchanges.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.currencyExchanges.create.input.parse(req.body);
+      const fromAmount = parseFloat(input.fromAmount || "0");
+      const exchangeRate = parseFloat(input.exchangeRate || "0");
+
+      if (fromAmount <= 0) {
+        return res.status(400).json({ message: "Amount must be greater than zero" });
+      }
+      if (exchangeRate <= 0) {
+        return res.status(400).json({ message: "Exchange rate must be greater than zero" });
+      }
+
+      const toAmount = fromAmount * exchangeRate;
+      const exchange = await storage.createCurrencyExchange({
+        ...input,
+        toAmount: String(toAmount),
+      });
+      res.status(201).json(exchange);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.currencyExchanges.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCurrencyExchange(id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Notifications
   app.get(api.notifications.list.path, requireAuth, async (req, res) => {
     const userId = req.session.userId;

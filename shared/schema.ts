@@ -521,6 +521,23 @@ export const insertAgentPaymentSchema = createInsertSchema(agentPayments).omit({
 export type AgentPayment = typeof agentPayments.$inferSelect;
 export type InsertAgentPayment = z.infer<typeof insertAgentPaymentSchema>;
 
+export const currencyExchanges = pgTable("currency_exchanges", {
+  id: serial("id").primaryKey(),
+  fromCurrency: text("from_currency").notNull(),
+  toCurrency: text("to_currency").notNull(),
+  fromAmount: numeric("from_amount").notNull().default("0"),
+  exchangeRate: numeric("exchange_rate").notNull().default("0"),
+  toAmount: numeric("to_amount").notNull().default("0"),
+  note: text("note"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCurrencyExchangeSchema = createInsertSchema(currencyExchanges).omit({ id: true, createdAt: true });
+export type CurrencyExchange = typeof currencyExchanges.$inferSelect;
+export type InsertCurrencyExchange = z.infer<typeof insertCurrencyExchangeSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),
