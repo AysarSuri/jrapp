@@ -47,6 +47,8 @@ export const warehouses = pgTable("warehouses", {
 export const representatives = pgTable("representatives", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  mobile: text("mobile"),
+  agreementType: text("agreement_type").notNull().default("commission"),
 });
 
 export const users = pgTable("users", {
