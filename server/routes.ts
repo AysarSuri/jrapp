@@ -77,6 +77,26 @@ export async function registerRoutes(
     }
   });
 
+  app.post('/api/login-by-role', async (req, res) => {
+    try {
+      const { role } = req.body;
+      const allowedRoles = ["admin", "user", "sales_rep"];
+      if (!role || !allowedRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      let user = await storage.getUserByRole(role);
+      if (!user) {
+        const hashed = await bcrypt.hash(role, 12);
+        user = await storage.createUser({ username: role, password: hashed, role });
+      }
+      req.session.userId = user.id;
+      const { password, ...safeUser } = user;
+      res.status(200).json(safeUser);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post(api.auth.logout.path, (req, res) => {
     req.session.destroy(() => {
       res.json({ message: "Logged out" });
