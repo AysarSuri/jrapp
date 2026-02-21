@@ -1,22 +1,32 @@
 import { useState } from "react";
+import { useLogin } from "@/hooks/use-auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@shared/schema";
+import { z } from "zod";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck, Shield, User, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useQueryClient } from "@tanstack/react-query";
-import { api } from "@shared/routes";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
+  const { mutate: login, isPending } = useLogin();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
   const [selectedRole, setSelectedRole] = useState<string>("admin");
-  const [isPending, setIsPending] = useState(false);
-  const queryClient = useQueryClient();
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -26,31 +36,28 @@ export default function AuthPage() {
     document.documentElement.lang = lng;
   };
 
-  async function handleEnter() {
-    setIsPending(true);
-    try {
-      const res = await fetch("/api/login-by-role", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Login failed");
-      }
-      const user = await res.json();
-      queryClient.setQueryData([api.auth.me.path], user);
-      toast({ title: t("loginSuccess"), description: t("loginSuccessDesc") });
-      setLocation("/");
-    } catch (error: any) {
-      toast({
-        title: t("loginFailed"),
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsPending(false);
-    }
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof loginSchema>) {
+    login(values, {
+      onSuccess: () => {
+        toast({ title: t("loginSuccess"), description: t("loginSuccessDesc") });
+        setLocation("/");
+      },
+      onError: (error) => {
+        toast({
+          title: t("loginFailed"),
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
   }
 
   const languages = [
@@ -130,21 +137,51 @@ export default function AuthPage() {
               </RadioGroup>
             </div>
 
-            <Button
-              onClick={handleEnter}
-              className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-              disabled={isPending}
-              data-testid="button-enter"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                  {t("authenticating")}
-                </>
-              ) : (
-                t("signIn")
-              )}
-            </Button>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">{t("username")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t("username")} className="h-11 font-bold" data-testid="input-username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">{t("password")}</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  disabled={isPending}
+                  data-testid="button-login"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      {t("authenticating")}
+                    </>
+                  ) : (
+                    t("signIn")
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 
