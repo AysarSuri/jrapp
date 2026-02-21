@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
-import { purchaseInvoices, purchaseInvoiceItems } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, accounts } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -579,6 +580,50 @@ export async function registerRoutes(
           await tx.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
         }
         return created;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.supplierPayments.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getSupplierPayments();
+    res.json(data);
+  });
+
+  app.post(api.supplierPayments.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.supplierPayments.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one payment amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [payment] = await tx.insert(supplierPayments).values(input).returning();
+
+        if (usdAmount > 0) {
+          await tx.update(clients)
+            .set({
+              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${usdAmount}`,
+            })
+            .where(eq(clients.id, input.supplierId));
+        }
+        if (iqdAmount > 0) {
+          await tx.update(clients)
+            .set({
+              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${iqdAmount}`,
+            })
+            .where(eq(clients.id, input.supplierId));
+        }
+
+        return payment;
       });
       res.status(201).json(result);
     } catch (err) {

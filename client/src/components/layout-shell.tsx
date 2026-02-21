@@ -18,6 +18,7 @@ import {
   FileText,
   Receipt,
   ArrowRightLeft,
+  Banknote,
   LogOut,
   Menu,
   Moon,
@@ -95,6 +96,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/purchase-invoice-usd", icon: Receipt, label: "Purchase Invoice USD" },
     { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
+    { href: "/supplier-payments", icon: Banknote, label: "Supplier Payments" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
   ];

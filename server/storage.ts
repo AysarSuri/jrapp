@@ -2,6 +2,7 @@ import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
+  supplierPayments,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -17,7 +18,8 @@ import {
   type Invoice, type InsertInvoice,
   type Transaction, type InsertTransaction,
   type PurchaseInvoice, type InsertPurchaseInvoice,
-  type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem
+  type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem,
+  type SupplierPayment, type InsertSupplierPayment
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -94,6 +96,9 @@ export interface IStorage {
   getPurchaseInvoiceItems(invoiceId: number): Promise<PurchaseInvoiceItem[]>;
   createPurchaseInvoiceItems(items: InsertPurchaseInvoiceItem[]): Promise<PurchaseInvoiceItem[]>;
   getNextPurchaseInvoiceNumber(): Promise<string>;
+
+  getSupplierPayments(): Promise<SupplierPayment[]>;
+  createSupplierPayment(payment: InsertSupplierPayment): Promise<SupplierPayment>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -330,6 +335,15 @@ export class DatabaseStorage implements IStorage {
   async getNextPurchaseInvoiceNumber(): Promise<string> {
     const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${purchaseInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(purchaseInvoices);
     return String((result?.maxNum || 0) + 1).padStart(6, '0');
+  }
+
+  async getSupplierPayments(): Promise<SupplierPayment[]> {
+    return await db.select().from(supplierPayments).orderBy(sql`${supplierPayments.createdAt} DESC`);
+  }
+
+  async createSupplierPayment(payment: InsertSupplierPayment): Promise<SupplierPayment> {
+    const [created] = await db.insert(supplierPayments).values(payment).returning();
+    return created;
   }
 }
 

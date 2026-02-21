@@ -152,6 +152,20 @@ export const purchaseInvoiceItems = pgTable("purchase_invoice_items", {
   amount: numeric("amount").notNull(),
 });
 
+export const supplierPayments = pgTable("supplier_payments", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").notNull(),
+  supplierName: text("supplier_name").notNull(),
+  paymentSource: text("payment_source").notNull(), // 'bank' | 'transfer_office'
+  paymentSourceName: text("payment_source_name").notNull(),
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  note: text("note"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
@@ -162,6 +176,7 @@ export const insertWarehouseSchema = createInsertSchema(warehouses).omit({ id: t
 export const insertRepresentativeSchema = createInsertSchema(representatives).omit({ id: true });
 export const insertPurchaseInvoiceSchema = createInsertSchema(purchaseInvoices).omit({ id: true, createdAt: true });
 export const insertPurchaseInvoiceItemSchema = createInsertSchema(purchaseInvoiceItems).omit({ id: true });
+export const insertSupplierPaymentSchema = createInsertSchema(supplierPayments).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -211,6 +226,8 @@ export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type SupplierPayment = typeof supplierPayments.$inferSelect;
+export type InsertSupplierPayment = z.infer<typeof insertSupplierPaymentSchema>;
 
 // Auth types
 export const loginSchema = z.object({
