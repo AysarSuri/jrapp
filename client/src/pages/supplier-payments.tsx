@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSupplierPayments, useCreateSupplierPayment } from "@/hooks/use-supplier-payments";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, Account } from "@shared/schema";
+import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,8 +35,12 @@ export default function SupplierPaymentsPage() {
     select: (data: Client[]) => data.filter(c => c.type === "supplier"),
   });
 
-  const { data: accounts } = useQuery<Account[]>({
-    queryKey: ["/api/accounts"],
+  const { data: banksList } = useQuery<Bank[]>({
+    queryKey: ["/api/banks"],
+  });
+
+  const { data: transferOfficesList } = useQuery<TransferOffice[]>({
+    queryKey: ["/api/transfer-offices"],
   });
 
   const [supplierId, setSupplierId] = useState<string>("");
@@ -53,8 +57,8 @@ export default function SupplierPaymentsPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const bankAccounts = accounts?.filter(a => a.type === "bank") || [];
-  const transferOfficeAccounts = accounts?.filter(a => a.type === "transfer_office") || [];
+  const banks = banksList || [];
+  const transferOffices = transferOfficesList || [];
 
   const selectSupplier = useCallback((id: string) => {
     setSupplierId(id);
@@ -67,11 +71,14 @@ export default function SupplierPaymentsPage() {
   const selectPaymentSource = useCallback((val: string) => {
     setPaymentSource(val);
     const [type, id] = val.split(":");
-    const account = accounts?.find(a => a.id === parseInt(id));
-    if (account) {
-      setPaymentSourceName(`${type === "bank" ? t("Bank") : t("Transfer Office")} - ${account.name}`);
+    if (type === "bank") {
+      const bank = banksList?.find(b => b.id === parseInt(id));
+      if (bank) setPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+    } else {
+      const office = transferOfficesList?.find(o => o.id === parseInt(id));
+      if (office) setPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
     }
-  }, [accounts, t]);
+  }, [banksList, transferOfficesList, t]);
 
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
 
@@ -310,26 +317,26 @@ export default function SupplierPaymentsPage() {
                   <SelectValue placeholder={t('Select bank or transfer office...')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {bankAccounts.length > 0 && (
+                  {banks.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                         <Landmark className="h-3 w-3" /> {t('Banks')}
                       </div>
-                      {bankAccounts.map(a => (
-                        <SelectItem key={`bank:${a.id}`} value={`bank:${a.id}`}>
-                          {a.name} ({a.currency})
+                      {banks.map(b => (
+                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>
+                          {b.name}
                         </SelectItem>
                       ))}
                     </>
                   )}
-                  {transferOfficeAccounts.length > 0 && (
+                  {transferOffices.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                         <Building className="h-3 w-3" /> {t('Transfer Offices')}
                       </div>
-                      {transferOfficeAccounts.map(a => (
-                        <SelectItem key={`transfer_office:${a.id}`} value={`transfer_office:${a.id}`}>
-                          {a.name} ({a.currency})
+                      {transferOffices.map(o => (
+                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>
+                          {o.name}
                         </SelectItem>
                       ))}
                     </>
