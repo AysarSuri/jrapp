@@ -165,6 +165,7 @@ export const supplierPayments = pgTable("supplier_payments", {
   note: text("note"),
   reference: text("reference"),
   date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

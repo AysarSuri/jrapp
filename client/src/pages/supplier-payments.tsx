@@ -50,6 +50,7 @@ export default function SupplierPaymentsPage() {
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const bankAccounts = accounts?.filter(a => a.type === "bank") || [];
@@ -86,6 +87,7 @@ export default function SupplierPaymentsPage() {
     setNote("");
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
+    setTime(new Date().toTimeString().slice(0, 5));
   };
 
   const handleSave = () => {
@@ -116,6 +118,7 @@ export default function SupplierPaymentsPage() {
       note: note || null,
       reference: reference || null,
       date,
+      time,
     }, {
       onSuccess: () => {
         toast({ title: t("Payment saved successfully") });
@@ -161,6 +164,7 @@ export default function SupplierPaymentsPage() {
                     <TableRow>
                       <TableHead>#</TableHead>
                       <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Time')}</TableHead>
                       <TableHead>{t('Supplier')}</TableHead>
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('USD Amount')}</TableHead>
@@ -176,6 +180,7 @@ export default function SupplierPaymentsPage() {
                       <TableRow key={p.id} data-testid={`row-payment-${p.id}`}>
                         <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                         <TableCell className="font-mono text-sm">{p.date}</TableCell>
+                        <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                         <TableCell className="font-medium">{p.supplierName}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
@@ -200,7 +205,7 @@ export default function SupplierPaymentsPage() {
                     ))}
                     {(!payments || payments.length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
@@ -223,7 +228,7 @@ export default function SupplierPaymentsPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Supplier')}</Label>
                 <Select value={supplierId} onValueChange={selectSupplier}>
@@ -245,6 +250,16 @@ export default function SupplierPaymentsPage() {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   data-testid="input-payment-date"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  data-testid="input-payment-time"
                 />
               </div>
             </div>
