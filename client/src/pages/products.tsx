@@ -43,6 +43,7 @@ const defaultValues: FormValues = {
   bigUnit: "",
   smallUnit: "",
   conversionFactor: 1,
+  weight: "0",
   bigUnitPriceUsd: "0",
   bigUnitPriceIqd: "0",
   smallUnitPriceUsd: "0",
@@ -183,6 +184,19 @@ function ProductForm({
                 <FormLabel>{t('Conversion Factor')}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-conversion-factor" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Weight (KG)')}</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" {...field} data-testid="input-weight" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -331,6 +345,7 @@ export default function ProductsPage() {
       bigUnit: product.bigUnit,
       smallUnit: product.smallUnit,
       conversionFactor: product.conversionFactor,
+      weight: product.weight,
       bigUnitPriceUsd: product.bigUnitPriceUsd,
       bigUnitPriceIqd: product.bigUnitPriceIqd,
       smallUnitPriceUsd: product.smallUnitPriceUsd,
@@ -449,6 +464,7 @@ export default function ProductsPage() {
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Category')}</TableHead>
                     <TableHead className="text-center">{t('Units')}</TableHead>
+                    <TableHead className="text-right">{t('Weight (KG)')}</TableHead>
                     <TableHead className="text-right">{t('Big Unit Price (USD)')}</TableHead>
                     <TableHead className="text-right">{t('Big Unit Price (IQD)')}</TableHead>
                     <TableHead className="text-right">{t('Small Unit Price (USD)')}</TableHead>
@@ -467,6 +483,7 @@ export default function ProductsPage() {
                       <TableCell className="text-center text-muted-foreground text-sm">
                         1 {product.bigUnit} = {product.conversionFactor} {product.smallUnit}
                       </TableCell>
+                      <TableCell className="text-right">{product.weight} kg</TableCell>
                       <TableCell className="text-right">${product.bigUnitPriceUsd}</TableCell>
                       <TableCell className="text-right">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
                       <TableCell className="text-right">${product.smallUnitPriceUsd}</TableCell>
