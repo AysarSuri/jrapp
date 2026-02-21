@@ -150,6 +150,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const salesSubRoutes = [
     "/sales-invoice-usd",
+    "/sales-invoice-iqd",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -255,6 +256,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const salesNavItems: NavItem[] = [
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
+    { href: "/sales-invoice-iqd", icon: Receipt, label: "Sales Invoice IQD" },
   ];
 
   const sidebarItems: NavEntry[] = [
