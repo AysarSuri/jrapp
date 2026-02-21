@@ -286,10 +286,10 @@ export default function CustomerReceiptUsdPage() {
             <Separator />
 
             <div className="space-y-2">
-              <Label>{t('Payment Source')}</Label>
+              <Label>{t('Amount Received At')}</Label>
               <Select value={paymentSource} onValueChange={selectPaymentSource}>
                 <SelectTrigger data-testid="select-receipt-source">
-                  <SelectValue placeholder={t('Select bank or transfer office...')} />
+                  <SelectValue placeholder={t('Select account where amount was received...')} />
                 </SelectTrigger>
                 <SelectContent>
                   {banks.length > 0 && (
@@ -428,7 +428,7 @@ export default function CustomerReceiptUsdPage() {
                 <>
                   <Separator />
                   <div className="rounded-lg border p-3 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{t('Source')}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('Received at')}</p>
                     <p className="font-medium text-sm">{paymentSourceName}</p>
                   </div>
                 </>
