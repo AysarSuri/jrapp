@@ -34,6 +34,7 @@ import {
   ShoppingCart,
   Bell,
   Undo2,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -165,6 +166,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/sales-invoice-iqd",
     "/sales-return-usd",
     "/sales-return-iqd",
+    "/customer-receipt-usd",
+    "/customer-receipt-iqd",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -276,6 +279,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/sales-invoice-iqd", icon: Receipt, label: "Sales Invoice IQD" },
     { href: "/sales-return-usd", icon: Undo2, label: "Sales Return USD" },
     { href: "/sales-return-iqd", icon: Undo2, label: "Sales Return IQD" },
+    { href: "/customer-receipt-usd", icon: DollarSign, label: "Customer Receipt USD" },
+    { href: "/customer-receipt-iqd", icon: Banknote, label: "Customer Receipt IQD" },
   ];
 
   const sidebarItems: NavEntry[] = [

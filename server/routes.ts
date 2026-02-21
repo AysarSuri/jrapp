@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, notifications } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1390,6 +1390,67 @@ export async function registerRoutes(
       res.json(result);
     } catch (err) {
       console.error("Error approving purchase return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Customer Receipts
+  app.get(api.customerReceipts.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCustomerReceipts();
+    res.json(data);
+  });
+
+  app.post(api.customerReceipts.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.customerReceipts.create.input.parse(req.body);
+      const amount = parseFloat(input.amount || "0");
+      const discount = parseFloat(input.discount || "0");
+
+      if (amount <= 0 && discount <= 0) {
+        return res.status(400).json({ message: "Amount or discount must be greater than zero" });
+      }
+
+      const totalDeducted = amount + discount;
+
+      const result = await db.transaction(async (tx) => {
+        const [customer] = await tx.select().from(clients).where(eq(clients.id, input.customerId));
+
+        let currentDebt = 0;
+        if (input.currency === "USD") {
+          currentDebt = parseFloat(customer?.oldDebtUsd || "0");
+        } else {
+          currentDebt = parseFloat(customer?.oldDebtIqd || "0");
+        }
+
+        const remaining = currentDebt - totalDeducted;
+
+        const [receipt] = await tx.insert(customerReceipts).values({
+          ...input,
+          oldDebt: String(currentDebt),
+          remaining: String(remaining),
+        }).returning();
+
+        if (input.currency === "USD") {
+          await tx.update(clients)
+            .set({
+              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${totalDeducted}`,
+            })
+            .where(eq(clients.id, input.customerId));
+        } else {
+          await tx.update(clients)
+            .set({
+              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${totalDeducted}`,
+            })
+            .where(eq(clients.id, input.customerId));
+        }
+
+        return receipt;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });

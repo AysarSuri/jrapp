@@ -38,7 +38,9 @@ import {
   type Notification, type InsertNotification,
   type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
-  type Expense, type InsertExpense
+  type Expense, type InsertExpense,
+  type CustomerReceipt, type InsertCustomerReceipt,
+  customerReceipts
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -184,6 +186,10 @@ export interface IStorage {
   getPurchaseReturnItems(returnId: number): Promise<PurchaseReturnItem[]>;
   createPurchaseReturnItems(items: InsertPurchaseReturnItem[]): Promise<PurchaseReturnItem[]>;
   getNextPurchaseReturnNumber(): Promise<string>;
+
+  getCustomerReceipts(): Promise<CustomerReceipt[]>;
+  getCustomerReceiptsByCustomerId(customerId: number): Promise<CustomerReceipt[]>;
+  createCustomerReceipt(receipt: InsertCustomerReceipt): Promise<CustomerReceipt>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -677,6 +683,19 @@ export class DatabaseStorage implements IStorage {
 
   async createNotification(notif: InsertNotification): Promise<Notification> {
     const [created] = await db.insert(notifications).values(notif).returning();
+    return created;
+  }
+
+  async getCustomerReceipts(): Promise<CustomerReceipt[]> {
+    return await db.select().from(customerReceipts).orderBy(sql`${customerReceipts.createdAt} DESC`);
+  }
+
+  async getCustomerReceiptsByCustomerId(customerId: number): Promise<CustomerReceipt[]> {
+    return await db.select().from(customerReceipts).where(eq(customerReceipts.customerId, customerId)).orderBy(sql`${customerReceipts.date} ASC, ${customerReceipts.time} ASC`);
+  }
+
+  async createCustomerReceipt(receipt: InsertCustomerReceipt): Promise<CustomerReceipt> {
+    const [created] = await db.insert(customerReceipts).values(receipt).returning();
     return created;
   }
 

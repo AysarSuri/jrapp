@@ -5,6 +5,8 @@ import {
   Receipt,
   Undo2,
   ArrowRight,
+  DollarSign,
+  Banknote,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -51,6 +53,22 @@ export default function SalesManagementPage() {
       color: "from-rose-500 to-rose-600",
       bgColor: "bg-rose-50 dark:bg-rose-950/30",
       iconColor: "text-rose-600 dark:text-rose-400",
+    },
+    {
+      href: "/customer-receipt-usd",
+      icon: DollarSign,
+      label: "Customer Receipt USD",
+      color: "from-cyan-500 to-cyan-600",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950/30",
+      iconColor: "text-cyan-600 dark:text-cyan-400",
+    },
+    {
+      href: "/customer-receipt-iqd",
+      icon: Banknote,
+      label: "Customer Receipt IQD",
+      color: "from-amber-500 to-amber-600",
+      bgColor: "bg-amber-50 dark:bg-amber-950/30",
+      iconColor: "text-amber-600 dark:text-amber-400",
     },
   ];
 

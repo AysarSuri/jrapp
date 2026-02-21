@@ -32,6 +32,7 @@ import {
   insertSalesReturnItemSchema, salesReturnItems,
   insertPurchaseReturnSchema, purchaseReturns,
   insertPurchaseReturnItemSchema, purchaseReturnItems,
+  insertCustomerReceiptSchema, customerReceipts,
   notifications,
   insertUserSchema, loginSchema, users 
 } from './schema';
@@ -724,6 +725,19 @@ export const api = {
       method: 'POST' as const,
       path: '/api/purchase-returns/:id/approve' as const,
       responses: { 200: z.custom<typeof purchaseReturns.$inferSelect>() }
+    }
+  },
+  customerReceipts: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/customer-receipts' as const,
+      responses: { 200: z.array(z.custom<typeof customerReceipts.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/customer-receipts' as const,
+      input: insertCustomerReceiptSchema,
+      responses: { 201: z.custom<typeof customerReceipts.$inferSelect>() }
     }
   },
   notifications: {

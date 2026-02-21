@@ -474,6 +474,28 @@ export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;
 export type PurchaseReturnItem = typeof purchaseReturnItems.$inferSelect;
 export type InsertPurchaseReturnItem = z.infer<typeof insertPurchaseReturnItemSchema>;
 
+export const customerReceipts = pgTable("customer_receipts", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull(),
+  customerName: text("customer_name").notNull(),
+  paymentSource: text("payment_source").notNull(),
+  paymentSourceName: text("payment_source_name").notNull(),
+  amount: numeric("amount").notNull().default("0"),
+  discount: numeric("discount").notNull().default("0"),
+  currency: text("currency").notNull(),
+  oldDebt: numeric("old_debt").notNull().default("0"),
+  remaining: numeric("remaining").notNull().default("0"),
+  note: text("note"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCustomerReceiptSchema = createInsertSchema(customerReceipts).omit({ id: true, createdAt: true });
+export type CustomerReceipt = typeof customerReceipts.$inferSelect;
+export type InsertCustomerReceipt = z.infer<typeof insertCustomerReceiptSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),
