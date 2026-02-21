@@ -354,7 +354,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               <div key={entry.label} className="space-y-0.5">
                 <button
                   onClick={() => {
-                    if (!isOpen) setOpen(true);
+                    setOpen(true);
                     navigate(landingRoute);
                   }}
                   data-testid={`button-${testIdName}`}
