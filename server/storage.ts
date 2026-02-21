@@ -3,7 +3,7 @@ import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
-  expenseTypes, expenses,
+  externalDebts, externalDebtTransactions, expenseTypes, expenses,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -25,6 +25,8 @@ import {
   type BankTransaction, type InsertBankTransaction,
   type CustomsClearanceTransaction, type InsertCustomsClearanceTransaction,
   type TransferOfficeTransaction, type InsertTransferOfficeTransaction,
+  type ExternalDebt, type InsertExternalDebt,
+  type ExternalDebtTransaction, type InsertExternalDebtTransaction,
   type ExpenseType, type InsertExpenseType,
   type Expense, type InsertExpense
 } from "@shared/schema";
@@ -121,6 +123,15 @@ export interface IStorage {
   getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]>;
   getTransferOfficeTransactionsByOfficeId(officeId: number): Promise<TransferOfficeTransaction[]>;
   createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction>;
+
+  getExternalDebts(): Promise<ExternalDebt[]>;
+  createExternalDebt(debt: InsertExternalDebt): Promise<ExternalDebt>;
+  updateExternalDebt(id: number, debt: InsertExternalDebt): Promise<ExternalDebt>;
+  deleteExternalDebt(id: number): Promise<void>;
+
+  getExternalDebtTransactions(): Promise<ExternalDebtTransaction[]>;
+  getExternalDebtTransactionsByDebtId(debtId: number): Promise<ExternalDebtTransaction[]>;
+  createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction>;
 
   getExpenseTypes(): Promise<ExpenseType[]>;
   createExpenseType(et: InsertExpenseType): Promise<ExpenseType>;
@@ -421,6 +432,32 @@ export class DatabaseStorage implements IStorage {
 
   async createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction> {
     const [created] = await db.insert(transferOfficeTransactions).values(txn).returning();
+    return created;
+  }
+
+  async getExternalDebts(): Promise<ExternalDebt[]> {
+    return await db.select().from(externalDebts);
+  }
+  async createExternalDebt(debt: InsertExternalDebt): Promise<ExternalDebt> {
+    const [created] = await db.insert(externalDebts).values(debt).returning();
+    return created;
+  }
+  async updateExternalDebt(id: number, debt: InsertExternalDebt): Promise<ExternalDebt> {
+    const [updated] = await db.update(externalDebts).set(debt).where(eq(externalDebts.id, id)).returning();
+    return updated;
+  }
+  async deleteExternalDebt(id: number): Promise<void> {
+    await db.delete(externalDebts).where(eq(externalDebts.id, id));
+  }
+
+  async getExternalDebtTransactions(): Promise<ExternalDebtTransaction[]> {
+    return await db.select().from(externalDebtTransactions).orderBy(sql`${externalDebtTransactions.createdAt} DESC`);
+  }
+  async getExternalDebtTransactionsByDebtId(debtId: number): Promise<ExternalDebtTransaction[]> {
+    return await db.select().from(externalDebtTransactions).where(eq(externalDebtTransactions.debtId, debtId)).orderBy(sql`${externalDebtTransactions.date} ASC, ${externalDebtTransactions.time} ASC`);
+  }
+  async createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction> {
+    const [created] = await db.insert(externalDebtTransactions).values(txn).returning();
     return created;
   }
 

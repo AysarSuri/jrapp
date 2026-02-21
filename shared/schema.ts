@@ -238,6 +238,27 @@ export const transferOfficeTransactions = pgTable("transfer_office_transactions"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const externalDebts = pgTable("external_debts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
+});
+
+export const externalDebtTransactions = pgTable("external_debt_transactions", {
+  id: serial("id").primaryKey(),
+  debtId: integer("debt_id").notNull(),
+  debtName: text("debt_name").notNull(),
+  type: text("type").notNull(), // 'receipt' | 'payment'
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  description: text("description"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const expenseTypes = pgTable("expense_types", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -271,6 +292,8 @@ export const insertSupplierAdjustmentSchema = createInsertSchema(supplierAdjustm
 export const insertBankTransactionSchema = createInsertSchema(bankTransactions).omit({ id: true, createdAt: true });
 export const insertCustomsClearanceTransactionSchema = createInsertSchema(customsClearanceTransactions).omit({ id: true, createdAt: true });
 export const insertTransferOfficeTransactionSchema = createInsertSchema(transferOfficeTransactions).omit({ id: true, createdAt: true });
+export const insertExternalDebtSchema = createInsertSchema(externalDebts).omit({ id: true });
+export const insertExternalDebtTransactionSchema = createInsertSchema(externalDebtTransactions).omit({ id: true, createdAt: true });
 export const insertExpenseTypeSchema = createInsertSchema(expenseTypes).omit({ id: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
@@ -332,6 +355,10 @@ export type CustomsClearanceTransaction = typeof customsClearanceTransactions.$i
 export type InsertCustomsClearanceTransaction = z.infer<typeof insertCustomsClearanceTransactionSchema>;
 export type TransferOfficeTransaction = typeof transferOfficeTransactions.$inferSelect;
 export type InsertTransferOfficeTransaction = z.infer<typeof insertTransferOfficeTransactionSchema>;
+export type ExternalDebt = typeof externalDebts.$inferSelect;
+export type InsertExternalDebt = z.infer<typeof insertExternalDebtSchema>;
+export type ExternalDebtTransaction = typeof externalDebtTransactions.$inferSelect;
+export type InsertExternalDebtTransaction = z.infer<typeof insertExternalDebtTransactionSchema>;
 export type ExpenseType = typeof expenseTypes.$inferSelect;
 export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
 export type Expense = typeof expenses.$inferSelect;

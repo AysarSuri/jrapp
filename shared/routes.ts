@@ -20,6 +20,8 @@ import {
   insertBankTransactionSchema, bankTransactions,
   insertCustomsClearanceTransactionSchema, customsClearanceTransactions,
   insertTransferOfficeTransactionSchema, transferOfficeTransactions,
+  insertExternalDebtSchema, externalDebts,
+  insertExternalDebtTransactionSchema, externalDebtTransactions,
   insertExpenseTypeSchema, expenseTypes,
   insertExpenseSchema, expenses,
   loginSchema, users 
@@ -509,6 +511,43 @@ export const api = {
       method: 'DELETE' as const,
       path: '/api/expense-types/:id' as const,
       responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  externalDebts: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/external-debts' as const,
+      responses: { 200: z.array(z.custom<typeof externalDebts.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/external-debts' as const,
+      input: insertExternalDebtSchema,
+      responses: { 201: z.custom<typeof externalDebts.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/external-debts/:id' as const,
+      input: insertExternalDebtSchema,
+      responses: { 200: z.custom<typeof externalDebts.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/external-debts/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  externalDebtTransactions: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/external-debt-transactions' as const,
+      responses: { 200: z.array(z.custom<typeof externalDebtTransactions.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/external-debt-transactions' as const,
+      input: insertExternalDebtTransactionSchema,
+      responses: { 201: z.custom<typeof externalDebtTransactions.$inferSelect>() }
     }
   },
   expenses: {
