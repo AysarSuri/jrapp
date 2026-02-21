@@ -1777,6 +1777,94 @@ export async function registerRoutes(
     }
   });
 
+  // Agent Statement
+  app.get('/api/agent-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const agentId = parseInt(req.params.id as string);
+      const [agent] = await db.select().from(representatives).where(eq(representatives.id, agentId));
+      if (!agent) return res.status(404).json({ message: "Agent not found" });
+
+      const invoices = await db.select().from(salesInvoices).where(eq(salesInvoices.representativeId, agentId)).orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
+      const returns = await db.select().from(salesReturns).where(eq(salesReturns.representativeId, agentId)).orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
+      const payments = await storage.getAgentPaymentsByAgentId(agentId);
+
+      type AgentStatementEntry = {
+        id: number;
+        date: string;
+        time: string;
+        type: string;
+        description: string | null;
+        reference: string | null;
+        currency: string;
+        debit: number;
+        credit: number;
+      };
+
+      const entries: AgentStatementEntry[] = [];
+
+      for (const inv of invoices) {
+        const remaining = parseFloat(inv.remaining || "0");
+        if (remaining > 0) {
+          entries.push({
+            id: inv.id,
+            date: inv.date,
+            time: inv.time || "00:00",
+            type: "sales_invoice",
+            description: `${inv.invoiceNumber} - ${inv.customerName}`,
+            reference: inv.invoiceNumber,
+            currency: inv.currency,
+            debit: remaining,
+            credit: 0,
+          });
+        }
+      }
+
+      for (const ret of returns) {
+        const subtotal = parseFloat(ret.subtotal || "0");
+        if (subtotal > 0) {
+          entries.push({
+            id: ret.id,
+            date: ret.date,
+            time: ret.time || "00:00",
+            type: "sales_return",
+            description: `${ret.returnNumber} - ${ret.customerName}`,
+            reference: ret.returnNumber,
+            currency: ret.currency,
+            debit: 0,
+            credit: subtotal,
+          });
+        }
+      }
+
+      for (const pay of payments) {
+        const amount = parseFloat(pay.amount || "0");
+        if (amount > 0) {
+          entries.push({
+            id: pay.id,
+            date: pay.date,
+            time: pay.time || "00:00",
+            type: "agent_payment",
+            description: pay.paymentSourceName,
+            reference: pay.reference,
+            currency: pay.currency,
+            debit: 0,
+            credit: amount,
+          });
+        }
+      }
+
+      entries.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+
+      res.json({ agent, entries });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   await seedDatabase();
 
   return httpServer;

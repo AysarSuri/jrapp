@@ -63,6 +63,8 @@ import CustomerReceiptUsdPage from "@/pages/customer-receipt-usd";
 import CustomerReceiptIqdPage from "@/pages/customer-receipt-iqd";
 import AgentPaymentUsdPage from "@/pages/agent-payment-usd";
 import AgentPaymentIqdPage from "@/pages/agent-payment-iqd";
+import AgentStatementUsdPage from "@/pages/agent-statement-usd";
+import AgentStatementIqdPage from "@/pages/agent-statement-iqd";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -252,6 +254,12 @@ function Router() {
       </Route>
       <Route path="/agent-payment-iqd">
         <ProtectedRoute component={AgentPaymentIqdPage} />
+      </Route>
+      <Route path="/agent-statement-usd">
+        <ProtectedRoute component={AgentStatementUsdPage} />
+      </Route>
+      <Route path="/agent-statement-iqd">
+        <ProtectedRoute component={AgentStatementIqdPage} />
       </Route>
       <Route path="/purchase-return-usd">
         <ProtectedRoute component={PurchaseReturnUsdPage} />

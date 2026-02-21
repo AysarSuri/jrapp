@@ -7,6 +7,7 @@ import {
   ArrowRight,
   DollarSign,
   Banknote,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -85,6 +86,22 @@ export default function SalesManagementPage() {
       color: "from-indigo-500 to-indigo-600",
       bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
       iconColor: "text-indigo-600 dark:text-indigo-400",
+    },
+    {
+      href: "/agent-statement-usd",
+      icon: FileText,
+      label: "Agent Statement USD",
+      color: "from-sky-500 to-sky-600",
+      bgColor: "bg-sky-50 dark:bg-sky-950/30",
+      iconColor: "text-sky-600 dark:text-sky-400",
+    },
+    {
+      href: "/agent-statement-iqd",
+      icon: FileText,
+      label: "Agent Statement IQD",
+      color: "from-violet-500 to-violet-600",
+      bgColor: "bg-violet-50 dark:bg-violet-950/30",
+      iconColor: "text-violet-600 dark:text-violet-400",
     },
   ];
 

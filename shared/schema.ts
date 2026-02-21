@@ -53,6 +53,8 @@ export const representatives = pgTable("representatives", {
   debtIqd: numeric("debt_iqd").notNull().default("0"),
 });
 
+export type Representative = typeof representatives.$inferSelect;
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
