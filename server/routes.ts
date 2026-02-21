@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1604,6 +1604,148 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Inventory Report
+  app.get('/api/inventory-report', requireAuth, async (req, res) => {
+    try {
+      const warehouseId = req.query.warehouseId ? parseInt(req.query.warehouseId as string) : null;
+
+      const damageFilter = warehouseId
+        ? `JOIN product_damages d ON d.id = di.damage_id WHERE d.warehouse_id = ${warehouseId}`
+        : `WHERE 1=1`;
+
+      const transferInFilter = warehouseId
+        ? `JOIN warehouse_transfers t ON t.id = ti.transfer_id WHERE t.to_warehouse_id = ${warehouseId}`
+        : `WHERE 1=0`;
+
+      const transferOutFilter = warehouseId
+        ? `JOIN warehouse_transfers t ON t.id = ti.transfer_id WHERE t.from_warehouse_id = ${warehouseId}`
+        : `WHERE 1=0`;
+
+      const query = `
+        WITH purchase_agg AS (
+          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
+          FROM purchase_invoice_items WHERE product_id IS NOT NULL
+          GROUP BY product_id, unit
+        ),
+        sales_agg AS (
+          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
+          FROM sales_invoice_items WHERE product_id IS NOT NULL
+          GROUP BY product_id, unit
+        ),
+        purchase_return_agg AS (
+          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
+          FROM purchase_return_items WHERE product_id IS NOT NULL
+          GROUP BY product_id, unit
+        ),
+        sales_return_agg AS (
+          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
+          FROM sales_return_items WHERE product_id IS NOT NULL
+          GROUP BY product_id, unit
+        ),
+        damage_agg AS (
+          SELECT di.product_id, di.unit, SUM(di.quantity) as total
+          FROM product_damage_items di
+          ${damageFilter}
+          AND di.product_id IS NOT NULL
+          GROUP BY di.product_id, di.unit
+        ),
+        transfer_in_agg AS (
+          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          FROM warehouse_transfer_items ti
+          ${transferInFilter}
+          AND ti.product_id IS NOT NULL
+          GROUP BY ti.product_id, ti.unit
+        ),
+        transfer_out_agg AS (
+          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          FROM warehouse_transfer_items ti
+          ${transferOutFilter}
+          AND ti.product_id IS NOT NULL
+          GROUP BY ti.product_id, ti.unit
+        )
+        SELECT
+          p.id as product_id,
+          p.barcode as product_code,
+          p.name as product_name,
+          p.category,
+          p.big_unit,
+          p.small_unit,
+          p.conversion_factor,
+          COALESCE(SUM(CASE WHEN pa.unit = p.big_unit THEN pa.total * p.conversion_factor ELSE pa.total END), 0)::INTEGER as purchased,
+          COALESCE(SUM(CASE WHEN sa.unit = p.big_unit THEN sa.total * p.conversion_factor ELSE sa.total END), 0)::INTEGER as sold,
+          COALESCE(SUM(CASE WHEN pra.unit = p.big_unit THEN pra.total * p.conversion_factor ELSE pra.total END), 0)::INTEGER as purchase_returned,
+          COALESCE(SUM(CASE WHEN sra.unit = p.big_unit THEN sra.total * p.conversion_factor ELSE sra.total END), 0)::INTEGER as sales_returned,
+          COALESCE(SUM(CASE WHEN da.unit = p.big_unit THEN da.total * p.conversion_factor ELSE da.total END), 0)::INTEGER as damaged,
+          COALESCE(SUM(CASE WHEN tia.unit = p.big_unit THEN tia.total * p.conversion_factor ELSE tia.total END), 0)::INTEGER as transfer_in,
+          COALESCE(SUM(CASE WHEN toa.unit = p.big_unit THEN toa.total * p.conversion_factor ELSE toa.total END), 0)::INTEGER as transfer_out
+        FROM products p
+        LEFT JOIN purchase_agg pa ON pa.product_id = p.id
+        LEFT JOIN sales_agg sa ON sa.product_id = p.id
+        LEFT JOIN purchase_return_agg pra ON pra.product_id = p.id
+        LEFT JOIN sales_return_agg sra ON sra.product_id = p.id
+        LEFT JOIN damage_agg da ON da.product_id = p.id
+        LEFT JOIN transfer_in_agg tia ON tia.product_id = p.id
+        LEFT JOIN transfer_out_agg toa ON toa.product_id = p.id
+        GROUP BY p.id, p.barcode, p.name, p.category, p.big_unit, p.small_unit, p.conversion_factor
+        ORDER BY p.name
+      `;
+
+      const result = await pool.query(query);
+
+      const report = result.rows.map(row => {
+        const cf = parseInt(row.conversion_factor) || 1;
+        const purchased = parseInt(row.purchased) || 0;
+        const sold = parseInt(row.sold) || 0;
+        const purchaseReturned = parseInt(row.purchase_returned) || 0;
+        const salesReturned = parseInt(row.sales_returned) || 0;
+        const damaged = parseInt(row.damaged) || 0;
+        const transferIn = parseInt(row.transfer_in) || 0;
+        const transferOut = parseInt(row.transfer_out) || 0;
+
+        const netSmall = purchased + salesReturned + transferIn - sold - purchaseReturned - damaged - transferOut;
+
+        return {
+          productId: row.product_id,
+          productCode: row.product_code,
+          productName: row.product_name,
+          category: row.category,
+          bigUnit: row.big_unit,
+          smallUnit: row.small_unit,
+          conversionFactor: cf,
+          purchased,
+          sold,
+          purchaseReturned,
+          salesReturned,
+          damaged,
+          transferIn,
+          transferOut,
+          netSmallUnits: netSmall,
+          bigQty: Math.floor(Math.abs(netSmall) / cf) * (netSmall < 0 ? -1 : 1),
+          smallQty: Math.abs(netSmall) % cf,
+          purchasedBig: Math.floor(purchased / cf),
+          purchasedRemainder: purchased % cf,
+          soldBig: Math.floor(sold / cf),
+          soldRemainder: sold % cf,
+          purchaseReturnedBig: Math.floor(purchaseReturned / cf),
+          purchaseReturnedRemainder: purchaseReturned % cf,
+          salesReturnedBig: Math.floor(salesReturned / cf),
+          salesReturnedRemainder: salesReturned % cf,
+          damagedBig: Math.floor(damaged / cf),
+          damagedRemainder: damaged % cf,
+          transferInBig: Math.floor(transferIn / cf),
+          transferInRemainder: transferIn % cf,
+          transferOutBig: Math.floor(transferOut / cf),
+          transferOutRemainder: transferOut % cf,
+        };
+      });
+
+      res.json(report);
+    } catch (err) {
+      console.error("Inventory report error:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });
