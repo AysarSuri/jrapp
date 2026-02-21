@@ -103,10 +103,28 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/bank-statement",
   ];
 
+  const clearanceSubRoutes = [
+    "/customs-clearances",
+    "/clearance-receipts",
+    "/clearance-payments",
+    "/clearance-statement",
+  ];
+
+  const officeSubRoutes = [
+    "/transfer-offices",
+    "/office-receipts",
+    "/office-payments",
+    "/office-statement",
+  ];
+
   const isSupplierSection = supplierSubRoutes.includes(location);
   const isBankSection = bankSubRoutes.includes(location);
+  const isClearanceSection = clearanceSubRoutes.includes(location);
+  const isOfficeSection = officeSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
+  const [clearanceOpen, setClearanceOpen] = useState(isClearanceSection);
+  const [officeOpen, setOfficeOpen] = useState(isOfficeSection);
 
   useEffect(() => {
     if (isSupplierSection) setSupplierOpen(true);
@@ -115,6 +133,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isBankSection) setBankOpen(true);
   }, [isBankSection]);
+
+  useEffect(() => {
+    if (isClearanceSection) setClearanceOpen(true);
+  }, [isClearanceSection]);
+
+  useEffect(() => {
+    if (isOfficeSection) setOfficeOpen(true);
+  }, [isOfficeSection]);
 
   type NavItem = { href: string; icon: any; label: string };
   type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
@@ -135,6 +161,20 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/bank-statement", icon: FileText, label: "Bank Account Statement" },
   ];
 
+  const clearanceNavItems: NavItem[] = [
+    { href: "/customs-clearances", icon: ShieldCheck, label: "Customs Clearances" },
+    { href: "/clearance-receipts", icon: ArrowDownToLine, label: "Clearance Receipts" },
+    { href: "/clearance-payments", icon: ArrowUpFromLine, label: "Clearance Payments" },
+    { href: "/clearance-statement", icon: FileText, label: "Clearance Account Statement" },
+  ];
+
+  const officeNavItems: NavItem[] = [
+    { href: "/transfer-offices", icon: Building, label: "Transfer Offices" },
+    { href: "/office-receipts", icon: ArrowDownToLine, label: "Office Receipts" },
+    { href: "/office-payments", icon: ArrowUpFromLine, label: "Office Payments" },
+    { href: "/office-statement", icon: FileText, label: "Office Account Statement" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
@@ -143,11 +183,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/customers", icon: Users, label: "Customers" },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
+    { type: 'group', label: "Clearance Management", icon: ShieldCheck, children: clearanceNavItems },
+    { type: 'group', label: "Office Management", icon: Building, children: officeNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
-    { href: "/transfer-offices", icon: Building, label: "Transfer Offices" },
-    { href: "/customs-clearances", icon: ShieldCheck, label: "Customs Clearances" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
@@ -182,11 +222,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {sidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
+            const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
+              "Supplier Management": { isOpen: supplierOpen, setOpen: setSupplierOpen, isActive: isSupplierSection },
+              "Bank Management": { isOpen: bankOpen, setOpen: setBankOpen, isActive: isBankSection },
+              "Clearance Management": { isOpen: clearanceOpen, setOpen: setClearanceOpen, isActive: isClearanceSection },
+              "Office Management": { isOpen: officeOpen, setOpen: setOfficeOpen, isActive: isOfficeSection },
+            };
+            const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
+            const isOpen = group.isOpen;
+            const setOpen = group.setOpen;
+            const isActiveSection = group.isActive;
             const isSupplierGroup = entry.label === "Supplier Management";
-            const isBankGroup = entry.label === "Bank Management";
-            const isOpen = isSupplierGroup ? supplierOpen : isBankGroup ? bankOpen : false;
-            const setOpen = isSupplierGroup ? setSupplierOpen : isBankGroup ? setBankOpen : () => {};
-            const isActiveSection = isSupplierGroup ? isSupplierSection : isBankGroup ? isBankSection : false;
             const landingRoute = isSupplierGroup ? "/supplier-management" : entry.children[0]?.href || "/";
             const isLandingActive = location === landingRoute;
             const testIdName = entry.label.toLowerCase().replace(/\s+/g, '-');

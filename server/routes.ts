@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -891,6 +891,124 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.customsClearanceTransactions.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCustomsClearanceTransactions();
+    res.json(data);
+  });
+
+  app.post(api.customsClearanceTransactions.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.customsClearanceTransactions.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [txn] = await tx.insert(customsClearanceTransactions).values(input).returning();
+        return txn;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/clearance-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const clearanceId = parseInt(req.params.id as string);
+      const [clearance] = await db.select().from(customsClearances).where(eq(customsClearances.id, clearanceId));
+      if (!clearance) return res.status(404).json({ message: "Customs clearance not found" });
+
+      const txns = await storage.getCustomsClearanceTransactionsByClearanceId(clearanceId);
+
+      const entries = txns.map((t) => {
+        const usd = parseFloat(t.amountUsd || "0");
+        const iqd = parseFloat(t.amountIqd || "0");
+        return {
+          id: t.id,
+          date: t.date,
+          time: t.time || "00:00",
+          type: t.type,
+          description: t.description,
+          reference: t.reference,
+          debitUsd: t.type === "receipt" ? usd : 0,
+          debitIqd: t.type === "receipt" ? iqd : 0,
+          creditUsd: t.type === "payment" ? usd : 0,
+          creditIqd: t.type === "payment" ? iqd : 0,
+        };
+      });
+
+      res.json({ clearance, entries });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.transferOfficeTransactions.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getTransferOfficeTransactions();
+    res.json(data);
+  });
+
+  app.post(api.transferOfficeTransactions.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.transferOfficeTransactions.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [txn] = await tx.insert(transferOfficeTransactions).values(input).returning();
+        return txn;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/office-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const officeId = parseInt(req.params.id as string);
+      const [office] = await db.select().from(transferOffices).where(eq(transferOffices.id, officeId));
+      if (!office) return res.status(404).json({ message: "Transfer office not found" });
+
+      const txns = await storage.getTransferOfficeTransactionsByOfficeId(officeId);
+
+      const entries = txns.map((t) => {
+        const usd = parseFloat(t.amountUsd || "0");
+        const iqd = parseFloat(t.amountIqd || "0");
+        return {
+          id: t.id,
+          date: t.date,
+          time: t.time || "00:00",
+          type: t.type,
+          description: t.description,
+          reference: t.reference,
+          debitUsd: t.type === "receipt" ? usd : 0,
+          debitIqd: t.type === "receipt" ? iqd : 0,
+          creditUsd: t.type === "payment" ? usd : 0,
+          creditIqd: t.type === "payment" ? iqd : 0,
+        };
+      });
+
+      res.json({ office, entries });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

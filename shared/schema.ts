@@ -210,6 +210,34 @@ export const bankTransactions = pgTable("bank_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const customsClearanceTransactions = pgTable("customs_clearance_transactions", {
+  id: serial("id").primaryKey(),
+  clearanceId: integer("clearance_id").notNull(),
+  clearanceName: text("clearance_name").notNull(),
+  type: text("type").notNull(),
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  description: text("description"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const transferOfficeTransactions = pgTable("transfer_office_transactions", {
+  id: serial("id").primaryKey(),
+  officeId: integer("office_id").notNull(),
+  officeName: text("office_name").notNull(),
+  type: text("type").notNull(),
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  description: text("description"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
@@ -223,6 +251,8 @@ export const insertPurchaseInvoiceItemSchema = createInsertSchema(purchaseInvoic
 export const insertSupplierPaymentSchema = createInsertSchema(supplierPayments).omit({ id: true, createdAt: true });
 export const insertSupplierAdjustmentSchema = createInsertSchema(supplierAdjustments).omit({ id: true, createdAt: true });
 export const insertBankTransactionSchema = createInsertSchema(bankTransactions).omit({ id: true, createdAt: true });
+export const insertCustomsClearanceTransactionSchema = createInsertSchema(customsClearanceTransactions).omit({ id: true, createdAt: true });
+export const insertTransferOfficeTransactionSchema = createInsertSchema(transferOfficeTransactions).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -278,6 +308,10 @@ export type SupplierAdjustment = typeof supplierAdjustments.$inferSelect;
 export type InsertSupplierAdjustment = z.infer<typeof insertSupplierAdjustmentSchema>;
 export type BankTransaction = typeof bankTransactions.$inferSelect;
 export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
+export type CustomsClearanceTransaction = typeof customsClearanceTransactions.$inferSelect;
+export type InsertCustomsClearanceTransaction = z.infer<typeof insertCustomsClearanceTransactionSchema>;
+export type TransferOfficeTransaction = typeof transferOfficeTransactions.$inferSelect;
+export type InsertTransferOfficeTransaction = z.infer<typeof insertTransferOfficeTransactionSchema>;
 
 // Auth types
 export const loginSchema = z.object({

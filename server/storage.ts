@@ -2,7 +2,7 @@ import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
-  supplierPayments, supplierAdjustments, bankTransactions,
+  supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -21,7 +21,9 @@ import {
   type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem,
   type SupplierPayment, type InsertSupplierPayment,
   type SupplierAdjustment, type InsertSupplierAdjustment,
-  type BankTransaction, type InsertBankTransaction
+  type BankTransaction, type InsertBankTransaction,
+  type CustomsClearanceTransaction, type InsertCustomsClearanceTransaction,
+  type TransferOfficeTransaction, type InsertTransferOfficeTransaction
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -108,6 +110,14 @@ export interface IStorage {
   getBankTransactions(): Promise<BankTransaction[]>;
   getBankTransactionsByBankId(bankId: number): Promise<BankTransaction[]>;
   createBankTransaction(txn: InsertBankTransaction): Promise<BankTransaction>;
+
+  getCustomsClearanceTransactions(): Promise<CustomsClearanceTransaction[]>;
+  getCustomsClearanceTransactionsByClearanceId(clearanceId: number): Promise<CustomsClearanceTransaction[]>;
+  createCustomsClearanceTransaction(txn: InsertCustomsClearanceTransaction): Promise<CustomsClearanceTransaction>;
+
+  getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]>;
+  getTransferOfficeTransactionsByOfficeId(officeId: number): Promise<TransferOfficeTransaction[]>;
+  createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -374,6 +384,32 @@ export class DatabaseStorage implements IStorage {
 
   async createBankTransaction(txn: InsertBankTransaction): Promise<BankTransaction> {
     const [created] = await db.insert(bankTransactions).values(txn).returning();
+    return created;
+  }
+
+  async getCustomsClearanceTransactions(): Promise<CustomsClearanceTransaction[]> {
+    return await db.select().from(customsClearanceTransactions).orderBy(sql`${customsClearanceTransactions.createdAt} DESC`);
+  }
+
+  async getCustomsClearanceTransactionsByClearanceId(clearanceId: number): Promise<CustomsClearanceTransaction[]> {
+    return await db.select().from(customsClearanceTransactions).where(eq(customsClearanceTransactions.clearanceId, clearanceId)).orderBy(sql`${customsClearanceTransactions.date} ASC, ${customsClearanceTransactions.time} ASC`);
+  }
+
+  async createCustomsClearanceTransaction(txn: InsertCustomsClearanceTransaction): Promise<CustomsClearanceTransaction> {
+    const [created] = await db.insert(customsClearanceTransactions).values(txn).returning();
+    return created;
+  }
+
+  async getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]> {
+    return await db.select().from(transferOfficeTransactions).orderBy(sql`${transferOfficeTransactions.createdAt} DESC`);
+  }
+
+  async getTransferOfficeTransactionsByOfficeId(officeId: number): Promise<TransferOfficeTransaction[]> {
+    return await db.select().from(transferOfficeTransactions).where(eq(transferOfficeTransactions.officeId, officeId)).orderBy(sql`${transferOfficeTransactions.date} ASC, ${transferOfficeTransactions.time} ASC`);
+  }
+
+  async createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction> {
+    const [created] = await db.insert(transferOfficeTransactions).values(txn).returning();
     return created;
   }
 }

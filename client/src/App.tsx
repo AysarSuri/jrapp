@@ -30,6 +30,12 @@ import SupplierStatementPage from "@/pages/supplier-statement";
 import BankReceiptsPage from "@/pages/bank-receipts";
 import BankPaymentsPage from "@/pages/bank-payments";
 import BankStatementPage from "@/pages/bank-statement";
+import ClearanceReceiptsPage from "@/pages/clearance-receipts";
+import ClearancePaymentsPage from "@/pages/clearance-payments";
+import ClearanceStatementPage from "@/pages/clearance-statement";
+import OfficeReceiptsPage from "@/pages/office-receipts";
+import OfficePaymentsPage from "@/pages/office-payments";
+import OfficeStatementPage from "@/pages/office-statement";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -126,6 +132,24 @@ function Router() {
       </Route>
       <Route path="/bank-statement">
         <ProtectedRoute component={BankStatementPage} />
+      </Route>
+      <Route path="/clearance-receipts">
+        <ProtectedRoute component={ClearanceReceiptsPage} />
+      </Route>
+      <Route path="/clearance-payments">
+        <ProtectedRoute component={ClearancePaymentsPage} />
+      </Route>
+      <Route path="/clearance-statement">
+        <ProtectedRoute component={ClearanceStatementPage} />
+      </Route>
+      <Route path="/office-receipts">
+        <ProtectedRoute component={OfficeReceiptsPage} />
+      </Route>
+      <Route path="/office-payments">
+        <ProtectedRoute component={OfficePaymentsPage} />
+      </Route>
+      <Route path="/office-statement">
+        <ProtectedRoute component={OfficeStatementPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />

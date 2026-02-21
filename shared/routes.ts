@@ -18,6 +18,8 @@ import {
   insertSupplierPaymentSchema, supplierPayments,
   insertSupplierAdjustmentSchema, supplierAdjustments,
   insertBankTransactionSchema, bankTransactions,
+  insertCustomsClearanceTransactionSchema, customsClearanceTransactions,
+  insertTransferOfficeTransactionSchema, transferOfficeTransactions,
   loginSchema, users 
 } from './schema';
 
@@ -455,6 +457,32 @@ export const api = {
       path: '/api/bank-transactions' as const,
       input: insertBankTransactionSchema,
       responses: { 201: z.custom<typeof bankTransactions.$inferSelect>() }
+    }
+  },
+  customsClearanceTransactions: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/clearance-transactions' as const,
+      responses: { 200: z.array(z.custom<typeof customsClearanceTransactions.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/clearance-transactions' as const,
+      input: insertCustomsClearanceTransactionSchema,
+      responses: { 201: z.custom<typeof customsClearanceTransactions.$inferSelect>() }
+    }
+  },
+  transferOfficeTransactions: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/office-transactions' as const,
+      responses: { 200: z.array(z.custom<typeof transferOfficeTransactions.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/office-transactions' as const,
+      input: insertTransferOfficeTransactionSchema,
+      responses: { 201: z.custom<typeof transferOfficeTransactions.$inferSelect>() }
     }
   }
 };
