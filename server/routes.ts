@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1597,6 +1597,54 @@ export async function registerRoutes(
         }
 
         return transfer;
+      });
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Product Damages
+  app.get('/api/product-damages/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextDamageNumber();
+    res.json({ number });
+  });
+
+  app.get(api.productDamages.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getProductDamages();
+    res.json(data);
+  });
+
+  app.get('/api/product-damages/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const items = await storage.getProductDamageItems(id);
+    res.json(items);
+  });
+
+  app.post(api.productDamages.create.path, requireAuth, async (req, res) => {
+    try {
+      const parsed = api.productDamages.create.input.parse(req.body);
+      const { damage: damageData, items: itemsData } = parsed;
+
+      if (!itemsData || itemsData.length === 0) {
+        return res.status(400).json({ message: "At least one item is required" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [damage] = await tx.insert(productDamages).values(damageData).returning();
+
+        for (const item of itemsData) {
+          await tx.insert(productDamageItems).values({
+            ...item,
+            damageId: damage.id,
+          });
+        }
+
+        return damage;
       });
 
       res.status(201).json(result);

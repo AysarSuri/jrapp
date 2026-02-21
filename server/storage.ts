@@ -44,7 +44,10 @@ import {
   type CurrencyExchange, type InsertCurrencyExchange,
   type WarehouseTransfer, type InsertWarehouseTransfer,
   type WarehouseTransferItem, type InsertWarehouseTransferItem,
-  customerReceipts, currencyExchanges, warehouseTransfers, warehouseTransferItems
+  type ProductDamage, type InsertProductDamage,
+  type ProductDamageItem, type InsertProductDamageItem,
+  customerReceipts, currencyExchanges, warehouseTransfers, warehouseTransferItems,
+  productDamages, productDamageItems
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -208,6 +211,12 @@ export interface IStorage {
   createWarehouseTransfer(transfer: InsertWarehouseTransfer): Promise<WarehouseTransfer>;
   createWarehouseTransferItem(item: InsertWarehouseTransferItem): Promise<WarehouseTransferItem>;
   getNextTransferNumber(): Promise<string>;
+
+  getProductDamages(): Promise<ProductDamage[]>;
+  getProductDamageItems(damageId: number): Promise<ProductDamageItem[]>;
+  createProductDamage(damage: InsertProductDamage): Promise<ProductDamage>;
+  createProductDamageItem(item: InsertProductDamageItem): Promise<ProductDamageItem>;
+  getNextDamageNumber(): Promise<string>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -765,6 +774,30 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(warehouseTransfers);
     const next = (result?.count || 0) + 1;
     return `WT-${String(next).padStart(5, '0')}`;
+  }
+
+  async getProductDamages(): Promise<ProductDamage[]> {
+    return await db.select().from(productDamages).orderBy(sql`${productDamages.createdAt} DESC`);
+  }
+
+  async getProductDamageItems(damageId: number): Promise<ProductDamageItem[]> {
+    return await db.select().from(productDamageItems).where(eq(productDamageItems.damageId, damageId));
+  }
+
+  async createProductDamage(damage: InsertProductDamage): Promise<ProductDamage> {
+    const [created] = await db.insert(productDamages).values(damage).returning();
+    return created;
+  }
+
+  async createProductDamageItem(item: InsertProductDamageItem): Promise<ProductDamageItem> {
+    const [created] = await db.insert(productDamageItems).values(item).returning();
+    return created;
+  }
+
+  async getNextDamageNumber(): Promise<string> {
+    const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(productDamages);
+    const next = (result?.count || 0) + 1;
+    return `DMG-${String(next).padStart(5, '0')}`;
   }
 
   async markNotificationRead(id: number): Promise<void> {

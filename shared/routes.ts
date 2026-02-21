@@ -37,6 +37,8 @@ import {
   insertCurrencyExchangeSchema, currencyExchanges,
   insertWarehouseTransferSchema, warehouseTransfers,
   insertWarehouseTransferItemSchema, warehouseTransferItems,
+  insertProductDamageSchema, productDamages,
+  insertProductDamageItemSchema, productDamageItems,
   notifications,
   insertUserSchema, loginSchema, users 
 } from './schema';
@@ -798,6 +800,32 @@ export const api = {
     nextNumber: {
       method: 'GET' as const,
       path: '/api/warehouse-transfers/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
+    }
+  },
+  productDamages: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/product-damages' as const,
+      responses: { 200: z.array(z.custom<typeof productDamages.$inferSelect>()) }
+    },
+    items: {
+      method: 'GET' as const,
+      path: '/api/product-damages/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof productDamageItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/product-damages' as const,
+      input: z.object({
+        damage: insertProductDamageSchema,
+        items: z.array(insertProductDamageItemSchema.omit({ damageId: true })),
+      }),
+      responses: { 201: z.custom<typeof productDamages.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/product-damages/next-number' as const,
       responses: { 200: z.object({ number: z.string() }) }
     }
   },

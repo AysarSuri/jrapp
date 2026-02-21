@@ -568,6 +568,35 @@ export type InsertWarehouseTransfer = z.infer<typeof insertWarehouseTransferSche
 export type WarehouseTransferItem = typeof warehouseTransferItems.$inferSelect;
 export type InsertWarehouseTransferItem = z.infer<typeof insertWarehouseTransferItemSchema>;
 
+export const productDamages = pgTable("product_damages", {
+  id: serial("id").primaryKey(),
+  damageNumber: text("damage_number").notNull(),
+  warehouseId: integer("warehouse_id"),
+  warehouseName: text("warehouse_name"),
+  reason: text("reason").notNull(),
+  note: text("note"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const productDamageItems = pgTable("product_damage_items", {
+  id: serial("id").primaryKey(),
+  damageId: integer("damage_id").notNull(),
+  productId: integer("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  productCode: text("product_code").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  unit: text("unit").notNull(),
+});
+
+export const insertProductDamageSchema = createInsertSchema(productDamages).omit({ id: true, createdAt: true });
+export const insertProductDamageItemSchema = createInsertSchema(productDamageItems).omit({ id: true });
+export type ProductDamage = typeof productDamages.$inferSelect;
+export type InsertProductDamage = z.infer<typeof insertProductDamageSchema>;
+export type ProductDamageItem = typeof productDamageItems.$inferSelect;
+export type InsertProductDamageItem = z.infer<typeof insertProductDamageItemSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),
