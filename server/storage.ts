@@ -3,7 +3,7 @@ import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
-  externalDebts, externalDebtTransactions, expenseTypes, expenses,
+  externalDebts, externalDebtTransactions, ownerTransactions, expenseTypes, expenses,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -27,6 +27,7 @@ import {
   type TransferOfficeTransaction, type InsertTransferOfficeTransaction,
   type ExternalDebt, type InsertExternalDebt,
   type ExternalDebtTransaction, type InsertExternalDebtTransaction,
+  type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
   type Expense, type InsertExpense
 } from "@shared/schema";
@@ -132,6 +133,9 @@ export interface IStorage {
   getExternalDebtTransactions(): Promise<ExternalDebtTransaction[]>;
   getExternalDebtTransactionsByDebtId(debtId: number): Promise<ExternalDebtTransaction[]>;
   createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction>;
+
+  getOwnerTransactions(): Promise<OwnerTransaction[]>;
+  createOwnerTransaction(txn: InsertOwnerTransaction): Promise<OwnerTransaction>;
 
   getExpenseTypes(): Promise<ExpenseType[]>;
   createExpenseType(et: InsertExpenseType): Promise<ExpenseType>;
@@ -458,6 +462,14 @@ export class DatabaseStorage implements IStorage {
   }
   async createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction> {
     const [created] = await db.insert(externalDebtTransactions).values(txn).returning();
+    return created;
+  }
+
+  async getOwnerTransactions(): Promise<OwnerTransaction[]> {
+    return await db.select().from(ownerTransactions).orderBy(sql`${ownerTransactions.createdAt} DESC`);
+  }
+  async createOwnerTransaction(txn: InsertOwnerTransaction): Promise<OwnerTransaction> {
+    const [created] = await db.insert(ownerTransactions).values(txn).returning();
     return created;
   }
 

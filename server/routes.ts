@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, expenses } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, ownerTransactions, expenses } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1152,6 +1152,30 @@ export async function registerRoutes(
         return res.status(400).json({ message: "At least one amount must be greater than zero" });
       }
       const result = await storage.createExternalDebtTransaction(input);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Owner Transactions
+  app.get(api.ownerTransactions.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getOwnerTransactions();
+    res.json(data);
+  });
+
+  app.post(api.ownerTransactions.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.ownerTransactions.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+      const result = await storage.createOwnerTransaction(input);
       res.status(201).json(result);
     } catch (err) {
       if (err instanceof z.ZodError) {

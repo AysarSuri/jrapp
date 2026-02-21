@@ -29,7 +29,8 @@ import {
   ChevronDown,
   ClipboardList,
   Tags,
-  HandCoins
+  HandCoins,
+  UserCog
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,18 +132,25 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/external-debt-statement",
   ];
 
+  const ownerSubRoutes = [
+    "/owner-withdrawals",
+    "/owner-returns",
+  ];
+
   const isSupplierSection = supplierSubRoutes.includes(location);
   const isBankSection = bankSubRoutes.includes(location);
   const isClearanceSection = clearanceSubRoutes.includes(location);
   const isOfficeSection = officeSubRoutes.includes(location);
   const isExpenseSection = expenseSubRoutes.includes(location);
   const isExternalDebtSection = externalDebtSubRoutes.includes(location);
+  const isOwnerSection = ownerSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
   const [clearanceOpen, setClearanceOpen] = useState(isClearanceSection);
   const [officeOpen, setOfficeOpen] = useState(isOfficeSection);
   const [expenseOpen, setExpenseOpen] = useState(isExpenseSection);
   const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
+  const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
 
   useEffect(() => {
     if (isSupplierSection) setSupplierOpen(true);
@@ -167,6 +175,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isExternalDebtSection) setExternalDebtOpen(true);
   }, [isExternalDebtSection]);
+
+  useEffect(() => {
+    if (isOwnerSection) setOwnerOpen(true);
+  }, [isOwnerSection]);
 
   type NavItem = { href: string; icon: any; label: string };
   type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
@@ -213,6 +225,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/external-debt-statement", icon: FileText, label: "External Debt Statement" },
   ];
 
+  const ownerNavItems: NavItem[] = [
+    { href: "/owner-withdrawals", icon: ArrowUpFromLine, label: "Owner Withdrawals" },
+    { href: "/owner-returns", icon: ArrowDownToLine, label: "Owner Returns" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
@@ -225,6 +242,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "Office Management", icon: Building, children: officeNavItems },
     { type: 'group', label: "Expense Management", icon: Receipt, children: expenseNavItems },
     { type: 'group', label: "External Debt Management", icon: HandCoins, children: externalDebtNavItems },
+    { type: 'group', label: "Owner Management", icon: UserCog, children: ownerNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
@@ -269,6 +287,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Office Management": { isOpen: officeOpen, setOpen: setOfficeOpen, isActive: isOfficeSection },
               "Expense Management": { isOpen: expenseOpen, setOpen: setExpenseOpen, isActive: isExpenseSection },
               "External Debt Management": { isOpen: externalDebtOpen, setOpen: setExternalDebtOpen, isActive: isExternalDebtSection },
+              "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
             const isOpen = group.isOpen;
