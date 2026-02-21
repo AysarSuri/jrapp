@@ -53,6 +53,30 @@ export async function registerRoutes(
     }
   });
 
+  app.post(api.auth.register.path, async (req, res) => {
+    try {
+      const input = api.auth.register.input.parse(req.body);
+      const allowedRoles = ["admin", "user", "sales_rep"];
+      if (!allowedRoles.includes(input.role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      const existing = await storage.getUserByUsername(input.username);
+      if (existing) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      const hashed = await bcrypt.hash(input.password, 12);
+      const user = await storage.createUser({ ...input, password: hashed });
+      req.session.userId = user.id;
+      const { password, ...safeUser } = user;
+      res.status(201).json(safeUser);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message, field: err.errors[0].path.join('.') });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post(api.auth.logout.path, (req, res) => {
     req.session.destroy(() => {
       res.json({ message: "Logged out" });

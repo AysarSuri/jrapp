@@ -26,7 +26,7 @@ import {
   insertOwnerTransactionSchema, ownerTransactions,
   insertExpenseTypeSchema, expenseTypes,
   insertExpenseSchema, expenses,
-  loginSchema, users 
+  insertUserSchema, loginSchema, users 
 } from './schema';
 
 export * from './schema';
@@ -46,6 +46,15 @@ export const api = {
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
         401: errorSchemas.unauthorized,
+      }
+    },
+    register: {
+      method: 'POST' as const,
+      path: '/api/register' as const,
+      input: insertUserSchema,
+      responses: {
+        201: z.custom<typeof users.$inferSelect>(),
+        400: errorSchemas.validation,
       }
     },
     logout: {

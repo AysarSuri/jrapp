@@ -40,6 +40,29 @@ export function useLogin() {
   });
 }
 
+export function useRegister() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: InsertUser) => {
+      const res = await fetch(api.auth.register.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Registration failed");
+      }
+
+      return res.json();
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData([api.auth.me.path], user);
+    },
+  });
+}
+
 export function useLogout() {
   const queryClient = useQueryClient();
   return useMutation({
