@@ -21,16 +21,22 @@ export const categories = pgTable("categories", {
 export const transferOffices = pgTable("transfer_offices", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
 });
 
 export const banks = pgTable("banks", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
 });
 
 export const customsClearances = pgTable("customs_clearances", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
 });
 
 export const warehouses = pgTable("warehouses", {

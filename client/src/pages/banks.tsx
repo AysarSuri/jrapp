@@ -38,18 +38,18 @@ export default function BanksPage() {
 
   const form = useForm<z.infer<typeof insertBankSchema>>({
     resolver: zodResolver(insertBankSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "" });
+    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
     setOpen(true);
   };
 
   const openEditDialog = (item: Bank) => {
     setEditing(item);
-    form.reset({ name: item.name });
+    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
     setOpen(true);
   };
 
@@ -97,6 +97,8 @@ export default function BanksPage() {
 
   const isSaving = isCreating || isUpdating;
 
+  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -111,7 +113,7 @@ export default function BanksPage() {
               {t('Add Bank')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editing ? t('Edit Bank') : t('Add New Bank')}</DialogTitle>
               <DialogDescription>{t('Enter the bank name')}</DialogDescription>
@@ -125,6 +127,26 @@ export default function BanksPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt USD')}</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0" placeholder="0.00" data-testid="input-bank-old-debt-usd" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt IQD')}</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="250" min="0" placeholder="0" data-testid="input-bank-old-debt-iqd" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-bank">
@@ -173,6 +195,8 @@ export default function BanksPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Bank Name')}</TableHead>
+                    <TableHead>{t('Old Debt USD')}</TableHead>
+                    <TableHead>{t('Old Debt IQD')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -185,6 +209,12 @@ export default function BanksPage() {
                           <Landmark className="h-3 w-3" />
                           {item.name}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(item.oldDebtUsd) > 0 ? `$${parseFloat(item.oldDebtUsd).toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

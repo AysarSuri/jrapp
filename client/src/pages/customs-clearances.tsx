@@ -38,18 +38,18 @@ export default function CustomsClearancesPage() {
 
   const form = useForm<z.infer<typeof insertCustomsClearanceSchema>>({
     resolver: zodResolver(insertCustomsClearanceSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "" });
+    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
     setOpen(true);
   };
 
   const openEditDialog = (item: CustomsClearance) => {
     setEditing(item);
-    form.reset({ name: item.name });
+    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
     setOpen(true);
   };
 
@@ -97,6 +97,8 @@ export default function CustomsClearancesPage() {
 
   const isSaving = isCreating || isUpdating;
 
+  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -111,7 +113,7 @@ export default function CustomsClearancesPage() {
               {t('Add Customs Clearance')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editing ? t('Edit Customs Clearance') : t('Add New Customs Clearance')}</DialogTitle>
               <DialogDescription>{t('Enter the customs clearance company name')}</DialogDescription>
@@ -125,6 +127,26 @@ export default function CustomsClearancesPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt USD')}</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0" placeholder="0.00" data-testid="input-customs-clearance-old-debt-usd" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('Old Debt IQD')}</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="250" min="0" placeholder="0" data-testid="input-customs-clearance-old-debt-iqd" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-customs-clearance">
@@ -173,6 +195,8 @@ export default function CustomsClearancesPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Customs Clearance Name')}</TableHead>
+                    <TableHead>{t('Old Debt USD')}</TableHead>
+                    <TableHead>{t('Old Debt IQD')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -185,6 +209,12 @@ export default function CustomsClearancesPage() {
                           <ShieldCheck className="h-3 w-3" />
                           {item.name}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(item.oldDebtUsd) > 0 ? `$${parseFloat(item.oldDebtUsd).toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
