@@ -156,6 +156,8 @@ export const purchaseInvoiceItems = pgTable("purchase_invoice_items", {
   unit: text("unit").notNull(),
   price: numeric("price").notNull(),
   amount: numeric("amount").notNull(),
+  productionDate: text("production_date"),
+  expiryDate: text("expiry_date"),
 });
 
 export const supplierPayments = pgTable("supplier_payments", {

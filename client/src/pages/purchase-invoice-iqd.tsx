@@ -33,6 +33,8 @@ interface InvoiceItem {
   price: string;
   amount: string;
   weight: string;
+  productionDate: string;
+  expiryDate: string;
 }
 
 const emptyItem = (): InvoiceItem => ({
@@ -44,6 +46,8 @@ const emptyItem = (): InvoiceItem => ({
   price: "",
   amount: "0",
   weight: "0",
+  productionDate: "",
+  expiryDate: "",
 });
 
 export default function PurchaseInvoiceIqdPage() {
@@ -218,6 +222,8 @@ export default function PurchaseInvoiceIqdPage() {
       unit: item.unit,
       price: item.price,
       amount: item.amount,
+      productionDate: item.productionDate || null,
+      expiryDate: item.expiryDate || null,
     }));
 
     createInvoice({ invoice: invoiceData, items: itemsData }, {
@@ -447,6 +453,8 @@ export default function PurchaseInvoiceIqdPage() {
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[80px]">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Expense Cost')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px]">{t('Production Date')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px]">{t('Expiry Date')}</TableHead>
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -537,6 +545,24 @@ export default function PurchaseInvoiceIqdPage() {
                       <div className="flex items-center justify-center h-9 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-sm font-bold text-amber-700 dark:text-amber-400">
                         {Number(getExpenseCost(item).toFixed(0)).toLocaleString()} IQD
                       </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="date"
+                        value={item.productionDate}
+                        onChange={(e) => updateItem(index, "productionDate", e.target.value)}
+                        className="h-9 text-sm"
+                        data-testid={`input-purchase-iqd-production-date-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="date"
+                        value={item.expiryDate}
+                        onChange={(e) => updateItem(index, "expiryDate", e.target.value)}
+                        className="h-9 text-sm"
+                        data-testid={`input-purchase-iqd-expiry-date-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Button
