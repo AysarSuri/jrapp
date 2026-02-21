@@ -1,0 +1,386 @@
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useSupplierAdjustments, useCreateSupplierAdjustment } from "@/hooks/use-supplier-adjustments";
+import { useQuery } from "@tanstack/react-query";
+import type { Client, SupplierAdjustment } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent,
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+
+export default function SupplierAdjustmentsPage() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { data: adjustments, isLoading: adjustmentsLoading } = useSupplierAdjustments();
+  const { mutate: createAdjustment, isPending: isSaving } = useCreateSupplierAdjustment();
+
+  const { data: suppliers } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
+    select: (data: Client[]) => data.filter(c => c.type === "supplier"),
+  });
+
+  const [supplierId, setSupplierId] = useState<string>("");
+  const [supplierName, setSupplierName] = useState("");
+  const [adjustmentType, setAdjustmentType] = useState<string>("");
+  const [amountUsd, setAmountUsd] = useState("");
+  const [amountIqd, setAmountIqd] = useState("");
+  const [note, setNote] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const selectSupplier = useCallback((id: string) => {
+    setSupplierId(id);
+    const supplier = suppliers?.find(s => s.id === parseInt(id));
+    if (supplier) {
+      setSupplierName(supplier.name);
+    }
+  }, [suppliers]);
+
+  const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
+
+  const resetForm = () => {
+    setSupplierId("");
+    setSupplierName("");
+    setAdjustmentType("");
+    setAmountUsd("");
+    setAmountIqd("");
+    setNote("");
+    setDate(new Date().toISOString().split('T')[0]);
+    setTime(new Date().toTimeString().slice(0, 5));
+  };
+
+  const handleSave = () => {
+    if (!supplierId || !adjustmentType) {
+      toast({ title: t("Please select supplier and type"), variant: "destructive" });
+      return;
+    }
+    const usd = parseFloat(amountUsd) || 0;
+    const iqd = parseFloat(amountIqd) || 0;
+    if (usd <= 0 && iqd <= 0) {
+      toast({ title: t("Enter at least one amount"), variant: "destructive" });
+      return;
+    }
+
+    createAdjustment({
+      supplierId: parseInt(supplierId),
+      supplierName,
+      type: adjustmentType,
+      amountUsd: String(usd),
+      amountIqd: String(iqd),
+      note: note || undefined,
+      date,
+      time,
+    }, {
+      onSuccess: () => {
+        toast({ title: t("Adjustment saved successfully") });
+        resetForm();
+      },
+      onError: (err: any) => {
+        toast({ title: err.message || t("Failed to save"), variant: "destructive" });
+      },
+    });
+  };
+
+  const supplierAdjustments = adjustments as SupplierAdjustment[] | undefined;
+  const filteredHistory = supplierAdjustments?.filter(
+    a => supplierId ? a.supplierId === parseInt(supplierId) : true
+  ) || [];
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">
+            {t("Supplier Adjustments")}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {t("Record received amounts or discounts from suppliers")}
+          </p>
+        </div>
+        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2" data-testid="button-history">
+              <ListOrdered className="h-4 w-4" />
+              {t("History")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{t("Adjustment History")}</DialogTitle>
+            </DialogHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>{t("Supplier")}</TableHead>
+                  <TableHead>{t("Type")}</TableHead>
+                  <TableHead>{t("Old Debt USD")}</TableHead>
+                  <TableHead>{t("Old Debt IQD")}</TableHead>
+                  <TableHead>{t("Amount USD")}</TableHead>
+                  <TableHead>{t("Amount IQD")}</TableHead>
+                  <TableHead>{t("Remaining USD")}</TableHead>
+                  <TableHead>{t("Remaining IQD")}</TableHead>
+                  <TableHead>{t("Date")}</TableHead>
+                  <TableHead>{t("Time")}</TableHead>
+                  <TableHead>{t("Note")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {supplierAdjustments?.map((adj, i) => (
+                  <TableRow key={adj.id} data-testid={`row-adjustment-${adj.id}`}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell className="font-medium">{adj.supplierName}</TableCell>
+                    <TableCell>
+                      <Badge variant={adj.type === "received" ? "default" : "secondary"}>
+                        {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-red-600 font-medium">${parseFloat(adj.oldDebtUsd).toLocaleString()}</TableCell>
+                    <TableCell className="text-red-600 font-medium">{parseFloat(adj.oldDebtIqd).toLocaleString()} IQD</TableCell>
+                    <TableCell className="text-blue-600 font-bold">${parseFloat(adj.amountUsd).toLocaleString()}</TableCell>
+                    <TableCell className="text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
+                    <TableCell className="font-medium">${parseFloat(adj.remainingUsd).toLocaleString()}</TableCell>
+                    <TableCell className="font-medium">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
+                    <TableCell>{adj.date}</TableCell>
+                    <TableCell>{adj.time}</TableCell>
+                    <TableCell className="max-w-[150px] truncate">{adj.note || "-"}</TableCell>
+                  </TableRow>
+                ))}
+                {(!supplierAdjustments || supplierAdjustments.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                      {t("No adjustments recorded yet")}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowDownToLine className="h-5 w-5 text-primary" />
+              {t("New Adjustment")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("Supplier")}</Label>
+                <Select value={supplierId} onValueChange={selectSupplier}>
+                  <SelectTrigger data-testid="select-supplier">
+                    <SelectValue placeholder={t("Select supplier...")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers?.map(s => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("Adjustment Type")}</Label>
+                <Select value={adjustmentType} onValueChange={setAdjustmentType}>
+                  <SelectTrigger data-testid="select-adjustment-type">
+                    <SelectValue placeholder={t("Select type...")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="received">
+                      <span className="flex items-center gap-2">
+                        <ArrowDownToLine className="h-4 w-4 text-green-600" />
+                        {t("Received from Supplier")}
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="discount">
+                      <span className="flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-purple-600" />
+                        {t("Discount from Supplier")}
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("Date")}</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  data-testid="input-date"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("Time")}</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                  data-testid="input-time"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold">
+                    <DollarSign className="h-5 w-5" />
+                    {t("Amount")} (USD)
+                  </div>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={amountUsd}
+                    onChange={e => setAmountUsd(e.target.value)}
+                    className="text-lg font-bold border-blue-300 dark:border-blue-700"
+                    data-testid="input-amount-usd"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400 font-semibold">
+                    <Banknote className="h-5 w-5" />
+                    {t("Amount")} (IQD)
+                  </div>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="0"
+                    value={amountIqd}
+                    onChange={e => setAmountIqd(e.target.value)}
+                    className="text-lg font-bold border-orange-300 dark:border-orange-700"
+                    data-testid="input-amount-iqd"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label>{t("Note")}</Label>
+              <Textarea
+                placeholder={t("Add note...")}
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                rows={3}
+                data-testid="input-note"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="gap-2"
+                data-testid="button-save"
+              >
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {t("Save")}
+              </Button>
+              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
+                <RotateCcw className="h-4 w-4" />
+                {t("Reset")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          {selectedSupplier && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{t("Supplier Info")}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("Name")}</p>
+                  <p className="font-semibold text-lg">{selectedSupplier.name}</p>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("Debt USD")}</p>
+                    <p className="text-xl font-bold text-red-600">
+                      ${parseFloat(selectedSupplier.oldDebtUsd).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t("Debt IQD")}</p>
+                    <p className="text-xl font-bold text-red-600">
+                      {parseFloat(selectedSupplier.oldDebtIqd).toLocaleString()} IQD
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {supplierId && filteredHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{t("Recent Adjustments")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {filteredHistory.slice(0, 5).map(adj => (
+                    <div key={adj.id} className="border rounded-lg p-3 space-y-1" data-testid={`card-recent-adj-${adj.id}`}>
+                      <div className="flex items-center justify-between">
+                        <Badge variant={adj.type === "received" ? "default" : "secondary"} className="text-xs">
+                          {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{adj.date}</span>
+                      </div>
+                      {parseFloat(adj.amountUsd) > 0 && (
+                        <p className="text-sm text-blue-600 font-medium">${parseFloat(adj.amountUsd).toLocaleString()}</p>
+                      )}
+                      {parseFloat(adj.amountIqd) > 0 && (
+                        <p className="text-sm text-orange-600 font-medium">{parseFloat(adj.amountIqd).toLocaleString()} IQD</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

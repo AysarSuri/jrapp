@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, accounts } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -636,6 +636,71 @@ export async function registerRoutes(
         }
 
         return payment;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.supplierAdjustments.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getSupplierAdjustments();
+    res.json(data);
+  });
+
+  app.post(api.supplierAdjustments.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.supplierAdjustments.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [supplier] = await tx.select().from(clients).where(eq(clients.id, input.supplierId));
+        const currentDebtUsd = parseFloat(supplier?.oldDebtUsd || "0");
+        const currentDebtIqd = parseFloat(supplier?.oldDebtIqd || "0");
+
+        let remainingUsd: number;
+        let remainingIqd: number;
+
+        if (input.type === "received") {
+          remainingUsd = currentDebtUsd - usdAmount;
+          remainingIqd = currentDebtIqd - iqdAmount;
+        } else {
+          remainingUsd = currentDebtUsd - usdAmount;
+          remainingIqd = currentDebtIqd - iqdAmount;
+        }
+
+        const [adj] = await tx.insert(supplierAdjustments).values({
+          ...input,
+          oldDebtUsd: String(currentDebtUsd),
+          oldDebtIqd: String(currentDebtIqd),
+          remainingUsd: String(remainingUsd),
+          remainingIqd: String(remainingIqd),
+        }).returning();
+
+        if (usdAmount > 0) {
+          await tx.update(clients)
+            .set({
+              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${usdAmount}`,
+            })
+            .where(eq(clients.id, input.supplierId));
+        }
+        if (iqdAmount > 0) {
+          await tx.update(clients)
+            .set({
+              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${iqdAmount}`,
+            })
+            .where(eq(clients.id, input.supplierId));
+        }
+
+        return adj;
       });
       res.status(201).json(result);
     } catch (err) {

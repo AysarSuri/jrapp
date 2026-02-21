@@ -2,7 +2,7 @@ import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
-  supplierPayments,
+  supplierPayments, supplierAdjustments,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -19,7 +19,8 @@ import {
   type Transaction, type InsertTransaction,
   type PurchaseInvoice, type InsertPurchaseInvoice,
   type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem,
-  type SupplierPayment, type InsertSupplierPayment
+  type SupplierPayment, type InsertSupplierPayment,
+  type SupplierAdjustment, type InsertSupplierAdjustment
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -99,6 +100,9 @@ export interface IStorage {
 
   getSupplierPayments(): Promise<SupplierPayment[]>;
   createSupplierPayment(payment: InsertSupplierPayment): Promise<SupplierPayment>;
+
+  getSupplierAdjustments(): Promise<SupplierAdjustment[]>;
+  createSupplierAdjustment(adj: InsertSupplierAdjustment): Promise<SupplierAdjustment>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -343,6 +347,15 @@ export class DatabaseStorage implements IStorage {
 
   async createSupplierPayment(payment: InsertSupplierPayment): Promise<SupplierPayment> {
     const [created] = await db.insert(supplierPayments).values(payment).returning();
+    return created;
+  }
+
+  async getSupplierAdjustments(): Promise<SupplierAdjustment[]> {
+    return await db.select().from(supplierAdjustments).orderBy(sql`${supplierAdjustments.createdAt} DESC`);
+  }
+
+  async createSupplierAdjustment(adj: InsertSupplierAdjustment): Promise<SupplierAdjustment> {
+    const [created] = await db.insert(supplierAdjustments).values(adj).returning();
     return created;
   }
 }

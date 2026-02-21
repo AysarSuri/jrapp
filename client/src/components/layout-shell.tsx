@@ -19,6 +19,7 @@ import {
   Receipt,
   ArrowRightLeft,
   Banknote,
+  ArrowDownToLine,
   LogOut,
   Menu,
   Moon,
@@ -97,6 +98,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/purchase-invoice-usd", icon: Receipt, label: "Purchase Invoice USD" },
     { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
     { href: "/supplier-payments", icon: Banknote, label: "Supplier Payments" },
+    { href: "/supplier-adjustments", icon: ArrowDownToLine, label: "Supplier Adjustments" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
   ];
