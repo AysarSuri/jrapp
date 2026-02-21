@@ -425,88 +425,48 @@ export const insertSalesInvoiceSchema = createInsertSchema(salesInvoices).omit({
 export const insertSalesInvoiceItemSchema = createInsertSchema(salesInvoiceItems).omit({ id: true });
 export const insertSalesReturnSchema = createInsertSchema(salesReturns).omit({ id: true, createdAt: true });
 export const insertSalesReturnItemSchema = createInsertSchema(salesReturnItems).omit({ id: true });
-export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
-export const insertUserSchema = createInsertSchema(users).omit({ id: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
-  barcode: z.string().min(1, "Barcode is required"),
-  name: z.string().min(1, "Name is required"),
-  category: z.string().min(1, "Category is required"),
-  bigUnit: z.string().min(1, "Big unit is required"),
-  smallUnit: z.string().min(1, "Small unit is required"),
+export const purchaseReturns = pgTable("purchase_returns", {
+  id: serial("id").primaryKey(),
+  returnNumber: text("return_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  supplierId: integer("supplier_id"),
+  supplierName: text("supplier_name").notNull(),
+  address: text("address"),
+  note: text("note"),
+  returnType: text("return_type").notNull().default("cash"),
+  subtotal: numeric("subtotal").notNull().default("0"),
+  discount: numeric("discount").notNull().default("0"),
+  amountPaid: numeric("amount_paid").notNull().default("0"),
+  remaining: numeric("remaining").notNull().default("0"),
+  totalItems: integer("total_items").notNull().default(0),
+  totalQuantity: numeric("total_quantity").notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("approved"),
+  originalInvoiceId: integer("original_invoice_id"),
+  originalInvoiceNumber: text("original_invoice_number"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-export const insertClientSchema = createInsertSchema(clients).omit({ id: true, balance: true }).extend({
-  oldDebtUsd: z.string().optional().default('0'),
-  oldDebtIqd: z.string().optional().default('0'),
-});
-export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true, balance: true });
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, date: true });
-export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, date: true });
 
-// Types
-export type Address = typeof addresses.$inferSelect;
-export type InsertAddress = z.infer<typeof insertAddressSchema>;
-export type Unit = typeof units.$inferSelect;
-export type InsertUnit = z.infer<typeof insertUnitSchema>;
-export type Category = typeof categories.$inferSelect;
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
-export type TransferOffice = typeof transferOffices.$inferSelect;
-export type InsertTransferOffice = z.infer<typeof insertTransferOfficeSchema>;
-export type Bank = typeof banks.$inferSelect;
-export type InsertBank = z.infer<typeof insertBankSchema>;
-export type CustomsClearance = typeof customsClearances.$inferSelect;
-export type InsertCustomsClearance = z.infer<typeof insertCustomsClearanceSchema>;
-export type Warehouse = typeof warehouses.$inferSelect;
-export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
-export type Representative = typeof representatives.$inferSelect;
-export type InsertRepresentative = z.infer<typeof insertRepresentativeSchema>;
-export type PurchaseInvoice = typeof purchaseInvoices.$inferSelect;
-export type InsertPurchaseInvoice = z.infer<typeof insertPurchaseInvoiceSchema>;
-export type PurchaseInvoiceItem = typeof purchaseInvoiceItems.$inferSelect;
-export type InsertPurchaseInvoiceItem = z.infer<typeof insertPurchaseInvoiceItemSchema>;
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type Product = typeof products.$inferSelect;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Client = typeof clients.$inferSelect;
-export type InsertClient = z.infer<typeof insertClientSchema>;
-export type Account = typeof accounts.$inferSelect;
-export type InsertAccount = z.infer<typeof insertAccountSchema>;
-export type Invoice = typeof invoices.$inferSelect;
-export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
-export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type SupplierPayment = typeof supplierPayments.$inferSelect;
-export type InsertSupplierPayment = z.infer<typeof insertSupplierPaymentSchema>;
-export type SupplierAdjustment = typeof supplierAdjustments.$inferSelect;
-export type InsertSupplierAdjustment = z.infer<typeof insertSupplierAdjustmentSchema>;
-export type BankTransaction = typeof bankTransactions.$inferSelect;
-export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
-export type CustomsClearanceTransaction = typeof customsClearanceTransactions.$inferSelect;
-export type InsertCustomsClearanceTransaction = z.infer<typeof insertCustomsClearanceTransactionSchema>;
-export type TransferOfficeTransaction = typeof transferOfficeTransactions.$inferSelect;
-export type InsertTransferOfficeTransaction = z.infer<typeof insertTransferOfficeTransactionSchema>;
-export type ExternalDebt = typeof externalDebts.$inferSelect;
-export type InsertExternalDebt = z.infer<typeof insertExternalDebtSchema>;
-export type ExternalDebtTransaction = typeof externalDebtTransactions.$inferSelect;
-export type InsertExternalDebtTransaction = z.infer<typeof insertExternalDebtTransactionSchema>;
-export type Owner = typeof owners.$inferSelect;
-export type InsertOwner = z.infer<typeof insertOwnerSchema>;
-export type OwnerTransaction = typeof ownerTransactions.$inferSelect;
-export type InsertOwnerTransaction = z.infer<typeof insertOwnerTransactionSchema>;
-export type ExpenseType = typeof expenseTypes.$inferSelect;
-export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
-export type Expense = typeof expenses.$inferSelect;
-export type InsertExpense = z.infer<typeof insertExpenseSchema>;
-export type SalesInvoice = typeof salesInvoices.$inferSelect;
-export type InsertSalesInvoice = z.infer<typeof insertSalesInvoiceSchema>;
-export type SalesInvoiceItem = typeof salesInvoiceItems.$inferSelect;
-export type InsertSalesInvoiceItem = z.infer<typeof insertSalesInvoiceItemSchema>;
-export type SalesReturn = typeof salesReturns.$inferSelect;
-export type InsertSalesReturn = z.infer<typeof insertSalesReturnSchema>;
-export type SalesReturnItem = typeof salesReturnItems.$inferSelect;
-export type InsertSalesReturnItem = z.infer<typeof insertSalesReturnItemSchema>;
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export const purchaseReturnItems = pgTable("purchase_return_items", {
+  id: serial("id").primaryKey(),
+  returnId: integer("return_id").notNull(),
+  productId: integer("product_id"),
+  productCode: text("product_code").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit").notNull(),
+  price: numeric("price").notNull(),
+  amount: numeric("amount").notNull(),
+});
+
+export const insertPurchaseReturnSchema = createInsertSchema(purchaseReturns).omit({ id: true, createdAt: true });
+export const insertPurchaseReturnItemSchema = createInsertSchema(purchaseReturnItems).omit({ id: true });
+
+export type PurchaseReturn = typeof purchaseReturns.$inferSelect;
+export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;
+export type PurchaseReturnItem = typeof purchaseReturnItems.$inferSelect;
+export type InsertPurchaseReturnItem = z.infer<typeof insertPurchaseReturnItemSchema>;
 
 // Auth types
 export const loginSchema = z.object({
