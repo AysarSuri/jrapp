@@ -83,7 +83,7 @@ export default function SalesInvoiceUsdPage() {
   const [otherExpenses, setOtherExpenses] = useState("");
   const [discount, setDiscount] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
-  const [items, setItems] = useState<InvoiceItem[]>([emptyItem(), emptyItem(), emptyItem(), emptyItem(), emptyItem()]);
+  const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [viewInvoice, setViewInvoice] = useState<SalesInvoice | null>(null);
 
@@ -129,6 +129,10 @@ export default function SalesInvoiceUsdPage() {
       };
       const qty = parseFloat(updated[index].quantity || "0");
       updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
+      const lastRow = updated[updated.length - 1];
+      if (lastRow.productId !== null) {
+        updated.push(emptyItem());
+      }
       return updated;
     });
   }, [products]);
@@ -156,7 +160,7 @@ export default function SalesInvoiceUsdPage() {
     setOtherExpenses("");
     setDiscount("");
     setAmountPaid("");
-    setItems([emptyItem(), emptyItem(), emptyItem(), emptyItem(), emptyItem()]);
+    setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
   };
