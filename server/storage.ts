@@ -42,7 +42,9 @@ import {
   type CustomerReceipt, type InsertCustomerReceipt,
   type AgentPayment, type InsertAgentPayment,
   type CurrencyExchange, type InsertCurrencyExchange,
-  customerReceipts, currencyExchanges
+  type WarehouseTransfer, type InsertWarehouseTransfer,
+  type WarehouseTransferItem, type InsertWarehouseTransferItem,
+  customerReceipts, currencyExchanges, warehouseTransfers, warehouseTransferItems
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -200,6 +202,12 @@ export interface IStorage {
   getCurrencyExchanges(): Promise<CurrencyExchange[]>;
   createCurrencyExchange(exchange: InsertCurrencyExchange): Promise<CurrencyExchange>;
   deleteCurrencyExchange(id: number): Promise<void>;
+
+  getWarehouseTransfers(): Promise<WarehouseTransfer[]>;
+  getWarehouseTransferItems(transferId: number): Promise<WarehouseTransferItem[]>;
+  createWarehouseTransfer(transfer: InsertWarehouseTransfer): Promise<WarehouseTransfer>;
+  createWarehouseTransferItem(item: InsertWarehouseTransferItem): Promise<WarehouseTransferItem>;
+  getNextTransferNumber(): Promise<string>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -733,6 +741,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCurrencyExchange(id: number): Promise<void> {
     await db.delete(currencyExchanges).where(eq(currencyExchanges.id, id));
+  }
+
+  async getWarehouseTransfers(): Promise<WarehouseTransfer[]> {
+    return await db.select().from(warehouseTransfers).orderBy(sql`${warehouseTransfers.createdAt} DESC`);
+  }
+
+  async getWarehouseTransferItems(transferId: number): Promise<WarehouseTransferItem[]> {
+    return await db.select().from(warehouseTransferItems).where(eq(warehouseTransferItems.transferId, transferId));
+  }
+
+  async createWarehouseTransfer(transfer: InsertWarehouseTransfer): Promise<WarehouseTransfer> {
+    const [created] = await db.insert(warehouseTransfers).values(transfer).returning();
+    return created;
+  }
+
+  async createWarehouseTransferItem(item: InsertWarehouseTransferItem): Promise<WarehouseTransferItem> {
+    const [created] = await db.insert(warehouseTransferItems).values(item).returning();
+    return created;
+  }
+
+  async getNextTransferNumber(): Promise<string> {
+    const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(warehouseTransfers);
+    const next = (result?.count || 0) + 1;
+    return `WT-${String(next).padStart(5, '0')}`;
   }
 
   async markNotificationRead(id: number): Promise<void> {

@@ -66,6 +66,7 @@ import AgentPaymentIqdPage from "@/pages/agent-payment-iqd";
 import AgentStatementUsdPage from "@/pages/agent-statement-usd";
 import AgentStatementIqdPage from "@/pages/agent-statement-iqd";
 import CurrencyExchangePage from "@/pages/currency-exchange";
+import WarehouseTransferPage from "@/pages/warehouse-transfer";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -264,6 +265,9 @@ function Router() {
       </Route>
       <Route path="/currency-exchange">
         <ProtectedRoute component={CurrencyExchangePage} />
+      </Route>
+      <Route path="/warehouse-transfer">
+        <ProtectedRoute component={WarehouseTransferPage} />
       </Route>
       <Route path="/purchase-return-usd">
         <ProtectedRoute component={PurchaseReturnUsdPage} />

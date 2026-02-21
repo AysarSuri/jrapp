@@ -35,6 +35,8 @@ import {
   insertCustomerReceiptSchema, customerReceipts,
   insertAgentPaymentSchema, agentPayments,
   insertCurrencyExchangeSchema, currencyExchanges,
+  insertWarehouseTransferSchema, warehouseTransfers,
+  insertWarehouseTransferItemSchema, warehouseTransferItems,
   notifications,
   insertUserSchema, loginSchema, users 
 } from './schema';
@@ -771,6 +773,32 @@ export const api = {
       method: 'DELETE' as const,
       path: '/api/currency-exchanges/:id' as const,
       responses: { 200: z.object({ success: z.boolean() }) }
+    }
+  },
+  warehouseTransfers: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/warehouse-transfers' as const,
+      responses: { 200: z.array(z.custom<typeof warehouseTransfers.$inferSelect>()) }
+    },
+    items: {
+      method: 'GET' as const,
+      path: '/api/warehouse-transfers/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof warehouseTransferItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/warehouse-transfers' as const,
+      input: z.object({
+        transfer: insertWarehouseTransferSchema,
+        items: z.array(insertWarehouseTransferItemSchema.omit({ transferId: true })),
+      }),
+      responses: { 201: z.custom<typeof warehouseTransfers.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/warehouse-transfers/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
     }
   },
   notifications: {

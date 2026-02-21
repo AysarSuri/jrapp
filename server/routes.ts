@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1552,6 +1552,58 @@ export async function registerRoutes(
       await storage.deleteCurrencyExchange(id);
       res.json({ success: true });
     } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Warehouse Transfers
+  app.get('/api/warehouse-transfers/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextTransferNumber();
+    res.json({ number });
+  });
+
+  app.get(api.warehouseTransfers.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getWarehouseTransfers();
+    res.json(data);
+  });
+
+  app.get('/api/warehouse-transfers/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const items = await storage.getWarehouseTransferItems(id);
+    res.json(items);
+  });
+
+  app.post(api.warehouseTransfers.create.path, requireAuth, async (req, res) => {
+    try {
+      const parsed = api.warehouseTransfers.create.input.parse(req.body);
+      const { transfer: transferData, items: itemsData } = parsed;
+
+      if (!itemsData || itemsData.length === 0) {
+        return res.status(400).json({ message: "At least one item is required" });
+      }
+
+      if (transferData.fromWarehouseId === transferData.toWarehouseId) {
+        return res.status(400).json({ message: "Source and destination warehouses must be different" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [transfer] = await tx.insert(warehouseTransfers).values(transferData).returning();
+
+        for (const item of itemsData) {
+          await tx.insert(warehouseTransferItems).values({
+            ...item,
+            transferId: transfer.id,
+          });
+        }
+
+        return transfer;
+      });
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });

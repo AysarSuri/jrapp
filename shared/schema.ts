@@ -538,6 +538,36 @@ export const insertCurrencyExchangeSchema = createInsertSchema(currencyExchanges
 export type CurrencyExchange = typeof currencyExchanges.$inferSelect;
 export type InsertCurrencyExchange = z.infer<typeof insertCurrencyExchangeSchema>;
 
+export const warehouseTransfers = pgTable("warehouse_transfers", {
+  id: serial("id").primaryKey(),
+  transferNumber: text("transfer_number").notNull(),
+  fromWarehouseId: integer("from_warehouse_id").notNull(),
+  fromWarehouseName: text("from_warehouse_name").notNull(),
+  toWarehouseId: integer("to_warehouse_id").notNull(),
+  toWarehouseName: text("to_warehouse_name").notNull(),
+  note: text("note"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const warehouseTransferItems = pgTable("warehouse_transfer_items", {
+  id: serial("id").primaryKey(),
+  transferId: integer("transfer_id").notNull(),
+  productId: integer("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  productCode: text("product_code").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  unit: text("unit").notNull(),
+});
+
+export const insertWarehouseTransferSchema = createInsertSchema(warehouseTransfers).omit({ id: true, createdAt: true });
+export const insertWarehouseTransferItemSchema = createInsertSchema(warehouseTransferItems).omit({ id: true });
+export type WarehouseTransfer = typeof warehouseTransfers.$inferSelect;
+export type InsertWarehouseTransfer = z.infer<typeof insertWarehouseTransferSchema>;
+export type WarehouseTransferItem = typeof warehouseTransferItems.$inferSelect;
+export type InsertWarehouseTransferItem = z.infer<typeof insertWarehouseTransferItemSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),
