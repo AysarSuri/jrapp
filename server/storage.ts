@@ -4,7 +4,7 @@ import {
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
-  salesInvoices, salesInvoiceItems, notifications,
+  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, notifications,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -31,6 +31,8 @@ import {
   type Owner, type InsertOwner,
   type SalesInvoice, type InsertSalesInvoice,
   type SalesInvoiceItem, type InsertSalesInvoiceItem,
+  type SalesReturn, type InsertSalesReturn,
+  type SalesReturnItem, type InsertSalesReturnItem,
   type Notification, type InsertNotification,
   type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
@@ -164,6 +166,14 @@ export interface IStorage {
   getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]>;
   createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]>;
   getNextSalesInvoiceNumber(): Promise<string>;
+
+  getSalesReturns(): Promise<SalesReturn[]>;
+  getSalesReturn(id: number): Promise<SalesReturn | undefined>;
+  createSalesReturn(ret: InsertSalesReturn): Promise<SalesReturn>;
+  updateSalesReturnStatus(id: number, status: string): Promise<SalesReturn>;
+  getSalesReturnItems(returnId: number): Promise<SalesReturnItem[]>;
+  createSalesReturnItems(items: InsertSalesReturnItem[]): Promise<SalesReturnItem[]>;
+  getNextSalesReturnNumber(): Promise<string>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -575,6 +585,40 @@ export class DatabaseStorage implements IStorage {
 
   async getNextSalesInvoiceNumber(): Promise<string> {
     const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(salesInvoices);
+    return String((result?.maxNum || 0) + 1).padStart(6, '0');
+  }
+
+  async getSalesReturns(): Promise<SalesReturn[]> {
+    return await db.select().from(salesReturns).orderBy(sql`${salesReturns.createdAt} DESC`);
+  }
+
+  async getSalesReturn(id: number): Promise<SalesReturn | undefined> {
+    const [ret] = await db.select().from(salesReturns).where(eq(salesReturns.id, id));
+    return ret;
+  }
+
+  async createSalesReturn(ret: InsertSalesReturn): Promise<SalesReturn> {
+    const [created] = await db.insert(salesReturns).values(ret).returning();
+    return created;
+  }
+
+  async updateSalesReturnStatus(id: number, status: string): Promise<SalesReturn> {
+    const [updated] = await db.update(salesReturns).set({ status }).where(eq(salesReturns.id, id)).returning();
+    return updated;
+  }
+
+  async getSalesReturnItems(returnId: number): Promise<SalesReturnItem[]> {
+    return await db.select().from(salesReturnItems).where(eq(salesReturnItems.returnId, returnId));
+  }
+
+  async createSalesReturnItems(items: InsertSalesReturnItem[]): Promise<SalesReturnItem[]> {
+    if (items.length === 0) return [];
+    const created = await db.insert(salesReturnItems).values(items).returning();
+    return created;
+  }
+
+  async getNextSalesReturnNumber(): Promise<string> {
+    const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesReturns.returnNumber} AS INTEGER)), 0)` }).from(salesReturns);
     return String((result?.maxNum || 0) + 1).padStart(6, '0');
   }
 

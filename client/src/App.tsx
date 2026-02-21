@@ -48,6 +48,8 @@ import OwnerReturnsPage from "@/pages/owner-returns";
 import OwnerStatementPage from "@/pages/owner-statement";
 import SalesInvoiceUsdPage from "@/pages/sales-invoice-usd";
 import SalesInvoiceIqdPage from "@/pages/sales-invoice-iqd";
+import SalesReturnUsdPage from "@/pages/sales-return-usd";
+import SalesReturnIqdPage from "@/pages/sales-return-iqd";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -198,6 +200,12 @@ function Router() {
       </Route>
       <Route path="/sales-invoice-iqd">
         <ProtectedRoute component={SalesInvoiceIqdPage} />
+      </Route>
+      <Route path="/sales-return-usd">
+        <ProtectedRoute component={SalesReturnUsdPage} />
+      </Route>
+      <Route path="/sales-return-iqd">
+        <ProtectedRoute component={SalesReturnIqdPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />

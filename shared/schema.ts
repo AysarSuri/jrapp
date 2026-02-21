@@ -344,6 +344,50 @@ export const salesInvoiceItems = pgTable("sales_invoice_items", {
   amount: numeric("amount").notNull(),
 });
 
+export const salesReturns = pgTable("sales_returns", {
+  id: serial("id").primaryKey(),
+  returnNumber: text("return_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  customerId: integer("customer_id"),
+  customerName: text("customer_name").notNull(),
+  address: text("address"),
+  mobile: text("mobile"),
+  representativeId: integer("representative_id"),
+  representativeName: text("representative_name"),
+  representativeMobile: text("representative_mobile"),
+  note: text("note"),
+  returnType: text("return_type").notNull().default("cash"),
+  subtotal: numeric("subtotal").notNull().default("0"),
+  discount: numeric("discount").notNull().default("0"),
+  amountPaid: numeric("amount_paid").notNull().default("0"),
+  remaining: numeric("remaining").notNull().default("0"),
+  totalItems: integer("total_items").notNull().default(0),
+  totalQuantity: numeric("total_quantity").notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("approved"),
+  driverName: text("driver_name"),
+  driverMobile: text("driver_mobile"),
+  vehicleNumber: text("vehicle_number"),
+  originalInvoiceId: integer("original_invoice_id"),
+  originalInvoiceNumber: text("original_invoice_number"),
+  createdBy: text("created_by"),
+  createdByRole: text("created_by_role"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const salesReturnItems = pgTable("sales_return_items", {
+  id: serial("id").primaryKey(),
+  returnId: integer("return_id").notNull(),
+  productId: integer("product_id"),
+  productCode: text("product_code").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit").notNull(),
+  price: numeric("price").notNull(),
+  amount: numeric("amount").notNull(),
+});
+
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   type: text("type").notNull(),
@@ -379,6 +423,8 @@ export const insertExpenseTypeSchema = createInsertSchema(expenseTypes).omit({ i
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true });
 export const insertSalesInvoiceSchema = createInsertSchema(salesInvoices).omit({ id: true, createdAt: true });
 export const insertSalesInvoiceItemSchema = createInsertSchema(salesInvoiceItems).omit({ id: true });
+export const insertSalesReturnSchema = createInsertSchema(salesReturns).omit({ id: true, createdAt: true });
+export const insertSalesReturnItemSchema = createInsertSchema(salesReturnItems).omit({ id: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
@@ -455,6 +501,10 @@ export type SalesInvoice = typeof salesInvoices.$inferSelect;
 export type InsertSalesInvoice = z.infer<typeof insertSalesInvoiceSchema>;
 export type SalesInvoiceItem = typeof salesInvoiceItems.$inferSelect;
 export type InsertSalesInvoiceItem = z.infer<typeof insertSalesInvoiceItemSchema>;
+export type SalesReturn = typeof salesReturns.$inferSelect;
+export type InsertSalesReturn = z.infer<typeof insertSalesReturnSchema>;
+export type SalesReturnItem = typeof salesReturnItems.$inferSelect;
+export type InsertSalesReturnItem = z.infer<typeof insertSalesReturnItemSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 

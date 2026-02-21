@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, notifications } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, notifications } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1223,6 +1223,101 @@ export async function registerRoutes(
       res.json(result);
     } catch (err) {
       console.error("Error approving sales invoice:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Sales Returns
+  app.get('/api/sales-returns/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextSalesReturnNumber();
+    res.json({ number });
+  });
+
+  app.get(api.salesReturns.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getSalesReturns();
+    res.json(data);
+  });
+
+  app.get('/api/sales-returns/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getSalesReturn(id);
+    if (!data) return res.status(404).json({ message: "Return not found" });
+    res.json(data);
+  });
+
+  app.get('/api/sales-returns/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getSalesReturnItems(id);
+    res.json(data);
+  });
+
+  app.post(api.salesReturns.create.path, requireAuth, async (req, res) => {
+    try {
+      const { returnData, items } = api.salesReturns.create.input.parse(req.body);
+
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const sessionUser = await storage.getUser(userId);
+      if (!sessionUser) return res.status(401).json({ message: "Unauthorized" });
+
+      const serverRole = sessionUser.role;
+      const isRep = serverRole === 'sales_rep';
+      const serverStatus = isRep ? 'pending' : 'approved';
+
+      const returnWithServerData = {
+        ...returnData,
+        status: serverStatus,
+        createdBy: sessionUser.username,
+        createdByRole: serverRole,
+      };
+
+      const result = await db.transaction(async (tx) => {
+        const [created] = await tx.insert(salesReturns).values(returnWithServerData).returning();
+        if (items.length > 0) {
+          const itemsWithReturnId = items.map(item => ({
+            ...item,
+            returnId: created.id,
+          }));
+          await tx.insert(salesReturnItems).values(itemsWithReturnId);
+        }
+        return created;
+      });
+
+      if (isRep) {
+        await storage.createNotification({
+          type: 'sales_return_approval',
+          title: 'مرجوعات مبيعات جديدة تحتاج موافقة',
+          message: `مرجوعات مبيعات رقم ${returnData.returnNumber} من المندوب ${sessionUser.username} بحاجة إلى موافقة`,
+          referenceId: result.id,
+          referenceType: 'sales_return',
+          targetRole: 'admin_user',
+          isRead: 0,
+        });
+      }
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      console.error("Error creating sales return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/sales-returns/:id/approve', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+        return res.status(403).json({ message: "Only admin or user can approve returns" });
+      }
+      const result = await storage.updateSalesReturnStatus(id, 'approved');
+      res.json(result);
+    } catch (err) {
+      console.error("Error approving sales return:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });
