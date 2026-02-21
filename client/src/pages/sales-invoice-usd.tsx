@@ -228,7 +228,7 @@ export default function SalesInvoiceUsdPage() {
     if (client) {
       setCustomerId(client.id);
       setCustomerName(client.name);
-      if (client.address) setAddress(client.address);
+      setAddress(client.address || "");
     }
   };
 
