@@ -110,6 +110,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const bankSubRoutes = [
+    "/bank-management",
     "/banks",
     "/bank-receipts",
     "/bank-payments",
@@ -117,6 +118,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const clearanceSubRoutes = [
+    "/clearance-management",
     "/customs-clearances",
     "/clearance-receipts",
     "/clearance-payments",
@@ -124,6 +126,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const officeSubRoutes = [
+    "/office-management",
     "/transfer-offices",
     "/office-receipts",
     "/office-payments",
@@ -131,11 +134,13 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const expenseSubRoutes = [
+    "/expense-management",
     "/expense-types",
     "/expenses",
   ];
 
   const externalDebtSubRoutes = [
+    "/external-debt-management",
     "/external-debts",
     "/external-debt-receipts",
     "/external-debt-payments",
@@ -143,6 +148,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const ownerSubRoutes = [
+    "/owner-management",
     "/owners",
     "/owner-withdrawals",
     "/owner-returns",
@@ -150,6 +156,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const salesSubRoutes = [
+    "/sales-management",
     "/customers",
     "/sales-invoice-usd",
     "/sales-invoice-iqd",
@@ -330,8 +337,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
             const isOpen = group.isOpen;
             const setOpen = group.setOpen;
             const isActiveSection = group.isActive;
-            const isSupplierGroup = entry.label === "Supplier Management";
-            const landingRoute = isSupplierGroup ? "/supplier-management" : entry.children[0]?.href || "/";
+            const landingRouteMap: Record<string, string> = {
+              "Sales Management": "/sales-management",
+              "Supplier Management": "/supplier-management",
+              "Bank Management": "/bank-management",
+              "Clearance Management": "/clearance-management",
+              "Office Management": "/office-management",
+              "Expense Management": "/expense-management",
+              "External Debt Management": "/external-debt-management",
+              "Owner Management": "/owner-management",
+            };
+            const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
             const isLandingActive = location === landingRoute;
             const testIdName = entry.label.toLowerCase().replace(/\s+/g, '-');
             return (
@@ -339,8 +355,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
                 <button
                   onClick={() => {
                     if (!isOpen) setOpen(true);
-                    if (isSupplierGroup) navigate("/supplier-management");
-                    else setOpen(!isOpen);
+                    navigate(landingRoute);
                   }}
                   data-testid={`button-${testIdName}`}
                   className={`

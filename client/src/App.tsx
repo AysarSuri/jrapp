@@ -26,6 +26,13 @@ import PurchaseInvoiceIqdPage from "@/pages/purchase-invoice-iqd";
 import SupplierPaymentsPage from "@/pages/supplier-payments";
 import SupplierAdjustmentsPage from "@/pages/supplier-adjustments";
 import SupplierManagementPage from "@/pages/supplier-management";
+import SalesManagementPage from "@/pages/sales-management";
+import BankManagementPage from "@/pages/bank-management";
+import ClearanceManagementPage from "@/pages/clearance-management";
+import OfficeManagementPage from "@/pages/office-management";
+import ExpenseManagementPage from "@/pages/expense-management";
+import ExternalDebtManagementPage from "@/pages/external-debt-management";
+import OwnerManagementPage from "@/pages/owner-management";
 import SupplierStatementPage from "@/pages/supplier-statement";
 import BankReceiptsPage from "@/pages/bank-receipts";
 import BankPaymentsPage from "@/pages/bank-payments";
@@ -134,6 +141,27 @@ function Router() {
       </Route>
       <Route path="/supplier-management">
         <ProtectedRoute component={SupplierManagementPage} />
+      </Route>
+      <Route path="/sales-management">
+        <ProtectedRoute component={SalesManagementPage} />
+      </Route>
+      <Route path="/bank-management">
+        <ProtectedRoute component={BankManagementPage} />
+      </Route>
+      <Route path="/clearance-management">
+        <ProtectedRoute component={ClearanceManagementPage} />
+      </Route>
+      <Route path="/office-management">
+        <ProtectedRoute component={OfficeManagementPage} />
+      </Route>
+      <Route path="/expense-management">
+        <ProtectedRoute component={ExpenseManagementPage} />
+      </Route>
+      <Route path="/external-debt-management">
+        <ProtectedRoute component={ExternalDebtManagementPage} />
+      </Route>
+      <Route path="/owner-management">
+        <ProtectedRoute component={OwnerManagementPage} />
       </Route>
       <Route path="/supplier-statement">
         <ProtectedRoute component={SupplierStatementPage} />
