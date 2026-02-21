@@ -45,6 +45,7 @@ import ExternalDebtStatementPage from "@/pages/external-debt-statement";
 import OwnersPage from "@/pages/owners";
 import OwnerWithdrawalsPage from "@/pages/owner-withdrawals";
 import OwnerReturnsPage from "@/pages/owner-returns";
+import OwnerStatementPage from "@/pages/owner-statement";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -186,6 +187,9 @@ function Router() {
       </Route>
       <Route path="/owner-returns">
         <ProtectedRoute component={OwnerReturnsPage} />
+      </Route>
+      <Route path="/owner-statement">
+        <ProtectedRoute component={OwnerStatementPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />

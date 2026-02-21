@@ -1279,6 +1279,50 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/owner-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const ownerId = parseInt(req.params.id as string);
+      const [owner] = await db.select().from(owners).where(eq(owners.id, ownerId));
+      if (!owner) return res.status(404).json({ message: "Owner not found" });
+
+      const txns = await storage.getOwnerTransactionsByOwnerId(ownerId);
+
+      type OwnerStatementEntry = {
+        id: number;
+        date: string;
+        time: string;
+        type: string;
+        description: string | null;
+        reference: string | null;
+        debitUsd: number;
+        debitIqd: number;
+        creditUsd: number;
+        creditIqd: number;
+      };
+
+      const entries: OwnerStatementEntry[] = txns.map((t) => {
+        const usd = parseFloat(t.amountUsd || "0");
+        const iqd = parseFloat(t.amountIqd || "0");
+        return {
+          id: t.id,
+          date: t.date,
+          time: t.time || "00:00",
+          type: t.type,
+          description: t.description,
+          reference: t.reference,
+          debitUsd: t.type === "withdrawal" ? usd : 0,
+          debitIqd: t.type === "withdrawal" ? iqd : 0,
+          creditUsd: t.type === "return" ? usd : 0,
+          creditIqd: t.type === "return" ? iqd : 0,
+        };
+      });
+
+      res.json({ owner, entries });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   await seedDatabase();
 
   return httpServer;

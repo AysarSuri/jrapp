@@ -141,6 +141,7 @@ export interface IStorage {
   deleteOwner(id: number): Promise<void>;
 
   getOwnerTransactions(): Promise<OwnerTransaction[]>;
+  getOwnerTransactionsByOwnerId(ownerId: number): Promise<OwnerTransaction[]>;
   createOwnerTransaction(txn: InsertOwnerTransaction): Promise<OwnerTransaction>;
 
   getExpenseTypes(): Promise<ExpenseType[]>;
@@ -488,6 +489,9 @@ export class DatabaseStorage implements IStorage {
 
   async getOwnerTransactions(): Promise<OwnerTransaction[]> {
     return await db.select().from(ownerTransactions).orderBy(sql`${ownerTransactions.createdAt} DESC`);
+  }
+  async getOwnerTransactionsByOwnerId(ownerId: number): Promise<OwnerTransaction[]> {
+    return await db.select().from(ownerTransactions).where(eq(ownerTransactions.ownerId, ownerId)).orderBy(sql`${ownerTransactions.date} ASC, ${ownerTransactions.time} ASC`);
   }
   async createOwnerTransaction(txn: InsertOwnerTransaction): Promise<OwnerTransaction> {
     const [created] = await db.insert(ownerTransactions).values(txn).returning();
