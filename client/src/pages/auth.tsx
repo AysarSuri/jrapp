@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useLogin, useRegister } from "@/hooks/use-auth";
+import { useLogin } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, insertUserSchema } from "@shared/schema";
+import { loginSchema } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -17,29 +17,17 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Globe, UserPlus, LogIn } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Loader2, ShieldCheck, Shield, User, Truck } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const registerSchema = insertUserSchema.extend({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "user", "sales_rep"]),
-});
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { mutate: login, isPending: isLoginPending } = useLogin();
-  const { mutate: register, isPending: isRegisterPending } = useRegister();
+  const { mutate: login, isPending } = useLogin();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [selectedRole, setSelectedRole] = useState<string>("admin");
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -49,7 +37,7 @@ export default function AuthPage() {
     document.documentElement.lang = lng;
   };
 
-  const loginForm = useForm<z.infer<typeof loginSchema>>({
+  const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
@@ -57,16 +45,7 @@ export default function AuthPage() {
     },
   });
 
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-      role: "user",
-    },
-  });
-
-  function onLogin(values: z.infer<typeof loginSchema>) {
+  function onSubmit(values: z.infer<typeof loginSchema>) {
     login(values, {
       onSuccess: () => {
         toast({ title: t("loginSuccess"), description: t("loginSuccessDesc") });
@@ -82,27 +61,17 @@ export default function AuthPage() {
     });
   }
 
-  function onRegister(values: z.infer<typeof registerSchema>) {
-    register(values, {
-      onSuccess: () => {
-        toast({ title: t("registerSuccess"), description: t("registerSuccessDesc") });
-        setLocation("/");
-      },
-      onError: (error) => {
-        toast({
-          title: t("registerFailed"),
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
-  }
-
   const languages = [
     { code: "en", label: "English" },
     { code: "ar", label: "العربية" },
     { code: "ckb", label: "کوردی" },
     { code: "tr", label: "Türkçe" },
+  ];
+
+  const roles = [
+    { value: "admin", icon: Shield, labelKey: "roleAdmin" },
+    { value: "user", icon: User, labelKey: "roleUser" },
+    { value: "sales_rep", icon: Truck, labelKey: "roleRepresentative" },
   ];
 
   return (
@@ -133,149 +102,88 @@ export default function AuthPage() {
           <p className="text-muted-foreground text-lg">{t("erpSystem")}</p>
         </div>
 
-        <div className="flex mb-4 gap-2">
-          <Button
-            variant={mode === "login" ? "default" : "outline"}
-            className="flex-1 font-bold"
-            onClick={() => setMode("login")}
-            data-testid="tab-login"
-          >
-            <LogIn className="w-4 h-4 me-2" />
-            {t("login")}
-          </Button>
-          <Button
-            variant={mode === "register" ? "default" : "outline"}
-            className="flex-1 font-bold"
-            onClick={() => setMode("register")}
-            data-testid="tab-register"
-          >
-            <UserPlus className="w-4 h-4 me-2" />
-            {t("register")}
-          </Button>
-        </div>
-
         <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl font-bold text-center">
-              {mode === "login" ? t("login") : t("register")}
+              {t("signIn")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {mode === "login" ? (
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-5">
-                  <FormField
-                    control={loginForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">{t("username")}</FormLabel>
-                        <FormControl>
-                          <Input placeholder={t("username")} className="h-11 font-bold" data-testid="input-username" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">{t("password")}</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                    disabled={isLoginPending}
-                    data-testid="button-login"
-                  >
-                    {isLoginPending ? (
-                      <>
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                        {t("authenticating")}
-                      </>
-                    ) : (
-                      t("signIn")
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            ) : (
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-5">
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">{t("username")}</FormLabel>
-                        <FormControl>
-                          <Input placeholder={t("username")} className="h-11 font-bold" data-testid="input-reg-username" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">{t("password")}</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-reg-password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">{t("selectRole")}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-11 font-bold" data-testid="select-role">
-                              <SelectValue placeholder={t("selectRole")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="admin" className="font-bold">{t("roleAdmin")}</SelectItem>
-                            <SelectItem value="user" className="font-bold">{t("roleUser")}</SelectItem>
-                            <SelectItem value="sales_rep" className="font-bold">{t("roleRepresentative")}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                    disabled={isRegisterPending}
-                    data-testid="button-register"
-                  >
-                    {isRegisterPending ? (
-                      <>
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                        {t("registering")}
-                      </>
-                    ) : (
-                      t("createAccount")
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            )}
+            <div className="mb-6">
+              <Label className="font-bold text-base mb-3 block">{t("selectRole")}</Label>
+              <RadioGroup
+                value={selectedRole}
+                onValueChange={setSelectedRole}
+                className="flex gap-3"
+                data-testid="radio-role"
+              >
+                {roles.map((role) => {
+                  const Icon = role.icon;
+                  const isSelected = selectedRole === role.value;
+                  return (
+                    <label
+                      key={role.value}
+                      className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50 hover:bg-muted/50"
+                      }`}
+                      data-testid={`role-${role.value}`}
+                    >
+                      <RadioGroupItem value={role.value} className="sr-only" />
+                      <Icon className={`w-6 h-6 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className="font-bold text-sm">{t(role.labelKey)}</span>
+                    </label>
+                  );
+                })}
+              </RadioGroup>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">{t("username")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t("username")} className="h-11 font-bold" data-testid="input-username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">{t("password")}</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  disabled={isPending}
+                  data-testid="button-login"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      {t("authenticating")}
+                    </>
+                  ) : (
+                    t("signIn")
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 
