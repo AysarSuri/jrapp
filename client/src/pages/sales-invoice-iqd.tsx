@@ -503,15 +503,41 @@ export default function SalesInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                        className="h-9 text-sm text-center"
-                        data-testid={`input-sales-iqd-quantity-${index}`}
-                      />
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-8 shrink-0"
+                          onClick={() => {
+                            const cur = parseFloat(item.quantity || "0");
+                            if (cur > 0) updateItem(index, "quantity", String(cur - 1));
+                          }}
+                          data-testid={`button-decrease-iqd-quantity-${index}`}
+                        >
+                          <span className="text-lg font-bold">−</span>
+                        </Button>
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                          className="h-9 text-sm text-center w-14"
+                          data-testid={`input-sales-iqd-quantity-${index}`}
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-8 shrink-0"
+                          onClick={() => {
+                            const cur = parseFloat(item.quantity || "0");
+                            updateItem(index, "quantity", String(cur + 1));
+                          }}
+                          data-testid={`button-increase-iqd-quantity-${index}`}
+                        >
+                          <span className="text-lg font-bold">+</span>
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="p-1">
                       <Select
