@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
-import { salesInvoices, salesInvoiceItems } from "@shared/schema";
+import { salesInvoices, salesInvoiceItems, purchaseInvoices, purchaseInvoiceItems } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -578,6 +578,52 @@ export async function registerRoutes(
             invoiceId: created.id,
           }));
           await tx.insert(salesInvoiceItems).values(itemsWithInvoiceId);
+        }
+        return created;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/purchase-invoices/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextPurchaseInvoiceNumber();
+    res.json({ number });
+  });
+
+  app.get(api.purchaseInvoices.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getPurchaseInvoices();
+    res.json(data);
+  });
+
+  app.get('/api/purchase-invoices/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getPurchaseInvoice(id);
+    if (!data) return res.status(404).json({ message: "Invoice not found" });
+    res.json(data);
+  });
+
+  app.get('/api/purchase-invoices/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getPurchaseInvoiceItems(id);
+    res.json(data);
+  });
+
+  app.post(api.purchaseInvoices.create.path, requireAuth, async (req, res) => {
+    try {
+      const { invoice, items } = api.purchaseInvoices.create.input.parse(req.body);
+      const result = await db.transaction(async (tx) => {
+        const [created] = await tx.insert(purchaseInvoices).values(invoice).returning();
+        if (items.length > 0) {
+          const itemsWithInvoiceId = items.map(item => ({
+            ...item,
+            invoiceId: created.id,
+          }));
+          await tx.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
         }
         return created;
       });

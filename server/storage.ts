@@ -1,7 +1,7 @@
 import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
-  users, products, clients, accounts, invoices, transactions, salesInvoices, salesInvoiceItems,
+  users, products, clients, accounts, invoices, transactions, salesInvoices, salesInvoiceItems, purchaseInvoices, purchaseInvoiceItems,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -17,7 +17,9 @@ import {
   type Invoice, type InsertInvoice,
   type Transaction, type InsertTransaction,
   type SalesInvoice, type InsertSalesInvoice,
-  type SalesInvoiceItem, type InsertSalesInvoiceItem
+  type SalesInvoiceItem, type InsertSalesInvoiceItem,
+  type PurchaseInvoice, type InsertPurchaseInvoice,
+  type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -92,6 +94,13 @@ export interface IStorage {
   getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]>;
   createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]>;
   getNextSalesInvoiceNumber(): Promise<string>;
+
+  getPurchaseInvoices(): Promise<PurchaseInvoice[]>;
+  getPurchaseInvoice(id: number): Promise<PurchaseInvoice | undefined>;
+  createPurchaseInvoice(invoice: InsertPurchaseInvoice): Promise<PurchaseInvoice>;
+  getPurchaseInvoiceItems(invoiceId: number): Promise<PurchaseInvoiceItem[]>;
+  createPurchaseInvoiceItems(items: InsertPurchaseInvoiceItem[]): Promise<PurchaseInvoiceItem[]>;
+  getNextPurchaseInvoiceNumber(): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -327,6 +336,35 @@ export class DatabaseStorage implements IStorage {
 
   async getNextSalesInvoiceNumber(): Promise<string> {
     const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(salesInvoices);
+    return String((result?.maxNum || 0) + 1).padStart(6, '0');
+  }
+
+  async getPurchaseInvoices(): Promise<PurchaseInvoice[]> {
+    return await db.select().from(purchaseInvoices).orderBy(purchaseInvoices.id);
+  }
+
+  async getPurchaseInvoice(id: number): Promise<PurchaseInvoice | undefined> {
+    const [inv] = await db.select().from(purchaseInvoices).where(eq(purchaseInvoices.id, id));
+    return inv;
+  }
+
+  async createPurchaseInvoice(invoice: InsertPurchaseInvoice): Promise<PurchaseInvoice> {
+    const [created] = await db.insert(purchaseInvoices).values(invoice).returning();
+    return created;
+  }
+
+  async getPurchaseInvoiceItems(invoiceId: number): Promise<PurchaseInvoiceItem[]> {
+    return await db.select().from(purchaseInvoiceItems).where(eq(purchaseInvoiceItems.invoiceId, invoiceId));
+  }
+
+  async createPurchaseInvoiceItems(items: InsertPurchaseInvoiceItem[]): Promise<PurchaseInvoiceItem[]> {
+    if (items.length === 0) return [];
+    const created = await db.insert(purchaseInvoiceItems).values(items).returning();
+    return created;
+  }
+
+  async getNextPurchaseInvoiceNumber(): Promise<string> {
+    const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${purchaseInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(purchaseInvoices);
     return String((result?.maxNum || 0) + 1).padStart(6, '0');
   }
 }
