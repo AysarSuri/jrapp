@@ -38,6 +38,10 @@ import OfficePaymentsPage from "@/pages/office-payments";
 import OfficeStatementPage from "@/pages/office-statement";
 import ExpenseTypesPage from "@/pages/expense-types";
 import ExpensesPage from "@/pages/expenses";
+import ExternalDebtsPage from "@/pages/external-debts";
+import ExternalDebtReceiptsPage from "@/pages/external-debt-receipts";
+import ExternalDebtPaymentsPage from "@/pages/external-debt-payments";
+import ExternalDebtStatementPage from "@/pages/external-debt-statement";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -158,6 +162,18 @@ function Router() {
       </Route>
       <Route path="/expenses">
         <ProtectedRoute component={ExpensesPage} />
+      </Route>
+      <Route path="/external-debts">
+        <ProtectedRoute component={ExternalDebtsPage} />
+      </Route>
+      <Route path="/external-debt-receipts">
+        <ProtectedRoute component={ExternalDebtReceiptsPage} />
+      </Route>
+      <Route path="/external-debt-payments">
+        <ProtectedRoute component={ExternalDebtPaymentsPage} />
+      </Route>
+      <Route path="/external-debt-statement">
+        <ProtectedRoute component={ExternalDebtStatementPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />
