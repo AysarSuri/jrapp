@@ -49,6 +49,8 @@ export const representatives = pgTable("representatives", {
   name: text("name").notNull().unique(),
   mobile: text("mobile"),
   agreementType: text("agreement_type").notNull().default("commission"),
+  debtUsd: numeric("debt_usd").notNull().default("0"),
+  debtIqd: numeric("debt_iqd").notNull().default("0"),
 });
 
 export const users = pgTable("users", {
@@ -495,6 +497,27 @@ export const customerReceipts = pgTable("customer_receipts", {
 export const insertCustomerReceiptSchema = createInsertSchema(customerReceipts).omit({ id: true, createdAt: true });
 export type CustomerReceipt = typeof customerReceipts.$inferSelect;
 export type InsertCustomerReceipt = z.infer<typeof insertCustomerReceiptSchema>;
+
+export const agentPayments = pgTable("agent_payments", {
+  id: serial("id").primaryKey(),
+  agentId: integer("agent_id").notNull(),
+  agentName: text("agent_name").notNull(),
+  paymentSource: text("payment_source").notNull(),
+  paymentSourceName: text("payment_source_name").notNull(),
+  amount: numeric("amount").notNull().default("0"),
+  currency: text("currency").notNull(),
+  oldDebt: numeric("old_debt").notNull().default("0"),
+  remaining: numeric("remaining").notNull().default("0"),
+  note: text("note"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAgentPaymentSchema = createInsertSchema(agentPayments).omit({ id: true, createdAt: true });
+export type AgentPayment = typeof agentPayments.$inferSelect;
+export type InsertAgentPayment = z.infer<typeof insertAgentPaymentSchema>;
 
 // Auth types
 export const loginSchema = z.object({

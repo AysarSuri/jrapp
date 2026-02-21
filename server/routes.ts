@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, notifications } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1445,6 +1445,64 @@ export async function registerRoutes(
         }
 
         return receipt;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Agent Payments
+  app.get(api.agentPayments.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getAgentPayments();
+    res.json(data);
+  });
+
+  app.post(api.agentPayments.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.agentPayments.create.input.parse(req.body);
+      const amount = parseFloat(input.amount || "0");
+
+      if (amount <= 0) {
+        return res.status(400).json({ message: "Amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [agent] = await tx.select().from(representatives).where(eq(representatives.id, input.agentId));
+
+        let currentDebt = 0;
+        if (input.currency === "USD") {
+          currentDebt = parseFloat(agent?.debtUsd || "0");
+        } else {
+          currentDebt = parseFloat(agent?.debtIqd || "0");
+        }
+
+        const remaining = currentDebt - amount;
+
+        const [payment] = await tx.insert(agentPayments).values({
+          ...input,
+          oldDebt: String(currentDebt),
+          remaining: String(remaining),
+        }).returning();
+
+        if (input.currency === "USD") {
+          await tx.update(representatives)
+            .set({
+              debtUsd: sql`CAST(${representatives.debtUsd} AS NUMERIC) - ${amount}`,
+            })
+            .where(eq(representatives.id, input.agentId));
+        } else {
+          await tx.update(representatives)
+            .set({
+              debtIqd: sql`CAST(${representatives.debtIqd} AS NUMERIC) - ${amount}`,
+            })
+            .where(eq(representatives.id, input.agentId));
+        }
+
+        return payment;
       });
       res.status(201).json(result);
     } catch (err) {

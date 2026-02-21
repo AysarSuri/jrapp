@@ -168,6 +168,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/sales-return-iqd",
     "/customer-receipt-usd",
     "/customer-receipt-iqd",
+    "/agent-payment-usd",
+    "/agent-payment-iqd",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -281,6 +283,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/sales-return-iqd", icon: Undo2, label: "Sales Return IQD" },
     { href: "/customer-receipt-usd", icon: DollarSign, label: "Customer Receipt USD" },
     { href: "/customer-receipt-iqd", icon: Banknote, label: "Customer Receipt IQD" },
+    { href: "/agent-payment-usd", icon: DollarSign, label: "Agent Payment USD" },
+    { href: "/agent-payment-iqd", icon: Banknote, label: "Agent Payment IQD" },
   ];
 
   const sidebarItems: NavEntry[] = [

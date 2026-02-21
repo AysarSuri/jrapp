@@ -1,0 +1,434 @@
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useAgentPayments, useCreateAgentPayment } from "@/hooks/use-agent-payments";
+import { useQuery } from "@tanstack/react-query";
+import type { Representative, Bank, TransferOffice } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Save, Loader2, Banknote, RotateCcw, ListOrdered, Building, Landmark, UserCheck,
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+
+export default function AgentPaymentIqdPage() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { data: payments, isLoading: paymentsLoading } = useAgentPayments();
+  const { mutate: createPayment, isPending: isSaving } = useCreateAgentPayment();
+
+  const { data: agents } = useQuery<Representative[]>({
+    queryKey: ["/api/representatives"],
+  });
+
+  const { data: banksList } = useQuery<Bank[]>({
+    queryKey: ["/api/banks"],
+  });
+
+  const { data: transferOfficesList } = useQuery<TransferOffice[]>({
+    queryKey: ["/api/transfer-offices"],
+  });
+
+  const [agentId, setAgentId] = useState<string>("");
+  const [agentName, setAgentName] = useState("");
+  const [paymentSource, setPaymentSource] = useState<string>("");
+  const [paymentSourceName, setPaymentSourceName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [reference, setReference] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const banks = banksList || [];
+  const transferOffices = transferOfficesList || [];
+
+  const iqdPayments = payments?.filter(p => p.currency === "IQD") || [];
+
+  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+
+  const selectAgent = useCallback((id: string) => {
+    setAgentId(id);
+    const agent = agents?.find(a => a.id === parseInt(id));
+    if (agent) {
+      setAgentName(agent.name);
+    }
+  }, [agents]);
+
+  const selectPaymentSource = useCallback((val: string) => {
+    setPaymentSource(val);
+    const [type, id] = val.split(":");
+    if (type === "bank") {
+      const bank = banksList?.find(b => b.id === parseInt(id));
+      if (bank) setPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+    } else {
+      const office = transferOfficesList?.find(o => o.id === parseInt(id));
+      if (office) setPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
+    }
+  }, [banksList, transferOfficesList, t]);
+
+  const selectedAgent = agents?.find(a => a.id === parseInt(agentId));
+
+  const resetForm = () => {
+    setAgentId("");
+    setAgentName("");
+    setPaymentSource("");
+    setPaymentSourceName("");
+    setAmount("");
+    setNote("");
+    setReference("");
+    setDate(new Date().toISOString().split('T')[0]);
+    setTime(new Date().toTimeString().slice(0, 5));
+  };
+
+  const handleSave = () => {
+    if (!agentId) {
+      toast({ title: t("Please select an agent"), variant: "destructive" });
+      return;
+    }
+    if (!paymentSource) {
+      toast({ title: t("Please select a payment source"), variant: "destructive" });
+      return;
+    }
+    const amountVal = parseFloat(amount || "0");
+    if (amountVal <= 0) {
+      toast({ title: t("Please enter an amount"), variant: "destructive" });
+      return;
+    }
+
+    createPayment({
+      agentId: parseInt(agentId),
+      agentName,
+      paymentSource: paymentSource.split(":")[0],
+      paymentSourceName,
+      amount: amount || "0",
+      currency: "IQD",
+      note: note || null,
+      reference: reference || null,
+      date,
+      time,
+    }, {
+      onSuccess: () => {
+        toast({ title: t("Payment saved successfully") });
+        resetForm();
+      },
+      onError: () => {
+        toast({ title: t("Failed to save payment"), variant: "destructive" });
+      },
+    });
+  };
+
+  const amountVal = parseFloat(amount || "0");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+              <Banknote className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+            </div>
+            {t('Agent Payment IQD')}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t('Pay agents in IQD')}</p>
+        </div>
+        <div className="flex gap-2">
+          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2" data-testid="button-agent-payment-history">
+                <ListOrdered className="h-4 w-4" />
+                {t('Payment History')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{t('Payment History')} - IQD</DialogTitle>
+              </DialogHeader>
+              {paymentsLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Time')}</TableHead>
+                      <TableHead>{t('Agent')}</TableHead>
+                      <TableHead>{t('Source')}</TableHead>
+                      <TableHead>{t('Amount')}</TableHead>
+                      <TableHead>{t('Old Debt')}</TableHead>
+                      <TableHead>{t('Remaining')}</TableHead>
+                      <TableHead>{t('Reference')}</TableHead>
+                      <TableHead>{t('Notes')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {iqdPayments.map((p, i) => (
+                      <TableRow key={p.id} data-testid={`row-agent-payment-${p.id}`}>
+                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm">{p.date}</TableCell>
+                        <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
+                        <TableCell className="font-medium">{p.agentName}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">{p.paymentSourceName}</Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-orange-600">
+                          {parseFloat(p.amount) > 0 ? formatIQD(parseFloat(p.amount)) : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {formatIQD(parseFloat(p.oldDebt))}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-emerald-600">
+                          {formatIQD(parseFloat(p.remaining))}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {iqdPayments.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                          {t('No payments yet')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-payment">
+            <RotateCcw className="h-4 w-4" />
+            {t('Reset')}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 border-border/50 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Agent')}</Label>
+                <Select value={agentId} onValueChange={selectAgent}>
+                  <SelectTrigger data-testid="select-agent">
+                    <SelectValue placeholder={t('Select agent...')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents?.map(a => (
+                      <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  data-testid="input-agent-payment-date"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  data-testid="input-agent-payment-time"
+                />
+              </div>
+            </div>
+
+            {selectedAgent && (
+              <Card className="bg-muted/30 border-dashed">
+                <CardContent className="pt-4 pb-4">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Agent')}</p>
+                      <p className="font-bold">{selectedAgent.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Debt IQD')}</p>
+                      <p className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedAgent.debtIqd))}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label>{t('Payment Source')}</Label>
+              <Select value={paymentSource} onValueChange={selectPaymentSource}>
+                <SelectTrigger data-testid="select-agent-payment-source">
+                  <SelectValue placeholder={t('Select bank or transfer office...')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {banks.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Landmark className="h-3 w-3" /> {t('Banks')}
+                      </div>
+                      {banks.map(b => (
+                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>{b.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {transferOffices.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
+                      </div>
+                      {transferOffices.map(o => (
+                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>{o.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
+            <Card className="border-orange-200 dark:border-orange-900">
+              <CardHeader className="pb-3 pt-4">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Banknote className="h-4 w-4 text-orange-600" />
+                  {t('Amount')} (IQD)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Input
+                  type="number"
+                  step="250"
+                  min="0"
+                  placeholder="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="text-lg font-mono text-center h-12"
+                  data-testid="input-agent-payment-amount"
+                />
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Reference')}</Label>
+                <Input
+                  placeholder={t('Reference number...')}
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  data-testid="input-agent-payment-reference"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Notes')}</Label>
+                <Textarea
+                  placeholder={t('Notes...')}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className="resize-none h-10"
+                  data-testid="input-agent-payment-note"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card className="border-orange-200 dark:border-orange-900 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedAgent && (
+                <>
+                  <div className="rounded-lg border p-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">{t('Agent')}</p>
+                    <p className="font-bold text-lg">{selectedAgent.name}</p>
+                  </div>
+                  <Separator />
+                </>
+              )}
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-orange-600">{t('Amount')}</span>
+                  <span className="font-mono font-bold text-lg text-orange-600" data-testid="text-agent-payment-amount">
+                    {formatIQD(amountVal)}
+                  </span>
+                </div>
+              </div>
+
+              {paymentSource && (
+                <>
+                  <Separator />
+                  <div className="rounded-lg border p-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">{t('Source')}</p>
+                    <p className="font-medium text-sm">{paymentSourceName}</p>
+                  </div>
+                </>
+              )}
+
+              <Button
+                onClick={handleSave}
+                disabled={isSaving || !agentId || !paymentSource}
+                className="w-full h-12 text-base gap-2 bg-orange-600 hover:bg-orange-700"
+                data-testid="button-save-agent-payment"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )}
+                {t('Save Payment')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {selectedAgent && (
+            <Card className="bg-muted/30">
+              <CardContent className="pt-4 pb-4">
+                <div className="text-center space-y-2">
+                  <p className="text-xs text-muted-foreground">{t('Current Debt IQD')}</p>
+                  <p className="font-mono text-2xl font-bold text-red-600">
+                    {formatIQD(parseFloat(selectedAgent.debtIqd))}
+                  </p>
+                  {amountVal > 0 && (
+                    <>
+                      <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
+                      <p className="font-mono text-xl font-bold text-emerald-600">
+                        {formatIQD(parseFloat(selectedAgent.debtIqd) - amountVal)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

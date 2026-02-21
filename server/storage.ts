@@ -4,7 +4,7 @@ import {
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
-  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications,
+  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications, agentPayments,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -40,6 +40,7 @@ import {
   type ExpenseType, type InsertExpenseType,
   type Expense, type InsertExpense,
   type CustomerReceipt, type InsertCustomerReceipt,
+  type AgentPayment, type InsertAgentPayment,
   customerReceipts
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
@@ -190,6 +191,10 @@ export interface IStorage {
   getCustomerReceipts(): Promise<CustomerReceipt[]>;
   getCustomerReceiptsByCustomerId(customerId: number): Promise<CustomerReceipt[]>;
   createCustomerReceipt(receipt: InsertCustomerReceipt): Promise<CustomerReceipt>;
+
+  getAgentPayments(): Promise<AgentPayment[]>;
+  getAgentPaymentsByAgentId(agentId: number): Promise<AgentPayment[]>;
+  createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -696,6 +701,19 @@ export class DatabaseStorage implements IStorage {
 
   async createCustomerReceipt(receipt: InsertCustomerReceipt): Promise<CustomerReceipt> {
     const [created] = await db.insert(customerReceipts).values(receipt).returning();
+    return created;
+  }
+
+  async getAgentPayments(): Promise<AgentPayment[]> {
+    return await db.select().from(agentPayments).orderBy(sql`${agentPayments.createdAt} DESC`);
+  }
+
+  async getAgentPaymentsByAgentId(agentId: number): Promise<AgentPayment[]> {
+    return await db.select().from(agentPayments).where(eq(agentPayments.agentId, agentId)).orderBy(sql`${agentPayments.date} ASC, ${agentPayments.time} ASC`);
+  }
+
+  async createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment> {
+    const [created] = await db.insert(agentPayments).values(payment).returning();
     return created;
   }
 
