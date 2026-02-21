@@ -32,6 +32,7 @@ interface InvoiceItem {
   unit: string;
   price: string;
   amount: string;
+  weight: string;
 }
 
 const emptyItem = (): InvoiceItem => ({
@@ -42,6 +43,7 @@ const emptyItem = (): InvoiceItem => ({
   unit: "",
   price: "",
   amount: "0",
+  weight: "0",
 });
 
 export default function PurchaseInvoiceUsdPage() {
@@ -95,9 +97,16 @@ export default function PurchaseInvoiceUsdPage() {
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
+  const totalWeight = items.reduce((sum, i) => sum + (parseFloat(i.weight || "0") * parseFloat(i.quantity || "0")), 0);
   const discountVal = parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - discountVal - amountPaidVal;
+
+  const getExpenseCost = (item: InvoiceItem) => {
+    if (totalWeight === 0 || totalExpenses === 0) return 0;
+    const itemWeight = parseFloat(item.weight || "0") * parseFloat(item.quantity || "0");
+    return (itemWeight / totalWeight) * totalExpenses;
+  };
 
   const updateItem = useCallback((index: number, field: keyof InvoiceItem, value: string) => {
     setItems(prev => {
@@ -124,6 +133,7 @@ export default function PurchaseInvoiceUsdPage() {
         productName: product.name,
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
+        weight: product.weight || "0",
       };
       const qty = parseFloat(updated[index].quantity || "0");
       updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
@@ -433,6 +443,8 @@ export default function PurchaseInvoiceUsdPage() {
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[80px]">{t('Weight')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px]">{t('Expense Cost')}</TableHead>
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -515,6 +527,16 @@ export default function PurchaseInvoiceUsdPage() {
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
+                      <div className="flex items-center justify-center h-9 px-2 rounded bg-muted/50 font-mono text-sm text-muted-foreground">
+                        {(parseFloat(item.weight || "0") * parseFloat(item.quantity || "0")).toFixed(2)} kg
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <div className="flex items-center justify-center h-9 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-sm font-bold text-amber-700 dark:text-amber-400">
+                        ${getExpenseCost(item).toFixed(2)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -537,7 +559,7 @@ export default function PurchaseInvoiceUsdPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-border/50 shadow-sm">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Products')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-purchase-total-items">{totalItems}</p>
@@ -545,6 +567,10 @@ export default function PurchaseInvoiceUsdPage() {
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Quantity')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-purchase-total-quantity">{totalQuantity}</p>
+              </div>
+              <div className="rounded-lg border p-4 text-center">
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
+                <p className="text-3xl font-bold text-primary" data-testid="text-purchase-total-weight">{totalWeight.toFixed(2)} kg</p>
               </div>
             </div>
           </CardContent>
