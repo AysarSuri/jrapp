@@ -196,6 +196,20 @@ export const supplierAdjustments = pgTable("supplier_adjustments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const bankTransactions = pgTable("bank_transactions", {
+  id: serial("id").primaryKey(),
+  bankId: integer("bank_id").notNull(),
+  bankName: text("bank_name").notNull(),
+  type: text("type").notNull(), // 'receipt' | 'payment'
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  description: text("description"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
@@ -208,6 +222,7 @@ export const insertPurchaseInvoiceSchema = createInsertSchema(purchaseInvoices).
 export const insertPurchaseInvoiceItemSchema = createInsertSchema(purchaseInvoiceItems).omit({ id: true });
 export const insertSupplierPaymentSchema = createInsertSchema(supplierPayments).omit({ id: true, createdAt: true });
 export const insertSupplierAdjustmentSchema = createInsertSchema(supplierAdjustments).omit({ id: true, createdAt: true });
+export const insertBankTransactionSchema = createInsertSchema(bankTransactions).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -261,6 +276,8 @@ export type SupplierPayment = typeof supplierPayments.$inferSelect;
 export type InsertSupplierPayment = z.infer<typeof insertSupplierPaymentSchema>;
 export type SupplierAdjustment = typeof supplierAdjustments.$inferSelect;
 export type InsertSupplierAdjustment = z.infer<typeof insertSupplierAdjustmentSchema>;
+export type BankTransaction = typeof bankTransactions.$inferSelect;
+export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
 
 // Auth types
 export const loginSchema = z.object({

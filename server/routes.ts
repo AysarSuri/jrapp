@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -800,6 +800,78 @@ export async function registerRoutes(
         supplier,
         entries,
       });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.bankTransactions.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getBankTransactions();
+    res.json(data);
+  });
+
+  app.post(api.bankTransactions.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.bankTransactions.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [txn] = await tx.insert(bankTransactions).values(input).returning();
+        return txn;
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/bank-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const bankId = parseInt(req.params.id as string);
+      const [bank] = await db.select().from(banks).where(eq(banks.id, bankId));
+      if (!bank) return res.status(404).json({ message: "Bank not found" });
+
+      const txns = await storage.getBankTransactionsByBankId(bankId);
+
+      type BankStatementEntry = {
+        id: number;
+        date: string;
+        time: string;
+        type: string;
+        description: string | null;
+        reference: string | null;
+        debitUsd: number;
+        debitIqd: number;
+        creditUsd: number;
+        creditIqd: number;
+      };
+
+      const entries: BankStatementEntry[] = txns.map((t) => {
+        const usd = parseFloat(t.amountUsd || "0");
+        const iqd = parseFloat(t.amountIqd || "0");
+        return {
+          id: t.id,
+          date: t.date,
+          time: t.time || "00:00",
+          type: t.type,
+          description: t.description,
+          reference: t.reference,
+          debitUsd: t.type === "receipt" ? usd : 0,
+          debitIqd: t.type === "receipt" ? iqd : 0,
+          creditUsd: t.type === "payment" ? usd : 0,
+          creditIqd: t.type === "payment" ? iqd : 0,
+        };
+      });
+
+      res.json({ bank, entries });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }

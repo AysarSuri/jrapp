@@ -2,7 +2,7 @@ import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
-  supplierPayments, supplierAdjustments,
+  supplierPayments, supplierAdjustments, bankTransactions,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -20,7 +20,8 @@ import {
   type PurchaseInvoice, type InsertPurchaseInvoice,
   type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem,
   type SupplierPayment, type InsertSupplierPayment,
-  type SupplierAdjustment, type InsertSupplierAdjustment
+  type SupplierAdjustment, type InsertSupplierAdjustment,
+  type BankTransaction, type InsertBankTransaction
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -103,6 +104,10 @@ export interface IStorage {
 
   getSupplierAdjustments(): Promise<SupplierAdjustment[]>;
   createSupplierAdjustment(adj: InsertSupplierAdjustment): Promise<SupplierAdjustment>;
+
+  getBankTransactions(): Promise<BankTransaction[]>;
+  getBankTransactionsByBankId(bankId: number): Promise<BankTransaction[]>;
+  createBankTransaction(txn: InsertBankTransaction): Promise<BankTransaction>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -356,6 +361,19 @@ export class DatabaseStorage implements IStorage {
 
   async createSupplierAdjustment(adj: InsertSupplierAdjustment): Promise<SupplierAdjustment> {
     const [created] = await db.insert(supplierAdjustments).values(adj).returning();
+    return created;
+  }
+
+  async getBankTransactions(): Promise<BankTransaction[]> {
+    return await db.select().from(bankTransactions).orderBy(sql`${bankTransactions.createdAt} DESC`);
+  }
+
+  async getBankTransactionsByBankId(bankId: number): Promise<BankTransaction[]> {
+    return await db.select().from(bankTransactions).where(eq(bankTransactions.bankId, bankId)).orderBy(sql`${bankTransactions.date} ASC, ${bankTransactions.time} ASC`);
+  }
+
+  async createBankTransaction(txn: InsertBankTransaction): Promise<BankTransaction> {
+    const [created] = await db.insert(bankTransactions).values(txn).returning();
     return created;
   }
 }

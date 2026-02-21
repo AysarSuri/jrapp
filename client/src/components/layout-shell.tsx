@@ -20,6 +20,7 @@ import {
   ArrowRightLeft,
   Banknote,
   ArrowDownToLine,
+  ArrowUpFromLine,
   LogOut,
   Menu,
   Moon,
@@ -95,12 +96,25 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/supplier-statement",
   ];
 
+  const bankSubRoutes = [
+    "/banks",
+    "/bank-receipts",
+    "/bank-payments",
+    "/bank-statement",
+  ];
+
   const isSupplierSection = supplierSubRoutes.includes(location);
+  const isBankSection = bankSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
+  const [bankOpen, setBankOpen] = useState(isBankSection);
 
   useEffect(() => {
     if (isSupplierSection) setSupplierOpen(true);
   }, [isSupplierSection]);
+
+  useEffect(() => {
+    if (isBankSection) setBankOpen(true);
+  }, [isBankSection]);
 
   type NavItem = { href: string; icon: any; label: string };
   type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
@@ -114,6 +128,13 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/supplier-statement", icon: FileText, label: "Supplier Account Statement" },
   ];
 
+  const bankNavItems: NavItem[] = [
+    { href: "/banks", icon: Landmark, label: "Banks" },
+    { href: "/bank-receipts", icon: ArrowDownToLine, label: "Bank Receipts" },
+    { href: "/bank-payments", icon: ArrowUpFromLine, label: "Bank Payments" },
+    { href: "/bank-statement", icon: FileText, label: "Bank Account Statement" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
@@ -121,11 +142,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/categories", icon: FolderOpen, label: "Categories" },
     { href: "/customers", icon: Users, label: "Customers" },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
+    { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
     { href: "/transfer-offices", icon: Building, label: "Transfer Offices" },
-    { href: "/banks", icon: Landmark, label: "Banks" },
     { href: "/customs-clearances", icon: ShieldCheck, label: "Customs Clearances" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
@@ -161,34 +182,41 @@ export function LayoutShell({ children }: LayoutShellProps) {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {sidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
+            const isSupplierGroup = entry.label === "Supplier Management";
+            const isBankGroup = entry.label === "Bank Management";
+            const isOpen = isSupplierGroup ? supplierOpen : isBankGroup ? bankOpen : false;
+            const setOpen = isSupplierGroup ? setSupplierOpen : isBankGroup ? setBankOpen : () => {};
+            const isActiveSection = isSupplierGroup ? isSupplierSection : isBankGroup ? isBankSection : false;
+            const landingRoute = isSupplierGroup ? "/supplier-management" : entry.children[0]?.href || "/";
+            const isLandingActive = location === landingRoute;
+            const testIdName = entry.label.toLowerCase().replace(/\s+/g, '-');
             return (
               <div key={entry.label} className="space-y-0.5">
                 <button
                   onClick={() => {
-                    if (!supplierOpen) {
-                      setSupplierOpen(true);
-                    }
-                    navigate("/supplier-management");
+                    if (!isOpen) setOpen(true);
+                    if (isSupplierGroup) navigate("/supplier-management");
+                    else setOpen(!isOpen);
                   }}
-                  data-testid="button-supplier-management"
+                  data-testid={`button-${testIdName}`}
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                    ${location === "/supplier-management"
+                    ${isLandingActive
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium"
-                      : isSupplierSection
+                      : isActiveSection
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }
                   `}
                 >
-                  <entry.icon className={`w-5 h-5 ${location === "/supplier-management" ? "text-primary-foreground" : ""}`} />
+                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-primary-foreground" : ""}`} />
                   <span className="flex-1 text-start">{t(entry.label)}</span>
                   <ChevronDown
-                    onClick={(e) => { e.stopPropagation(); setSupplierOpen(!supplierOpen); }}
-                    className={`w-4 h-4 transition-transform duration-200 ${supplierOpen ? "rotate-180" : ""} ${location === "/supplier-management" ? "text-primary-foreground" : ""}`}
+                    onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-primary-foreground" : ""}`}
                   />
                 </button>
-                {supplierOpen && (
+                {isOpen && (
                   <div className="space-y-0.5">
                     {entry.children.map((subItem) => renderNavLink(subItem, true))}
                   </div>

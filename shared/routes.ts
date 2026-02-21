@@ -17,6 +17,7 @@ import {
   insertPurchaseInvoiceItemSchema, purchaseInvoiceItems,
   insertSupplierPaymentSchema, supplierPayments,
   insertSupplierAdjustmentSchema, supplierAdjustments,
+  insertBankTransactionSchema, bankTransactions,
   loginSchema, users 
 } from './schema';
 
@@ -441,6 +442,19 @@ export const api = {
       path: '/api/supplier-adjustments' as const,
       input: insertSupplierAdjustmentSchema,
       responses: { 201: z.custom<typeof supplierAdjustments.$inferSelect>() }
+    }
+  },
+  bankTransactions: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/bank-transactions' as const,
+      responses: { 200: z.array(z.custom<typeof bankTransactions.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/bank-transactions' as const,
+      input: insertBankTransactionSchema,
+      responses: { 201: z.custom<typeof bankTransactions.$inferSelect>() }
     }
   }
 };
