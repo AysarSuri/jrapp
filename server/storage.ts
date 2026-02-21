@@ -3,6 +3,7 @@ import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
+  expenseTypes, expenses,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -23,7 +24,9 @@ import {
   type SupplierAdjustment, type InsertSupplierAdjustment,
   type BankTransaction, type InsertBankTransaction,
   type CustomsClearanceTransaction, type InsertCustomsClearanceTransaction,
-  type TransferOfficeTransaction, type InsertTransferOfficeTransaction
+  type TransferOfficeTransaction, type InsertTransferOfficeTransaction,
+  type ExpenseType, type InsertExpenseType,
+  type Expense, type InsertExpense
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -118,6 +121,14 @@ export interface IStorage {
   getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]>;
   getTransferOfficeTransactionsByOfficeId(officeId: number): Promise<TransferOfficeTransaction[]>;
   createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction>;
+
+  getExpenseTypes(): Promise<ExpenseType[]>;
+  createExpenseType(et: InsertExpenseType): Promise<ExpenseType>;
+  updateExpenseType(id: number, et: InsertExpenseType): Promise<ExpenseType>;
+  deleteExpenseType(id: number): Promise<void>;
+
+  getExpenses(): Promise<Expense[]>;
+  createExpense(exp: InsertExpense): Promise<Expense>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -410,6 +421,29 @@ export class DatabaseStorage implements IStorage {
 
   async createTransferOfficeTransaction(txn: InsertTransferOfficeTransaction): Promise<TransferOfficeTransaction> {
     const [created] = await db.insert(transferOfficeTransactions).values(txn).returning();
+    return created;
+  }
+
+  async getExpenseTypes(): Promise<ExpenseType[]> {
+    return await db.select().from(expenseTypes);
+  }
+  async createExpenseType(et: InsertExpenseType): Promise<ExpenseType> {
+    const [created] = await db.insert(expenseTypes).values(et).returning();
+    return created;
+  }
+  async updateExpenseType(id: number, et: InsertExpenseType): Promise<ExpenseType> {
+    const [updated] = await db.update(expenseTypes).set(et).where(eq(expenseTypes.id, id)).returning();
+    return updated;
+  }
+  async deleteExpenseType(id: number): Promise<void> {
+    await db.delete(expenseTypes).where(eq(expenseTypes.id, id));
+  }
+
+  async getExpenses(): Promise<Expense[]> {
+    return await db.select().from(expenses).orderBy(sql`${expenses.createdAt} DESC`);
+  }
+  async createExpense(exp: InsertExpense): Promise<Expense> {
+    const [created] = await db.insert(expenses).values(exp).returning();
     return created;
   }
 }

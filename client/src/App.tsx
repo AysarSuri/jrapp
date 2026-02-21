@@ -36,6 +36,8 @@ import ClearanceStatementPage from "@/pages/clearance-statement";
 import OfficeReceiptsPage from "@/pages/office-receipts";
 import OfficePaymentsPage from "@/pages/office-payments";
 import OfficeStatementPage from "@/pages/office-statement";
+import ExpenseTypesPage from "@/pages/expense-types";
+import ExpensesPage from "@/pages/expenses";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -150,6 +152,12 @@ function Router() {
       </Route>
       <Route path="/office-statement">
         <ProtectedRoute component={OfficeStatementPage} />
+      </Route>
+      <Route path="/expense-types">
+        <ProtectedRoute component={ExpenseTypesPage} />
+      </Route>
+      <Route path="/expenses">
+        <ProtectedRoute component={ExpensesPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />

@@ -20,6 +20,8 @@ import {
   insertBankTransactionSchema, bankTransactions,
   insertCustomsClearanceTransactionSchema, customsClearanceTransactions,
   insertTransferOfficeTransactionSchema, transferOfficeTransactions,
+  insertExpenseTypeSchema, expenseTypes,
+  insertExpenseSchema, expenses,
   loginSchema, users 
 } from './schema';
 
@@ -483,6 +485,43 @@ export const api = {
       path: '/api/office-transactions' as const,
       input: insertTransferOfficeTransactionSchema,
       responses: { 201: z.custom<typeof transferOfficeTransactions.$inferSelect>() }
+    }
+  },
+  expenseTypes: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/expense-types' as const,
+      responses: { 200: z.array(z.custom<typeof expenseTypes.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/expense-types' as const,
+      input: insertExpenseTypeSchema,
+      responses: { 201: z.custom<typeof expenseTypes.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/expense-types/:id' as const,
+      input: insertExpenseTypeSchema,
+      responses: { 200: z.custom<typeof expenseTypes.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/expense-types/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
+    }
+  },
+  expenses: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/expenses' as const,
+      responses: { 200: z.array(z.custom<typeof expenses.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/expenses' as const,
+      input: insertExpenseSchema,
+      responses: { 201: z.custom<typeof expenses.$inferSelect>() }
     }
   }
 };

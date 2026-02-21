@@ -27,7 +27,8 @@ import {
   Sun,
   Globe,
   ChevronDown,
-  ClipboardList
+  ClipboardList,
+  Tags
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,14 +118,21 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/office-statement",
   ];
 
+  const expenseSubRoutes = [
+    "/expense-types",
+    "/expenses",
+  ];
+
   const isSupplierSection = supplierSubRoutes.includes(location);
   const isBankSection = bankSubRoutes.includes(location);
   const isClearanceSection = clearanceSubRoutes.includes(location);
   const isOfficeSection = officeSubRoutes.includes(location);
+  const isExpenseSection = expenseSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
   const [clearanceOpen, setClearanceOpen] = useState(isClearanceSection);
   const [officeOpen, setOfficeOpen] = useState(isOfficeSection);
+  const [expenseOpen, setExpenseOpen] = useState(isExpenseSection);
 
   useEffect(() => {
     if (isSupplierSection) setSupplierOpen(true);
@@ -141,6 +149,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isOfficeSection) setOfficeOpen(true);
   }, [isOfficeSection]);
+
+  useEffect(() => {
+    if (isExpenseSection) setExpenseOpen(true);
+  }, [isExpenseSection]);
 
   type NavItem = { href: string; icon: any; label: string };
   type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
@@ -175,6 +187,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/office-statement", icon: FileText, label: "Office Account Statement" },
   ];
 
+  const expenseNavItems: NavItem[] = [
+    { href: "/expense-types", icon: Tags, label: "Expense Types" },
+    { href: "/expenses", icon: Receipt, label: "Expenses" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
@@ -185,6 +202,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
     { type: 'group', label: "Clearance Management", icon: ShieldCheck, children: clearanceNavItems },
     { type: 'group', label: "Office Management", icon: Building, children: officeNavItems },
+    { type: 'group', label: "Expense Management", icon: Receipt, children: expenseNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
@@ -227,6 +245,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Bank Management": { isOpen: bankOpen, setOpen: setBankOpen, isActive: isBankSection },
               "Clearance Management": { isOpen: clearanceOpen, setOpen: setClearanceOpen, isActive: isClearanceSection },
               "Office Management": { isOpen: officeOpen, setOpen: setOfficeOpen, isActive: isOfficeSection },
+              "Expense Management": { isOpen: expenseOpen, setOpen: setExpenseOpen, isActive: isExpenseSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
             const isOpen = group.isOpen;

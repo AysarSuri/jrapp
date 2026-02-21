@@ -238,6 +238,24 @@ export const transferOfficeTransactions = pgTable("transfer_office_transactions"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const expenseTypes = pgTable("expense_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  expenseTypeId: integer("expense_type_id").notNull(),
+  expenseTypeName: text("expense_type_name").notNull(),
+  amountUsd: numeric("amount_usd").notNull().default("0"),
+  amountIqd: numeric("amount_iqd").notNull().default("0"),
+  description: text("description"),
+  reference: text("reference"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
@@ -253,6 +271,8 @@ export const insertSupplierAdjustmentSchema = createInsertSchema(supplierAdjustm
 export const insertBankTransactionSchema = createInsertSchema(bankTransactions).omit({ id: true, createdAt: true });
 export const insertCustomsClearanceTransactionSchema = createInsertSchema(customsClearanceTransactions).omit({ id: true, createdAt: true });
 export const insertTransferOfficeTransactionSchema = createInsertSchema(transferOfficeTransactions).omit({ id: true, createdAt: true });
+export const insertExpenseTypeSchema = createInsertSchema(expenseTypes).omit({ id: true });
+export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -312,6 +332,10 @@ export type CustomsClearanceTransaction = typeof customsClearanceTransactions.$i
 export type InsertCustomsClearanceTransaction = z.infer<typeof insertCustomsClearanceTransactionSchema>;
 export type TransferOfficeTransaction = typeof transferOfficeTransactions.$inferSelect;
 export type InsertTransferOfficeTransaction = z.infer<typeof insertTransferOfficeTransactionSchema>;
+export type ExpenseType = typeof expenseTypes.$inferSelect;
+export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 
 // Auth types
 export const loginSchema = z.object({

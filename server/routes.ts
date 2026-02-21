@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, expenses } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1009,6 +1009,81 @@ export async function registerRoutes(
 
       res.json({ office, entries });
     } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Expense Types CRUD
+  app.get(api.expenseTypes.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getExpenseTypes();
+    res.json(data);
+  });
+
+  app.post(api.expenseTypes.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.expenseTypes.create.input.parse(req.body);
+      const result = await storage.createExpenseType(input);
+      res.status(201).json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Expense type with this name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.expenseTypes.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const input = api.expenseTypes.update.input.parse(req.body);
+      const result = await storage.updateExpenseType(id, input);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Expense type with this name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.expenseTypes.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      await storage.deleteExpenseType(id);
+      res.json({ message: "Expense type deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Expenses
+  app.get(api.expenses.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getExpenses();
+    res.json(data);
+  });
+
+  app.post(api.expenses.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.expenses.create.input.parse(req.body);
+      const usdAmount = parseFloat(input.amountUsd || "0");
+      const iqdAmount = parseFloat(input.amountIqd || "0");
+
+      if (usdAmount <= 0 && iqdAmount <= 0) {
+        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      }
+
+      const result = await storage.createExpense(input);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });
