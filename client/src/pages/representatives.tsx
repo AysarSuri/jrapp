@@ -20,7 +20,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, UserCheck, Loader2, Trash2, Pencil } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, UserCheck, Loader2, Trash2, Pencil, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,18 +39,18 @@ export default function RepresentativesPage() {
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
     resolver: zodResolver(insertRepresentativeSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", mobile: "", agreementType: "commission" },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "" });
+    form.reset({ name: "", mobile: "", agreementType: "commission" });
     setOpen(true);
   };
 
   const openEditDialog = (item: Representative) => {
     setEditing(item);
-    form.reset({ name: item.name });
+    form.reset({ name: item.name, mobile: item.mobile || "", agreementType: item.agreementType || "commission" });
     setOpen(true);
   };
 
@@ -111,10 +112,10 @@ export default function RepresentativesPage() {
               {t('Add Representative')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editing ? t('Edit Representative') : t('Add New Representative')}</DialogTitle>
-              <DialogDescription>{t('Enter the representative name')}</DialogDescription>
+              <DialogDescription>{t('Enter representative details')}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -122,6 +123,30 @@ export default function RepresentativesPage() {
                   <FormItem>
                     <FormLabel>{t('Representative Name')}</FormLabel>
                     <FormControl><Input data-testid="input-representative-name" placeholder={t('e.g. Ahmed Ali')} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="mobile" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Mobile')}</FormLabel>
+                    <FormControl><Input data-testid="input-representative-mobile" placeholder={t('Mobile number...')} {...field} value={field.value || ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="agreementType" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Agreement Type')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue="commission">
+                      <FormControl>
+                        <SelectTrigger data-testid="select-agreement-type">
+                          <SelectValue placeholder={t('Select agreement type')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="commission">{t('Commission')}</SelectItem>
+                        <SelectItem value="monthly_salary">{t('Monthly Salary')}</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -173,6 +198,8 @@ export default function RepresentativesPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Representative Name')}</TableHead>
+                    <TableHead>{t('Mobile')}</TableHead>
+                    <TableHead>{t('Agreement Type')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -184,6 +211,21 @@ export default function RepresentativesPage() {
                         <Badge variant="outline" className="gap-1">
                           <UserCheck className="h-3 w-3" />
                           {item.name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {item.mobile ? (
+                          <span className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            {item.mobile}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={item.agreementType === 'monthly_salary' ? 'default' : 'secondary'}>
+                          {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
