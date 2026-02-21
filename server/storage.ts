@@ -4,7 +4,7 @@ import {
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
-  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, notifications,
+  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -33,6 +33,8 @@ import {
   type SalesInvoiceItem, type InsertSalesInvoiceItem,
   type SalesReturn, type InsertSalesReturn,
   type SalesReturnItem, type InsertSalesReturnItem,
+  type PurchaseReturn, type InsertPurchaseReturn,
+  type PurchaseReturnItem, type InsertPurchaseReturnItem,
   type Notification, type InsertNotification,
   type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
@@ -174,6 +176,14 @@ export interface IStorage {
   getSalesReturnItems(returnId: number): Promise<SalesReturnItem[]>;
   createSalesReturnItems(items: InsertSalesReturnItem[]): Promise<SalesReturnItem[]>;
   getNextSalesReturnNumber(): Promise<string>;
+
+  getPurchaseReturns(): Promise<PurchaseReturn[]>;
+  getPurchaseReturn(id: number): Promise<PurchaseReturn | undefined>;
+  createPurchaseReturn(ret: InsertPurchaseReturn): Promise<PurchaseReturn>;
+  updatePurchaseReturnStatus(id: number, status: string): Promise<PurchaseReturn>;
+  getPurchaseReturnItems(returnId: number): Promise<PurchaseReturnItem[]>;
+  createPurchaseReturnItems(items: InsertPurchaseReturnItem[]): Promise<PurchaseReturnItem[]>;
+  getNextPurchaseReturnNumber(): Promise<string>;
 
   getNotifications(targetRole?: string): Promise<Notification[]>;
   createNotification(notif: InsertNotification): Promise<Notification>;
@@ -619,6 +629,40 @@ export class DatabaseStorage implements IStorage {
 
   async getNextSalesReturnNumber(): Promise<string> {
     const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesReturns.returnNumber} AS INTEGER)), 0)` }).from(salesReturns);
+    return String((result?.maxNum || 0) + 1).padStart(6, '0');
+  }
+
+  async getPurchaseReturns(): Promise<PurchaseReturn[]> {
+    return await db.select().from(purchaseReturns).orderBy(sql`${purchaseReturns.createdAt} DESC`);
+  }
+
+  async getPurchaseReturn(id: number): Promise<PurchaseReturn | undefined> {
+    const [ret] = await db.select().from(purchaseReturns).where(eq(purchaseReturns.id, id));
+    return ret;
+  }
+
+  async createPurchaseReturn(ret: InsertPurchaseReturn): Promise<PurchaseReturn> {
+    const [created] = await db.insert(purchaseReturns).values(ret).returning();
+    return created;
+  }
+
+  async updatePurchaseReturnStatus(id: number, status: string): Promise<PurchaseReturn> {
+    const [updated] = await db.update(purchaseReturns).set({ status }).where(eq(purchaseReturns.id, id)).returning();
+    return updated;
+  }
+
+  async getPurchaseReturnItems(returnId: number): Promise<PurchaseReturnItem[]> {
+    return await db.select().from(purchaseReturnItems).where(eq(purchaseReturnItems.returnId, returnId));
+  }
+
+  async createPurchaseReturnItems(items: InsertPurchaseReturnItem[]): Promise<PurchaseReturnItem[]> {
+    if (items.length === 0) return [];
+    const created = await db.insert(purchaseReturnItems).values(items).returning();
+    return created;
+  }
+
+  async getNextPurchaseReturnNumber(): Promise<string> {
+    const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${purchaseReturns.returnNumber} AS INTEGER)), 0)` }).from(purchaseReturns);
     return String((result?.maxNum || 0) + 1).padStart(6, '0');
   }
 

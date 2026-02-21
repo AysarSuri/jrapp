@@ -1,0 +1,567 @@
+import { useState, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNextPurchaseReturnNumber, useCreatePurchaseReturn, usePurchaseReturns, useApprovePurchaseReturn } from "@/hooks/use-purchase-returns";
+import { useQuery } from "@tanstack/react-query";
+import type { Product, Client, PurchaseReturn } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-auth";
+import {
+  Plus, Trash2, Save, Loader2, FileText, RotateCcw,
+  ListOrdered, CheckCircle, Clock, Undo2,
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+
+interface ReturnItem {
+  productId: number | null;
+  productCode: string;
+  productName: string;
+  quantity: string;
+  unit: string;
+  price: string;
+  amount: string;
+}
+
+const emptyItem = (): ReturnItem => ({
+  productId: null,
+  productCode: "",
+  productName: "",
+  quantity: "",
+  unit: "",
+  price: "",
+  amount: "0",
+});
+
+export default function PurchaseReturnIqdPage() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const { data: user } = useUser();
+  const { data: nextNumber } = useNextPurchaseReturnNumber();
+  const { mutate: createReturn, isPending: isSaving } = useCreatePurchaseReturn();
+  const { mutate: approveReturn, isPending: isApproving } = useApprovePurchaseReturn();
+  const { data: returnsList } = usePurchaseReturns();
+
+  const { data: products } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+  const { data: clients } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
+  });
+  const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/addresses"],
+  });
+
+  const suppliersList = clients?.filter(c => c.type === "supplier") || [];
+
+  const [returnNumber, setReturnNumber] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [time, setTime] = useState(() => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+  const [supplierName, setSupplierName] = useState("");
+  const [supplierId, setSupplierId] = useState<number | null>(null);
+  const [address, setAddress] = useState("");
+  const [note, setNote] = useState("");
+  const [returnType, setReturnType] = useState("cash");
+  const [discount, setDiscount] = useState("");
+  const [amountPaid, setAmountPaid] = useState("");
+  const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    if (nextNumber?.number) {
+      setReturnNumber(nextNumber.number);
+    }
+  }, [nextNumber]);
+
+  const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
+  const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
+  const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
+  const discountVal = parseFloat(discount || "0");
+  const amountPaidVal = parseFloat(amountPaid || "0");
+  const remaining = subtotal - discountVal - amountPaidVal;
+
+  const updateItem = useCallback((index: number, field: keyof ReturnItem, value: string) => {
+    setItems(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === "quantity" || field === "price") {
+        const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
+        const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
+        updated[index].amount = (qty * prc).toFixed(2);
+      }
+      return updated;
+    });
+  }, []);
+
+  const selectProduct = useCallback((index: number, productId: string) => {
+    const product = products?.find(p => p.id === parseInt(productId));
+    if (!product) return;
+    setItems(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        productId: product.id,
+        productCode: product.barcode,
+        productName: product.name,
+        unit: product.bigUnit,
+        price: product.bigUnitPriceIqd,
+      };
+      const qty = parseFloat(updated[index].quantity || "0");
+      updated[index].amount = (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2);
+      const lastRow = updated[updated.length - 1];
+      if (lastRow.productId !== null) {
+        updated.push(emptyItem());
+      }
+      return updated;
+    });
+  }, [products]);
+
+  const addRow = () => {
+    setItems(prev => [...prev, emptyItem()]);
+  };
+
+  const removeRow = (index: number) => {
+    if (items.length <= 1) return;
+    setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const resetForm = () => {
+    setSupplierName("");
+    setSupplierId(null);
+    setAddress("");
+    setNote("");
+    setReturnType("cash");
+    setDiscount("");
+    setAmountPaid("");
+    setItems([emptyItem()]);
+    setDate(new Date().toISOString().split("T")[0]);
+    setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+  };
+
+  const handleSave = () => {
+    if (!supplierName.trim()) {
+      toast({ title: t("Supplier name is required"), variant: "destructive" });
+      return;
+    }
+    const validItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0);
+    if (validItems.length === 0) {
+      toast({ title: t("Add at least one product"), variant: "destructive" });
+      return;
+    }
+
+    const returnData = {
+      returnNumber,
+      date,
+      time,
+      supplierId,
+      supplierName,
+      address: address || null,
+      note: note || null,
+      returnType,
+      subtotal: subtotal.toFixed(2),
+      discount: discount || "0",
+      amountPaid: amountPaid || "0",
+      remaining: remaining.toFixed(2),
+      totalItems,
+      totalQuantity: totalQuantity.toFixed(2),
+      currency: "IQD",
+      status: "approved",
+    };
+
+    const itemsData = validItems.map(item => ({
+      productId: item.productId,
+      productCode: item.productCode,
+      productName: item.productName,
+      quantity: item.quantity,
+      unit: item.unit,
+      price: item.price,
+      amount: item.amount,
+    }));
+
+    createReturn({ returnData, items: itemsData }, {
+      onSuccess: () => {
+        toast({ title: t("Purchase return saved successfully") });
+        resetForm();
+      },
+      onError: (err) => {
+        toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
+      },
+    });
+  };
+
+  const selectSupplier = (clientId: string) => {
+    const client = suppliersList.find(c => c.id === parseInt(clientId));
+    if (client) {
+      setSupplierId(client.id);
+      setSupplierName(client.name);
+      setAddress(client.address || "");
+    }
+  };
+
+  const handleApprove = (returnId: number) => {
+    approveReturn(returnId, {
+      onSuccess: () => {
+        toast({ title: t("Return approved successfully") });
+      },
+      onError: (err) => {
+        toast({ title: t("Failed to approve return"), description: err.message, variant: "destructive" });
+      },
+    });
+  };
+
+  const userRole = user?.role || 'user';
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-purchase-return-iqd-title">
+            <Undo2 className="h-8 w-8 text-red-600" />
+            {t('Purchase Return - IQD')}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t('Create purchase return in Iraqi Dinar')}</p>
+        </div>
+        <div className="flex gap-2">
+          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" data-testid="button-purchase-return-iqd-history">
+                <ListOrdered className="w-4 h-4 mr-2" />
+                {t('Return History')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{t('Purchase Return History')}</DialogTitle>
+              </DialogHeader>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>{t('Return #')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Supplier')}</TableHead>
+                    <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('Total')}</TableHead>
+                    <TableHead>{t('Remaining')}</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
+                    {(userRole === 'admin' || userRole === 'user') && (
+                      <TableHead>{t('Actions')}</TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(returnsList as PurchaseReturn[] || []).filter(i => i.currency === 'IQD').map((ret: PurchaseReturn) => (
+                    <TableRow key={ret.id} data-testid={`row-purchase-return-iqd-history-${ret.id}`}>
+                      <TableCell>{ret.id}</TableCell>
+                      <TableCell className="font-mono">{ret.returnNumber}</TableCell>
+                      <TableCell>{ret.date}</TableCell>
+                      <TableCell>{ret.supplierName}</TableCell>
+                      <TableCell>
+                        <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>
+                          {ret.returnType === 'cash' ? t('Cash') : t('Credit')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono">{Number(ret.subtotal).toLocaleString()} IQD</TableCell>
+                      <TableCell className="font-mono text-red-600">{Number(ret.remaining).toLocaleString()} IQD</TableCell>
+                      <TableCell>
+                        {ret.status === 'approved' ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            {t('Approved')}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {t('Pending')}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      {(userRole === 'admin' || userRole === 'user') && (
+                        <TableCell>
+                          {ret.status === 'pending' && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleApprove(ret.id)}
+                              disabled={isApproving}
+                              data-testid={`button-approve-purchase-return-iqd-${ret.id}`}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              {t('Approve')}
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-return-iqd-form">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            {t('Reset')}
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving} className="bg-red-600 hover:bg-red-700" data-testid="button-save-purchase-return-iqd">
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {t('Save Return')}
+          </Button>
+        </div>
+      </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            {t('Return Details')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Return #')}</Label>
+              <Input value={returnNumber} onChange={(e) => setReturnNumber(e.target.value)} className="font-mono bg-muted/30" data-testid="input-purchase-return-iqd-number" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-return-iqd-date" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-purchase-return-iqd-time" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Return Type')}</Label>
+              <Select value={returnType} onValueChange={setReturnType}>
+                <SelectTrigger data-testid="select-purchase-return-iqd-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">{t('Cash')}</SelectItem>
+                  <SelectItem value="credit">{t('Credit')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
+              <Select onValueChange={selectSupplier}>
+                <SelectTrigger data-testid="select-purchase-return-iqd-supplier">
+                  <SelectValue placeholder={t('Select Supplier')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliersList.map(c => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
+              <Select value={address} onValueChange={setAddress}>
+                <SelectTrigger data-testid="select-purchase-return-iqd-address">
+                  <SelectValue placeholder={t('Select Address')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {addressesList?.map(a => (
+                    <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} data-testid="input-purchase-return-iqd-note" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4 flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">{t('Products')}</CardTitle>
+          <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-return-iqd-add-row">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
+                  <TableHead className="text-primary-foreground text-center w-12">#</TableHead>
+                  <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[110px]">{t('Price')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item, index) => (
+                  <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-purchase-return-iqd-item-${index}`}>
+                    <TableCell className="text-center font-mono text-xs text-muted-foreground">{index + 1}</TableCell>
+                    <TableCell className="p-1">
+                      <Select
+                        value={item.productId ? String(item.productId) : ""}
+                        onValueChange={(val) => selectProduct(index, val)}
+                      >
+                        <SelectTrigger className="h-9 text-sm" data-testid={`select-purchase-return-iqd-product-${index}`}>
+                          <SelectValue placeholder={t('Select product...')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products?.map(p => (
+                            <SelectItem key={p.id} value={String(p.id)}>
+                              {p.name} ({p.barcode})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        value={item.productCode}
+                        onChange={(e) => updateItem(index, "productCode", e.target.value)}
+                        className="h-9 text-sm font-mono"
+                        data-testid={`input-purchase-return-iqd-product-code-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          onClick={() => {
+                            const current = parseFloat(item.quantity || "0");
+                            if (current > 0) updateItem(index, "quantity", String(current - 1));
+                          }}
+                          data-testid={`button-purchase-return-iqd-qty-minus-${index}`}
+                        >-</Button>
+                        <Input
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                          className="h-9 text-sm text-center w-16"
+                          data-testid={`input-purchase-return-iqd-quantity-${index}`}
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          onClick={() => {
+                            const current = parseFloat(item.quantity || "0");
+                            updateItem(index, "quantity", String(current + 1));
+                          }}
+                          data-testid={`button-purchase-return-iqd-qty-plus-${index}`}
+                        >+</Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        value={item.unit}
+                        onChange={(e) => updateItem(index, "unit", e.target.value)}
+                        className="h-9 text-sm"
+                        data-testid={`input-purchase-return-iqd-unit-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        value={item.price}
+                        onChange={(e) => updateItem(index, "price", e.target.value)}
+                        className="h-9 text-sm"
+                        data-testid={`input-purchase-return-iqd-price-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        value={item.amount}
+                        readOnly
+                        className="h-9 text-sm font-mono bg-muted/30"
+                        data-testid={`input-purchase-return-iqd-amount-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => removeRow(index)}
+                        data-testid={`button-purchase-return-iqd-remove-row-${index}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Total Items')}</Label>
+              <div className="text-lg font-bold" data-testid="text-purchase-return-iqd-total-items">{totalItems}</div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Total Quantity')}</Label>
+              <div className="text-lg font-bold" data-testid="text-purchase-return-iqd-total-quantity">{totalQuantity.toFixed(2)}</div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Subtotal')}</Label>
+              <div className="text-lg font-bold" data-testid="text-purchase-return-iqd-subtotal">
+                {subtotal.toLocaleString()} IQD
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Discount')}</Label>
+              <Input
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                placeholder="0"
+                className="h-9"
+                data-testid="input-purchase-return-iqd-discount"
+              />
+            </div>
+          </div>
+          <Separator className="my-4" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Amount Paid')}</Label>
+              <Input
+                value={amountPaid}
+                onChange={(e) => setAmountPaid(e.target.value)}
+                placeholder="0"
+                className="h-9"
+                data-testid="input-purchase-return-iqd-amount-paid"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Remaining')}</Label>
+              <div className={`text-xl font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}`} data-testid="text-purchase-return-iqd-remaining">
+                {remaining.toLocaleString()} IQD
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

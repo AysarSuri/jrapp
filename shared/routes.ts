@@ -30,6 +30,8 @@ import {
   insertSalesInvoiceItemSchema, salesInvoiceItems,
   insertSalesReturnSchema, salesReturns,
   insertSalesReturnItemSchema, salesReturnItems,
+  insertPurchaseReturnSchema, purchaseReturns,
+  insertPurchaseReturnItemSchema, purchaseReturnItems,
   notifications,
   insertUserSchema, loginSchema, users 
 } from './schema';
@@ -686,6 +688,42 @@ export const api = {
       method: 'POST' as const,
       path: '/api/sales-returns/:id/approve' as const,
       responses: { 200: z.custom<typeof salesReturns.$inferSelect>() }
+    }
+  },
+  purchaseReturns: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/purchase-returns' as const,
+      responses: { 200: z.array(z.custom<typeof purchaseReturns.$inferSelect>()) }
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/purchase-returns/:id' as const,
+      responses: { 200: z.custom<typeof purchaseReturns.$inferSelect>() }
+    },
+    getItems: {
+      method: 'GET' as const,
+      path: '/api/purchase-returns/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof purchaseReturnItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/purchase-returns' as const,
+      input: z.object({
+        returnData: insertPurchaseReturnSchema,
+        items: z.array(insertPurchaseReturnItemSchema.omit({ returnId: true })),
+      }),
+      responses: { 201: z.custom<typeof purchaseReturns.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/purchase-returns/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
+    },
+    approve: {
+      method: 'POST' as const,
+      path: '/api/purchase-returns/:id/approve' as const,
+      responses: { 200: z.custom<typeof purchaseReturns.$inferSelect>() }
     }
   },
   notifications: {

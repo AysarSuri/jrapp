@@ -400,6 +400,12 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const insertUserSchema = createInsertSchema(users);
+export const insertProductSchema = createInsertSchema(products).omit({ id: true });
+export const insertClientSchema = createInsertSchema(clients).omit({ id: true });
+export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true });
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true });
+export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true });
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });

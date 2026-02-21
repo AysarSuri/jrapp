@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, notifications } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1318,6 +1318,78 @@ export async function registerRoutes(
       res.json(result);
     } catch (err) {
       console.error("Error approving sales return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Purchase Returns
+  app.get('/api/purchase-returns/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextPurchaseReturnNumber();
+    res.json({ number });
+  });
+
+  app.get(api.purchaseReturns.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getPurchaseReturns();
+    res.json(data);
+  });
+
+  app.get('/api/purchase-returns/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getPurchaseReturn(id);
+    if (!data) return res.status(404).json({ message: "Return not found" });
+    res.json(data);
+  });
+
+  app.get('/api/purchase-returns/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getPurchaseReturnItems(id);
+    res.json(data);
+  });
+
+  app.post(api.purchaseReturns.create.path, requireAuth, async (req, res) => {
+    try {
+      const { returnData, items } = api.purchaseReturns.create.input.parse(req.body);
+
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const sessionUser = await storage.getUser(userId);
+      if (!sessionUser) return res.status(401).json({ message: "Unauthorized" });
+
+      const result = await db.transaction(async (tx) => {
+        const [created] = await tx.insert(purchaseReturns).values(returnData).returning();
+        if (items.length > 0) {
+          const itemsWithReturnId = items.map(item => ({
+            ...item,
+            returnId: created.id,
+          }));
+          await tx.insert(purchaseReturnItems).values(itemsWithReturnId);
+        }
+        return created;
+      });
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      console.error("Error creating purchase return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/purchase-returns/:id/approve', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+        return res.status(403).json({ message: "Only admin or user can approve returns" });
+      }
+      const result = await storage.updatePurchaseReturnStatus(id, 'approved');
+      res.json(result);
+    } catch (err) {
+      console.error("Error approving purchase return:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });
