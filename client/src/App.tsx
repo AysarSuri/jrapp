@@ -26,6 +26,7 @@ import PurchaseInvoiceIqdPage from "@/pages/purchase-invoice-iqd";
 import SupplierPaymentsPage from "@/pages/supplier-payments";
 import SupplierAdjustmentsPage from "@/pages/supplier-adjustments";
 import SupplierManagementPage from "@/pages/supplier-management";
+import SupplierStatementPage from "@/pages/supplier-statement";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -110,6 +111,9 @@ function Router() {
       </Route>
       <Route path="/supplier-management">
         <ProtectedRoute component={SupplierManagementPage} />
+      </Route>
+      <Route path="/supplier-statement">
+        <ProtectedRoute component={SupplierStatementPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />

@@ -711,6 +711,100 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const supplierId = parseInt(req.params.id as string);
+      const [supplier] = await db.select().from(clients).where(eq(clients.id, supplierId));
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+
+      const invoices = await db.select().from(purchaseInvoices)
+        .where(eq(purchaseInvoices.supplierId, supplierId))
+        .orderBy(purchaseInvoices.date, purchaseInvoices.time);
+
+      const payments = await db.select().from(supplierPayments)
+        .where(eq(supplierPayments.supplierId, supplierId))
+        .orderBy(supplierPayments.date, supplierPayments.time);
+
+      const adjustments = await db.select().from(supplierAdjustments)
+        .where(eq(supplierAdjustments.supplierId, supplierId))
+        .orderBy(supplierAdjustments.date, supplierAdjustments.time);
+
+      type StatementEntry = {
+        id: number;
+        date: string;
+        time: string;
+        type: string;
+        description: string;
+        debitUsd: number;
+        debitIqd: number;
+        creditUsd: number;
+        creditIqd: number;
+        note: string | null;
+      };
+
+      const entries: StatementEntry[] = [];
+
+      for (const inv of invoices) {
+        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        entries.push({
+          id: inv.id,
+          date: inv.date,
+          time: inv.time || "00:00",
+          type: "purchase_invoice",
+          description: `${inv.invoiceNumber} (${inv.currency})`,
+          debitUsd: inv.currency === "USD" ? amount : 0,
+          debitIqd: inv.currency === "IQD" ? amount : 0,
+          creditUsd: 0,
+          creditIqd: 0,
+          note: inv.note || null,
+        });
+      }
+
+      for (const pay of payments) {
+        entries.push({
+          id: pay.id,
+          date: pay.date,
+          time: pay.time || "00:00",
+          type: "payment",
+          description: pay.paymentSourceName,
+          debitUsd: 0,
+          debitIqd: 0,
+          creditUsd: parseFloat(pay.amountUsd || "0"),
+          creditIqd: parseFloat(pay.amountIqd || "0"),
+          note: pay.note || null,
+        });
+      }
+
+      for (const adj of adjustments) {
+        entries.push({
+          id: adj.id,
+          date: adj.date,
+          time: adj.time || "00:00",
+          type: adj.type === "received" ? "adjustment_received" : "adjustment_discount",
+          description: adj.type === "received" ? "Received" : "Discount",
+          debitUsd: 0,
+          debitIqd: 0,
+          creditUsd: parseFloat(adj.amountUsd || "0"),
+          creditIqd: parseFloat(adj.amountIqd || "0"),
+          note: adj.note || null,
+        });
+      }
+
+      entries.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+
+      res.json({
+        supplier,
+        entries,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.transactions.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getTransactions();
     res.json(data);

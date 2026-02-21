@@ -5,7 +5,8 @@ import {
   Receipt,
   Banknote,
   ArrowDownToLine,
-  ArrowRight
+  ArrowRight,
+  FileSearch
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -52,6 +53,14 @@ export default function SupplierManagementPage() {
       color: "from-rose-500 to-rose-600",
       bgColor: "bg-rose-50 dark:bg-rose-950/30",
       iconColor: "text-rose-600 dark:text-rose-400",
+    },
+    {
+      href: "/supplier-statement",
+      icon: FileSearch,
+      label: "Supplier Account Statement",
+      color: "from-cyan-500 to-cyan-600",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950/30",
+      iconColor: "text-cyan-600 dark:text-cyan-400",
     },
   ];
 

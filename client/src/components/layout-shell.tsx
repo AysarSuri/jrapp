@@ -92,6 +92,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/purchase-invoice-iqd",
     "/supplier-payments",
     "/supplier-adjustments",
+    "/supplier-statement",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -110,6 +111,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
     { href: "/supplier-payments", icon: Banknote, label: "Supplier Payments" },
     { href: "/supplier-adjustments", icon: ArrowDownToLine, label: "Supplier Adjustments" },
+    { href: "/supplier-statement", icon: FileText, label: "Supplier Account Statement" },
   ];
 
   const sidebarItems: NavEntry[] = [
