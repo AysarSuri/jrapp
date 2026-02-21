@@ -150,6 +150,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const salesSubRoutes = [
+    "/customers",
     "/sales-invoice-usd",
     "/sales-invoice-iqd",
     "/sales-return-usd",
@@ -258,6 +259,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const salesNavItems: NavItem[] = [
+    { href: "/customers", icon: Users, label: "Customers" },
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
     { href: "/sales-invoice-iqd", icon: Receipt, label: "Sales Invoice IQD" },
     { href: "/sales-return-usd", icon: Undo2, label: "Sales Return USD" },
@@ -269,7 +271,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/products", icon: Package, label: "Products" },
     { href: "/units", icon: Ruler, label: "Units" },
     { href: "/categories", icon: FolderOpen, label: "Categories" },
-    { href: "/customers", icon: Users, label: "Customers" },
     { type: 'group', label: "Sales Management", icon: ShoppingCart, children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
