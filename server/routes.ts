@@ -606,7 +606,19 @@ export async function registerRoutes(
       }
 
       const result = await db.transaction(async (tx) => {
-        const [payment] = await tx.insert(supplierPayments).values(input).returning();
+        const [supplier] = await tx.select().from(clients).where(eq(clients.id, input.supplierId));
+        const currentDebtUsd = parseFloat(supplier?.oldDebtUsd || "0");
+        const currentDebtIqd = parseFloat(supplier?.oldDebtIqd || "0");
+        const remainingUsd = currentDebtUsd - usdAmount;
+        const remainingIqd = currentDebtIqd - iqdAmount;
+
+        const [payment] = await tx.insert(supplierPayments).values({
+          ...input,
+          oldDebtUsd: String(currentDebtUsd),
+          oldDebtIqd: String(currentDebtIqd),
+          remainingUsd: String(remainingUsd),
+          remainingIqd: String(remainingIqd),
+        }).returning();
 
         if (usdAmount > 0) {
           await tx.update(clients)

@@ -171,6 +171,10 @@ export default function SupplierPaymentsPage() {
                       <TableHead>{t('IQD Amount')}</TableHead>
                       <TableHead>{t('Commission USD')}</TableHead>
                       <TableHead>{t('Commission IQD')}</TableHead>
+                      <TableHead>{t('Old Debt USD')}</TableHead>
+                      <TableHead>{t('Old Debt IQD')}</TableHead>
+                      <TableHead>{t('Remaining USD')}</TableHead>
+                      <TableHead>{t('Remaining IQD')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>
                     </TableRow>
@@ -199,13 +203,25 @@ export default function SupplierPaymentsPage() {
                         <TableCell className="font-mono text-sm">
                           {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
                         </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {parseFloat(p.oldDebtUsd) !== 0 ? `$${parseFloat(p.oldDebtUsd).toFixed(2)}` : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {parseFloat(p.oldDebtIqd) !== 0 ? formatIQD(parseFloat(p.oldDebtIqd)) : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-emerald-600">
+                          {parseFloat(p.remainingUsd) !== 0 ? `$${parseFloat(p.remainingUsd).toFixed(2)}` : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-emerald-600">
+                          {parseFloat(p.remainingIqd) !== 0 ? formatIQD(parseFloat(p.remainingIqd)) : "-"}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
                       </TableRow>
                     ))}
                     {(!payments || payments.length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={15} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
