@@ -67,7 +67,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
-    document.dir = lng === 'en' ? 'ltr' : 'rtl';
+    document.dir = (lng === 'en' || lng === 'tr') ? 'ltr' : 'rtl';
   };
 
   const handleLogout = () => {
@@ -178,6 +178,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
                 <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
