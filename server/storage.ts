@@ -1,7 +1,7 @@
 import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
-  users, products, clients, accounts, invoices, transactions, salesInvoices, salesInvoiceItems, purchaseInvoices, purchaseInvoiceItems,
+  users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -16,8 +16,6 @@ import {
   type Account, type InsertAccount,
   type Invoice, type InsertInvoice,
   type Transaction, type InsertTransaction,
-  type SalesInvoice, type InsertSalesInvoice,
-  type SalesInvoiceItem, type InsertSalesInvoiceItem,
   type PurchaseInvoice, type InsertPurchaseInvoice,
   type PurchaseInvoiceItem, type InsertPurchaseInvoiceItem
 } from "@shared/schema";
@@ -88,12 +86,7 @@ export interface IStorage {
   getTransactions(): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
 
-  getSalesInvoices(): Promise<SalesInvoice[]>;
-  getSalesInvoice(id: number): Promise<SalesInvoice | undefined>;
-  createSalesInvoice(invoice: InsertSalesInvoice): Promise<SalesInvoice>;
-  getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]>;
-  createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]>;
-  getNextSalesInvoiceNumber(): Promise<string>;
+
 
   getPurchaseInvoices(): Promise<PurchaseInvoice[]>;
   getPurchaseInvoice(id: number): Promise<PurchaseInvoice | undefined>;
@@ -310,35 +303,6 @@ export class DatabaseStorage implements IStorage {
     const [created] = await db.insert(transactions).values(transaction).returning();
     return created;
   }
-  async getSalesInvoices(): Promise<SalesInvoice[]> {
-    return await db.select().from(salesInvoices).orderBy(salesInvoices.id);
-  }
-
-  async getSalesInvoice(id: number): Promise<SalesInvoice | undefined> {
-    const [inv] = await db.select().from(salesInvoices).where(eq(salesInvoices.id, id));
-    return inv;
-  }
-
-  async createSalesInvoice(invoice: InsertSalesInvoice): Promise<SalesInvoice> {
-    const [created] = await db.insert(salesInvoices).values(invoice).returning();
-    return created;
-  }
-
-  async getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]> {
-    return await db.select().from(salesInvoiceItems).where(eq(salesInvoiceItems.invoiceId, invoiceId));
-  }
-
-  async createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]> {
-    if (items.length === 0) return [];
-    const created = await db.insert(salesInvoiceItems).values(items).returning();
-    return created;
-  }
-
-  async getNextSalesInvoiceNumber(): Promise<string> {
-    const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(salesInvoices);
-    return String((result?.maxNum || 0) + 1).padStart(6, '0');
-  }
-
   async getPurchaseInvoices(): Promise<PurchaseInvoice[]> {
     return await db.select().from(purchaseInvoices).orderBy(purchaseInvoices.id);
   }

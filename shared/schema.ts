@@ -111,46 +111,6 @@ export const transactions = pgTable("transactions", {
   date: timestamp("date").defaultNow().notNull(),
 });
 
-export const salesInvoices = pgTable("sales_invoices", {
-  id: serial("id").primaryKey(),
-  invoiceNumber: text("invoice_number").notNull(),
-  date: text("date").notNull(),
-  time: text("time").notNull(),
-  customerId: integer("customer_id"),
-  customerName: text("customer_name").notNull(),
-  address: text("address"),
-  note: text("note"),
-  customsClearance: text("customs_clearance"),
-  carNumber: text("car_number"),
-  manifest: text("manifest"),
-  invoiceType: text("invoice_type").notNull().default("cash"),
-  carExpense: numeric("car_expense").notNull().default("0"),
-  customsExpense: numeric("customs_expense").notNull().default("0"),
-  otherExpenses: numeric("other_expenses").notNull().default("0"),
-  totalExpenses: numeric("total_expenses").notNull().default("0"),
-  subtotal: numeric("subtotal").notNull().default("0"),
-  discount: numeric("discount").notNull().default("0"),
-  amountPaid: numeric("amount_paid").notNull().default("0"),
-  remaining: numeric("remaining").notNull().default("0"),
-  totalItems: integer("total_items").notNull().default(0),
-  totalQuantity: numeric("total_quantity").notNull().default("0"),
-  currency: text("currency").notNull().default("USD"),
-  status: text("status").notNull().default("draft"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const salesInvoiceItems = pgTable("sales_invoice_items", {
-  id: serial("id").primaryKey(),
-  invoiceId: integer("invoice_id").notNull(),
-  productId: integer("product_id"),
-  productCode: text("product_code").notNull(),
-  productName: text("product_name").notNull(),
-  quantity: numeric("quantity").notNull(),
-  unit: text("unit").notNull(),
-  price: numeric("price").notNull(),
-  amount: numeric("amount").notNull(),
-});
-
 export const purchaseInvoices = pgTable("purchase_invoices", {
   id: serial("id").primaryKey(),
   invoiceNumber: text("invoice_number").notNull(),
@@ -199,8 +159,6 @@ export const insertBankSchema = createInsertSchema(banks).omit({ id: true });
 export const insertCustomsClearanceSchema = createInsertSchema(customsClearances).omit({ id: true });
 export const insertWarehouseSchema = createInsertSchema(warehouses).omit({ id: true });
 export const insertRepresentativeSchema = createInsertSchema(representatives).omit({ id: true });
-export const insertSalesInvoiceSchema = createInsertSchema(salesInvoices).omit({ id: true, createdAt: true });
-export const insertSalesInvoiceItemSchema = createInsertSchema(salesInvoiceItems).omit({ id: true });
 export const insertPurchaseInvoiceSchema = createInsertSchema(purchaseInvoices).omit({ id: true, createdAt: true });
 export const insertPurchaseInvoiceItemSchema = createInsertSchema(purchaseInvoiceItems).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
@@ -236,10 +194,6 @@ export type Warehouse = typeof warehouses.$inferSelect;
 export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
 export type Representative = typeof representatives.$inferSelect;
 export type InsertRepresentative = z.infer<typeof insertRepresentativeSchema>;
-export type SalesInvoice = typeof salesInvoices.$inferSelect;
-export type InsertSalesInvoice = z.infer<typeof insertSalesInvoiceSchema>;
-export type SalesInvoiceItem = typeof salesInvoiceItems.$inferSelect;
-export type InsertSalesInvoiceItem = z.infer<typeof insertSalesInvoiceItemSchema>;
 export type PurchaseInvoice = typeof purchaseInvoices.$inferSelect;
 export type InsertPurchaseInvoice = z.infer<typeof insertPurchaseInvoiceSchema>;
 export type PurchaseInvoiceItem = typeof purchaseInvoiceItems.$inferSelect;
