@@ -22,6 +22,7 @@ import {
   insertTransferOfficeTransactionSchema, transferOfficeTransactions,
   insertExternalDebtSchema, externalDebts,
   insertExternalDebtTransactionSchema, externalDebtTransactions,
+  insertOwnerSchema, owners,
   insertOwnerTransactionSchema, ownerTransactions,
   insertExpenseTypeSchema, expenseTypes,
   insertExpenseSchema, expenses,
@@ -549,6 +550,30 @@ export const api = {
       path: '/api/external-debt-transactions' as const,
       input: insertExternalDebtTransactionSchema,
       responses: { 201: z.custom<typeof externalDebtTransactions.$inferSelect>() }
+    }
+  },
+  owners: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/owners' as const,
+      responses: { 200: z.array(z.custom<typeof owners.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/owners' as const,
+      input: insertOwnerSchema,
+      responses: { 201: z.custom<typeof owners.$inferSelect>() }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/owners/:id' as const,
+      input: insertOwnerSchema,
+      responses: { 200: z.custom<typeof owners.$inferSelect>() }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/owners/:id' as const,
+      responses: { 200: z.object({ message: z.string() }) }
     }
   },
   ownerTransactions: {

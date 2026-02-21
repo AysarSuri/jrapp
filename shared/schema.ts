@@ -259,8 +259,17 @@ export const externalDebtTransactions = pgTable("external_debt_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const owners = pgTable("owners", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
+  oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
+});
+
 export const ownerTransactions = pgTable("owner_transactions", {
   id: serial("id").primaryKey(),
+  ownerId: integer("owner_id").notNull(),
+  ownerName: text("owner_name").notNull(),
   type: text("type").notNull(), // 'withdrawal' | 'return'
   amountUsd: numeric("amount_usd").notNull().default("0"),
   amountIqd: numeric("amount_iqd").notNull().default("0"),
@@ -306,6 +315,7 @@ export const insertCustomsClearanceTransactionSchema = createInsertSchema(custom
 export const insertTransferOfficeTransactionSchema = createInsertSchema(transferOfficeTransactions).omit({ id: true, createdAt: true });
 export const insertExternalDebtSchema = createInsertSchema(externalDebts).omit({ id: true });
 export const insertExternalDebtTransactionSchema = createInsertSchema(externalDebtTransactions).omit({ id: true, createdAt: true });
+export const insertOwnerSchema = createInsertSchema(owners).omit({ id: true });
 export const insertOwnerTransactionSchema = createInsertSchema(ownerTransactions).omit({ id: true, createdAt: true });
 export const insertExpenseTypeSchema = createInsertSchema(expenseTypes).omit({ id: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true });
@@ -372,6 +382,8 @@ export type ExternalDebt = typeof externalDebts.$inferSelect;
 export type InsertExternalDebt = z.infer<typeof insertExternalDebtSchema>;
 export type ExternalDebtTransaction = typeof externalDebtTransactions.$inferSelect;
 export type InsertExternalDebtTransaction = z.infer<typeof insertExternalDebtTransactionSchema>;
+export type Owner = typeof owners.$inferSelect;
+export type InsertOwner = z.infer<typeof insertOwnerSchema>;
 export type OwnerTransaction = typeof ownerTransactions.$inferSelect;
 export type InsertOwnerTransaction = z.infer<typeof insertOwnerTransactionSchema>;
 export type ExpenseType = typeof expenseTypes.$inferSelect;

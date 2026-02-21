@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOwnerTransactions, useCreateOwnerTransaction } from "@/hooks/use-owner-transactions";
-import type { OwnerTransaction } from "@shared/schema";
+import { useOwners } from "@/hooks/use-owners";
+import type { OwnerTransaction, Owner } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -22,8 +26,10 @@ export default function OwnerReturnsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { data: allTxns, isLoading: txnsLoading } = useOwnerTransactions();
+  const { data: ownersList } = useOwners();
   const { mutate: createTxn, isPending: isSaving } = useCreateOwnerTransaction();
 
+  const [selectedOwnerId, setSelectedOwnerId] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
@@ -33,6 +39,7 @@ export default function OwnerReturnsPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const resetForm = () => {
+    setSelectedOwnerId("");
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -41,7 +48,13 @@ export default function OwnerReturnsPage() {
     setTime(new Date().toTimeString().slice(0, 5));
   };
 
+  const selectedOwner = ownersList?.find((o: Owner) => o.id.toString() === selectedOwnerId);
+
   const handleSave = () => {
+    if (!selectedOwner) {
+      toast({ title: t("Please select an owner"), variant: "destructive" });
+      return;
+    }
     const usdVal = parseFloat(amountUsd || "0");
     const iqdVal = parseFloat(amountIqd || "0");
     if (usdVal <= 0 && iqdVal <= 0) {
@@ -50,6 +63,8 @@ export default function OwnerReturnsPage() {
     }
 
     createTxn({
+      ownerId: selectedOwner.id,
+      ownerName: selectedOwner.name,
       type: "return",
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
@@ -105,6 +120,7 @@ export default function OwnerReturnsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>#</TableHead>
+                      <TableHead>{t('Owner Name')}</TableHead>
                       <TableHead>{t('Date')}</TableHead>
                       <TableHead>{t('Time')}</TableHead>
                       <TableHead>{t('USD Amount')}</TableHead>
@@ -117,6 +133,7 @@ export default function OwnerReturnsPage() {
                     {returns.map((r: OwnerTransaction, i: number) => (
                       <TableRow key={r.id} data-testid={`row-return-${r.id}`}>
                         <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                        <TableCell className="text-sm font-medium">{r.ownerName}</TableCell>
                         <TableCell className="font-mono text-sm">{r.date}</TableCell>
                         <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
@@ -131,7 +148,7 @@ export default function OwnerReturnsPage() {
                     ))}
                     {returns.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                           {t('No returns yet')}
                         </TableCell>
                       </TableRow>
@@ -175,6 +192,20 @@ export default function OwnerReturnsPage() {
             <CardTitle className="text-lg">{t('Return Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>{t('Select Owner')}</Label>
+              <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
+                <SelectTrigger data-testid="select-return-owner">
+                  <SelectValue placeholder={t('Please select an owner')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {ownersList?.map((o: Owner) => (
+                    <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -240,6 +271,12 @@ export default function OwnerReturnsPage() {
               <CardTitle className="text-lg">{t('Return Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {selectedOwner && (
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <span className="text-sm font-medium">{t('Owner Name')}</span>
+                  <span className="font-bold">{selectedOwner.name}</span>
+                </div>
+              )}
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>

@@ -133,6 +133,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const ownerSubRoutes = [
+    "/owners",
     "/owner-withdrawals",
     "/owner-returns",
   ];
@@ -226,6 +227,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const ownerNavItems: NavItem[] = [
+    { href: "/owners", icon: UserCog, label: "Owner Names" },
     { href: "/owner-withdrawals", icon: ArrowUpFromLine, label: "Owner Withdrawals" },
     { href: "/owner-returns", icon: ArrowDownToLine, label: "Owner Returns" },
   ];

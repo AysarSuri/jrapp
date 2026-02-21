@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, ownerTransactions, expenses } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1157,6 +1157,55 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Owners CRUD
+  app.get(api.owners.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getOwners();
+    res.json(data);
+  });
+
+  app.post(api.owners.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.owners.create.input.parse(req.body);
+      const result = await storage.createOwner(input);
+      res.status(201).json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Owner name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/owners/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const input = api.owners.update.input.parse(req.body);
+      const result = await storage.updateOwner(id, input);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Owner name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/owners/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      await storage.deleteOwner(id);
+      res.json({ message: "Owner deleted successfully" });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

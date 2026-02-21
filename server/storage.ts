@@ -3,7 +3,7 @@ import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
-  externalDebts, externalDebtTransactions, ownerTransactions, expenseTypes, expenses,
+  externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -27,6 +27,7 @@ import {
   type TransferOfficeTransaction, type InsertTransferOfficeTransaction,
   type ExternalDebt, type InsertExternalDebt,
   type ExternalDebtTransaction, type InsertExternalDebtTransaction,
+  type Owner, type InsertOwner,
   type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
   type Expense, type InsertExpense
@@ -133,6 +134,11 @@ export interface IStorage {
   getExternalDebtTransactions(): Promise<ExternalDebtTransaction[]>;
   getExternalDebtTransactionsByDebtId(debtId: number): Promise<ExternalDebtTransaction[]>;
   createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction>;
+
+  getOwners(): Promise<Owner[]>;
+  createOwner(owner: InsertOwner): Promise<Owner>;
+  updateOwner(id: number, owner: InsertOwner): Promise<Owner>;
+  deleteOwner(id: number): Promise<void>;
 
   getOwnerTransactions(): Promise<OwnerTransaction[]>;
   createOwnerTransaction(txn: InsertOwnerTransaction): Promise<OwnerTransaction>;
@@ -463,6 +469,21 @@ export class DatabaseStorage implements IStorage {
   async createExternalDebtTransaction(txn: InsertExternalDebtTransaction): Promise<ExternalDebtTransaction> {
     const [created] = await db.insert(externalDebtTransactions).values(txn).returning();
     return created;
+  }
+
+  async getOwners(): Promise<Owner[]> {
+    return await db.select().from(owners);
+  }
+  async createOwner(owner: InsertOwner): Promise<Owner> {
+    const [created] = await db.insert(owners).values(owner).returning();
+    return created;
+  }
+  async updateOwner(id: number, owner: InsertOwner): Promise<Owner> {
+    const [updated] = await db.update(owners).set(owner).where(eq(owners.id, id)).returning();
+    return updated;
+  }
+  async deleteOwner(id: number): Promise<void> {
+    await db.delete(owners).where(eq(owners.id, id));
   }
 
   async getOwnerTransactions(): Promise<OwnerTransaction[]> {
