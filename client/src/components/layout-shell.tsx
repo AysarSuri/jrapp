@@ -24,7 +24,9 @@ import {
   Menu,
   Moon,
   Sun,
-  Globe
+  Globe,
+  ChevronDown,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,13 +83,39 @@ export function LayoutShell({ children }: LayoutShellProps) {
     });
   };
 
-  const navItems = [
+  const supplierSubRoutes = [
+    "/suppliers",
+    "/purchase-invoice-usd",
+    "/purchase-invoice-iqd",
+    "/supplier-payments",
+    "/supplier-adjustments",
+  ];
+
+  const isSupplierSection = supplierSubRoutes.includes(location);
+  const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
+
+  useEffect(() => {
+    if (isSupplierSection) setSupplierOpen(true);
+  }, [isSupplierSection]);
+
+  type NavItem = { href: string; icon: any; label: string };
+  type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
+
+  const supplierNavItems: NavItem[] = [
+    { href: "/suppliers", icon: Truck, label: "Suppliers" },
+    { href: "/purchase-invoice-usd", icon: Receipt, label: "Purchase Invoice USD" },
+    { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
+    { href: "/supplier-payments", icon: Banknote, label: "Supplier Payments" },
+    { href: "/supplier-adjustments", icon: ArrowDownToLine, label: "Supplier Adjustments" },
+  ];
+
+  const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
     { href: "/units", icon: Ruler, label: "Units" },
     { href: "/categories", icon: FolderOpen, label: "Categories" },
     { href: "/customers", icon: Users, label: "Customers" },
-    { href: "/suppliers", icon: Truck, label: "Suppliers" },
+    { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
@@ -95,13 +123,26 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/banks", icon: Landmark, label: "Banks" },
     { href: "/customs-clearances", icon: ShieldCheck, label: "Customs Clearances" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
-    { href: "/purchase-invoice-usd", icon: Receipt, label: "Purchase Invoice USD" },
-    { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
-    { href: "/supplier-payments", icon: Banknote, label: "Supplier Payments" },
-    { href: "/supplier-adjustments", icon: ArrowDownToLine, label: "Supplier Adjustments" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
   ];
+
+  const renderNavLink = (item: NavItem, indent = false) => {
+    const isActive = location === item.href;
+    const testId = `link-nav-${item.href.replace(/\//g, '') || 'dashboard'}`;
+    return (
+      <Link key={item.href} href={item.href} data-testid={testId} className={`
+        flex items-center gap-3 ${indent ? 'px-4 py-2.5 ms-6' : 'px-4 py-3'} rounded-xl transition-all duration-200
+        ${isActive
+          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        }
+      `}>
+        <item.icon className={`w-5 h-5 ${isActive ? "text-primary-foreground" : ""}`} />
+        <span className={indent ? "text-sm" : ""}>{t(item.label)}</span>
+      </Link>
+    );
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card border-r border-border">
@@ -113,20 +154,34 @@ export function LayoutShell({ children }: LayoutShellProps) {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location === item.href;
-          return (
-            <Link key={item.href} href={item.href} className={`
-              flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-              ${isActive 
-                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium" 
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }
-            `}>
-              <item.icon className={`w-5 h-5 ${isActive ? "text-primary-foreground" : ""}`} />
-              <span>{t(item.label)}</span>
-            </Link>
-          );
+        {sidebarItems.map((entry) => {
+          if ('type' in entry && entry.type === 'group') {
+            return (
+              <div key={entry.label} className="space-y-0.5">
+                <button
+                  onClick={() => setSupplierOpen(!supplierOpen)}
+                  data-testid="button-supplier-management"
+                  className={`
+                    w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                    ${isSupplierSection
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }
+                  `}
+                >
+                  <entry.icon className="w-5 h-5" />
+                  <span className="flex-1 text-start">{t(entry.label)}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${supplierOpen ? "rotate-180" : ""}`} />
+                </button>
+                {supplierOpen && (
+                  <div className="space-y-0.5">
+                    {entry.children.map((subItem) => renderNavLink(subItem, true))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return renderNavLink(entry as NavItem);
         })}
       </nav>
 
