@@ -94,6 +94,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/customs-clearances", icon: ShieldCheck, label: "Customs Clearances" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/purchase-invoice-usd", icon: Receipt, label: "Purchase Invoice USD" },
+    { href: "/purchase-invoice-iqd", icon: Receipt, label: "Purchase Invoice IQD" },
     { href: "/invoices", icon: FileText, label: "Invoices" },
     { href: "/transactions", icon: ArrowRightLeft, label: "Transactions" },
   ];

@@ -22,6 +22,7 @@ import TransferOfficesPage from "@/pages/transfer-offices";
 import BanksPage from "@/pages/banks";
 import CustomsClearancesPage from "@/pages/customs-clearances";
 import PurchaseInvoiceUsdPage from "@/pages/purchase-invoice-usd";
+import PurchaseInvoiceIqdPage from "@/pages/purchase-invoice-iqd";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -94,6 +95,9 @@ function Router() {
       </Route>
       <Route path="/purchase-invoice-usd">
         <ProtectedRoute component={PurchaseInvoiceUsdPage} />
+      </Route>
+      <Route path="/purchase-invoice-iqd">
+        <ProtectedRoute component={PurchaseInvoiceIqdPage} />
       </Route>
       <Route path="/invoices">
         <ProtectedRoute component={InvoicesPage} />
