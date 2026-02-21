@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
@@ -98,6 +98,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   };
 
   const [, navigate] = useLocation();
+  const sidebarScrollRef = useRef<HTMLElement>(null);
 
   const supplierSubRoutes = [
     "/supplier-management",
@@ -320,7 +321,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <p className="text-xs text-muted-foreground mt-1">Enterprise Management</p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav ref={sidebarScrollRef} className="flex-1 p-4 space-y-1 overflow-y-auto">
         {sidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
             const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
@@ -354,8 +355,12 @@ export function LayoutShell({ children }: LayoutShellProps) {
               <div key={entry.label} className="space-y-0.5">
                 <button
                   onClick={() => {
+                    const scrollPos = sidebarScrollRef.current?.scrollTop || 0;
                     setOpen(true);
                     navigate(landingRoute);
+                    requestAnimationFrame(() => {
+                      if (sidebarScrollRef.current) sidebarScrollRef.current.scrollTop = scrollPos;
+                    });
                   }}
                   data-testid={`button-${testIdName}`}
                   className={`
