@@ -315,7 +315,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card border-r border-border">
       <div className="p-6 border-b border-border/50">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-yellow-500 bg-clip-text text-transparent">
           ProERP
         </h1>
         <p className="text-xs text-muted-foreground mt-1">Enterprise Management</p>
