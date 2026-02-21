@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, notifications } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1130,6 +1130,130 @@ export async function registerRoutes(
       }
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // Sales Invoices
+  app.get('/api/sales-invoices/next-number', requireAuth, async (_req, res) => {
+    const number = await storage.getNextSalesInvoiceNumber();
+    res.json({ number });
+  });
+
+  app.get(api.salesInvoices.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getSalesInvoices();
+    res.json(data);
+  });
+
+  app.get('/api/sales-invoices/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getSalesInvoice(id);
+    if (!data) return res.status(404).json({ message: "Invoice not found" });
+    res.json(data);
+  });
+
+  app.get('/api/sales-invoices/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    const data = await storage.getSalesInvoiceItems(id);
+    res.json(data);
+  });
+
+  app.post(api.salesInvoices.create.path, requireAuth, async (req, res) => {
+    try {
+      const { invoice, items } = api.salesInvoices.create.input.parse(req.body);
+
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const sessionUser = await storage.getUser(userId);
+      if (!sessionUser) return res.status(401).json({ message: "Unauthorized" });
+
+      const serverRole = sessionUser.role;
+      const isRep = serverRole === 'sales_rep';
+      const serverStatus = isRep ? 'pending' : 'approved';
+
+      const invoiceWithServerData = {
+        ...invoice,
+        status: serverStatus,
+        createdBy: sessionUser.username,
+        createdByRole: serverRole,
+      };
+
+      const result = await db.transaction(async (tx) => {
+        const [created] = await tx.insert(salesInvoices).values(invoiceWithServerData).returning();
+        if (items.length > 0) {
+          const itemsWithInvoiceId = items.map(item => ({
+            ...item,
+            invoiceId: created.id,
+          }));
+          await tx.insert(salesInvoiceItems).values(itemsWithInvoiceId);
+        }
+        return created;
+      });
+
+      if (isRep) {
+        await storage.createNotification({
+          type: 'sales_invoice_approval',
+          title: 'فاتورة مبيعات جديدة تحتاج موافقة',
+          message: `فاتورة مبيعات رقم ${invoice.invoiceNumber} من المندوب ${sessionUser.username} بحاجة إلى موافقة`,
+          referenceId: result.id,
+          referenceType: 'sales_invoice',
+          targetRole: 'admin_user',
+          isRead: 0,
+        });
+      }
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      console.error("Error creating sales invoice:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/sales-invoices/:id/approve', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+        return res.status(403).json({ message: "Only admin or user can approve invoices" });
+      }
+      const result = await storage.updateSalesInvoiceStatus(id, 'approved');
+      res.json(result);
+    } catch (err) {
+      console.error("Error approving sales invoice:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Notifications
+  app.get(api.notifications.list.path, requireAuth, async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const user = await storage.getUser(userId);
+    if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+      return res.json([]);
+    }
+    const data = await storage.getNotifications(user.role);
+    res.json(data);
+  });
+
+  app.get('/api/notifications/unread-count', requireAuth, async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const user = await storage.getUser(userId);
+    if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+      return res.json({ count: 0 });
+    }
+    const count = await storage.getUnreadNotificationCount(user.role);
+    res.json({ count });
+  });
+
+  app.post('/api/notifications/:id/read', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string, 10);
+    await storage.markNotificationRead(id);
+    res.json({ success: true });
   });
 
   // External Debts

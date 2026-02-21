@@ -30,7 +30,9 @@ import {
   ClipboardList,
   Tags,
   HandCoins,
-  UserCog
+  UserCog,
+  ShoppingCart,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +44,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLogout, useUser } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useUnreadNotificationCount, useNotifications, useMarkNotificationRead } from "@/hooks/use-notifications";
+import { useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
 
 interface LayoutShellProps {
   children: React.ReactNode;
@@ -53,6 +57,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const { mutate: logout } = useLogout();
   const { data: user } = useUser();
   const { toast } = useToast();
+  const { data: unreadCount } = useUnreadNotificationCount();
+  const { data: notificationsList } = useNotifications();
+  const { mutate: markRead } = useMarkNotificationRead();
+  const { mutate: approveInvoice } = useApproveSalesInvoice();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -139,6 +148,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/owner-statement",
   ];
 
+  const salesSubRoutes = [
+    "/sales-invoice-usd",
+  ];
+
   const isSupplierSection = supplierSubRoutes.includes(location);
   const isBankSection = bankSubRoutes.includes(location);
   const isClearanceSection = clearanceSubRoutes.includes(location);
@@ -146,6 +159,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isExpenseSection = expenseSubRoutes.includes(location);
   const isExternalDebtSection = externalDebtSubRoutes.includes(location);
   const isOwnerSection = ownerSubRoutes.includes(location);
+  const isSalesSection = salesSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
   const [clearanceOpen, setClearanceOpen] = useState(isClearanceSection);
@@ -153,6 +167,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [expenseOpen, setExpenseOpen] = useState(isExpenseSection);
   const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
   const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
+  const [salesOpen, setSalesOpen] = useState(isSalesSection);
 
   useEffect(() => {
     if (isSupplierSection) setSupplierOpen(true);
@@ -181,6 +196,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isOwnerSection) setOwnerOpen(true);
   }, [isOwnerSection]);
+
+  useEffect(() => {
+    if (isSalesSection) setSalesOpen(true);
+  }, [isSalesSection]);
 
   type NavItem = { href: string; icon: any; label: string };
   type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
@@ -234,12 +253,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/owner-statement", icon: FileText, label: "Owner Statement" },
   ];
 
+  const salesNavItems: NavItem[] = [
+    { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/products", icon: Package, label: "Products" },
     { href: "/units", icon: Ruler, label: "Units" },
     { href: "/categories", icon: FolderOpen, label: "Categories" },
     { href: "/customers", icon: Users, label: "Customers" },
+    { type: 'group', label: "Sales Management", icon: ShoppingCart, children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
     { type: 'group', label: "Clearance Management", icon: ShieldCheck, children: clearanceNavItems },
@@ -285,6 +309,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         {sidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
             const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
+              "Sales Management": { isOpen: salesOpen, setOpen: setSalesOpen, isActive: isSalesSection },
               "Supplier Management": { isOpen: supplierOpen, setOpen: setSupplierOpen, isActive: isSupplierSection },
               "Bank Management": { isOpen: bankOpen, setOpen: setBankOpen, isActive: isBankSection },
               "Clearance Management": { isOpen: clearanceOpen, setOpen: setClearanceOpen, isActive: isClearanceSection },
@@ -382,6 +407,50 @@ export function LayoutShell({ children }: LayoutShellProps) {
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+            {(user?.role === 'admin' || user?.role === 'user') && (
+              <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground relative" data-testid="button-notifications">
+                    <Bell className="w-5 h-5" />
+                    {(unreadCount?.count || 0) > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" data-testid="text-notification-count">
+                        {unreadCount?.count}
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+                  {(!notificationsList || notificationsList.length === 0) ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">{t('No notifications')}</div>
+                  ) : (
+                    notificationsList.slice(0, 20).map((notif) => (
+                      <DropdownMenuItem
+                        key={notif.id}
+                        className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${notif.isRead === 0 ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
+                        onClick={() => {
+                          if (notif.isRead === 0) markRead(notif.id);
+                          if (notif.referenceType === 'sales_invoice' && notif.referenceId) {
+                            approveInvoice(notif.referenceId, {
+                              onSuccess: () => {
+                                toast({ title: t("Invoice approved successfully") });
+                              },
+                            });
+                          }
+                        }}
+                        data-testid={`notification-item-${notif.id}`}
+                      >
+                        <span className="text-sm font-medium">{notif.title}</span>
+                        <span className="text-xs text-muted-foreground">{notif.message}</span>
+                        {notif.referenceType === 'sales_invoice' && (
+                          <span className="text-xs font-semibold text-green-600 mt-1">{t('Click to approve')}</span>
+                        )}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground">

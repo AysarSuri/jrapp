@@ -4,6 +4,7 @@ import {
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
+  salesInvoices, salesInvoiceItems, notifications,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -28,6 +29,9 @@ import {
   type ExternalDebt, type InsertExternalDebt,
   type ExternalDebtTransaction, type InsertExternalDebtTransaction,
   type Owner, type InsertOwner,
+  type SalesInvoice, type InsertSalesInvoice,
+  type SalesInvoiceItem, type InsertSalesInvoiceItem,
+  type Notification, type InsertNotification,
   type OwnerTransaction, type InsertOwnerTransaction,
   type ExpenseType, type InsertExpenseType,
   type Expense, type InsertExpense
@@ -152,6 +156,19 @@ export interface IStorage {
 
   getExpenses(): Promise<Expense[]>;
   createExpense(exp: InsertExpense): Promise<Expense>;
+
+  getSalesInvoices(): Promise<SalesInvoice[]>;
+  getSalesInvoice(id: number): Promise<SalesInvoice | undefined>;
+  createSalesInvoice(invoice: InsertSalesInvoice): Promise<SalesInvoice>;
+  updateSalesInvoiceStatus(id: number, status: string): Promise<SalesInvoice>;
+  getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]>;
+  createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]>;
+  getNextSalesInvoiceNumber(): Promise<string>;
+
+  getNotifications(targetRole?: string): Promise<Notification[]>;
+  createNotification(notif: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: number): Promise<void>;
+  getUnreadNotificationCount(targetRole?: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -525,6 +542,68 @@ export class DatabaseStorage implements IStorage {
   async createExpense(exp: InsertExpense): Promise<Expense> {
     const [created] = await db.insert(expenses).values(exp).returning();
     return created;
+  }
+
+  async getSalesInvoices(): Promise<SalesInvoice[]> {
+    return await db.select().from(salesInvoices).orderBy(sql`${salesInvoices.createdAt} DESC`);
+  }
+
+  async getSalesInvoice(id: number): Promise<SalesInvoice | undefined> {
+    const [inv] = await db.select().from(salesInvoices).where(eq(salesInvoices.id, id));
+    return inv;
+  }
+
+  async createSalesInvoice(invoice: InsertSalesInvoice): Promise<SalesInvoice> {
+    const [created] = await db.insert(salesInvoices).values(invoice).returning();
+    return created;
+  }
+
+  async updateSalesInvoiceStatus(id: number, status: string): Promise<SalesInvoice> {
+    const [updated] = await db.update(salesInvoices).set({ status }).where(eq(salesInvoices.id, id)).returning();
+    return updated;
+  }
+
+  async getSalesInvoiceItems(invoiceId: number): Promise<SalesInvoiceItem[]> {
+    return await db.select().from(salesInvoiceItems).where(eq(salesInvoiceItems.invoiceId, invoiceId));
+  }
+
+  async createSalesInvoiceItems(items: InsertSalesInvoiceItem[]): Promise<SalesInvoiceItem[]> {
+    if (items.length === 0) return [];
+    const created = await db.insert(salesInvoiceItems).values(items).returning();
+    return created;
+  }
+
+  async getNextSalesInvoiceNumber(): Promise<string> {
+    const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(CAST(${salesInvoices.invoiceNumber} AS INTEGER)), 0)` }).from(salesInvoices);
+    return String((result?.maxNum || 0) + 1).padStart(6, '0');
+  }
+
+  async getNotifications(targetRole?: string): Promise<Notification[]> {
+    if (targetRole) {
+      return await db.select().from(notifications)
+        .where(sql`${notifications.targetRole} = ${targetRole} OR ${notifications.targetRole} = 'admin_user'`)
+        .orderBy(sql`${notifications.createdAt} DESC`);
+    }
+    return await db.select().from(notifications).orderBy(sql`${notifications.createdAt} DESC`);
+  }
+
+  async createNotification(notif: InsertNotification): Promise<Notification> {
+    const [created] = await db.insert(notifications).values(notif).returning();
+    return created;
+  }
+
+  async markNotificationRead(id: number): Promise<void> {
+    await db.update(notifications).set({ isRead: 1 }).where(eq(notifications.id, id));
+  }
+
+  async getUnreadNotificationCount(targetRole?: string): Promise<number> {
+    if (targetRole) {
+      const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(notifications)
+        .where(sql`${notifications.isRead} = 0 AND (${notifications.targetRole} = ${targetRole} OR ${notifications.targetRole} = 'admin_user')`);
+      return result?.count || 0;
+    }
+    const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(notifications).where(eq(notifications.isRead, 0));
+    return result?.count || 0;
   }
 }
 

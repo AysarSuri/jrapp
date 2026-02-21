@@ -26,6 +26,9 @@ import {
   insertOwnerTransactionSchema, ownerTransactions,
   insertExpenseTypeSchema, expenseTypes,
   insertExpenseSchema, expenses,
+  insertSalesInvoiceSchema, salesInvoices,
+  insertSalesInvoiceItemSchema, salesInvoiceItems,
+  notifications,
   insertUserSchema, loginSchema, users 
 } from './schema';
 
@@ -609,6 +612,59 @@ export const api = {
       path: '/api/expenses' as const,
       input: insertExpenseSchema,
       responses: { 201: z.custom<typeof expenses.$inferSelect>() }
+    }
+  },
+  salesInvoices: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices' as const,
+      responses: { 200: z.array(z.custom<typeof salesInvoices.$inferSelect>()) }
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/:id' as const,
+      responses: { 200: z.custom<typeof salesInvoices.$inferSelect>() }
+    },
+    getItems: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof salesInvoiceItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/sales-invoices' as const,
+      input: z.object({
+        invoice: insertSalesInvoiceSchema,
+        items: z.array(insertSalesInvoiceItemSchema.omit({ invoiceId: true })),
+      }),
+      responses: { 201: z.custom<typeof salesInvoices.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/sales-invoices/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
+    },
+    approve: {
+      method: 'POST' as const,
+      path: '/api/sales-invoices/:id/approve' as const,
+      responses: { 200: z.custom<typeof salesInvoices.$inferSelect>() }
+    }
+  },
+  notifications: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/notifications' as const,
+      responses: { 200: z.array(z.custom<typeof notifications.$inferSelect>()) }
+    },
+    unreadCount: {
+      method: 'GET' as const,
+      path: '/api/notifications/unread-count' as const,
+      responses: { 200: z.object({ count: z.number() }) }
+    },
+    markRead: {
+      method: 'POST' as const,
+      path: '/api/notifications/:id/read' as const,
+      responses: { 200: z.object({ success: z.boolean() }) }
     }
   }
 };

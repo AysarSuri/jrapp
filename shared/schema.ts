@@ -300,6 +300,57 @@ export const expenses = pgTable("expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const salesInvoices = pgTable("sales_invoices", {
+  id: serial("id").primaryKey(),
+  invoiceNumber: text("invoice_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  customerId: integer("customer_id"),
+  customerName: text("customer_name").notNull(),
+  address: text("address"),
+  mobile: text("mobile"),
+  representativeId: integer("representative_id"),
+  representativeName: text("representative_name"),
+  representativeMobile: text("representative_mobile"),
+  note: text("note"),
+  invoiceType: text("invoice_type").notNull().default("cash"),
+  subtotal: numeric("subtotal").notNull().default("0"),
+  discount: numeric("discount").notNull().default("0"),
+  amountPaid: numeric("amount_paid").notNull().default("0"),
+  remaining: numeric("remaining").notNull().default("0"),
+  totalItems: integer("total_items").notNull().default(0),
+  totalQuantity: numeric("total_quantity").notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("approved"),
+  createdBy: text("created_by"),
+  createdByRole: text("created_by_role"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const salesInvoiceItems = pgTable("sales_invoice_items", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").notNull(),
+  productId: integer("product_id"),
+  productCode: text("product_code").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit").notNull(),
+  price: numeric("price").notNull(),
+  amount: numeric("amount").notNull(),
+});
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  referenceId: integer("reference_id"),
+  referenceType: text("reference_type"),
+  targetRole: text("target_role"),
+  isRead: integer("is_read").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
@@ -321,6 +372,9 @@ export const insertOwnerSchema = createInsertSchema(owners).omit({ id: true });
 export const insertOwnerTransactionSchema = createInsertSchema(ownerTransactions).omit({ id: true, createdAt: true });
 export const insertExpenseTypeSchema = createInsertSchema(expenseTypes).omit({ id: true });
 export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true, createdAt: true });
+export const insertSalesInvoiceSchema = createInsertSchema(salesInvoices).omit({ id: true, createdAt: true });
+export const insertSalesInvoiceItemSchema = createInsertSchema(salesInvoiceItems).omit({ id: true });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true }).extend({
   barcode: z.string().min(1, "Barcode is required"),
@@ -392,6 +446,12 @@ export type ExpenseType = typeof expenseTypes.$inferSelect;
 export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type SalesInvoice = typeof salesInvoices.$inferSelect;
+export type InsertSalesInvoice = z.infer<typeof insertSalesInvoiceSchema>;
+export type SalesInvoiceItem = typeof salesInvoiceItems.$inferSelect;
+export type InsertSalesInvoiceItem = z.infer<typeof insertSalesInvoiceItemSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Auth types
 export const loginSchema = z.object({
