@@ -450,8 +450,7 @@ export default function SalesInvoiceUsdPage() {
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">{t('Products')}</CardTitle>
           <Button variant="outline" size="sm" onClick={addRow} data-testid="button-sales-add-row">
-            <Plus className="w-4 h-4 mr-1" />
-            {t('Add Row')}
+            <Plus className="w-4 h-4" />
           </Button>
         </CardHeader>
         <CardContent className="p-0">
