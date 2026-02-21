@@ -160,6 +160,8 @@ export const supplierPayments = pgTable("supplier_payments", {
   paymentSourceName: text("payment_source_name").notNull(),
   amountUsd: numeric("amount_usd").notNull().default("0"),
   amountIqd: numeric("amount_iqd").notNull().default("0"),
+  commissionUsd: numeric("commission_usd").notNull().default("0"),
+  commissionIqd: numeric("commission_iqd").notNull().default("0"),
   note: text("note"),
   reference: text("reference"),
   date: text("date").notNull(),

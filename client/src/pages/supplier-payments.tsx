@@ -45,6 +45,8 @@ export default function SupplierPaymentsPage() {
   const [paymentSourceName, setPaymentSourceName] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
+  const [commissionUsd, setCommissionUsd] = useState("");
+  const [commissionIqd, setCommissionIqd] = useState("");
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -79,6 +81,8 @@ export default function SupplierPaymentsPage() {
     setPaymentSourceName("");
     setAmountUsd("");
     setAmountIqd("");
+    setCommissionUsd("");
+    setCommissionIqd("");
     setNote("");
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
@@ -107,6 +111,8 @@ export default function SupplierPaymentsPage() {
       paymentSourceName,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
+      commissionUsd: commissionUsd || "0",
+      commissionIqd: commissionIqd || "0",
       note: note || null,
       reference: reference || null,
       date,
@@ -159,6 +165,8 @@ export default function SupplierPaymentsPage() {
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('USD Amount')}</TableHead>
                       <TableHead>{t('IQD Amount')}</TableHead>
+                      <TableHead>{t('Commission USD')}</TableHead>
+                      <TableHead>{t('Commission IQD')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>
                     </TableRow>
@@ -180,13 +188,19 @@ export default function SupplierPaymentsPage() {
                         <TableCell className="font-mono text-sm">
                           {parseFloat(p.amountIqd) > 0 ? formatIQD(parseFloat(p.amountIqd)) : "-"}
                         </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {parseFloat(p.commissionUsd) > 0 ? `$${parseFloat(p.commissionUsd).toFixed(2)}` : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
                       </TableRow>
                     ))}
                     {(!payments || payments.length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
@@ -339,6 +353,50 @@ export default function SupplierPaymentsPage() {
               </Card>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-blue-100 dark:border-blue-950 bg-blue-50/30 dark:bg-blue-950/20">
+                <CardHeader className="pb-3 pt-4">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-blue-500" />
+                    {t('Commission USD')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={commissionUsd}
+                    onChange={(e) => setCommissionUsd(e.target.value)}
+                    className="text-lg font-mono text-center h-12"
+                    data-testid="input-commission-usd"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="border-orange-100 dark:border-orange-950 bg-orange-50/30 dark:bg-orange-950/20">
+                <CardHeader className="pb-3 pt-4">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Banknote className="h-4 w-4 text-orange-500" />
+                    {t('Commission IQD')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    type="number"
+                    step="250"
+                    min="0"
+                    placeholder="0"
+                    value={commissionIqd}
+                    onChange={(e) => setCommissionIqd(e.target.value)}
+                    className="text-lg font-mono text-center h-12"
+                    data-testid="input-commission-iqd"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Reference')}</Label>
@@ -392,6 +450,23 @@ export default function SupplierPaymentsPage() {
                     {formatIQD(parseFloat(amountIqd || "0"))}
                   </span>
                 </div>
+                {(parseFloat(commissionUsd || "0") > 0 || parseFloat(commissionIqd || "0") > 0) && (
+                  <>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{t('Commission USD')}</span>
+                      <span className="font-mono text-sm" data-testid="text-commission-usd-total">
+                        ${parseFloat(commissionUsd || "0").toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{t('Commission IQD')}</span>
+                      <span className="font-mono text-sm" data-testid="text-commission-iqd-total">
+                        {formatIQD(parseFloat(commissionIqd || "0"))}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {paymentSource && (
