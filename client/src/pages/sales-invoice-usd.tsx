@@ -60,7 +60,7 @@ export default function SalesInvoiceUsdPage() {
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
-  const { data: representativesList } = useQuery<{ id: number; name: string }[]>({
+  const { data: representativesList } = useQuery<{ id: number; name: string; mobile: string | null }[]>({
     queryKey: ["/api/representatives"],
   });
   const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
@@ -240,6 +240,7 @@ export default function SalesInvoiceUsdPage() {
     if (rep) {
       setRepresentativeId(rep.id);
       setRepresentativeName(rep.name);
+      setRepresentativeMobile(rep.mobile || "");
     }
   };
 
