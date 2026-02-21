@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
@@ -83,7 +83,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
     });
   };
 
+  const [, navigate] = useLocation();
+
   const supplierSubRoutes = [
+    "/supplier-management",
     "/suppliers",
     "/purchase-invoice-usd",
     "/purchase-invoice-iqd",
@@ -159,19 +162,29 @@ export function LayoutShell({ children }: LayoutShellProps) {
             return (
               <div key={entry.label} className="space-y-0.5">
                 <button
-                  onClick={() => setSupplierOpen(!supplierOpen)}
+                  onClick={() => {
+                    if (!supplierOpen) {
+                      setSupplierOpen(true);
+                    }
+                    navigate("/supplier-management");
+                  }}
                   data-testid="button-supplier-management"
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                    ${isSupplierSection
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ${location === "/supplier-management"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium"
+                      : isSupplierSection
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }
                   `}
                 >
-                  <entry.icon className="w-5 h-5" />
+                  <entry.icon className={`w-5 h-5 ${location === "/supplier-management" ? "text-primary-foreground" : ""}`} />
                   <span className="flex-1 text-start">{t(entry.label)}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${supplierOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    onClick={(e) => { e.stopPropagation(); setSupplierOpen(!supplierOpen); }}
+                    className={`w-4 h-4 transition-transform duration-200 ${supplierOpen ? "rotate-180" : ""} ${location === "/supplier-management" ? "text-primary-foreground" : ""}`}
+                  />
                 </button>
                 {supplierOpen && (
                   <div className="space-y-0.5">
