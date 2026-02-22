@@ -36,6 +36,7 @@ import {
   Undo2,
   DollarSign,
   AlertTriangle,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -311,6 +312,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
+    { href: "/barcode-print", icon: QrCode, label: "Barcode Print" },
     { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },

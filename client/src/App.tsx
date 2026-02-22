@@ -69,6 +69,7 @@ import CurrencyExchangePage from "@/pages/currency-exchange";
 import WarehouseTransferPage from "@/pages/warehouse-transfer";
 import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
+import BarcodePrintPage from "@/pages/barcode-print";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -276,6 +277,9 @@ function Router() {
       </Route>
       <Route path="/inventory-report">
         <ProtectedRoute component={InventoryReportPage} />
+      </Route>
+      <Route path="/barcode-print">
+        <ProtectedRoute component={BarcodePrintPage} />
       </Route>
       <Route path="/purchase-return-usd">
         <ProtectedRoute component={PurchaseReturnUsdPage} />
