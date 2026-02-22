@@ -1,9 +1,11 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Printer, MessageCircle } from "lucide-react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 type InvoiceData = {
   id: number;
@@ -73,6 +75,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
   const { t, i18n } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const { data: invoice, isLoading: invoiceLoading } = useQuery<InvoiceData>({
     queryKey: ["/api/purchase-invoices", invoiceId],
@@ -175,31 +178,59 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     }, 300);
   };
 
-  const handleWhatsApp = () => {
-    if (!invoice) return;
-    const lines = [
-      `${currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}`,
-      `${t("Invoice #")}: ${invoice.invoiceNumber}`,
-      `${t("Date")}: ${invoice.date}`,
-      `${t("Supplier Name")}: ${invoice.supplierName}`,
-      ``,
-      `${t("Invoice Total")}: ${currencySymbol}${fmt(invoice.subtotal)}${currencySuffix}`,
-    ];
-    if (parseFloat(invoice.discount || "0") > 0) {
-      lines.push(`${t("Discount")}: -${currencySymbol}${fmt(invoice.discount)}${currencySuffix}`);
-    }
-    lines.push(`${t("Amount Paid")}: ${currencySymbol}${fmt(invoice.amountPaid)}${currencySuffix}`);
-    lines.push(`${t("Remaining")}: ${currencySymbol}${fmt(invoice.remaining)}${currencySuffix}`);
-    lines.push(``);
-    lines.push(`${t("Supplier Balance")}:`);
-    lines.push(`${t("Old Debt")}: ${currencySymbol}${fmt(oldDebt)}${currencySuffix}`);
-    lines.push(`${t("Invoice Remaining")}: ${currencySymbol}${fmt(invoiceRemaining)}${currencySuffix}`);
-    lines.push(`${t("Total Balance")}: ${currencySymbol}${fmt(totalBalance)}${currencySuffix}`);
+  const generatePdf = async (): Promise<Blob | null> => {
+    const content = printRef.current;
+    if (!content) return null;
 
-    const message = encodeURIComponent(lines.join("\n"));
-    const phone = supplier?.mobile ? supplier.mobile.replace(/[^0-9]/g, "") : "";
-    const url = phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`;
-    window.open(url, "_blank");
+    const canvas = await html2canvas(content, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgData = canvas.toDataURL("image/png");
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+
+    return pdf.output("blob");
+  };
+
+  const handleWhatsApp = async () => {
+    if (!invoice) return;
+    setSendingWhatsApp(true);
+
+    try {
+      const pdfBlob = await generatePdf();
+      if (!pdfBlob) return;
+
+      const fileName = `${t("Purchase Invoice Report")}_${invoice.invoiceNumber}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: `${t("Purchase Invoice Report")} - ${invoice.invoiceNumber}`,
+          files: [file],
+        });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        const phone = supplier?.mobile ? supplier.mobile.replace(/[^0-9]/g, "") : "";
+        const text = encodeURIComponent(
+          `${currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}\n${t("Invoice #")}: ${invoice.invoiceNumber}\n${t("Supplier Name")}: ${invoice.supplierName}\n${t("Total Balance")}: ${currencySymbol}${fmt(totalBalance)}${currencySuffix}`
+        );
+        const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
+        window.open(waUrl, "_blank");
+      }
+    } finally {
+      setSendingWhatsApp(false);
+    }
   };
 
   const isLoading = invoiceLoading || itemsLoading;
@@ -211,9 +242,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           <DialogTitle className="flex items-center justify-between">
             <span>{t("Purchase Invoice Report")}</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={isLoading} data-testid="button-whatsapp-invoice" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
-                <MessageCircle className="w-4 h-4 mr-1" />
-                {t("WhatsApp")}
+              <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={isLoading || sendingWhatsApp} data-testid="button-whatsapp-invoice" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
               </Button>
               <Button variant="outline" size="sm" onClick={handlePrint} disabled={isLoading} data-testid="button-print-invoice">
                 <Printer className="w-4 h-4 mr-1" />
