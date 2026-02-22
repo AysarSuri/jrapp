@@ -2169,6 +2169,9 @@ export async function registerRoutes(
       if (input.cliche && input.cliche.length > MAX_BASE64_SIZE) {
         return res.status(400).json({ message: "Cliché image is too large (max 2MB)" });
       }
+      if (input.stamp && input.stamp.length > MAX_BASE64_SIZE) {
+        return res.status(400).json({ message: "Stamp image is too large (max 2MB)" });
+      }
       const profile = await storage.upsertCompanyProfile(input);
       res.json(profile);
     } catch (err) {

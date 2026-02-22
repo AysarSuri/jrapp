@@ -606,6 +606,7 @@ export const companyProfile = pgTable("company_profile", {
   businessType: text("business_type").notNull().default(""),
   logo: text("logo"),
   cliche: text("cliche"),
+  stamp: text("stamp"),
   qrAddress: text("qr_address").notNull().default(""),
 });
 

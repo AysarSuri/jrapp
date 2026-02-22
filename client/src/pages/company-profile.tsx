@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image } from "lucide-react";
+import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp } from "lucide-react";
 import type { CompanyProfile } from "@shared/schema";
 
 function QRCodeCanvas({ value, size = 200 }: { value: string; size?: number }) {
@@ -61,6 +61,7 @@ export default function CompanyProfilePage() {
     businessType: "",
     logo: "" as string | null,
     cliche: "" as string | null,
+    stamp: "" as string | null,
     qrAddress: "",
   });
 
@@ -74,6 +75,7 @@ export default function CompanyProfilePage() {
         businessType: profile.businessType || "",
         logo: profile.logo || null,
         cliche: profile.cliche || null,
+        stamp: profile.stamp || null,
         qrAddress: profile.qrAddress || "",
       });
     }
@@ -93,7 +95,7 @@ export default function CompanyProfilePage() {
     },
   });
 
-  const handleImageUpload = useCallback((field: "logo" | "cliche") => {
+  const handleImageUpload = useCallback((field: "logo" | "cliche" | "stamp") => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -130,7 +132,7 @@ export default function CompanyProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <Building2 className="w-7 h-7" />
@@ -313,25 +315,25 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Image className="w-4 h-4" />
-                {t('Cliché / Stamp')}
+                <Stamp className="w-4 h-4" />
+                {t('Stamp')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {form.cliche ? (
+              {form.stamp ? (
                 <div className="relative group">
                   <img
-                    src={form.cliche}
-                    alt={t('Cliché')}
+                    src={form.stamp}
+                    alt={t('Stamp')}
                     className="w-full max-h-48 object-contain rounded-lg border bg-white p-2"
-                    data-testid="img-cliche"
+                    data-testid="img-stamp"
                   />
                   <Button
                     variant="destructive"
                     size="icon"
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => setForm((p) => ({ ...p, cliche: null }))}
-                    data-testid="button-remove-cliche"
+                    onClick={() => setForm((p) => ({ ...p, stamp: null }))}
+                    data-testid="button-remove-stamp"
                   >
                     <Trash2 />
                   </Button>
@@ -339,30 +341,84 @@ export default function CompanyProfilePage() {
               ) : (
                 <div
                   className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-8 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => handleImageUpload("cliche")}
-                  data-testid="upload-cliche-area"
+                  onClick={() => handleImageUpload("stamp")}
+                  data-testid="upload-stamp-area"
                 >
                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">{t('Click to upload cliché')}</span>
+                  <span className="text-sm text-muted-foreground">{t('Click to upload stamp')}</span>
                   <span className="text-xs text-muted-foreground mt-1">{t('Max 2MB')}</span>
                 </div>
               )}
-              {form.cliche && (
+              {form.stamp && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => handleImageUpload("cliche")}
-                  data-testid="button-change-cliche"
+                  onClick={() => handleImageUpload("stamp")}
+                  data-testid="button-change-stamp"
                 >
                   <Upload className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
-                  {t('Change Cliché')}
+                  {t('Change Stamp')}
                 </Button>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Cliché - Full width wide banner like a business header */}
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Image className="w-4 h-4" />
+            {t('Cliché / Stamp')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {form.cliche ? (
+            <div className="relative group">
+              <img
+                src={form.cliche}
+                alt={t('Cliché')}
+                className="w-full object-contain rounded-lg border bg-white p-3"
+                style={{ maxHeight: "280px" }}
+                data-testid="img-cliche"
+              />
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => setForm((p) => ({ ...p, cliche: null }))}
+                data-testid="button-remove-cliche"
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ) : (
+            <div
+              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+              style={{ padding: "2rem 3rem", aspectRatio: "4 / 1" }}
+              onClick={() => handleImageUpload("cliche")}
+              data-testid="upload-cliche-area"
+            >
+              <Upload className="w-10 h-10 text-muted-foreground mb-2" />
+              <span className="text-sm text-muted-foreground">{t('Click to upload cliché')}</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('Max 2MB')}</span>
+            </div>
+          )}
+          {form.cliche && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleImageUpload("cliche")}
+              data-testid="button-change-cliche"
+            >
+              <Upload className="w-3.5 h-3.5 ltr:mr-1.5 rtl:ml-1.5" />
+              {t('Change Cliché')}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
