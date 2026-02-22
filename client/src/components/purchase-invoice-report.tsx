@@ -114,29 +114,29 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
         <title>${t("Purchase Invoice Report")} - ${invoice?.invoiceNumber || ""}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; font-size: 12px; direction: ${isRtl ? "rtl" : "ltr"}; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; font-size: 12pt; direction: ${isRtl ? "rtl" : "ltr"}; }
           .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-          .header h1 { font-size: 18px; margin-bottom: 3px; }
-          .header p { font-size: 11px; color: #666; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-bottom: 12px; font-size: 11px; }
+          .header h1 { font-size: 16pt; margin-bottom: 3px; }
+          .header p { font-size: 12pt; color: #666; }
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-bottom: 12px; font-size: 12pt; }
           .info-item { display: flex; justify-content: space-between; border-bottom: 1px dotted #ddd; padding: 2px 0; }
           .info-label { font-weight: 600; color: #555; }
           .info-value { font-weight: 500; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; }
-          th { background: #333; color: white; padding: 5px 4px; text-align: center; font-weight: 600; font-size: 10px; }
-          td { border: 1px solid #ddd; padding: 4px; text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12pt; }
+          th { background: #333; color: white; padding: 5px 4px; text-align: center; font-weight: 600; font-size: 12pt; }
+          td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 12pt; }
           tr:nth-child(even) { background: #f9f9f9; }
           .summary-section { margin-top: 10px; }
           .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
           .summary-box { border: 1px solid #ddd; border-radius: 4px; padding: 8px; }
-          .summary-box h3 { font-size: 12px; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
-          .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
-          .summary-row.total { font-weight: 700; font-size: 13px; border-top: 2px solid #333; padding-top: 5px; margin-top: 5px; }
+          .summary-box h3 { font-size: 13pt; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+          .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12pt; }
+          .summary-row.total { font-weight: 700; font-size: 14pt; border-top: 2px solid #333; padding-top: 5px; margin-top: 5px; }
           .debt-section { margin-top: 10px; border: 2px solid #dc2626; border-radius: 4px; padding: 8px; }
-          .debt-section h3 { color: #dc2626; font-size: 12px; margin-bottom: 5px; }
-          .debt-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
-          .debt-row.final { font-weight: 700; font-size: 14px; color: #dc2626; border-top: 2px solid #dc2626; padding-top: 5px; margin-top: 5px; }
-          .footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 11px; }
+          .debt-section h3 { color: #dc2626; font-size: 13pt; margin-bottom: 5px; }
+          .debt-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12pt; }
+          .debt-row.final { font-weight: 700; font-size: 14pt; color: #dc2626; border-top: 2px solid #dc2626; padding-top: 5px; margin-top: 5px; }
+          .footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 12pt; }
           .signature-box { text-align: center; width: 200px; }
           .signature-line { border-top: 1px solid #333; margin-top: 40px; padding-top: 3px; }
           @media print {
@@ -178,15 +178,15 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
         ) : invoice ? (
           <div ref={printRef}>
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
-              <h1 style={{ fontSize: 18, marginBottom: 3 }}>
+              <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>
                 {currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}
               </h1>
-              <p style={{ fontSize: 12, color: "#666" }}>
+              <p style={{ fontSize: "12pt", color: "#666" }}>
                 {t("Invoice #")}: {invoice.invoiceNumber} | {t("Date")}: {invoice.date} | {t("Time")}: {invoice.time}
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 12, fontSize: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 12, fontSize: "12pt" }}>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
                 <span style={{ fontWeight: 500 }}>{invoice.supplierName}</span>
@@ -227,16 +227,16 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               )}
             </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: 11 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: "12pt" }}>
               <thead>
                 <tr>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>#</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Product Code")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Product Name")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Quantity")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Unit")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Price")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: 10 }}>{t("Amount")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>#</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Code")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Name")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Quantity")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Unit")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Price")}</th>
+                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Amount")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,30 +256,30 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginTop: 10 }}>
               <div style={{ border: "1px solid #ddd", borderRadius: 4, padding: 8 }}>
-                <h3 style={{ fontSize: 12, marginBottom: 5, borderBottom: "1px solid #eee", paddingBottom: 3, fontWeight: 700 }}>{t("Invoice Summary")}</h3>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #eee", paddingBottom: 3, fontWeight: 700 }}>{t("Invoice Summary")}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                   <span>{t("Products")}:</span>
                   <span style={{ fontWeight: 500 }}>{invoice.totalItems}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                   <span>{t("Total Quantity")}:</span>
                   <span style={{ fontWeight: 500 }}>{invoice.totalQuantity}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                   <span>{t("Invoice Total")}:</span>
                   <span style={{ fontWeight: 600 }}>{currencySymbol}{fmt(invoice.subtotal)}{currencySuffix}</span>
                 </div>
                 {parseFloat(invoice.discount || "0") > 0 && (
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11, color: "#16a34a" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
                     <span>{t("Discount")}:</span>
                     <span style={{ fontWeight: 500 }}>-{currencySymbol}{fmt(invoice.discount)}{currencySuffix}</span>
                   </div>
                 )}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11, color: "#16a34a" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
                   <span>{t("Amount Paid")}:</span>
                   <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.amountPaid)}{currencySuffix}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: 13, fontWeight: 700, borderTop: "2px solid #333", marginTop: 5, color: "#dc2626" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #333", marginTop: 5, color: "#dc2626" }}>
                   <span>{t("Remaining")}:</span>
                   <span>{currencySymbol}{fmt(invoice.remaining)}{currencySuffix}</span>
                 </div>
@@ -287,26 +287,26 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
               {parseFloat(invoice.totalExpenses || "0") > 0 && (
                 <div style={{ border: "1px solid #ddd", borderRadius: 4, padding: 8 }}>
-                  <h3 style={{ fontSize: 12, marginBottom: 5, borderBottom: "1px solid #eee", paddingBottom: 3, fontWeight: 700 }}>{t("Expenses")}</h3>
+                  <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #eee", paddingBottom: 3, fontWeight: 700 }}>{t("Expenses")}</h3>
                   {parseFloat(invoice.carExpense || "0") > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Car Expense")}:</span>
                       <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.carExpense)}{currencySuffix}</span>
                     </div>
                   )}
                   {parseFloat(invoice.customsExpense || "0") > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Customs Expense")}:</span>
                       <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.customsExpense)}{currencySuffix}</span>
                     </div>
                   )}
                   {parseFloat(invoice.otherExpenses || "0") > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Other Expenses")}:</span>
                       <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.otherExpenses)}{currencySuffix}</span>
                     </div>
                   )}
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: 12, fontWeight: 700, borderTop: "1px solid #ddd", marginTop: 5 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "12pt", fontWeight: 700, borderTop: "1px solid #ddd", marginTop: 5 }}>
                     <span>{t("Total Expenses")}:</span>
                     <span>{currencySymbol}{fmt(invoice.totalExpenses)}{currencySuffix}</span>
                   </div>
@@ -315,22 +315,22 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             </div>
 
             <div style={{ marginTop: 10, border: "2px solid #dc2626", borderRadius: 4, padding: 8 }}>
-              <h3 style={{ color: "#dc2626", fontSize: 12, marginBottom: 5, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+              <h3 style={{ color: "#dc2626", fontSize: "13pt", marginBottom: 5, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                 <span>{t("Old Debt")}:</span>
                 <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(oldDebt)}{currencySuffix}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                 <span>{t("Invoice Remaining")}:</span>
                 <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoiceRemaining)}{currencySuffix}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: 14, fontWeight: 700, color: "#dc2626", borderTop: "2px solid #dc2626", marginTop: 5 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, color: "#dc2626", borderTop: "2px solid #dc2626", marginTop: 5 }}>
                 <span>{t("Total Balance")}:</span>
                 <span>{currencySymbol}{fmt(totalBalance)}{currencySuffix}</span>
               </div>
             </div>
 
-            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
               </div>
