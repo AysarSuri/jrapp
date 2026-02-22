@@ -48,6 +48,19 @@ type ClientData = {
   oldDebtIqd: string;
 };
 
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  address: string;
+  mobile1: string;
+  mobile2: string;
+  businessType: string;
+  logo: string | null;
+  cliche: string | null;
+  stamp: string | null;
+  qrAddress: string;
+};
+
 interface PurchaseInvoiceReportProps {
   invoiceId: number | null;
   open: boolean;
@@ -85,6 +98,11 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     enabled: !!invoice?.supplierId && open,
   });
 
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
+    enabled: open,
+  });
+
   const supplier = clients?.find(c => c.id === invoice?.supplierId);
   const oldDebt = currency === "USD"
     ? parseFloat(supplier?.oldDebtUsd || "0")
@@ -115,6 +133,8 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; font-size: 12pt; direction: ${isRtl ? "rtl" : "ltr"}; }
+          .cliche-container { text-align: center; margin-bottom: 10px; }
+          .cliche-container img { max-width: 100%; max-height: 120px; object-fit: contain; }
           .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
           .header h1 { font-size: 16pt; margin-bottom: 3px; }
           .header p { font-size: 12pt; color: #666; }
@@ -177,6 +197,11 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           </div>
         ) : invoice ? (
           <div ref={printRef}>
+            {companyProfile?.cliche && (
+              <div style={{ textAlign: "center", marginBottom: 10 }}>
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ maxWidth: "100%", maxHeight: 120, objectFit: "contain" }} />
+              </div>
+            )}
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
               <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>
                 {currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}
