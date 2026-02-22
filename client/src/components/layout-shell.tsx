@@ -330,8 +330,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
         }
       `}>
-        <item.icon className={`w-5 h-5 ${isActive ? "text-primary-foreground" : "dark:text-[#e4ad06]"}`} />
-        <span className={`${indent ? "text-sm" : ""} dark:text-[#e4ad06]`}>{t(item.label)}</span>
+        <item.icon className={`w-5 h-5 ${isActive ? "text-primary-foreground" : ""}`} />
+        <span className={`${indent ? "text-sm" : ""}`}>{t(item.label)}</span>
       </Link>
     );
   };
@@ -397,11 +397,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
                     }
                   `}
                 >
-                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-primary-foreground" : "dark:text-[#e4ad06]"}`} />
-                  <span className="flex-1 text-start dark:text-[#e4ad06]">{t(entry.label)}</span>
+                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-primary-foreground" : ""}`} />
+                  <span className="flex-1 text-start">{t(entry.label)}</span>
                   <ChevronDown
                     onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
-                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-primary-foreground" : "dark:text-[#e4ad06]"}`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-primary-foreground" : ""}`}
                   />
                 </button>
                 {isOpen && (
