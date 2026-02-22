@@ -14,8 +14,6 @@ import CustomersPage from "@/pages/customers";
 import SuppliersPage from "@/pages/suppliers";
 import AddressesPage from "@/pages/addresses";
 import AccountsPage from "@/pages/accounts";
-import InvoicesPage from "@/pages/invoices";
-import TransactionsPage from "@/pages/transactions";
 import WarehousesPage from "@/pages/warehouses";
 import RepresentativesPage from "@/pages/representatives";
 import TransferOfficesPage from "@/pages/transfer-offices";
@@ -290,12 +288,6 @@ function Router() {
       </Route>
       <Route path="/purchase-return-iqd">
         <ProtectedRoute component={PurchaseReturnIqdPage} />
-      </Route>
-      <Route path="/invoices">
-        <ProtectedRoute component={InvoicesPage} />
-      </Route>
-      <Route path="/transactions">
-        <ProtectedRoute component={TransactionsPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>
