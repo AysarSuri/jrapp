@@ -659,6 +659,80 @@ export default function BarcodePrintPage() {
                   <Label htmlFor="showBarcodeText" className="text-sm cursor-pointer">{t('Show Barcode Number')}</Label>
                 </div>
               </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('Label Preview')}</Label>
+                <div className="flex items-center justify-center bg-muted/30 rounded-lg p-6" data-testid="label-preview-area">
+                  <div
+                    className="bg-white border-2 border-dashed border-border shadow-sm"
+                    style={{
+                      width: `${Math.min(settings.labelWidth * 3, 300)}px`,
+                      height: `${Math.min(settings.labelHeight * 3, 200)}px`,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      padding: "4px",
+                      boxSizing: "border-box",
+                      transform: settings.labelRotation ? `rotate(${settings.labelRotation}deg)` : undefined,
+                      transition: "all 0.3s ease",
+                    }}
+                    data-testid="label-preview-sample"
+                  >
+                    {settings.showProductName && (
+                      <div style={{
+                        fontSize: `${Math.min(settings.fontSize * 1.8, 22)}px`,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        lineHeight: 1.2,
+                        maxWidth: "100%",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        color: "#000",
+                        marginBottom: "2px",
+                      }} data-testid="label-preview-name">
+                        {items.length > 0 ? items[0].product.name : t('Product Name')}
+                      </div>
+                    )}
+                    {settings.showPrice && (
+                      <div style={{
+                        fontSize: `${Math.min(Math.max(settings.fontSize * 1.5, 10), 18)}px`,
+                        fontWeight: 500,
+                        textAlign: "center",
+                        color: "#333",
+                        marginBottom: "2px",
+                      }} data-testid="label-preview-price">
+                        {items.length > 0 ? getPrice(items[0].product, items[0].priceType) : "$0.00"}
+                      </div>
+                    )}
+                    {settings.showBarcode && (
+                      <div style={{ marginTop: "2px" }} data-testid="label-preview-barcode">
+                        <BarcodeCanvas
+                          value={items.length > 0 ? items[0].product.barcode : "1234567890"}
+                          format={settings.barcodeType}
+                          width={settings.barcodeWidth}
+                          height={Math.min(settings.barcodeHeight, 50)}
+                          displayValue={settings.showBarcodeText}
+                        />
+                      </div>
+                    )}
+                    {!settings.showProductName && !settings.showPrice && !settings.showBarcode && (
+                      <div style={{ fontSize: "12px", color: "#999", textAlign: "center" }}>
+                        {t('Empty Label')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  {settings.labelWidth}mm × {settings.labelHeight}mm
+                  {settings.printerType === "thermal" && ` — ${t('Roll Width')}: ${settings.thermalRollWidth}mm`}
+                  {settings.labelRotation > 0 && ` — ${settings.labelRotation}°`}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
