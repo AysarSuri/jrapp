@@ -149,6 +149,10 @@ export default function PurchaseInvoiceUsdPage() {
       }
       return updated;
     });
+    setTimeout(() => {
+      const el = document.querySelector(`[data-testid="input-purchase-quantity-${index}"]`) as HTMLInputElement;
+      if (el) { el.focus(); el.select(); }
+    }, 50);
   }, [products]);
 
   const addRow = () => {
