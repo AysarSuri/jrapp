@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
+import { useUser } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const emptyItem = (): InvoiceItem => ({
 export default function PurchaseInvoiceIqdPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { data: user } = useUser();
   const { data: nextNumber } = useNextPurchaseInvoiceNumber();
   const { mutate: createInvoice, isPending: isSaving } = useCreatePurchaseInvoice();
   const { data: invoicesList } = usePurchaseInvoices();
@@ -348,6 +350,13 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Created By')}</Label>
+              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/30 text-sm font-medium" data-testid="text-created-by-iqd">
+                {user?.username || "-"}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
               <Select onValueChange={selectSupplier}>
                 <SelectTrigger data-testid="select-supplier-iqd">
@@ -501,7 +510,21 @@ export default function PurchaseInvoiceIqdPage() {
                     <TableCell className="p-1">
                       <Select
                         value={item.unit}
-                        onValueChange={(val) => updateItem(index, "unit", val)}
+                        onValueChange={(val) => {
+                          const product = products?.find(p => p.id === item.productId);
+                          if (product) {
+                            const newPrice = val === product.bigUnit ? product.bigUnitPriceIqd : product.smallUnitPriceIqd;
+                            setItems(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], unit: val, price: newPrice };
+                              const qty = parseFloat(updated[index].quantity || "0");
+                              updated[index].amount = (qty * parseFloat(newPrice)).toFixed(2);
+                              return updated;
+                            });
+                          } else {
+                            updateItem(index, "unit", val);
+                          }
+                        }}
                       >
                         <SelectTrigger className="h-9 text-sm" data-testid={`select-purchase-iqd-unit-${index}`}>
                           <SelectValue placeholder={t('Unit')} />
