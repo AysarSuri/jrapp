@@ -597,6 +597,22 @@ export type InsertProductDamage = z.infer<typeof insertProductDamageSchema>;
 export type ProductDamageItem = typeof productDamageItems.$inferSelect;
 export type InsertProductDamageItem = z.infer<typeof insertProductDamageItemSchema>;
 
+export const companyProfile = pgTable("company_profile", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().default(""),
+  address: text("address").notNull().default(""),
+  mobile1: text("mobile1").notNull().default(""),
+  mobile2: text("mobile2").notNull().default(""),
+  businessType: text("business_type").notNull().default(""),
+  logo: text("logo"),
+  cliche: text("cliche"),
+  qrAddress: text("qr_address").notNull().default(""),
+});
+
+export const insertCompanyProfileSchema = createInsertSchema(companyProfile).omit({ id: true });
+export type CompanyProfile = typeof companyProfile.$inferSelect;
+export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

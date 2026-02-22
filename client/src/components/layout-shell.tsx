@@ -37,6 +37,7 @@ import {
   DollarSign,
   AlertTriangle,
   QrCode,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -313,6 +314,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
     { href: "/barcode-print", icon: QrCode, label: "Barcode Print" },
+    { href: "/company-profile", icon: Building2, label: "Company Profile" },
     { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
     { href: "/invoices", icon: FileText, label: "Invoices" },

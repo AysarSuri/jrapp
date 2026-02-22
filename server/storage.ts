@@ -5,6 +5,7 @@ import {
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
   salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications, agentPayments,
+  companyProfile,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
@@ -41,6 +42,7 @@ import {
   type Expense, type InsertExpense,
   type CustomerReceipt, type InsertCustomerReceipt,
   type AgentPayment, type InsertAgentPayment,
+  type CompanyProfile, type InsertCompanyProfile,
   type CurrencyExchange, type InsertCurrencyExchange,
   type WarehouseTransfer, type InsertWarehouseTransfer,
   type WarehouseTransferItem, type InsertWarehouseTransferItem,
@@ -222,6 +224,9 @@ export interface IStorage {
   createNotification(notif: InsertNotification): Promise<Notification>;
   markNotificationRead(id: number): Promise<void>;
   getUnreadNotificationCount(targetRole?: string): Promise<number>;
+
+  getCompanyProfile(): Promise<CompanyProfile | undefined>;
+  upsertCompanyProfile(profile: InsertCompanyProfile): Promise<CompanyProfile>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -812,6 +817,21 @@ export class DatabaseStorage implements IStorage {
     }
     const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(notifications).where(eq(notifications.isRead, 0));
     return result?.count || 0;
+  }
+
+  async getCompanyProfile(): Promise<CompanyProfile | undefined> {
+    const [profile] = await db.select().from(companyProfile).limit(1);
+    return profile;
+  }
+
+  async upsertCompanyProfile(profile: InsertCompanyProfile): Promise<CompanyProfile> {
+    const existing = await this.getCompanyProfile();
+    if (existing) {
+      const [updated] = await db.update(companyProfile).set(profile).where(eq(companyProfile.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(companyProfile).values(profile).returning();
+    return created;
   }
 }
 

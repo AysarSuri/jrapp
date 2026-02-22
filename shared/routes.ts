@@ -40,6 +40,7 @@ import {
   insertProductDamageSchema, productDamages,
   insertProductDamageItemSchema, productDamageItems,
   notifications,
+  insertCompanyProfileSchema, companyProfile,
   insertUserSchema, loginSchema, users 
 } from './schema';
 
@@ -844,6 +845,19 @@ export const api = {
       method: 'POST' as const,
       path: '/api/notifications/:id/read' as const,
       responses: { 200: z.object({ success: z.boolean() }) }
+    }
+  },
+  companyProfile: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/company-profile' as const,
+      responses: { 200: z.custom<typeof companyProfile.$inferSelect>() }
+    },
+    upsert: {
+      method: 'POST' as const,
+      path: '/api/company-profile' as const,
+      input: insertCompanyProfileSchema,
+      responses: { 200: z.custom<typeof companyProfile.$inferSelect>() }
     }
   }
 };

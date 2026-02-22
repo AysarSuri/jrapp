@@ -2150,6 +2150,35 @@ export async function registerRoutes(
     }
   });
 
+  app.get(api.companyProfile.get.path, requireAuth, async (_req, res) => {
+    try {
+      const profile = await storage.getCompanyProfile();
+      res.json(profile || null);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post(api.companyProfile.upsert.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.companyProfile.upsert.input.parse(req.body);
+      const MAX_BASE64_SIZE = 3 * 1024 * 1024;
+      if (input.logo && input.logo.length > MAX_BASE64_SIZE) {
+        return res.status(400).json({ message: "Logo image is too large (max 2MB)" });
+      }
+      if (input.cliche && input.cliche.length > MAX_BASE64_SIZE) {
+        return res.status(400).json({ message: "Cliché image is too large (max 2MB)" });
+      }
+      const profile = await storage.upsertCompanyProfile(input);
+      res.json(profile);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   await seedDatabase();
 
   return httpServer;
