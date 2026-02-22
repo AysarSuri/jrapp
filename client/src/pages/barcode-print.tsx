@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Printer, QrCode, Plus, Trash2, Settings2, Eye, Search } from "lucide-react";
+import { Printer, QrCode, Plus, Trash2, Settings2, Eye, Search, Save, RotateCcw } from "lucide-react";
 
 type Product = {
   id: number;
@@ -170,14 +170,28 @@ function getPrice(product: Product, priceType: string): string {
   }
 }
 
+const SETTINGS_STORAGE_KEY = "barcode-print-settings";
+
+function loadSavedSettings(): LabelSettings {
+  try {
+    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...defaultSettings, ...parsed };
+    }
+  } catch {}
+  return { ...defaultSettings };
+}
+
 export default function BarcodePrintPage() {
   const { t } = useTranslation();
   const [items, setItems] = useState<LabelItem[]>([]);
-  const [settings, setSettings] = useState<LabelSettings>(defaultSettings);
+  const [settings, setSettings] = useState<LabelSettings>(loadSavedSettings);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSettings, setShowSettings] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
+  const [saveMessage, setSaveMessage] = useState<string>("");
 
   const applyPreset = (presetKey: string) => {
     setSelectedPreset(presetKey);
@@ -353,9 +367,44 @@ export default function BarcodePrintPage() {
       {showSettings && (
         <Card className="border-border/50 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Settings2 className="w-4 h-4" />
-              {t('Print Settings')}
+            <CardTitle className="text-base flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Settings2 className="w-4 h-4" />
+                {t('Print Settings')}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {saveMessage && (
+                  <span className="text-xs text-green-600 dark:text-green-400 font-normal" data-testid="text-save-message">{saveMessage}</span>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+                    setSaveMessage(t('Settings Saved'));
+                    setTimeout(() => setSaveMessage(""), 2500);
+                  }}
+                  data-testid="button-save-settings"
+                >
+                  <Save className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('Save as Default')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    localStorage.removeItem(SETTINGS_STORAGE_KEY);
+                    setSettings({ ...defaultSettings });
+                    setSelectedPreset("");
+                    setSaveMessage(t('Settings Reset'));
+                    setTimeout(() => setSaveMessage(""), 2500);
+                  }}
+                  data-testid="button-reset-settings"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('Reset to Default')}
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
