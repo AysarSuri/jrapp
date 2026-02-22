@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Printer } from "lucide-react";
+import { Loader2, Printer, MessageCircle } from "lucide-react";
 
 type InvoiceData = {
   id: number;
@@ -44,6 +44,7 @@ type InvoiceItemData = {
 type ClientData = {
   id: number;
   name: string;
+  mobile: string | null;
   oldDebtUsd: string;
   oldDebtIqd: string;
 };
@@ -174,6 +175,33 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     }, 300);
   };
 
+  const handleWhatsApp = () => {
+    if (!invoice) return;
+    const lines = [
+      `${currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}`,
+      `${t("Invoice #")}: ${invoice.invoiceNumber}`,
+      `${t("Date")}: ${invoice.date}`,
+      `${t("Supplier Name")}: ${invoice.supplierName}`,
+      ``,
+      `${t("Invoice Total")}: ${currencySymbol}${fmt(invoice.subtotal)}${currencySuffix}`,
+    ];
+    if (parseFloat(invoice.discount || "0") > 0) {
+      lines.push(`${t("Discount")}: -${currencySymbol}${fmt(invoice.discount)}${currencySuffix}`);
+    }
+    lines.push(`${t("Amount Paid")}: ${currencySymbol}${fmt(invoice.amountPaid)}${currencySuffix}`);
+    lines.push(`${t("Remaining")}: ${currencySymbol}${fmt(invoice.remaining)}${currencySuffix}`);
+    lines.push(``);
+    lines.push(`${t("Supplier Balance")}:`);
+    lines.push(`${t("Old Debt")}: ${currencySymbol}${fmt(oldDebt)}${currencySuffix}`);
+    lines.push(`${t("Invoice Remaining")}: ${currencySymbol}${fmt(invoiceRemaining)}${currencySuffix}`);
+    lines.push(`${t("Total Balance")}: ${currencySymbol}${fmt(totalBalance)}${currencySuffix}`);
+
+    const message = encodeURIComponent(lines.join("\n"));
+    const phone = supplier?.mobile ? supplier.mobile.replace(/[^0-9]/g, "") : "";
+    const url = phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`;
+    window.open(url, "_blank");
+  };
+
   const isLoading = invoiceLoading || itemsLoading;
 
   return (
@@ -183,6 +211,10 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           <DialogTitle className="flex items-center justify-between">
             <span>{t("Purchase Invoice Report")}</span>
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={isLoading} data-testid="button-whatsapp-invoice" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                {t("WhatsApp")}
+              </Button>
               <Button variant="outline" size="sm" onClick={handlePrint} disabled={isLoading} data-testid="button-print-invoice">
                 <Printer className="w-4 h-4 mr-1" />
                 {t("Print")}
