@@ -234,7 +234,13 @@ export default function SupplierAdjustmentsPage() {
 
               <div className="space-y-2">
                 <Label>{t("Adjustment Type")}</Label>
-                <Select value={adjustmentType} onValueChange={setAdjustmentType}>
+                <Select value={adjustmentType} onValueChange={(val) => {
+                    setAdjustmentType(val);
+                    if (val === "discount") {
+                      setPayTo("");
+                      setPayToName("");
+                    }
+                  }}>
                   <SelectTrigger data-testid="select-adjustment-type">
                     <SelectValue placeholder={t("Select type...")} />
                   </SelectTrigger>
@@ -256,47 +262,51 @@ export default function SupplierAdjustmentsPage() {
               </div>
             </div>
 
-            <Separator />
+            {adjustmentType !== "discount" && (
+              <>
+                <Separator />
 
-            <div className="space-y-2">
-              <Label>{t('Pay To')}</Label>
-              <Select value={payTo} onValueChange={selectPayTo}>
-                <SelectTrigger data-testid="select-pay-to">
-                  <SelectValue placeholder={t('Select bank or transfer office...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <HandCoins className="h-3 w-3" /> {t('By Hand')}
-                  </div>
-                  <SelectItem value="byhand:0">{t('By Hand')}</SelectItem>
+                <div className="space-y-2">
+                  <Label>{t('Pay To')}</Label>
+                  <Select value={payTo} onValueChange={selectPayTo}>
+                    <SelectTrigger data-testid="select-pay-to">
+                      <SelectValue placeholder={t('Select bank or transfer office...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <HandCoins className="h-3 w-3" /> {t('By Hand')}
+                      </div>
+                      <SelectItem value="byhand:0">{t('By Hand')}</SelectItem>
 
-                  {banks.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Landmark className="h-3 w-3" /> {t('Banks')}
-                      </div>
-                      {banks.map(b => (
-                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {transferOffices.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
-                      </div>
-                      {transferOffices.map(o => (
-                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>
-                          {o.name}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+                      {banks.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <Landmark className="h-3 w-3" /> {t('Banks')}
+                          </div>
+                          {banks.map(b => (
+                            <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {transferOffices.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <Building className="h-3 w-3" /> {t('Transfer Offices')}
+                          </div>
+                          {transferOffices.map(o => (
+                            <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>
+                              {o.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
 
             <Separator />
 
