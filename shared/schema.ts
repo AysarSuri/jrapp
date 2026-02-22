@@ -198,6 +198,8 @@ export const supplierAdjustments = pgTable("supplier_adjustments", {
   oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
   remainingUsd: numeric("remaining_usd").notNull().default("0"),
   remainingIqd: numeric("remaining_iqd").notNull().default("0"),
+  payTo: text("pay_to"),
+  payToName: text("pay_to_name"),
   note: text("note"),
   date: text("date").notNull(),
   time: text("time").notNull().default("00:00"),

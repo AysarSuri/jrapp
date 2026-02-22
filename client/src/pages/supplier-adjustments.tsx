@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useSupplierAdjustments, useCreateSupplierAdjustment } from "@/hooks/use-supplier-adjustments";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, SupplierAdjustment } from "@shared/schema";
+import type { Client, SupplierAdjustment, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent,
+  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -34,6 +34,14 @@ export default function SupplierAdjustmentsPage() {
     queryKey: ["/api/clients"],
     select: (data: Client[]) => data.filter(c => c.type === "supplier"),
   });
+  const { data: banksList } = useQuery<Bank[]>({
+    queryKey: ["/api/banks"],
+  });
+  const { data: transferOfficesList } = useQuery<TransferOffice[]>({
+    queryKey: ["/api/transfer-offices"],
+  });
+  const banks = banksList || [];
+  const transferOffices = transferOfficesList || [];
 
   const [supplierId, setSupplierId] = useState<string>("");
   const [supplierName, setSupplierName] = useState("");
@@ -41,6 +49,8 @@ export default function SupplierAdjustmentsPage() {
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [note, setNote] = useState("");
+  const [payTo, setPayTo] = useState<string>("");
+  const [payToName, setPayToName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -53,6 +63,22 @@ export default function SupplierAdjustmentsPage() {
     }
   }, [suppliers]);
 
+  const selectPayTo = useCallback((val: string) => {
+    setPayTo(val);
+    if (val === "byhand:0") {
+      setPayToName(t("By Hand"));
+    } else {
+      const [type, id] = val.split(":");
+      if (type === "bank") {
+        const bank = banksList?.find(b => b.id === parseInt(id));
+        if (bank) setPayToName(`${t("Bank")} - ${bank.name}`);
+      } else {
+        const office = transferOfficesList?.find(o => o.id === parseInt(id));
+        if (office) setPayToName(`${t("Transfer Office")} - ${office.name}`);
+      }
+    }
+  }, [banksList, transferOfficesList, t]);
+
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
 
   const resetForm = () => {
@@ -62,6 +88,8 @@ export default function SupplierAdjustmentsPage() {
     setAmountUsd("");
     setAmountIqd("");
     setNote("");
+    setPayTo("");
+    setPayToName("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
   };
@@ -84,6 +112,8 @@ export default function SupplierAdjustmentsPage() {
       type: adjustmentType,
       amountUsd: String(usd),
       amountIqd: String(iqd),
+      payTo: payTo || undefined,
+      payToName: payToName || undefined,
       note: note || undefined,
       date,
       time,
@@ -224,6 +254,48 @@ export default function SupplierAdjustmentsPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label>{t('Pay To')}</Label>
+              <Select value={payTo} onValueChange={selectPayTo}>
+                <SelectTrigger data-testid="select-pay-to">
+                  <SelectValue placeholder={t('Select bank or transfer office...')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <HandCoins className="h-3 w-3" /> {t('By Hand')}
+                  </div>
+                  <SelectItem value="byhand:0">{t('By Hand')}</SelectItem>
+
+                  {banks.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Landmark className="h-3 w-3" /> {t('Banks')}
+                      </div>
+                      {banks.map(b => (
+                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {transferOffices.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
+                      </div>
+                      {transferOffices.map(o => (
+                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>
+                          {o.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <Separator />
