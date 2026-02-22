@@ -123,7 +123,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    const printWindow = window.open("", "_blank", "width=900,height=700");
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -161,7 +161,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           .signature-box { text-align: center; width: 200px; }
           .signature-line { border-top: 1px solid #333; margin-top: 40px; padding-top: 3px; }
           @media print {
-            body { padding: 10px; }
+            body { padding: 15mm; }
             @page { margin: 10mm; size: A4; }
           }
         </style>
