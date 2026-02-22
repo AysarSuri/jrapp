@@ -51,7 +51,62 @@ interface LabelSettings {
   barcodeWidth: number;
   barcodeHeight: number;
   pageSize: string;
+  printerType: string;
+  thermalRollWidth: number;
+  thermalDpi: number;
+  thermalSpeed: string;
+  thermalDensity: string;
+  continuousMode: boolean;
+  labelRotation: number;
 }
+
+const thermalPresets: Record<string, Partial<LabelSettings>> = {
+  "thermal-30x20": {
+    printerType: "thermal", labelWidth: 30, labelHeight: 20, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 7, barcodeWidth: 1, barcodeHeight: 25,
+    thermalRollWidth: 30, pageSize: "Thermal",
+  },
+  "thermal-40x30": {
+    printerType: "thermal", labelWidth: 40, labelHeight: 30, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 8, barcodeWidth: 1.2, barcodeHeight: 30,
+    thermalRollWidth: 40, pageSize: "Thermal",
+  },
+  "thermal-50x25": {
+    printerType: "thermal", labelWidth: 50, labelHeight: 25, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 9, barcodeWidth: 1.3, barcodeHeight: 30,
+    thermalRollWidth: 50, pageSize: "Thermal",
+  },
+  "thermal-50x30": {
+    printerType: "thermal", labelWidth: 50, labelHeight: 30, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 9, barcodeWidth: 1.3, barcodeHeight: 35,
+    thermalRollWidth: 50, pageSize: "Thermal",
+  },
+  "thermal-60x40": {
+    printerType: "thermal", labelWidth: 60, labelHeight: 40, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 10, barcodeWidth: 1.5, barcodeHeight: 40,
+    thermalRollWidth: 60, pageSize: "Thermal",
+  },
+  "thermal-80x50": {
+    printerType: "thermal", labelWidth: 80, labelHeight: 50, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 11, barcodeWidth: 1.5, barcodeHeight: 45,
+    thermalRollWidth: 80, pageSize: "Thermal",
+  },
+  "thermal-58-receipt": {
+    printerType: "thermal", labelWidth: 48, labelHeight: 25, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 8, barcodeWidth: 1, barcodeHeight: 28,
+    thermalRollWidth: 58, pageSize: "Thermal",
+  },
+  "thermal-80-receipt": {
+    printerType: "thermal", labelWidth: 70, labelHeight: 30, columns: 1,
+    marginX: 0, marginY: 1, fontSize: 9, barcodeWidth: 1.2, barcodeHeight: 30,
+    thermalRollWidth: 80, pageSize: "Thermal",
+  },
+  "thermal-2col-80": {
+    printerType: "thermal", labelWidth: 35, labelHeight: 25, columns: 2,
+    marginX: 2, marginY: 1, fontSize: 7, barcodeWidth: 1, barcodeHeight: 22,
+    thermalRollWidth: 80, pageSize: "Thermal",
+  },
+};
 
 const defaultSettings: LabelSettings = {
   labelWidth: 50,
@@ -68,6 +123,13 @@ const defaultSettings: LabelSettings = {
   barcodeWidth: 1.5,
   barcodeHeight: 40,
   pageSize: "A4",
+  printerType: "regular",
+  thermalRollWidth: 58,
+  thermalDpi: 203,
+  thermalSpeed: "medium",
+  thermalDensity: "medium",
+  continuousMode: false,
+  labelRotation: 0,
 };
 
 function BarcodeCanvas({ value, format, width, height, displayValue }: {
@@ -115,6 +177,16 @@ export default function BarcodePrintPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSettings, setShowSettings] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string>("");
+
+  const applyPreset = (presetKey: string) => {
+    setSelectedPreset(presetKey);
+    if (presetKey === "regular") {
+      setSettings({ ...defaultSettings });
+    } else if (thermalPresets[presetKey]) {
+      setSettings(prev => ({ ...prev, ...thermalPresets[presetKey] }));
+    }
+  };
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: productsList } = useQuery<Product[]>({
@@ -173,6 +245,7 @@ export default function BarcodePrintPage() {
         A4: "210mm 297mm",
         A5: "148mm 210mm",
         Letter: "216mm 279mm",
+        Thermal: `${settings.thermalRollWidth}mm auto`,
       };
 
       printWindow.document.write(`<!DOCTYPE html>
@@ -197,6 +270,7 @@ export default function BarcodePrintPage() {
             padding: 1mm;
             box-sizing: border-box;
             page-break-inside: avoid;
+            ${settings.labelRotation ? `transform: rotate(${settings.labelRotation}deg);` : ''}
           }
           .label-name {
             font-size: ${settings.fontSize}px;
@@ -285,159 +359,305 @@ export default function BarcodePrintPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Page Size')}</Label>
-                <Select
-                  value={settings.pageSize}
-                  onValueChange={v => setSettings(s => ({ ...s, pageSize: v }))}
-                >
-                  <SelectTrigger data-testid="select-page-size"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A4">A4</SelectItem>
-                    <SelectItem value="A5">A5</SelectItem>
-                    <SelectItem value="Letter">Letter</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Label Width')} (mm)</Label>
-                <Input
-                  type="number"
-                  value={settings.labelWidth}
-                  onChange={e => setSettings(s => ({ ...s, labelWidth: Number(e.target.value) || 50 }))}
-                  data-testid="input-label-width"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Label Height')} (mm)</Label>
-                <Input
-                  type="number"
-                  value={settings.labelHeight}
-                  onChange={e => setSettings(s => ({ ...s, labelHeight: Number(e.target.value) || 30 }))}
-                  data-testid="input-label-height"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Columns')}</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={settings.columns}
-                  onChange={e => setSettings(s => ({ ...s, columns: Math.min(10, Math.max(1, Number(e.target.value) || 4)) }))}
-                  data-testid="input-columns"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Gap X')} (mm)</Label>
-                <Input
-                  type="number"
-                  value={settings.marginX}
-                  onChange={e => setSettings(s => ({ ...s, marginX: Number(e.target.value) || 0 }))}
-                  data-testid="input-gap-x"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Gap Y')} (mm)</Label>
-                <Input
-                  type="number"
-                  value={settings.marginY}
-                  onChange={e => setSettings(s => ({ ...s, marginY: Number(e.target.value) || 0 }))}
-                  data-testid="input-gap-y"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Barcode Type')}</Label>
-                <Select
-                  value={settings.barcodeType}
-                  onValueChange={v => setSettings(s => ({ ...s, barcodeType: v }))}
-                >
-                  <SelectTrigger data-testid="select-barcode-type"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CODE128">CODE 128</SelectItem>
-                    <SelectItem value="EAN13">EAN-13</SelectItem>
-                    <SelectItem value="EAN8">EAN-8</SelectItem>
-                    <SelectItem value="UPC">UPC</SelectItem>
-                    <SelectItem value="CODE39">CODE 39</SelectItem>
-                    <SelectItem value="ITF14">ITF-14</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Barcode Line Width')}</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min={0.5}
-                  max={4}
-                  value={settings.barcodeWidth}
-                  onChange={e => setSettings(s => ({ ...s, barcodeWidth: Number(e.target.value) || 1.5 }))}
-                  data-testid="input-barcode-width"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Barcode Height')} (px)</Label>
-                <Input
-                  type="number"
-                  min={20}
-                  max={100}
-                  value={settings.barcodeHeight}
-                  onChange={e => setSettings(s => ({ ...s, barcodeHeight: Number(e.target.value) || 40 }))}
-                  data-testid="input-barcode-height"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('Font Size')} (px)</Label>
-                <Input
-                  type="number"
-                  min={6}
-                  max={24}
-                  value={settings.fontSize}
-                  onChange={e => setSettings(s => ({ ...s, fontSize: Number(e.target.value) || 10 }))}
-                  data-testid="input-font-size"
-                />
-              </div>
-            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Printer Type')}</Label>
+                  <Select
+                    value={settings.printerType}
+                    onValueChange={v => {
+                      if (v === "regular") {
+                        applyPreset("regular");
+                      } else {
+                        setSettings(s => ({ ...s, printerType: "thermal", pageSize: "Thermal" }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger data-testid="select-printer-type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">{t('Regular Printer')}</SelectItem>
+                      <SelectItem value="thermal">{t('Thermal Printer')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Separator className="my-4" />
+                {settings.printerType === "thermal" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('Label Preset')}</Label>
+                    <Select
+                      value={selectedPreset}
+                      onValueChange={applyPreset}
+                    >
+                      <SelectTrigger data-testid="select-thermal-preset"><SelectValue placeholder={t('Select Preset')} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="thermal-30x20">30×20mm</SelectItem>
+                        <SelectItem value="thermal-40x30">40×30mm</SelectItem>
+                        <SelectItem value="thermal-50x25">50×25mm</SelectItem>
+                        <SelectItem value="thermal-50x30">50×30mm</SelectItem>
+                        <SelectItem value="thermal-60x40">60×40mm</SelectItem>
+                        <SelectItem value="thermal-80x50">80×50mm</SelectItem>
+                        <SelectItem value="thermal-58-receipt">{t('Receipt')} 58mm</SelectItem>
+                        <SelectItem value="thermal-80-receipt">{t('Receipt')} 80mm</SelectItem>
+                        <SelectItem value="thermal-2col-80">{t('2 Columns')} 80mm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
 
-            <div className="flex flex-wrap gap-6">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="showProductName"
-                  checked={settings.showProductName}
-                  onCheckedChange={c => setSettings(s => ({ ...s, showProductName: !!c }))}
-                  data-testid="checkbox-show-name"
-                />
-                <Label htmlFor="showProductName" className="text-sm cursor-pointer">{t('Show Product Name')}</Label>
+              {settings.printerType === "thermal" && (
+                <>
+                  <Separator />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('Roll Width')} (mm)</Label>
+                      <Select
+                        value={String(settings.thermalRollWidth)}
+                        onValueChange={v => setSettings(s => ({ ...s, thermalRollWidth: Number(v) }))}
+                      >
+                        <SelectTrigger data-testid="select-roll-width"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30mm</SelectItem>
+                          <SelectItem value="40">40mm</SelectItem>
+                          <SelectItem value="50">50mm</SelectItem>
+                          <SelectItem value="58">58mm</SelectItem>
+                          <SelectItem value="60">60mm</SelectItem>
+                          <SelectItem value="80">80mm</SelectItem>
+                          <SelectItem value="110">110mm</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('DPI')}</Label>
+                      <Select
+                        value={String(settings.thermalDpi)}
+                        onValueChange={v => setSettings(s => ({ ...s, thermalDpi: Number(v) }))}
+                      >
+                        <SelectTrigger data-testid="select-dpi"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="150">150 DPI</SelectItem>
+                          <SelectItem value="203">203 DPI</SelectItem>
+                          <SelectItem value="300">300 DPI</SelectItem>
+                          <SelectItem value="600">600 DPI</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('Print Speed')}</Label>
+                      <Select
+                        value={settings.thermalSpeed}
+                        onValueChange={v => setSettings(s => ({ ...s, thermalSpeed: v }))}
+                      >
+                        <SelectTrigger data-testid="select-speed"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="slow">{t('Slow')}</SelectItem>
+                          <SelectItem value="medium">{t('Medium')}</SelectItem>
+                          <SelectItem value="fast">{t('Fast')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('Print Density')}</Label>
+                      <Select
+                        value={settings.thermalDensity}
+                        onValueChange={v => setSettings(s => ({ ...s, thermalDensity: v }))}
+                      >
+                        <SelectTrigger data-testid="select-density"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">{t('Light')}</SelectItem>
+                          <SelectItem value="medium">{t('Medium')}</SelectItem>
+                          <SelectItem value="dark">{t('Dark')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('Rotation')}</Label>
+                      <Select
+                        value={String(settings.labelRotation)}
+                        onValueChange={v => setSettings(s => ({ ...s, labelRotation: Number(v) }))}
+                      >
+                        <SelectTrigger data-testid="select-rotation"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0°</SelectItem>
+                          <SelectItem value="90">90°</SelectItem>
+                          <SelectItem value="180">180°</SelectItem>
+                          <SelectItem value="270">270°</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-6">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="continuousMode"
+                        checked={settings.continuousMode}
+                        onCheckedChange={c => setSettings(s => ({ ...s, continuousMode: !!c }))}
+                        data-testid="checkbox-continuous"
+                      />
+                      <Label htmlFor="continuousMode" className="text-sm cursor-pointer">{t('Continuous Roll')}</Label>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {settings.printerType === "regular" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('Page Size')}</Label>
+                    <Select
+                      value={settings.pageSize}
+                      onValueChange={v => setSettings(s => ({ ...s, pageSize: v }))}
+                    >
+                      <SelectTrigger data-testid="select-page-size"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A4">A4</SelectItem>
+                        <SelectItem value="A5">A5</SelectItem>
+                        <SelectItem value="Letter">Letter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Label Width')} (mm)</Label>
+                  <Input
+                    type="number"
+                    value={settings.labelWidth}
+                    onChange={e => setSettings(s => ({ ...s, labelWidth: Number(e.target.value) || 50 }))}
+                    data-testid="input-label-width"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Label Height')} (mm)</Label>
+                  <Input
+                    type="number"
+                    value={settings.labelHeight}
+                    onChange={e => setSettings(s => ({ ...s, labelHeight: Number(e.target.value) || 30 }))}
+                    data-testid="input-label-height"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Columns')}</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={settings.columns}
+                    onChange={e => setSettings(s => ({ ...s, columns: Math.min(10, Math.max(1, Number(e.target.value) || 4)) }))}
+                    data-testid="input-columns"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Gap X')} (mm)</Label>
+                  <Input
+                    type="number"
+                    value={settings.marginX}
+                    onChange={e => setSettings(s => ({ ...s, marginX: Number(e.target.value) || 0 }))}
+                    data-testid="input-gap-x"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Gap Y')} (mm)</Label>
+                  <Input
+                    type="number"
+                    value={settings.marginY}
+                    onChange={e => setSettings(s => ({ ...s, marginY: Number(e.target.value) || 0 }))}
+                    data-testid="input-gap-y"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Barcode Type')}</Label>
+                  <Select
+                    value={settings.barcodeType}
+                    onValueChange={v => setSettings(s => ({ ...s, barcodeType: v }))}
+                  >
+                    <SelectTrigger data-testid="select-barcode-type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CODE128">CODE 128</SelectItem>
+                      <SelectItem value="EAN13">EAN-13</SelectItem>
+                      <SelectItem value="EAN8">EAN-8</SelectItem>
+                      <SelectItem value="UPC">UPC</SelectItem>
+                      <SelectItem value="CODE39">CODE 39</SelectItem>
+                      <SelectItem value="ITF14">ITF-14</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Barcode Line Width')}</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min={0.5}
+                    max={4}
+                    value={settings.barcodeWidth}
+                    onChange={e => setSettings(s => ({ ...s, barcodeWidth: Number(e.target.value) || 1.5 }))}
+                    data-testid="input-barcode-width"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Barcode Height')} (px)</Label>
+                  <Input
+                    type="number"
+                    min={20}
+                    max={100}
+                    value={settings.barcodeHeight}
+                    onChange={e => setSettings(s => ({ ...s, barcodeHeight: Number(e.target.value) || 40 }))}
+                    data-testid="input-barcode-height"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('Font Size')} (px)</Label>
+                  <Input
+                    type="number"
+                    min={6}
+                    max={24}
+                    value={settings.fontSize}
+                    onChange={e => setSettings(s => ({ ...s, fontSize: Number(e.target.value) || 10 }))}
+                    data-testid="input-font-size"
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="showPrice"
-                  checked={settings.showPrice}
-                  onCheckedChange={c => setSettings(s => ({ ...s, showPrice: !!c }))}
-                  data-testid="checkbox-show-price"
-                />
-                <Label htmlFor="showPrice" className="text-sm cursor-pointer">{t('Show Price')}</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="showBarcode"
-                  checked={settings.showBarcode}
-                  onCheckedChange={c => setSettings(s => ({ ...s, showBarcode: !!c }))}
-                  data-testid="checkbox-show-barcode"
-                />
-                <Label htmlFor="showBarcode" className="text-sm cursor-pointer">{t('Show Barcode')}</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="showBarcodeText"
-                  checked={settings.showBarcodeText}
-                  onCheckedChange={c => setSettings(s => ({ ...s, showBarcodeText: !!c }))}
-                  data-testid="checkbox-show-barcode-text"
-                />
-                <Label htmlFor="showBarcodeText" className="text-sm cursor-pointer">{t('Show Barcode Number')}</Label>
+
+              <Separator />
+
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="showProductName"
+                    checked={settings.showProductName}
+                    onCheckedChange={c => setSettings(s => ({ ...s, showProductName: !!c }))}
+                    data-testid="checkbox-show-name"
+                  />
+                  <Label htmlFor="showProductName" className="text-sm cursor-pointer">{t('Show Product Name')}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="showPrice"
+                    checked={settings.showPrice}
+                    onCheckedChange={c => setSettings(s => ({ ...s, showPrice: !!c }))}
+                    data-testid="checkbox-show-price"
+                  />
+                  <Label htmlFor="showPrice" className="text-sm cursor-pointer">{t('Show Price')}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="showBarcode"
+                    checked={settings.showBarcode}
+                    onCheckedChange={c => setSettings(s => ({ ...s, showBarcode: !!c }))}
+                    data-testid="checkbox-show-barcode"
+                  />
+                  <Label htmlFor="showBarcode" className="text-sm cursor-pointer">{t('Show Barcode')}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="showBarcodeText"
+                    checked={settings.showBarcodeText}
+                    onCheckedChange={c => setSettings(s => ({ ...s, showBarcodeText: !!c }))}
+                    data-testid="checkbox-show-barcode-text"
+                  />
+                  <Label htmlFor="showBarcodeText" className="text-sm cursor-pointer">{t('Show Barcode Number')}</Label>
+                </div>
               </div>
             </div>
           </CardContent>
