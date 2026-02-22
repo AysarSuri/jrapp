@@ -135,7 +135,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; font-size: 12pt; direction: ${isRtl ? "rtl" : "ltr"}; }
           .cliche-container { text-align: center; margin-bottom: 10px; }
-          .cliche-container img { max-width: 100%; max-height: 120px; object-fit: contain; }
+          .cliche-container img { width: 100%; height: 180px; object-fit: cover; }
           .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
           .header h1 { font-size: 16pt; margin-bottom: 3px; }
           .header p { font-size: 12pt; color: #666; }
@@ -231,7 +231,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           <div ref={printRef}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ maxWidth: "100%", maxHeight: 120, objectFit: "contain" }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 180, objectFit: "cover" }} />
               </div>
             )}
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
