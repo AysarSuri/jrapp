@@ -19,8 +19,9 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, Banknote, FileText, RotateCcw,
-  ListOrdered,
+  ListOrdered, FileBarChart,
 } from "lucide-react";
+import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -92,6 +93,8 @@ export default function PurchaseInvoiceIqdPage() {
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
@@ -288,6 +291,7 @@ export default function PurchaseInvoiceIqdPage() {
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Total')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
+                    <TableHead>{t('Report')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -304,6 +308,21 @@ export default function PurchaseInvoiceIqdPage() {
                       </TableCell>
                       <TableCell className="font-mono">{Number(inv.subtotal).toLocaleString()} IQD</TableCell>
                       <TableCell className="font-mono text-red-600">{Number(inv.remaining).toLocaleString()} IQD</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setReportInvoiceId(inv.id);
+                            setReportOpen(true);
+                            setHistoryOpen(false);
+                          }}
+                          data-testid={`button-report-iqd-invoice-${inv.id}`}
+                        >
+                          <FileBarChart className="w-4 h-4 mr-1" />
+                          {t('Report')}
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -674,6 +693,13 @@ export default function PurchaseInvoiceIqdPage() {
           </CardContent>
         </Card>
       </div>
+
+      <PurchaseInvoiceReport
+        invoiceId={reportInvoiceId}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        currency="IQD"
+      />
     </div>
   );
 }
