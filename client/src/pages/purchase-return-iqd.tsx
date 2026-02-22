@@ -78,6 +78,7 @@ export default function PurchaseReturnIqdPage() {
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -88,9 +89,8 @@ export default function PurchaseReturnIqdPage() {
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
-  const discountVal = parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
-  const remaining = subtotal - discountVal - amountPaidVal;
+  const remaining = subtotal - amountPaidVal;
 
   const updateItem = useCallback((index: number, field: keyof ReturnItem, value: string) => {
     setItems(prev => {
@@ -126,6 +126,10 @@ export default function PurchaseReturnIqdPage() {
       }
       return updated;
     });
+    setTimeout(() => {
+      const qtyInput = document.querySelector(`[data-testid="input-purchase-return-iqd-quantity-${index}"]`) as HTMLInputElement;
+      if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
+    }, 100);
   }, [products]);
 
   const addRow = () => {
@@ -143,11 +147,11 @@ export default function PurchaseReturnIqdPage() {
     setAddress("");
     setNote("");
     setReturnType("cash");
-    setDiscount("");
     setAmountPaid("");
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+    setFormKey(k => k + 1);
   };
 
   const handleSave = () => {
@@ -171,7 +175,7 @@ export default function PurchaseReturnIqdPage() {
       note: note || null,
       returnType,
       subtotal: subtotal.toFixed(2),
-      discount: discount || "0",
+      discount: "0",
       amountPaid: amountPaid || "0",
       remaining: remaining.toFixed(2),
       totalItems,
@@ -356,8 +360,15 @@ export default function PurchaseReturnIqdPage() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Created By')}</Label>
+              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/30 text-sm font-medium" data-testid="text-return-iqd-created-by">
+                {user?.username || "-"}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select onValueChange={selectSupplier}>
+              <Select key={`supplier-return-iqd-${formKey}`} onValueChange={selectSupplier}>
                 <SelectTrigger data-testid="select-purchase-return-iqd-supplier">
                   <SelectValue placeholder={t('Select Supplier')} />
                 </SelectTrigger>
@@ -471,12 +482,40 @@ export default function PurchaseReturnIqdPage() {
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
+                      <Select
                         value={item.unit}
-                        onChange={(e) => updateItem(index, "unit", e.target.value)}
-                        className="h-9 text-sm"
-                        data-testid={`input-purchase-return-iqd-unit-${index}`}
-                      />
+                        onValueChange={(val) => {
+                          const product = products?.find(p => p.id === item.productId);
+                          if (product) {
+                            const newPrice = val === product.bigUnit ? product.bigUnitPriceIqd : product.smallUnitPriceIqd;
+                            setItems(prev => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], unit: val, price: newPrice };
+                              const qty = parseFloat(updated[index].quantity || "0");
+                              updated[index].amount = (qty * parseFloat(newPrice)).toFixed(2);
+                              return updated;
+                            });
+                          } else {
+                            updateItem(index, "unit", val);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-9 text-sm" data-testid={`select-purchase-return-iqd-unit-${index}`}>
+                          <SelectValue placeholder={t('Unit')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {item.productId && products?.find(p => p.id === item.productId) ? (
+                            <>
+                              <SelectItem value={products.find(p => p.id === item.productId)!.bigUnit}>
+                                {products.find(p => p.id === item.productId)!.bigUnit}
+                              </SelectItem>
+                              <SelectItem value={products.find(p => p.id === item.productId)!.smallUnit}>
+                                {products.find(p => p.id === item.productId)!.smallUnit}
+                              </SelectItem>
+                            </>
+                          ) : null}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="p-1">
                       <Input
@@ -530,21 +569,11 @@ export default function PurchaseReturnIqdPage() {
                 {subtotal.toLocaleString()} IQD
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Discount')}</Label>
-              <Input
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                placeholder="0"
-                className="h-9"
-                data-testid="input-purchase-return-iqd-discount"
-              />
-            </div>
           </div>
           <Separator className="my-4" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Amount Paid')}</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Amount Received from Supplier')}</Label>
               <Input
                 value={amountPaid}
                 onChange={(e) => setAmountPaid(e.target.value)}
