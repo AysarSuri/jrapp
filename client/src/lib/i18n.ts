@@ -1480,7 +1480,7 @@ const resources = {
       "Production Date": "تاریخ الانتاج",
       "Expiry Date": "تاریخ الانتهاء",
       "Invoice Total": "مجموع القائمة",
-      "Amount Paid": "مبلغ الواصل",
+      "Amount Paid": "المبلغ المدفوع",
       "Amount Received from Supplier": "مبلغ الوصل من المورد",
       "Remaining": "المتبقي",
       "Save Invoice": "حفظ الفاتورة",
