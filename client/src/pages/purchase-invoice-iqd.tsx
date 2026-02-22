@@ -92,6 +92,7 @@ export default function PurchaseInvoiceIqdPage() {
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -181,6 +182,7 @@ export default function PurchaseInvoiceIqdPage() {
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+    setFormKey(k => k + 1);
   };
 
   const handleSave = () => {
@@ -362,7 +364,7 @@ export default function PurchaseInvoiceIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select onValueChange={selectSupplier}>
+              <Select key={`supplier-iqd-${formKey}`} onValueChange={selectSupplier}>
                 <SelectTrigger data-testid="select-supplier-iqd">
                   <SelectValue placeholder={t('Select Supplier')} />
                 </SelectTrigger>
