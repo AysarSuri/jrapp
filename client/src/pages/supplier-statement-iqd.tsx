@@ -473,7 +473,7 @@ export default function SupplierStatementIqdPage() {
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-iqd-${idx}`}>
                           <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
-                          <TableCell className="whitespace-nowrap">{entry.date}<br /><span className="text-xs text-muted-foreground">{entry.time}</span></TableCell>
+                          <TableCell className="whitespace-nowrap">{formatDate(entry.date)}<br /><span className="text-xs text-muted-foreground">{entry.time}</span></TableCell>
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
                           <TableCell className="text-sm">{entry.description}</TableCell>
                           <TableCell className="text-center">
