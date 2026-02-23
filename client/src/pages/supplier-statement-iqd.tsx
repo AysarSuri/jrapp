@@ -122,7 +122,8 @@ export default function SupplierStatementIqdPage() {
     const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
 
-    const oldDebt = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const oldDebtVal = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const openingBalanceVal = statement.openingBalanceIqd ?? oldDebtVal;
     const rows = entriesWithBalance.map((e, idx) => `
       <tr>
         <td>${idx + 1}</td>
@@ -135,6 +136,8 @@ export default function SupplierStatementIqdPage() {
         <td>${e.note || "-"}</td>
       </tr>
     `).join("");
+
+    const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -179,10 +182,11 @@ export default function SupplierStatementIqdPage() {
         <div class="header">
           <h1>${t("Supplier Statement - IQD")}</h1>
           <p>${new Date().toLocaleDateString()}</p>
+          ${dateRangeHtml}
         </div>
         <div class="supplier-bar">${statement.supplier.name}</div>
         <div class="summary-cards">
-          <div class="summary-card"><div class="label">${t("Old Debt IQD")}</div><div class="value red">${fmt(oldDebt)} IQD</div></div>
+          <div class="summary-card"><div class="label">${t("Opening Balance")}</div><div class="value red">${fmt(openingBalanceVal)} IQD</div></div>
           <div class="summary-card"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
           <div class="summary-card"><div class="label">${t("Final Balance IQD")}</div><div class="value blue">${fmt(finalBalance)} IQD</div></div>
         </div>
@@ -201,8 +205,8 @@ export default function SupplierStatementIqdPage() {
           </thead>
           <tbody>
             <tr class="opening-row">
-              <td>-</td><td>-</td><td colspan="2">${t("Opening Balance (Old Debt)")}</td>
-              <td>-</td><td>-</td><td class="balance red">${fmt(oldDebt)} IQD</td><td></td>
+              <td>-</td><td>-</td><td colspan="2">${t("Opening Balance")}</td>
+              <td>-</td><td>-</td><td class="balance red">${fmt(openingBalanceVal)} IQD</td><td></td>
             </tr>
             ${rows}
             <tr class="total-row">
@@ -228,7 +232,8 @@ export default function SupplierStatementIqdPage() {
     tempDiv.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;background:white;padding:15px;font-size:10pt;direction:" + (isRtl ? "rtl" : "ltr");
     document.body.appendChild(tempDiv);
 
-    const oldDebt = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const oldDebtVal = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const openingBalanceVal = statement.openingBalanceIqd ?? oldDebtVal;
     const rows = entriesWithBalance.map((e, idx) => `
       <tr style="background:${idx % 2 === 0 ? "white" : "#f9f9f9"}">
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${idx + 1}</td>
@@ -242,15 +247,18 @@ export default function SupplierStatementIqdPage() {
       </tr>
     `).join("");
 
+    const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #666;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+
     tempDiv.innerHTML = `
       ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:8px"><img src="${companyProfile.cliche}" style="width:100%;height:150px;object-fit:cover" /></div>` : ""}
       <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
         <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")}</h1>
         <p style="font-size:10pt;color:#666">${new Date().toLocaleDateString()}</p>
+        ${dateRangeHtml}
       </div>
       <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
-        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Old Debt IQD")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${fmt(oldDebt)} IQD</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Opening Balance")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${fmt(openingBalanceVal)} IQD</div></div>
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments IQD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${fmt(totalCreditIqd)} IQD</div></div>
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Final Balance IQD")}</div><div style="font-size:12pt;font-weight:700;color:#2563eb">${fmt(finalBalance)} IQD</div></div>
       </div>
@@ -266,7 +274,7 @@ export default function SupplierStatementIqdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
         </tr></thead>
         <tbody>
-          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance (Old Debt)")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${fmt(oldDebt)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${fmt(openingBalanceVal)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
           ${rows}
           <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">${fmt(totalDebitIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">${fmt(totalCreditIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">${fmt(finalBalance)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
         </tbody>
@@ -355,6 +363,7 @@ export default function SupplierStatementIqdPage() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full"
+                data-testid="input-start-date"
               />
             </div>
             <div className="flex-1">
@@ -364,6 +373,7 @@ export default function SupplierStatementIqdPage() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full"
+                data-testid="input-end-date"
               />
             </div>
           </div>
@@ -375,6 +385,7 @@ export default function SupplierStatementIqdPage() {
                 setStartDate("");
                 setEndDate("");
               }}
+              data-testid="button-clear-filters"
             >
               {t("Clear Filters")}
             </Button>
@@ -404,8 +415,8 @@ export default function SupplierStatementIqdPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Old Debt IQD")}</p>
-                <p className="text-xl font-bold text-red-600 dark:text-red-400">{fmt(parseFloat(statement.supplier.oldDebtIqd || "0"))} IQD</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance")}</p>
+                <p className="text-xl font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-iqd">{fmt(openingBalance)} IQD</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-green-500">
@@ -447,14 +458,14 @@ export default function SupplierStatementIqdPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow className="bg-muted/30 font-medium">
+                      <TableRow className="bg-muted/30 font-medium italic">
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Opening Balance (Old Debt)")}</TableCell>
+                        <TableCell colSpan={2}>{t("Opening Balance")}</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400">{fmt(parseFloat(statement.supplier.oldDebtIqd || "0"))} IQD</TableCell>
-                        <TableCell></TableCell>
+                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-row-iqd">{fmt(openingBalance)} IQD</TableCell>
+                        <TableCell>-</TableCell>
                       </TableRow>
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-iqd-${idx}`}>
