@@ -264,7 +264,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : invoice ? (
-          <div ref={printRef}>
+          <div ref={printRef} style={{ margin: "0 auto", maxWidth: 700, padding: "0 15px" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
