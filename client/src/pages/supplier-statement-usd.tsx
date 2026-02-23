@@ -38,6 +38,7 @@ type StatementEntry = {
 type StatementResponse = {
   supplier: Client;
   entries: StatementEntry[];
+  openingBalanceUsd?: number;
 };
 
 type CompanyProfileData = {
