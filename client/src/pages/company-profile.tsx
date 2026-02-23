@@ -266,7 +266,7 @@ export default function CompanyProfilePage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="secondaryColor" className="flex items-center gap-1.5">
                     <Palette className="w-3.5 h-3.5" />
-                    {t('Secondary Color')}
+                    {t('Text Color')}
                   </Label>
                   <div className="flex items-center gap-2">
                     <div className="relative">
