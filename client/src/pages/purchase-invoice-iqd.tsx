@@ -27,6 +27,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -311,7 +312,7 @@ export default function PurchaseInvoiceIqdPage() {
                     <TableRow key={inv.id}>
                       <TableCell>{inv.id}</TableCell>
                       <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{inv.date}</TableCell>
+                      <TableCell>{formatDate(inv.date)}</TableCell>
                       <TableCell>{inv.supplierName}</TableCell>
                       <TableCell>
                         <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>

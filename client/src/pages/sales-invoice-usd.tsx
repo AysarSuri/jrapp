@@ -25,7 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -316,7 +316,7 @@ export default function SalesInvoiceUsdPage() {
                     <TableRow key={inv.id} data-testid={`row-sales-history-${inv.id}`}>
                       <TableCell>{inv.id}</TableCell>
                       <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{inv.date}</TableCell>
+                      <TableCell>{formatDate(inv.date)}</TableCell>
                       <TableCell>{inv.customerName}</TableCell>
                       <TableCell>{inv.representativeName || '-'}</TableCell>
                       <TableCell>
