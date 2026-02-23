@@ -25,6 +25,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useUnits } from "@/hooks/use-units";
+import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 
 interface DamageItem {
   productId: number | null;
@@ -191,6 +193,8 @@ export default function ProductDamagePage() {
     });
   }, [reason, warehouseId, warehouseName, damageNumber, note, date, time, items, createDamage, toast, t, resetForm]);
 
+  const { data: unitsData } = useUnits();
+  const unitsList = unitsData || [];
   const whs = warehousesList || [];
   const prods = productsList || [];
 
@@ -290,9 +294,9 @@ export default function ProductDamagePage() {
                       <TableRow key={item.id}>
                         <TableCell>{i + 1}</TableCell>
                         <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
-                        <TableCell>{item.productName}</TableCell>
+                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
                         <TableCell className="font-mono">{item.quantity}</TableCell>
-                        <TableCell>{item.unit}</TableCell>
+                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -430,7 +434,7 @@ export default function ProductDamagePage() {
                           </SelectTrigger>
                           <SelectContent>
                             {prods.map(p => (
-                              <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                              <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

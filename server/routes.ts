@@ -1671,6 +1671,7 @@ export async function registerRoutes(
           p.id as product_id,
           p.barcode as product_code,
           p.name as product_name,
+          p.name_en as product_name_en,
           p.category,
           p.big_unit,
           p.small_unit,
@@ -1690,7 +1691,7 @@ export async function registerRoutes(
         LEFT JOIN damage_agg da ON da.product_id = p.id
         LEFT JOIN transfer_in_agg tia ON tia.product_id = p.id
         LEFT JOIN transfer_out_agg toa ON toa.product_id = p.id
-        GROUP BY p.id, p.barcode, p.name, p.category, p.big_unit, p.small_unit, p.conversion_factor
+        GROUP BY p.id, p.barcode, p.name, p.name_en, p.category, p.big_unit, p.small_unit, p.conversion_factor
         ORDER BY p.name
       `;
 
@@ -1712,6 +1713,7 @@ export async function registerRoutes(
           productId: row.product_id,
           productCode: row.product_code,
           productName: row.product_name,
+          productNameEn: row.product_name_en || null,
           category: row.category,
           bigUnit: row.big_unit,
           smallUnit: row.small_unit,

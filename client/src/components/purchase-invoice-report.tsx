@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, Printer, MessageCircle } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { useUnits } from "@/hooks/use-units";
+import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 
 type InvoiceData = {
   id: number;
@@ -35,12 +37,19 @@ type InvoiceData = {
 
 type InvoiceItemData = {
   id: number;
+  productId: number | null;
   productCode: string;
   productName: string;
   quantity: string;
   unit: string;
   price: string;
   amount: string;
+};
+
+type ProductData = {
+  id: number;
+  name: string;
+  nameEn: string;
 };
 
 type ClientData = {
@@ -108,6 +117,24 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     queryKey: ["/api/company-profile"],
     enabled: open,
   });
+
+  const { data: units } = useUnits();
+  const unitsList = units || [];
+
+  const { data: allProducts } = useQuery<ProductData[]>({
+    queryKey: ["/api/products"],
+    enabled: open,
+  });
+
+  const resolveProductName = (item: InvoiceItemData) => {
+    if (item.productId && allProducts) {
+      const product = allProducts.find(p => p.id === item.productId);
+      if (product) {
+        return getProductNameByLang(product.name, product.nameEn);
+      }
+    }
+    return item.productName;
+  };
 
   const fieldColor = companyProfile?.primaryColor || "#333";
   const textColor = companyProfile?.secondaryColor || "white";
@@ -337,9 +364,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   <tr key={item.id} style={{ background: idx % 2 === 0 ? "white" : "#f9f9f9" }}>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{idx + 1}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{item.productCode}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left" }}>{item.productName}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left" }}>{resolveProductName(item)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{item.unit}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{resolveUnitName(item.unit, unitsList)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{currencySymbol}{fmt(item.price)}{currencySuffix}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 600 }}>{currencySymbol}{fmt(item.amount)}{currencySuffix}</td>
                   </tr>

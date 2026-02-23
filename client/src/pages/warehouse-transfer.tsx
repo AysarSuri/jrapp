@@ -25,6 +25,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useUnits } from "@/hooks/use-units";
+import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 
 interface TransferItem {
   productId: number | null;
@@ -194,6 +196,8 @@ export default function WarehouseTransferPage() {
     });
   }, [fromWarehouseId, toWarehouseId, fromWarehouseName, toWarehouseName, transferNumber, note, date, time, items, createTransfer, toast, t, resetForm]);
 
+  const { data: unitsData } = useUnits();
+  const unitsList = unitsData || [];
   const warehouses = warehousesList || [];
   const products = productsList || [];
 
@@ -280,9 +284,9 @@ export default function WarehouseTransferPage() {
                       <TableRow key={item.id}>
                         <TableCell>{i + 1}</TableCell>
                         <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
-                        <TableCell>{item.productName}</TableCell>
+                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
                         <TableCell className="font-mono">{item.quantity}</TableCell>
-                        <TableCell>{item.unit}</TableCell>
+                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -426,7 +430,7 @@ export default function WarehouseTransferPage() {
                           </SelectTrigger>
                           <SelectContent>
                             {products.map(p => (
-                              <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                              <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

@@ -24,6 +24,8 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { useUnits } from "@/hooks/use-units";
 
 interface ReturnItem {
   productId: number | null;
@@ -53,6 +55,9 @@ export default function PurchaseReturnUsdPage() {
   const { mutate: createReturn, isPending: isSaving } = useCreatePurchaseReturn();
   const { mutate: approveReturn, isPending: isApproving } = useApprovePurchaseReturn();
   const { data: returnsList } = usePurchaseReturns();
+
+  const { data: units } = useUnits();
+  const unitsList = units || [];
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -114,7 +119,7 @@ export default function PurchaseReturnUsdPage() {
         ...updated[index],
         productId: product.id,
         productCode: product.barcode,
-        productName: product.name,
+        productName: getProductName(product),
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
       };
@@ -437,7 +442,7 @@ export default function PurchaseReturnUsdPage() {
                         <SelectContent>
                           {products?.map(p => (
                             <SelectItem key={p.id} value={String(p.id)}>
-                              {p.name} ({p.barcode})
+                              {getProductName(p)} ({p.barcode})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -507,10 +512,10 @@ export default function PurchaseReturnUsdPage() {
                           {item.productId && products?.find(p => p.id === item.productId) ? (
                             <>
                               <SelectItem value={products.find(p => p.id === item.productId)!.bigUnit}>
-                                {products.find(p => p.id === item.productId)!.bigUnit}
+                                {resolveUnitName(products.find(p => p.id === item.productId)!.bigUnit, unitsList)}
                               </SelectItem>
                               <SelectItem value={products.find(p => p.id === item.productId)!.smallUnit}>
-                                {products.find(p => p.id === item.productId)!.smallUnit}
+                                {resolveUnitName(products.find(p => p.id === item.productId)!.smallUnit, unitsList)}
                               </SelectItem>
                             </>
                           ) : null}

@@ -15,11 +15,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Printer, QrCode, Plus, Trash2, Settings2, Eye, Search, Save, RotateCcw } from "lucide-react";
+import { getProductName } from "@/lib/language-utils";
 
 type Product = {
   id: number;
   barcode: string;
   name: string;
+  nameEn?: string | null;
   category: string;
   bigUnit: string;
   smallUnit: string;
@@ -744,7 +746,7 @@ export default function BarcodePrintPage() {
                         color: "#000",
                         marginBottom: "2px",
                       }} data-testid="label-preview-name">
-                        {items.length > 0 ? items[0].product.name : t('Product Name')}
+                        {items.length > 0 ? getProductName(items[0].product) : t('Product Name')}
                       </div>
                     )}
                     {settings.showPrice && (
@@ -810,7 +812,7 @@ export default function BarcodePrintPage() {
                     onClick={() => addProduct(p)}
                     data-testid={`button-add-product-${p.id}`}
                   >
-                    <span className="font-medium truncate">{p.name}</span>
+                    <span className="font-medium truncate">{getProductName(p)}</span>
                     <span className="text-xs text-muted-foreground font-mono shrink-0">{p.barcode}</span>
                   </button>
                 ))}
@@ -841,7 +843,7 @@ export default function BarcodePrintPage() {
                     <TableRow key={item.product.id} data-testid={`row-item-${item.product.id}`}>
                       <TableCell className="font-mono text-xs">{idx + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{item.product.barcode}</TableCell>
-                      <TableCell className="font-medium">{item.product.name}</TableCell>
+                      <TableCell className="font-medium">{getProductName(item.product)}</TableCell>
                       <TableCell className="text-center">
                         <Select
                           value={item.priceType}
@@ -952,7 +954,7 @@ export default function BarcodePrintPage() {
                         whiteSpace: "nowrap",
                         color: "#000",
                       }}>
-                        {label.product.name}
+                        {getProductName(label.product)}
                       </div>
                     )}
                     {settings.showPrice && (

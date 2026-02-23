@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/form";
 import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -309,7 +310,8 @@ function ProductForm({
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { data: products, isLoading } = useProducts();
-  const { data: unitsList } = useUnits();
+  const { data: unitsData } = useUnits();
+  const unitsList = unitsData || [];
   const { data: categoriesList } = useCategories();
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
@@ -493,12 +495,12 @@ export default function ProductsPage() {
                   {filteredProducts?.map((product) => (
                     <TableRow key={product.id} data-testid={`row-product-${product.id}`} className="hover:bg-muted/5">
                       <TableCell className="font-mono text-xs">{product.barcode}</TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell className="font-medium">{getProductName(product)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">{product.category}</Badge>
                       </TableCell>
                       <TableCell className="text-center text-muted-foreground text-sm">
-                        1 {product.bigUnit} = {product.conversionFactor} {product.smallUnit}
+                        1 {resolveUnitName(product.bigUnit, unitsList)} = {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
                       </TableCell>
                       <TableCell className="text-right">{product.weight} kg</TableCell>
                       <TableCell className="text-right">${product.bigUnitPriceUsd}</TableCell>

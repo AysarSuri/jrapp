@@ -14,11 +14,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ClipboardList, Search } from "lucide-react";
+import { useUnits } from "@/hooks/use-units";
+import { getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 
 interface ReportRow {
   productId: number;
   productCode: string;
   productName: string;
+  productNameEn?: string | null;
   category: string;
   bigUnit: string;
   smallUnit: string;
@@ -49,10 +52,10 @@ interface ReportRow {
   transferOutRemainder: number;
 }
 
-function formatUnit(big: number, remainder: number, bigUnit: string, smallUnit: string) {
+function formatUnit(big: number, remainder: number, bigUnitDisplay: string, smallUnitDisplay: string) {
   const parts: string[] = [];
-  if (big > 0) parts.push(`${big} ${bigUnit}`);
-  if (remainder > 0) parts.push(`${remainder} ${smallUnit}`);
+  if (big > 0) parts.push(`${big} ${bigUnitDisplay}`);
+  if (remainder > 0) parts.push(`${remainder} ${smallUnitDisplay}`);
   if (parts.length === 0) return "0";
   return parts.join(" + ");
 }
@@ -64,6 +67,8 @@ export default function InventoryReportPage() {
   const { data: warehousesList } = useQuery<Warehouse[]>({
     queryKey: ["/api/warehouses"],
   });
+  const { data: unitsData } = useUnits();
+  const unitsList = unitsData || [];
 
   const queryParam = warehouseId !== "all" ? `?warehouseId=${warehouseId}` : "";
   const { data: report, isLoading } = useQuery<ReportRow[]>({
@@ -143,38 +148,38 @@ export default function InventoryReportPage() {
                     <TableRow key={row.productId} data-testid={`row-product-${row.productId}`}>
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{row.productCode}</TableCell>
-                      <TableCell className="font-medium">{row.productName}</TableCell>
+                      <TableCell className="font-medium">{getProductNameByLang(row.productName, row.productNameEn)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">{row.category}</Badge>
                       </TableCell>
                       <TableCell className="text-center text-sm">
-                        {formatUnit(row.purchasedBig, row.purchasedRemainder, row.bigUnit, row.smallUnit)}
+                        {formatUnit(row.purchasedBig, row.purchasedRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                       </TableCell>
                       <TableCell className="text-center text-sm">
-                        {formatUnit(row.soldBig, row.soldRemainder, row.bigUnit, row.smallUnit)}
+                        {formatUnit(row.soldBig, row.soldRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                       </TableCell>
                       <TableCell className="text-center text-sm">
-                        {formatUnit(row.purchaseReturnedBig, row.purchaseReturnedRemainder, row.bigUnit, row.smallUnit)}
+                        {formatUnit(row.purchaseReturnedBig, row.purchaseReturnedRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                       </TableCell>
                       <TableCell className="text-center text-sm">
-                        {formatUnit(row.salesReturnedBig, row.salesReturnedRemainder, row.bigUnit, row.smallUnit)}
+                        {formatUnit(row.salesReturnedBig, row.salesReturnedRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                       </TableCell>
                       <TableCell className="text-center text-sm">
-                        {formatUnit(row.damagedBig, row.damagedRemainder, row.bigUnit, row.smallUnit)}
+                        {formatUnit(row.damagedBig, row.damagedRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                       </TableCell>
                       {warehouseId !== "all" && (
                         <>
                           <TableCell className="text-center text-sm">
-                            {formatUnit(row.transferInBig, row.transferInRemainder, row.bigUnit, row.smallUnit)}
+                            {formatUnit(row.transferInBig, row.transferInRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                           </TableCell>
                           <TableCell className="text-center text-sm">
-                            {formatUnit(row.transferOutBig, row.transferOutRemainder, row.bigUnit, row.smallUnit)}
+                            {formatUnit(row.transferOutBig, row.transferOutRemainder, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                           </TableCell>
                         </>
                       )}
                       <TableCell className="text-center font-semibold">
                         <span className={row.netSmallUnits < 0 ? "text-destructive" : row.netSmallUnits > 0 ? "text-green-600 dark:text-green-400" : ""}>
-                          {formatUnit(row.bigQty, row.smallQty, row.bigUnit, row.smallUnit)}
+                          {formatUnit(row.bigQty, row.smallQty, resolveUnitName(row.bigUnit, unitsList), resolveUnitName(row.smallUnit, unitsList))}
                         </span>
                       </TableCell>
                     </TableRow>

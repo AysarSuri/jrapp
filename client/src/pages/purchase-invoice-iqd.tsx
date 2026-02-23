@@ -25,6 +25,8 @@ import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
   productId: number | null;
@@ -59,6 +61,9 @@ export default function PurchaseInvoiceIqdPage() {
   const { data: nextNumber } = useNextPurchaseInvoiceNumber();
   const { mutate: createInvoice, isPending: isSaving } = useCreatePurchaseInvoice();
   const { data: invoicesList } = usePurchaseInvoices();
+
+  const { data: units } = useUnits();
+  const unitsList = units || [];
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -140,7 +145,7 @@ export default function PurchaseInvoiceIqdPage() {
         ...updated[index],
         productId: product.id,
         productCode: product.barcode,
-        productName: product.name,
+        productName: getProductName(product),
         unit: product.bigUnit,
         price: product.bigUnitPriceIqd,
         weight: product.weight || "0",
@@ -507,7 +512,7 @@ export default function PurchaseInvoiceIqdPage() {
                         <SelectContent>
                           {products?.map(p => (
                             <SelectItem key={p.id} value={String(p.id)}>
-                              {p.name} ({p.barcode})
+                              {getProductName(p)} ({p.barcode})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -558,10 +563,10 @@ export default function PurchaseInvoiceIqdPage() {
                           {item.productId && products?.find(p => p.id === item.productId) ? (
                             <>
                               <SelectItem value={products.find(p => p.id === item.productId)!.bigUnit}>
-                                {products.find(p => p.id === item.productId)!.bigUnit}
+                                {resolveUnitName(products.find(p => p.id === item.productId)!.bigUnit, unitsList)}
                               </SelectItem>
                               <SelectItem value={products.find(p => p.id === item.productId)!.smallUnit}>
-                                {products.find(p => p.id === item.productId)!.smallUnit}
+                                {resolveUnitName(products.find(p => p.id === item.productId)!.smallUnit, unitsList)}
                               </SelectItem>
                             </>
                           ) : null}
