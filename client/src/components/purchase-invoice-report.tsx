@@ -286,7 +286,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Invoice Type")}:</span>
-                <span style={{ fontWeight: 500 }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
+                <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
               </div>
               {invoice.address && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
