@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag } from "lucide-react";
+import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 type Client = {
   id: number;
@@ -33,12 +36,27 @@ type StatementResponse = {
   entries: StatementEntry[];
 };
 
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  cliche: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+};
+
 export default function SupplierStatementIqdPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
+  const printRef = useRef<HTMLDivElement>(null);
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
 
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
+  });
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
   });
 
   const suppliers = clients?.filter((c) => c.type === "supplier") || [];
@@ -59,8 +77,12 @@ export default function SupplierStatementIqdPage() {
 
   const totalDebitIqd = iqdEntries.reduce((s, e) => s + e.debitIqd, 0);
   const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
+  const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : parseFloat(statement?.supplier?.oldDebtIqd || "0");
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+  const fieldColor = companyProfile?.primaryColor || "#333";
+  const textColor = companyProfile?.secondaryColor || "white";
 
   const getTypeBadge = (type: string) => {
     switch (type) {
@@ -74,6 +96,207 @@ export default function SupplierStatementIqdPage() {
         return <Badge variant="outline" className="bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400 border-purple-200 dark:border-purple-800 gap-1"><Tag className="w-3 h-3" />{t("Discount")}</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
+    }
+  };
+
+  const getTypeText = (type: string) => {
+    switch (type) {
+      case "purchase_invoice": return t("Purchase Invoice");
+      case "payment": return t("Payment");
+      case "adjustment_received": return t("Received");
+      case "adjustment_discount": return t("Discount");
+      default: return type;
+    }
+  };
+
+  const handlePrint = () => {
+    if (!statement) return;
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const oldDebt = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const rows = entriesWithBalance.map((e, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${e.date}<br/><small>${e.time}</small></td>
+        <td>${getTypeText(e.type)}</td>
+        <td>${e.description}</td>
+        <td class="debit">${e.debitIqd > 0 ? fmt(e.debitIqd) + " IQD" : "-"}</td>
+        <td class="credit">${e.creditIqd > 0 ? fmt(e.creditIqd) + " IQD" : "-"}</td>
+        <td class="balance">${fmt(e.balanceIqd)} IQD</td>
+        <td>${e.note || "-"}</td>
+      </tr>
+    `).join("");
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; font-size: 10pt; direction: ${isRtl ? "rtl" : "ltr"}; }
+          .cliche { text-align: center; margin-bottom: 8px; }
+          .cliche img { width: 100%; height: 150px; object-fit: cover; }
+          .header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid ${fieldColor}; padding-bottom: 8px; }
+          .header h1 { font-size: 14pt; margin-bottom: 2px; }
+          .header p { font-size: 10pt; color: #666; }
+          .supplier-bar { background: ${fieldColor}; color: ${textColor}; text-align: center; padding: 5px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; font-size: 11pt; }
+          .summary-cards { display: flex; gap: 10px; margin-bottom: 10px; }
+          .summary-card { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; text-align: center; }
+          .summary-card .label { font-size: 8pt; color: #666; }
+          .summary-card .value { font-size: 12pt; font-weight: 700; }
+          .red { color: #dc2626; }
+          .green { color: #16a34a; }
+          .blue { color: #2563eb; }
+          table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+          th { background: ${fieldColor}; color: ${textColor}; padding: 4px 3px; text-align: center; font-weight: 600; font-size: 9pt; white-space: nowrap; }
+          td { border: 1px solid #ddd; padding: 3px; text-align: center; font-size: 9pt; }
+          td small { color: #999; font-size: 7pt; }
+          tr:nth-child(even) { background: #f9f9f9; }
+          .debit { color: #dc2626; font-weight: 500; }
+          .credit { color: #16a34a; font-weight: 500; }
+          .balance { font-weight: 600; }
+          .total-row { background: #f0f0f0 !important; font-weight: 700; border-top: 2px solid #333; }
+          .opening-row { background: #f5f5f5; font-weight: 500; }
+          @media print {
+            body { padding: 10mm; }
+            @page { margin: 8mm; size: A4; }
+          }
+        </style>
+      </head>
+      <body>
+        ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+        <div class="header">
+          <h1>${t("Supplier Statement - IQD")}</h1>
+          <p>${new Date().toLocaleDateString()}</p>
+        </div>
+        <div class="supplier-bar">${statement.supplier.name}</div>
+        <div class="summary-cards">
+          <div class="summary-card"><div class="label">${t("Old Debt IQD")}</div><div class="value red">${fmt(oldDebt)} IQD</div></div>
+          <div class="summary-card"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
+          <div class="summary-card"><div class="label">${t("Final Balance IQD")}</div><div class="value blue">${fmt(finalBalance)} IQD</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("Date")}</th>
+              <th>${t("Type")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Debit IQD")}</th>
+              <th>${t("Credit IQD")}</th>
+              <th>${t("Balance IQD")}</th>
+              <th>${t("Note")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="opening-row">
+              <td>-</td><td>-</td><td colspan="2">${t("Opening Balance (Old Debt)")}</td>
+              <td>-</td><td>-</td><td class="balance red">${fmt(oldDebt)} IQD</td><td></td>
+            </tr>
+            ${rows}
+            <tr class="total-row">
+              <td>-</td><td>-</td><td colspan="2">${t("Total")}</td>
+              <td class="debit">${fmt(totalDebitIqd)} IQD</td>
+              <td class="credit">${fmt(totalCreditIqd)} IQD</td>
+              <td class="balance blue">${fmt(finalBalance)} IQD</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
+
+  const generatePdf = async (): Promise<Blob | null> => {
+    if (!statement || !printRef.current) return null;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;background:white;padding:15px;font-size:10pt;direction:" + (isRtl ? "rtl" : "ltr");
+    document.body.appendChild(tempDiv);
+
+    const oldDebt = parseFloat(statement.supplier.oldDebtIqd || "0");
+    const rows = entriesWithBalance.map((e, idx) => `
+      <tr style="background:${idx % 2 === 0 ? "white" : "#f9f9f9"}">
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${idx + 1}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.date}<br/><small style="color:#999;font-size:7pt">${e.time}</small></td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${getTypeText(e.type)}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.description}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#dc2626">${e.debitIqd > 0 ? fmt(e.debitIqd) + " IQD" : "-"}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#16a34a">${e.creditIqd > 0 ? fmt(e.creditIqd) + " IQD" : "-"}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;font-weight:600">${fmt(e.balanceIqd)} IQD</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.note || "-"}</td>
+      </tr>
+    `).join("");
+
+    tempDiv.innerHTML = `
+      ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:8px"><img src="${companyProfile.cliche}" style="width:100%;height:150px;object-fit:cover" /></div>` : ""}
+      <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
+        <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")}</h1>
+        <p style="font-size:10pt;color:#666">${new Date().toLocaleDateString()}</p>
+      </div>
+      <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Old Debt IQD")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${fmt(oldDebt)} IQD</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments IQD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${fmt(totalCreditIqd)} IQD</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Final Balance IQD")}</div><div style="font-size:12pt;font-weight:700;color:#2563eb">${fmt(finalBalance)} IQD</div></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:9pt">
+        <thead><tr>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Description")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit IQD")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit IQD")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance IQD")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
+        </tr></thead>
+        <tbody>
+          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance (Old Debt)")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${fmt(oldDebt)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          ${rows}
+          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">${fmt(totalDebitIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">${fmt(totalCreditIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">${fmt(finalBalance)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+        </tbody>
+      </table>
+    `;
+
+    const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    document.body.removeChild(tempDiv);
+
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+    return pdf.output("blob");
+  };
+
+  const handleWhatsApp = async () => {
+    if (!statement) return;
+    setSendingWhatsApp(true);
+    try {
+      const pdfBlob = await generatePdf();
+      if (!pdfBlob) return;
+      const fileName = `${t("Supplier Statement - IQD")}_${statement.supplier.name}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: fileName, files: [file] });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        const text = encodeURIComponent(`${t("Supplier Statement - IQD")}\n${statement.supplier.name}\n${t("Final Balance IQD")}: ${fmt(finalBalance)} IQD`);
+        window.open(`https://wa.me/?text=${text}`, "_blank");
+      }
+    } finally {
+      setSendingWhatsApp(false);
     }
   };
 
@@ -118,6 +341,17 @@ export default function SupplierStatementIqdPage() {
 
       {selectedSupplierId && statement && !statementLoading && (
         <>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={sendingWhatsApp} className="bg-green-600 hover:bg-green-700 text-white border-green-600" data-testid="button-whatsapp-statement-iqd">
+              {sendingWhatsApp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+              {t("WhatsApp")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-statement-iqd">
+              <Printer className="w-4 h-4 mr-1" />
+              {t("Print")}
+            </Button>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
@@ -134,7 +368,7 @@ export default function SupplierStatementIqdPage() {
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Final Balance IQD")}</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{fmt(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : parseFloat(statement.supplier.oldDebtIqd || "0"))} IQD</p>
+                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{fmt(finalBalance)} IQD</p>
               </CardContent>
             </Card>
           </div>
@@ -149,7 +383,7 @@ export default function SupplierStatementIqdPage() {
                   {t("No transactions found")}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto" ref={printRef}>
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
@@ -200,7 +434,7 @@ export default function SupplierStatementIqdPage() {
                         <TableCell className="text-center text-red-600 dark:text-red-400">{fmt(totalDebitIqd)}</TableCell>
                         <TableCell className="text-center text-green-600 dark:text-green-400">{fmt(totalCreditIqd)}</TableCell>
                         <TableCell className="text-center text-blue-600 dark:text-blue-400">
-                          {fmt(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : parseFloat(statement.supplier.oldDebtIqd || "0"))} IQD
+                          {fmt(finalBalance)} IQD
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
