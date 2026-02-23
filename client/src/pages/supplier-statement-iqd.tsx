@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { formatDate } from "@/lib/format-utils";
 
 type Client = {
   id: number;
@@ -182,7 +183,7 @@ export default function SupplierStatementIqdPage() {
         ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
         <div class="header">
           <h1>${t("Supplier Statement - IQD")}</h1>
-          <p>${new Date().toLocaleDateString()}</p>
+          <p>${formatDate(new Date())}</p>
           ${dateRangeHtml}
         </div>
         <div class="supplier-bar">${statement.supplier.name}</div>
@@ -254,7 +255,7 @@ export default function SupplierStatementIqdPage() {
       ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:8px"><img src="${companyProfile.cliche}" style="width:100%;height:150px;object-fit:cover" /></div>` : ""}
       <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
         <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")}</h1>
-        <p style="font-size:10pt;color:#666">${new Date().toLocaleDateString()}</p>
+        <p style="font-size:10pt;color:#666">${formatDate(new Date())}</p>
         ${dateRangeHtml}
       </div>
       <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>

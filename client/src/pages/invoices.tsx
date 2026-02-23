@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertInvoiceSchema } from "@shared/routes";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import { z } from "zod";
 import { useInvoices, useCreateInvoice } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
@@ -204,7 +204,7 @@ export default function InvoicesPage() {
                           {t(inv.type === 'sale' ? 'Sale' : 'Purchase')}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(inv.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{formatDate(inv.date)}</TableCell>
                       <TableCell className="text-right font-mono">
                         {inv.currency === 'USD' ? usd(inv.total) : `${Number(inv.total).toLocaleString()} IQD`}
                       </TableCell>

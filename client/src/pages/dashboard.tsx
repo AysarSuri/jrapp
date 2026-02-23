@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { formatDate } from "@/lib/format-utils";
 import { 
   BarChart, 
   Bar, 
@@ -221,7 +222,7 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{tx.type} - {tx.reference}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
                   </div>
                   <div className="ml-auto font-medium">
                     {tx.type === 'deposit' ? '+' : '-'}${tx.amount}

@@ -12,6 +12,15 @@ export function fmtIqd(n: number | string): string {
   return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+export function formatDate(date: Date | string | number): string {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
+}
+
 export function usd(n: number | string): string {
   const formatted = fmtUsd(n);
   const lang = i18n.language;
