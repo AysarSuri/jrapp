@@ -23,6 +23,7 @@ import { Plus, Search, Users, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function ClientsPage() {
   const { t } = useTranslation();
@@ -179,7 +180,7 @@ export default function ClientsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
-                      <TableCell className="text-right font-mono">{Number(client.balance).toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-mono">{fmtUsd(client.balance)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

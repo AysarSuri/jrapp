@@ -17,6 +17,7 @@ import {
   Save, Loader2, ArrowRightLeft, RotateCcw, Trash2,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function CurrencyExchangePage() {
   const { t } = useTranslation();
@@ -104,7 +105,7 @@ export default function CurrencyExchangePage() {
 
   const formatAmount = (amount: string, currency: string) => {
     const num = parseFloat(amount) || 0;
-    if (currency === "USD") return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (currency === "USD") return `$${fmtUsd(num)}`;
     return `${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} IQD`;
   };
 

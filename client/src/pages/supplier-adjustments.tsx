@@ -23,6 +23,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
@@ -182,11 +183,11 @@ export default function SupplierAdjustmentsPage() {
                         {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-red-600 font-medium">${parseFloat(adj.oldDebtUsd).toLocaleString()}</TableCell>
+                    <TableCell className="text-red-600 font-medium">${fmtUsd(adj.oldDebtUsd)}</TableCell>
                     <TableCell className="text-red-600 font-medium">{parseFloat(adj.oldDebtIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell className="text-blue-600 font-bold">${parseFloat(adj.amountUsd).toLocaleString()}</TableCell>
+                    <TableCell className="text-blue-600 font-bold">${fmtUsd(adj.amountUsd)}</TableCell>
                     <TableCell className="text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell className="font-medium">${parseFloat(adj.remainingUsd).toLocaleString()}</TableCell>
+                    <TableCell className="font-medium">${fmtUsd(adj.remainingUsd)}</TableCell>
                     <TableCell className="font-medium">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
                     <TableCell>{adj.date}</TableCell>
                     <TableCell>{adj.time}</TableCell>
@@ -420,7 +421,7 @@ export default function SupplierAdjustmentsPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">{t("Debt USD")}</p>
                     <p className="text-xl font-bold text-red-600">
-                      ${parseFloat(selectedSupplier.oldDebtUsd).toLocaleString()}
+                      ${fmtUsd(selectedSupplier.oldDebtUsd)}
                     </p>
                   </div>
                   <div>
@@ -450,7 +451,7 @@ export default function SupplierAdjustmentsPage() {
                         <span className="text-xs text-muted-foreground">{adj.date}</span>
                       </div>
                       {parseFloat(adj.amountUsd) > 0 && (
-                        <p className="text-sm text-blue-600 font-medium">${parseFloat(adj.amountUsd).toLocaleString()}</p>
+                        <p className="text-sm text-blue-600 font-medium">${fmtUsd(adj.amountUsd)}</p>
                       )}
                       {parseFloat(adj.amountIqd) > 0 && (
                         <p className="text-sm text-orange-600 font-medium">{parseFloat(adj.amountIqd).toLocaleString()} IQD</p>

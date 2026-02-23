@@ -26,6 +26,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { fmtUsd } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -461,7 +462,7 @@ export default function PurchaseInvoiceUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Total Expenses')}</Label>
               <div className="flex items-center h-10 px-3 rounded-md border bg-amber-50 dark:bg-amber-950/30 font-mono font-bold text-amber-700 dark:text-amber-400">
-                ${totalExpenses.toFixed(2)}
+                ${fmtUsd(totalExpenses)}
               </div>
             </div>
           </div>
@@ -594,7 +595,7 @@ export default function PurchaseInvoiceUsdPage() {
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-9 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-sm font-bold text-amber-700 dark:text-amber-400">
-                        ${getExpenseCost(item).toFixed(2)}
+                        ${fmtUsd(getExpenseCost(item))}
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
@@ -659,7 +660,7 @@ export default function PurchaseInvoiceUsdPage() {
           <CardContent className="pt-6 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Invoice Total')}</span>
-              <span className="font-mono font-bold text-lg" data-testid="text-purchase-subtotal">${subtotal.toFixed(2)}</span>
+              <span className="font-mono font-bold text-lg" data-testid="text-purchase-subtotal">${fmtUsd(subtotal)}</span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
@@ -690,7 +691,7 @@ export default function PurchaseInvoiceUsdPage() {
             <div className="flex justify-between items-center">
               <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
               <span className="font-mono font-bold text-xl text-red-600" data-testid="text-purchase-remaining">
-                ${remaining.toFixed(2)}
+                ${fmtUsd(remaining)}
               </span>
             </div>
           </CardContent>

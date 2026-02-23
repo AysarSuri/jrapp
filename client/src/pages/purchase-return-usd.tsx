@@ -25,6 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { fmtUsd } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface ReturnItem {
@@ -566,13 +567,13 @@ export default function PurchaseReturnUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Total Quantity')}</Label>
-              <div className="text-lg font-bold" data-testid="text-purchase-return-total-quantity">{totalQuantity.toFixed(2)}</div>
+              <div className="text-lg font-bold" data-testid="text-purchase-return-total-quantity">{fmtUsd(totalQuantity)}</div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Subtotal')}</Label>
               <div className="text-lg font-bold flex items-center gap-1" data-testid="text-purchase-return-subtotal">
                 <DollarSign className="w-4 h-4" />
-                {subtotal.toFixed(2)}
+                {fmtUsd(subtotal)}
               </div>
             </div>
           </div>
@@ -591,7 +592,7 @@ export default function PurchaseReturnUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Remaining')}</Label>
               <div className={`text-xl font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}`} data-testid="text-purchase-return-remaining">
-                ${remaining.toFixed(2)}
+                ${fmtUsd(remaining)}
               </div>
             </div>
           </div>

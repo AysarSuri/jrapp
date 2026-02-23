@@ -21,6 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function OwnerReturnsPage() {
   const { t } = useTranslation();
@@ -137,7 +138,7 @@ export default function OwnerReturnsPage() {
                         <TableCell className="font-mono text-sm">{r.date}</TableCell>
                         <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.amountUsd) > 0 ? `$${parseFloat(r.amountUsd).toFixed(2)}` : "-"}
+                          {parseFloat(r.amountUsd) > 0 ? `$${fmtUsd(r.amountUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
                           {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
@@ -175,7 +176,7 @@ export default function OwnerReturnsPage() {
         <Card className="border-blue-200 dark:border-blue-900/50">
           <CardContent className="pt-4 pb-4 text-center">
             <p className="text-xs text-muted-foreground mb-1">{t('Total USD')}</p>
-            <p className="font-mono font-bold text-lg text-blue-600" data-testid="text-total-return-usd">${totalUsd.toFixed(2)}</p>
+            <p className="font-mono font-bold text-lg text-blue-600" data-testid="text-total-return-usd">${fmtUsd(totalUsd)}</p>
           </CardContent>
         </Card>
         <Card className="border-orange-200 dark:border-orange-900/50">
@@ -281,7 +282,7 @@ export default function OwnerReturnsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-return-usd-total">
-                    ${parseFloat(amountUsd || "0").toFixed(2)}
+                    ${fmtUsd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

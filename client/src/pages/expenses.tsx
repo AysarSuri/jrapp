@@ -21,6 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function ExpensesPage() {
   const { t } = useTranslation();
@@ -144,7 +145,7 @@ export default function ExpensesPage() {
                         <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
                         <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(e.amountUsd) > 0 ? `$${parseFloat(e.amountUsd).toFixed(2)}` : "-"}
+                          {parseFloat(e.amountUsd) > 0 ? `$${fmtUsd(e.amountUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
                           {parseFloat(e.amountIqd) > 0 ? formatIQD(parseFloat(e.amountIqd)) : "-"}
@@ -266,7 +267,7 @@ export default function ExpensesPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-expense-usd-total">
-                    ${parseFloat(amountUsd || "0").toFixed(2)}
+                    ${fmtUsd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -301,7 +302,7 @@ export default function ExpensesPage() {
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground">{t('Total USD')}</span>
                 <span className="font-mono font-bold text-red-600" data-testid="text-total-expenses-usd">
-                  ${totalUsd.toFixed(2)}
+                  ${fmtUsd(totalUsd)}
                 </span>
               </div>
               <div className="flex justify-between items-center">

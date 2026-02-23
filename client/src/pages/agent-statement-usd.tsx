@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { Representative } from "@shared/schema";
+import { fmtUsd } from "@/lib/format-utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -113,7 +114,7 @@ export default function AgentStatementUsdPage() {
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Debit')}</p>
                 <p className="font-mono font-bold text-red-800 dark:text-red-300" data-testid="text-total-debit">
-                  ${totalDebit.toFixed(2)}
+                  ${fmtUsd(totalDebit)}
                 </p>
               </CardContent>
             </Card>
@@ -121,7 +122,7 @@ export default function AgentStatementUsdPage() {
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Credit')}</p>
                 <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-total-credit">
-                  ${totalCredit.toFixed(2)}
+                  ${fmtUsd(totalCredit)}
                 </p>
               </CardContent>
             </Card>
@@ -129,7 +130,7 @@ export default function AgentStatementUsdPage() {
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
                 <p className="font-mono font-bold text-blue-800 dark:text-blue-300" data-testid="text-final-balance">
-                  ${finalBalance.toFixed(2)}
+                  ${fmtUsd(finalBalance)}
                 </p>
               </CardContent>
             </Card>
@@ -137,7 +138,7 @@ export default function AgentStatementUsdPage() {
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Current Debt USD')}</p>
                 <p className="font-mono font-bold text-amber-800 dark:text-amber-300" data-testid="text-current-debt">
-                  ${currentDebt.toFixed(2)}
+                  ${fmtUsd(currentDebt)}
                 </p>
               </CardContent>
             </Card>
@@ -169,13 +170,13 @@ export default function AgentStatementUsdPage() {
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
-                        {entry.debit > 0 ? `$${entry.debit.toFixed(2)}` : ""}
+                        {entry.debit > 0 ? `$${fmtUsd(entry.debit)}` : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
-                        {entry.credit > 0 ? `$${entry.credit.toFixed(2)}` : ""}
+                        {entry.credit > 0 ? `$${fmtUsd(entry.credit)}` : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-medium text-blue-600">
-                        ${entry.balance.toFixed(2)}
+                        ${fmtUsd(entry.balance)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -189,9 +190,9 @@ export default function AgentStatementUsdPage() {
                   {usdEntries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
                       <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
-                      <TableCell className="font-mono text-red-700">${totalDebit.toFixed(2)}</TableCell>
-                      <TableCell className="font-mono text-green-700">${totalCredit.toFixed(2)}</TableCell>
-                      <TableCell className="font-mono text-blue-700">${finalBalance.toFixed(2)}</TableCell>
+                      <TableCell className="font-mono text-red-700">${fmtUsd(totalDebit)}</TableCell>
+                      <TableCell className="font-mono text-green-700">${fmtUsd(totalCredit)}</TableCell>
+                      <TableCell className="font-mono text-blue-700">${fmtUsd(finalBalance)}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

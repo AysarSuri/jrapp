@@ -23,6 +23,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function AgentPaymentUsdPage() {
   const { t } = useTranslation();
@@ -184,13 +185,13 @@ export default function AgentPaymentUsdPage() {
                           <Badge variant="outline" className="text-xs">{p.paymentSourceName}</Badge>
                         </TableCell>
                         <TableCell className="font-mono text-sm text-blue-600">
-                          {parseFloat(p.amount) > 0 ? `$${parseFloat(p.amount).toFixed(2)}` : "-"}
+                          {parseFloat(p.amount) > 0 ? `$${fmtUsd(p.amount)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {`$${parseFloat(p.oldDebt).toFixed(2)}`}
+                          {`$${fmtUsd(p.oldDebt)}`}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-emerald-600">
-                          {`$${parseFloat(p.remaining).toFixed(2)}`}
+                          {`$${fmtUsd(p.remaining)}`}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
@@ -267,7 +268,7 @@ export default function AgentPaymentUsdPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
-                      <p className="font-mono font-bold text-red-600">${parseFloat(selectedAgent.debtUsd).toFixed(2)}</p>
+                      <p className="font-mono font-bold text-red-600">${fmtUsd(selectedAgent.debtUsd)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -374,7 +375,7 @@ export default function AgentPaymentUsdPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-agent-payment-amount">
-                    ${amountVal.toFixed(2)}
+                    ${fmtUsd(amountVal)}
                   </span>
                 </div>
               </div>
@@ -411,13 +412,13 @@ export default function AgentPaymentUsdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt USD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    ${parseFloat(selectedAgent.debtUsd).toFixed(2)}
+                    ${fmtUsd(selectedAgent.debtUsd)}
                   </p>
                   {amountVal > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        ${(parseFloat(selectedAgent.debtUsd) - amountVal).toFixed(2)}
+                        ${fmtUsd((parseFloat(selectedAgent.debtUsd) - amountVal))}
                       </p>
                     </>
                   )}

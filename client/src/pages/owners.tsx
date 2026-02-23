@@ -24,6 +24,7 @@ import { Plus, Search, UserCog, Loader2, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function OwnersPage() {
   const { t } = useTranslation();
@@ -211,7 +212,7 @@ export default function OwnersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(item.oldDebtUsd) > 0 ? `$${parseFloat(item.oldDebtUsd).toFixed(2)}` : "-"}
+                        {parseFloat(item.oldDebtUsd) > 0 ? `$${fmtUsd(item.oldDebtUsd)}` : "-"}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}

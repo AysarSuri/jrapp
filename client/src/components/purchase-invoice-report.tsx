@@ -149,7 +149,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
   const fmt = (n: number | string) => {
     const num = typeof n === "string" ? parseFloat(n) : n;
-    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   };
 
   const currencySymbol = currency === "USD" ? "$" : "";

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { ExternalDebt } from "@shared/schema";
+import { fmtUsd } from "@/lib/format-utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -113,28 +114,28 @@ export default function ExternalDebtStatementPage() {
             <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance (Old Debt)')}</p>
-                <p className="font-mono font-bold text-amber-800 dark:text-amber-300">${parseFloat(statement.debt.oldDebtUsd).toFixed(2)}</p>
+                <p className="font-mono font-bold text-amber-800 dark:text-amber-300">${fmtUsd(statement.debt.oldDebtUsd)}</p>
                 <p className="font-mono text-sm text-amber-600 dark:text-amber-500">{formatIQD(parseFloat(statement.debt.oldDebtIqd))}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Receipts')}</p>
-                <p className="font-mono font-bold text-green-800 dark:text-green-300">${totalDebitUsd.toFixed(2)}</p>
+                <p className="font-mono font-bold text-green-800 dark:text-green-300">${fmtUsd(totalDebitUsd)}</p>
                 <p className="font-mono text-sm text-green-600 dark:text-green-500">{formatIQD(totalDebitIqd)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Payments')}</p>
-                <p className="font-mono font-bold text-red-800 dark:text-red-300">${totalCreditUsd.toFixed(2)}</p>
+                <p className="font-mono font-bold text-red-800 dark:text-red-300">${fmtUsd(totalCreditUsd)}</p>
                 <p className="font-mono text-sm text-red-600 dark:text-red-500">{formatIQD(totalCreditIqd)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-blue-800 dark:text-blue-300">${finalBalanceUsd.toFixed(2)}</p>
+                <p className="font-mono font-bold text-blue-800 dark:text-blue-300">${fmtUsd(finalBalanceUsd)}</p>
                 <p className="font-mono text-sm text-blue-600 dark:text-blue-500">{formatIQD(finalBalanceIqd)}</p>
               </CardContent>
             </Card>
@@ -165,7 +166,7 @@ export default function ExternalDebtStatementPage() {
                       {t('Opening Balance (Old Debt)')}
                     </TableCell>
                     <TableCell colSpan={4}></TableCell>
-                    <TableCell className="font-mono text-blue-600">${parseFloat(statement.debt.oldDebtUsd).toFixed(2)}</TableCell>
+                    <TableCell className="font-mono text-blue-600">${fmtUsd(statement.debt.oldDebtUsd)}</TableCell>
                     <TableCell className="font-mono text-blue-600">{formatIQD(parseFloat(statement.debt.oldDebtIqd))}</TableCell>
                   </TableRow>
                   {entriesWithBalance.map((entry, i) => (
@@ -177,19 +178,19 @@ export default function ExternalDebtStatementPage() {
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
-                        {entry.debitUsd > 0 ? `$${entry.debitUsd.toFixed(2)}` : ""}
+                        {entry.debitUsd > 0 ? `$${fmtUsd(entry.debitUsd)}` : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
                         {entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
-                        {entry.creditUsd > 0 ? `$${entry.creditUsd.toFixed(2)}` : ""}
+                        {entry.creditUsd > 0 ? `$${fmtUsd(entry.creditUsd)}` : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-medium text-blue-600">
-                        ${entry.balanceUsd.toFixed(2)}
+                        ${fmtUsd(entry.balanceUsd)}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-medium text-blue-600">
                         {formatIQD(entry.balanceIqd)}
@@ -206,11 +207,11 @@ export default function ExternalDebtStatementPage() {
                   {entries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
                       <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
-                      <TableCell className="font-mono text-green-700">${totalDebitUsd.toFixed(2)}</TableCell>
+                      <TableCell className="font-mono text-green-700">${fmtUsd(totalDebitUsd)}</TableCell>
                       <TableCell className="font-mono text-green-700">{formatIQD(totalDebitIqd)}</TableCell>
-                      <TableCell className="font-mono text-red-700">${totalCreditUsd.toFixed(2)}</TableCell>
+                      <TableCell className="font-mono text-red-700">${fmtUsd(totalCreditUsd)}</TableCell>
                       <TableCell className="font-mono text-red-700">{formatIQD(totalCreditIqd)}</TableCell>
-                      <TableCell className="font-mono text-blue-700">${finalBalanceUsd.toFixed(2)}</TableCell>
+                      <TableCell className="font-mono text-blue-700">${fmtUsd(finalBalanceUsd)}</TableCell>
                       <TableCell className="font-mono text-blue-700">{formatIQD(finalBalanceIqd)}</TableCell>
                     </TableRow>
                   )}

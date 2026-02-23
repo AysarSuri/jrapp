@@ -23,6 +23,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function SupplierPaymentsPage() {
   const { t } = useTranslation();
@@ -203,25 +204,25 @@ export default function SupplierPaymentsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="font-mono text-sm">
-                          {parseFloat(p.amountUsd) > 0 ? `$${parseFloat(p.amountUsd).toFixed(2)}` : "-"}
+                          {parseFloat(p.amountUsd) > 0 ? `$${fmtUsd(p.amountUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm">
                           {parseFloat(p.amountIqd) > 0 ? formatIQD(parseFloat(p.amountIqd)) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm">
-                          {parseFloat(p.commissionUsd) > 0 ? `$${parseFloat(p.commissionUsd).toFixed(2)}` : "-"}
+                          {parseFloat(p.commissionUsd) > 0 ? `$${fmtUsd(p.commissionUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm">
                           {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(p.oldDebtUsd) !== 0 ? `$${parseFloat(p.oldDebtUsd).toFixed(2)}` : "-"}
+                          {parseFloat(p.oldDebtUsd) !== 0 ? `$${fmtUsd(p.oldDebtUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
                           {parseFloat(p.oldDebtIqd) !== 0 ? formatIQD(parseFloat(p.oldDebtIqd)) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-emerald-600">
-                          {parseFloat(p.remainingUsd) !== 0 ? `$${parseFloat(p.remainingUsd).toFixed(2)}` : "-"}
+                          {parseFloat(p.remainingUsd) !== 0 ? `$${fmtUsd(p.remainingUsd)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-emerald-600">
                           {parseFloat(p.remainingIqd) !== 0 ? formatIQD(parseFloat(p.remainingIqd)) : "-"}
@@ -301,7 +302,7 @@ export default function SupplierPaymentsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
-                      <p className="font-mono font-bold text-red-600">${parseFloat(selectedSupplier.oldDebtUsd).toFixed(2)}</p>
+                      <p className="font-mono font-bold text-red-600">${fmtUsd(selectedSupplier.oldDebtUsd)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Debt IQD')}</p>
@@ -488,7 +489,7 @@ export default function SupplierPaymentsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-payment-usd-total">
-                    ${parseFloat(amountUsd || "0").toFixed(2)}
+                    ${fmtUsd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -503,7 +504,7 @@ export default function SupplierPaymentsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">{t('Commission USD')}</span>
                       <span className="font-mono text-sm" data-testid="text-commission-usd-total">
-                        ${parseFloat(commissionUsd || "0").toFixed(2)}
+                        ${fmtUsd(commissionUsd || "0")}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -550,7 +551,7 @@ export default function SupplierPaymentsPage() {
               <CardContent className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">{t('Debt USD')}</span>
-                  <span className="font-mono font-bold text-red-600">${parseFloat(selectedSupplier.oldDebtUsd).toFixed(2)}</span>
+                  <span className="font-mono font-bold text-red-600">${fmtUsd(selectedSupplier.oldDebtUsd)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">{t('Debt IQD')}</span>
@@ -560,7 +561,7 @@ export default function SupplierPaymentsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{t('After Payment USD')}</span>
                   <span className="font-mono font-bold text-emerald-600">
-                    ${(parseFloat(selectedSupplier.oldDebtUsd) - parseFloat(amountUsd || "0")).toFixed(2)}
+                    ${fmtUsd((parseFloat(selectedSupplier.oldDebtUsd) - parseFloat(amountUsd || "0")))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

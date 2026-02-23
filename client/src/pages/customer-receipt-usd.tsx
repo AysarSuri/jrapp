@@ -23,6 +23,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { fmtUsd } from "@/lib/format-utils";
 
 export default function CustomerReceiptUsdPage() {
   const { t } = useTranslation();
@@ -190,16 +191,16 @@ export default function CustomerReceiptUsdPage() {
                           <Badge variant="outline" className="text-xs">{r.paymentSourceName}</Badge>
                         </TableCell>
                         <TableCell className="font-mono text-sm text-blue-600">
-                          {parseFloat(r.amount) > 0 ? `$${parseFloat(r.amount).toFixed(2)}` : "-"}
+                          {parseFloat(r.amount) > 0 ? `$${fmtUsd(r.amount)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.discount) > 0 ? `$${parseFloat(r.discount).toFixed(2)}` : "-"}
+                          {parseFloat(r.discount) > 0 ? `$${fmtUsd(r.discount)}` : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {`$${parseFloat(r.oldDebt).toFixed(2)}`}
+                          {`$${fmtUsd(r.oldDebt)}`}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-emerald-600">
-                          {`$${parseFloat(r.remaining).toFixed(2)}`}
+                          {`$${fmtUsd(r.remaining)}`}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.note || "-"}</TableCell>
@@ -276,7 +277,7 @@ export default function CustomerReceiptUsdPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
-                      <p className="font-mono font-bold text-red-600">${parseFloat(selectedCustomer.oldDebtUsd).toFixed(2)}</p>
+                      <p className="font-mono font-bold text-red-600">${fmtUsd(selectedCustomer.oldDebtUsd)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -406,20 +407,20 @@ export default function CustomerReceiptUsdPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-receipt-amount-total">
-                    ${parseFloat(amount || "0").toFixed(2)}
+                    ${fmtUsd(amount || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-green-600">{t('Discount')}</span>
                   <span className="font-mono font-bold text-lg text-green-600" data-testid="text-receipt-discount-total">
-                    ${parseFloat(discount || "0").toFixed(2)}
+                    ${fmtUsd(discount || "0")}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{t('Total Deducted')}</span>
                   <span className="font-mono font-bold text-lg" data-testid="text-receipt-total-deducted">
-                    ${totalDeducted.toFixed(2)}
+                    ${fmtUsd(totalDeducted)}
                   </span>
                 </div>
               </div>
@@ -456,13 +457,13 @@ export default function CustomerReceiptUsdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt USD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    ${parseFloat(selectedCustomer.oldDebtUsd).toFixed(2)}
+                    ${fmtUsd(selectedCustomer.oldDebtUsd)}
                   </p>
                   {totalDeducted > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Receipt')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        ${(parseFloat(selectedCustomer.oldDebtUsd) - totalDeducted).toFixed(2)}
+                        ${fmtUsd((parseFloat(selectedCustomer.oldDebtUsd) - totalDeducted))}
                       </p>
                     </>
                   )}
