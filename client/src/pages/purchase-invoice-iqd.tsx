@@ -27,7 +27,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
-import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -312,7 +311,7 @@ export default function PurchaseInvoiceIqdPage() {
                     <TableRow key={inv.id}>
                       <TableCell>{inv.id}</TableCell>
                       <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{formatDate(inv.date)}</TableCell>
+                      <TableCell>{inv.date}</TableCell>
                       <TableCell>{inv.supplierName}</TableCell>
                       <TableCell>
                         <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>
@@ -368,7 +367,7 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
-              <Input type="text" placeholder="yyyy/mm/dd" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-iqd-date" />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-iqd-date" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>

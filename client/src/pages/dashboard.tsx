@@ -249,7 +249,7 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{inv.type} #{inv.id}</p>
-                    <p className="text-sm text-muted-foreground">{inv.status} - {formatDate(inv.date)}</p>
+                    <p className="text-sm text-muted-foreground">{inv.status}</p>
                   </div>
                   <div className="ml-auto font-medium">
                     ${inv.total}
