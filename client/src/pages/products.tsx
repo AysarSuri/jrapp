@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProductSchema, type Product } from "@shared/routes";
+import { insertProductSchema } from "@shared/routes";
+import { products } from "@shared/schema";
+type Product = typeof products.$inferSelect;
 import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
@@ -38,6 +40,7 @@ type FormValues = z.infer<typeof insertProductSchema>;
 
 const defaultValues: FormValues = {
   name: "",
+  nameEn: "",
   barcode: "",
   category: "",
   bigUnit: "",
@@ -95,6 +98,19 @@ function ProductForm({
                 <FormLabel>{t('Name')}</FormLabel>
                 <FormControl>
                   <Input placeholder={t('Product Name')} {...field} data-testid="input-product-name" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="nameEn"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Product Name (English)')}</FormLabel>
+                <FormControl>
+                  <Input placeholder="Product Name in English" {...field} data-testid="input-product-name-en" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -340,6 +356,7 @@ export default function ProductsPage() {
   const openEdit = (product: Product) => {
     editForm.reset({
       name: product.name,
+      nameEn: product.nameEn || "",
       barcode: product.barcode,
       category: product.category,
       bigUnit: product.bigUnit,
