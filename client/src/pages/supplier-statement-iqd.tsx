@@ -49,9 +49,10 @@ type CompanyProfileData = {
 
 export default function SupplierStatementIqdPage() {
   const { t, i18n } = useTranslation();
+  const today = new Date().toISOString().split('T')[0];
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>(today);
+  const [endDate, setEndDate] = useState<string>(today);
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
