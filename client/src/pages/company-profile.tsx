@@ -237,6 +237,8 @@ export default function CompanyProfilePage() {
 
               <Separator />
 
+              <p className="text-sm font-medium text-muted-foreground">{t('Choose color for cliché')}</p>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="primaryColor" className="flex items-center gap-1.5">
