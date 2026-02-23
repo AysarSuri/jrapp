@@ -25,7 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
-import { fmtUsd } from "@/lib/format-utils";
+import { fmtUsd, usd } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface ReturnItem {
@@ -592,7 +592,7 @@ export default function PurchaseReturnUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Remaining')}</Label>
               <div className={`text-xl font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}`} data-testid="text-purchase-return-remaining">
-                ${fmtUsd(remaining)}
+                {usd(remaining)}
               </div>
             </div>
           </div>

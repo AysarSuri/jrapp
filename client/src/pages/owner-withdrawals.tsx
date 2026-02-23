@@ -21,7 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 
 export default function OwnerWithdrawalsPage() {
   const { t } = useTranslation();
@@ -138,7 +138,7 @@ export default function OwnerWithdrawalsPage() {
                         <TableCell className="font-mono text-sm">{r.date}</TableCell>
                         <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(r.amountUsd) > 0 ? `$${fmtUsd(r.amountUsd)}` : "-"}
+                          {parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
                           {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
@@ -176,7 +176,7 @@ export default function OwnerWithdrawalsPage() {
         <Card className="border-blue-200 dark:border-blue-900/50">
           <CardContent className="pt-4 pb-4 text-center">
             <p className="text-xs text-muted-foreground mb-1">{t('Total USD')}</p>
-            <p className="font-mono font-bold text-lg text-blue-600" data-testid="text-total-withdrawal-usd">${fmtUsd(totalUsd)}</p>
+            <p className="font-mono font-bold text-lg text-blue-600" data-testid="text-total-withdrawal-usd">{usd(totalUsd)}</p>
           </CardContent>
         </Card>
         <Card className="border-orange-200 dark:border-orange-900/50">
@@ -282,7 +282,7 @@ export default function OwnerWithdrawalsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-withdrawal-usd-total">
-                    ${fmtUsd(amountUsd || "0")}
+                    {usd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

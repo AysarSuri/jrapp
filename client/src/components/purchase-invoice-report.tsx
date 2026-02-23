@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, Printer, MessageCircle } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 
@@ -152,8 +153,10 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   };
 
-  const currencySymbol = currency === "USD" ? "$" : "";
-  const currencySuffix = currency === "IQD" ? " IQD" : "";
+  const lang = i18n.language;
+  const isRtlLang = lang === "ar" || lang === "ckb";
+  const currencyPrefix = currency === "USD" ? (isRtlLang ? "" : "$") : "";
+  const currencySuffix = currency === "USD" ? (isRtlLang ? "$" : "") : " IQD";
 
   const handlePrint = () => {
     const content = printRef.current;
@@ -255,7 +258,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
         const phone = supplier?.mobile ? supplier.mobile.replace(/[^0-9]/g, "") : "";
         const text = encodeURIComponent(
-          `${currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}\n${t("Invoice #")}: ${invoice.invoiceNumber}\n${t("Supplier Name")}: ${invoice.supplierName}\n${t("Total Balance")}: ${currencySymbol}${fmt(totalBalance)}${currencySuffix}`
+          `${currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}\n${t("Invoice #")}: ${invoice.invoiceNumber}\n${t("Supplier Name")}: ${invoice.supplierName}\n${t("Total Balance")}: ${currencyPrefix}${fmt(totalBalance)}${currencySuffix}`
         );
         const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
         window.open(waUrl, "_blank");
@@ -367,8 +370,8 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left" }}>{resolveProductName(item)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{item.quantity}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{resolveUnitName(item.unit, unitsList)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{currencySymbol}{fmt(item.price)}{currencySuffix}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 600 }}>{currencySymbol}{fmt(item.amount)}{currencySuffix}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 600 }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
                   </tr>
                 ))}
               </tbody>
@@ -387,21 +390,21 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                   <span>{t("Invoice Total")}:</span>
-                  <span style={{ fontWeight: 600 }}>{currencySymbol}{fmt(invoice.subtotal)}{currencySuffix}</span>
+                  <span style={{ fontWeight: 600 }}>{currencyPrefix}{fmt(invoice.subtotal)}{currencySuffix}</span>
                 </div>
                 {parseFloat(invoice.discount || "0") > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
                     <span>{t("Discount")}:</span>
-                    <span style={{ fontWeight: 500 }}>-{currencySymbol}{fmt(invoice.discount)}{currencySuffix}</span>
+                    <span style={{ fontWeight: 500 }}>-{currencyPrefix}{fmt(invoice.discount)}{currencySuffix}</span>
                   </div>
                 )}
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
                   <span>{t("Amount Paid")}:</span>
-                  <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.amountPaid)}{currencySuffix}</span>
+                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.amountPaid)}{currencySuffix}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #333", marginTop: 5, color: "#dc2626" }}>
                   <span>{t("Remaining")}:</span>
-                  <span>{currencySymbol}{fmt(invoice.remaining)}{currencySuffix}</span>
+                  <span>{currencyPrefix}{fmt(invoice.remaining)}{currencySuffix}</span>
                 </div>
               </div>
 
@@ -411,24 +414,24 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   {parseFloat(invoice.carExpense || "0") > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Car Expense")}:</span>
-                      <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.carExpense)}{currencySuffix}</span>
+                      <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.carExpense)}{currencySuffix}</span>
                     </div>
                   )}
                   {parseFloat(invoice.customsExpense || "0") > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Customs Expense")}:</span>
-                      <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.customsExpense)}{currencySuffix}</span>
+                      <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.customsExpense)}{currencySuffix}</span>
                     </div>
                   )}
                   {parseFloat(invoice.otherExpenses || "0") > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                       <span>{t("Other Expenses")}:</span>
-                      <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoice.otherExpenses)}{currencySuffix}</span>
+                      <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.otherExpenses)}{currencySuffix}</span>
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "12pt", fontWeight: 700, borderTop: "1px solid #ddd", marginTop: 5 }}>
                     <span>{t("Total Expenses")}:</span>
-                    <span>{currencySymbol}{fmt(invoice.totalExpenses)}{currencySuffix}</span>
+                    <span>{currencyPrefix}{fmt(invoice.totalExpenses)}{currencySuffix}</span>
                   </div>
                 </div>
               )}
@@ -438,15 +441,15 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               <h3 style={{ color: "#dc2626", fontSize: "13pt", marginBottom: 5, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                 <span>{t("Old Debt")}:</span>
-                <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(oldDebt)}{currencySuffix}</span>
+                <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
                 <span>{t("Invoice Remaining")}:</span>
-                <span style={{ fontWeight: 500 }}>{currencySymbol}{fmt(invoiceRemaining)}{currencySuffix}</span>
+                <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, color: "#dc2626", borderTop: "2px solid #dc2626", marginTop: 5 }}>
                 <span>{t("Total Balance")}:</span>
-                <span>{currencySymbol}{fmt(totalBalance)}{currencySuffix}</span>
+                <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
               </div>
             </div>
 

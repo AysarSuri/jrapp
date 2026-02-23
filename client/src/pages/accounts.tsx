@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertAccountSchema } from "@shared/routes";
+import { usd } from "@/lib/format-utils";
 import { z } from "zod";
 import { useAccounts, useCreateAccount } from "@/hooks/use-accounts";
 import { Button } from "@/components/ui/button";
@@ -158,7 +159,7 @@ export default function AccountsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold font-mono">
-                  {account.currency === 'USD' ? '$' : ''}{Number(account.balance).toLocaleString()}{account.currency === 'IQD' ? ' IQD' : ''}
+                  {account.currency === 'USD' ? usd(account.balance) : `${Number(account.balance).toLocaleString()} IQD`}
                 </div>
               </CardContent>
             </Card>

@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
@@ -274,7 +274,7 @@ export default function SuppliersPage() {
             <CardTitle className="text-sm font-medium">{t('Total Old Debts (USD)')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${fmtUsd(totalOldDebtUsd)}</div>
+            <div className="text-2xl font-bold">{usd(totalOldDebtUsd)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -332,7 +332,7 @@ export default function SuppliersPage() {
                         ) : '-'}
                       </TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
-                      <TableCell className="text-right font-mono">${fmtUsd(client.oldDebtUsd || 0)}</TableCell>
+                      <TableCell className="text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.balance).toLocaleString()}</TableCell>
                       <TableCell className="text-right">

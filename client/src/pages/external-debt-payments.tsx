@@ -21,7 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 
 export default function ExternalDebtPaymentsPage() {
   const { t } = useTranslation();
@@ -148,7 +148,7 @@ export default function ExternalDebtPaymentsPage() {
                         <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                         <TableCell className="font-medium">{p.debtName}</TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(p.amountUsd) > 0 ? `$${fmtUsd(p.amountUsd)}` : "-"}
+                          {parseFloat(p.amountUsd) > 0 ? usd(p.amountUsd) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-red-600">
                           {parseFloat(p.amountIqd) > 0 ? formatIQD(parseFloat(p.amountIqd)) : "-"}
@@ -216,7 +216,7 @@ export default function ExternalDebtPaymentsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Old Debt USD')}</p>
-                      <p className="font-mono font-bold text-blue-600">${fmtUsd(selectedDebt.oldDebtUsd)}</p>
+                      <p className="font-mono font-bold text-blue-600">{usd(selectedDebt.oldDebtUsd)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Old Debt IQD')}</p>
@@ -291,7 +291,7 @@ export default function ExternalDebtPaymentsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-external-debt-payment-usd-total">
-                    ${fmtUsd(amountUsd || "0")}
+                    {usd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

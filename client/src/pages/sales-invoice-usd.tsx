@@ -25,7 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -639,7 +639,7 @@ export default function SalesInvoiceUsdPage() {
           <CardContent className="pt-6 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Invoice Total')}</span>
-              <span className="font-mono font-bold text-lg" data-testid="text-sales-subtotal">${fmtUsd(subtotal)}</span>
+              <span className="font-mono font-bold text-lg" data-testid="text-sales-subtotal">{usd(subtotal)}</span>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
@@ -670,7 +670,7 @@ export default function SalesInvoiceUsdPage() {
             <div className="flex justify-between items-center">
               <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
               <span className="font-mono font-bold text-xl text-red-600" data-testid="text-sales-remaining">
-                ${fmtUsd(remaining)}
+                {usd(remaining)}
               </span>
             </div>
           </CardContent>

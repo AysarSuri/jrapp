@@ -22,7 +22,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 
 export default function BankReceiptsPage() {
   const { t } = useTranslation();
@@ -149,7 +149,7 @@ export default function BankReceiptsPage() {
                         <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                         <TableCell className="font-medium">{r.bankName}</TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.amountUsd) > 0 ? `$${fmtUsd(r.amountUsd)}` : "-"}
+                          {parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-green-600">
                           {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
@@ -217,7 +217,7 @@ export default function BankReceiptsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Old Debt USD')}</p>
-                      <p className="font-mono font-bold text-blue-600">${fmtUsd(selectedBank.oldDebtUsd)}</p>
+                      <p className="font-mono font-bold text-blue-600">{usd(selectedBank.oldDebtUsd)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Old Debt IQD')}</p>
@@ -294,7 +294,7 @@ export default function BankReceiptsPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
                   <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-receipt-usd-total">
-                    ${fmtUsd(amountUsd || "0")}
+                    {usd(amountUsd || "0")}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

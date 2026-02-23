@@ -24,7 +24,7 @@ import { Plus, Search, HandCoins, Loader2, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { fmtUsd } from "@/lib/format-utils";
+import { usd } from "@/lib/format-utils";
 
 export default function ExternalDebtsPage() {
   const { t } = useTranslation();
@@ -212,7 +212,7 @@ export default function ExternalDebtsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(item.oldDebtUsd) > 0 ? `$${fmtUsd(item.oldDebtUsd)}` : "-"}
+                        {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : "-"}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}

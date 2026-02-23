@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { usd } from "@/lib/format-utils";
 
 type Client = {
   id: number;
@@ -80,6 +81,7 @@ export default function SupplierStatementUsdPage() {
   const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : parseFloat(statement?.supplier?.oldDebtUsd || "0");
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const dollarFmt = (n: number) => isRtl ? fmt(n) + "$" : "$" + fmt(n);
 
   const fieldColor = companyProfile?.primaryColor || "#333";
   const textColor = companyProfile?.secondaryColor || "white";
@@ -121,9 +123,9 @@ export default function SupplierStatementUsdPage() {
         <td>${e.date}<br/><small>${e.time}</small></td>
         <td>${getTypeText(e.type)}</td>
         <td>${e.description}</td>
-        <td class="debit">${e.debitUsd > 0 ? "$" + fmt(e.debitUsd) : "-"}</td>
-        <td class="credit">${e.creditUsd > 0 ? "$" + fmt(e.creditUsd) : "-"}</td>
-        <td class="balance">$${fmt(e.balanceUsd)}</td>
+        <td class="debit">${e.debitUsd > 0 ? dollarFmt(e.debitUsd) : "-"}</td>
+        <td class="credit">${e.creditUsd > 0 ? dollarFmt(e.creditUsd) : "-"}</td>
+        <td class="balance">${dollarFmt(e.balanceUsd)}</td>
         <td>${e.note || "-"}</td>
       </tr>
     `).join("");
@@ -174,9 +176,9 @@ export default function SupplierStatementUsdPage() {
         </div>
         <div class="supplier-bar">${statement.supplier.name}</div>
         <div class="summary-cards">
-          <div class="summary-card"><div class="label">${t("Old Debt USD")}</div><div class="value red">$${fmt(oldDebt)}</div></div>
-          <div class="summary-card"><div class="label">${t("Total Payments USD")}</div><div class="value green">$${fmt(totalCreditUsd)}</div></div>
-          <div class="summary-card"><div class="label">${t("Final Balance USD")}</div><div class="value blue">$${fmt(finalBalance)}</div></div>
+          <div class="summary-card"><div class="label">${t("Old Debt USD")}</div><div class="value red">${dollarFmt(oldDebt)}</div></div>
+          <div class="summary-card"><div class="label">${t("Total Payments USD")}</div><div class="value green">${dollarFmt(totalCreditUsd)}</div></div>
+          <div class="summary-card"><div class="label">${t("Final Balance USD")}</div><div class="value blue">${dollarFmt(finalBalance)}</div></div>
         </div>
         <table>
           <thead>
@@ -194,14 +196,14 @@ export default function SupplierStatementUsdPage() {
           <tbody>
             <tr class="opening-row">
               <td>-</td><td>-</td><td colspan="2">${t("Opening Balance (Old Debt)")}</td>
-              <td>-</td><td>-</td><td class="balance red">$${fmt(oldDebt)}</td><td></td>
+              <td>-</td><td>-</td><td class="balance red">${dollarFmt(oldDebt)}</td><td></td>
             </tr>
             ${rows}
             <tr class="total-row">
               <td>-</td><td>-</td><td colspan="2">${t("Total")}</td>
-              <td class="debit">$${fmt(totalDebitUsd)}</td>
-              <td class="credit">$${fmt(totalCreditUsd)}</td>
-              <td class="balance blue">$${fmt(finalBalance)}</td>
+              <td class="debit">${dollarFmt(totalDebitUsd)}</td>
+              <td class="credit">${dollarFmt(totalCreditUsd)}</td>
+              <td class="balance blue">${dollarFmt(finalBalance)}</td>
               <td></td>
             </tr>
           </tbody>
@@ -227,9 +229,9 @@ export default function SupplierStatementUsdPage() {
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.date}<br/><small style="color:#999;font-size:7pt">${e.time}</small></td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${getTypeText(e.type)}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.description}</td>
-        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#dc2626">${e.debitUsd > 0 ? "$" + fmt(e.debitUsd) : "-"}</td>
-        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#16a34a">${e.creditUsd > 0 ? "$" + fmt(e.creditUsd) : "-"}</td>
-        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;font-weight:600">\$${fmt(e.balanceUsd)}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#dc2626">${e.debitUsd > 0 ? dollarFmt(e.debitUsd) : "-"}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#16a34a">${e.creditUsd > 0 ? dollarFmt(e.creditUsd) : "-"}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;font-weight:600">${dollarFmt(e.balanceUsd)}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.note || "-"}</td>
       </tr>
     `).join("");
@@ -242,9 +244,9 @@ export default function SupplierStatementUsdPage() {
       </div>
       <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
-        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Old Debt USD")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">\$${fmt(oldDebt)}</div></div>
-        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments USD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">\$${fmt(totalCreditUsd)}</div></div>
-        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Final Balance USD")}</div><div style="font-size:12pt;font-weight:700;color:#2563eb">\$${fmt(finalBalance)}</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Old Debt USD")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${dollarFmt(oldDebt)}</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments USD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${dollarFmt(totalCreditUsd)}</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Final Balance USD")}</div><div style="font-size:12pt;font-weight:700;color:#2563eb">${dollarFmt(finalBalance)}</div></div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:9pt">
         <thead><tr>
@@ -258,9 +260,9 @@ export default function SupplierStatementUsdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
         </tr></thead>
         <tbody>
-          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance (Old Debt)")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">\$${fmt(oldDebt)}</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance (Old Debt)")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${dollarFmt(oldDebt)}</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
           ${rows}
-          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">\$${fmt(totalDebitUsd)}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">\$${fmt(totalCreditUsd)}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">\$${fmt(finalBalance)}</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">${dollarFmt(totalDebitUsd)}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">${dollarFmt(totalCreditUsd)}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">${dollarFmt(finalBalance)}</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
         </tbody>
       </table>
     `;
@@ -292,7 +294,7 @@ export default function SupplierStatementUsdPage() {
         a.download = fileName;
         a.click();
         URL.revokeObjectURL(url);
-        const text = encodeURIComponent(`${t("Supplier Statement - USD")}\n${statement.supplier.name}\n${t("Final Balance USD")}: $${fmt(finalBalance)}`);
+        const text = encodeURIComponent(`${t("Supplier Statement - USD")}\n${statement.supplier.name}\n${t("Final Balance USD")}: ${dollarFmt(finalBalance)}`);
         window.open(`https://wa.me/?text=${text}`, "_blank");
       }
     } finally {
@@ -356,19 +358,19 @@ export default function SupplierStatementUsdPage() {
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Old Debt USD")}</p>
-                <p className="text-xl font-bold text-red-600 dark:text-red-400">${fmt(parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
+                <p className="text-xl font-bold text-red-600 dark:text-red-400">{usd(parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-green-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Total Payments USD")}</p>
-                <p className="text-xl font-bold text-green-600 dark:text-green-400">${fmt(totalCreditUsd)}</p>
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Final Balance USD")}</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">${fmt(finalBalance)}</p>
+                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{usd(finalBalance)}</p>
               </CardContent>
             </Card>
           </div>
@@ -404,7 +406,7 @@ export default function SupplierStatementUsdPage() {
                         <TableCell colSpan={2}>{t("Opening Balance (Old Debt)")}</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400">${fmt(parseFloat(statement.supplier.oldDebtUsd || "0"))}</TableCell>
+                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400">{usd(parseFloat(statement.supplier.oldDebtUsd || "0"))}</TableCell>
                         <TableCell></TableCell>
                       </TableRow>
                       {entriesWithBalance.map((entry, idx) => (
@@ -414,14 +416,14 @@ export default function SupplierStatementUsdPage() {
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
                           <TableCell className="text-sm">{entry.description}</TableCell>
                           <TableCell className="text-center">
-                            {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">${fmt(entry.debitUsd)}</span> : "-"}
+                            {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{usd(entry.debitUsd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">${fmt(entry.creditUsd)}</span> : "-"}
+                            {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{usd(entry.creditUsd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             <span className={entry.balanceUsd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
-                              ${fmt(entry.balanceUsd)}
+                              {usd(entry.balanceUsd)}
                             </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
@@ -431,10 +433,10 @@ export default function SupplierStatementUsdPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
                         <TableCell colSpan={2}>{t("Total")}</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400">${fmt(totalDebitUsd)}</TableCell>
-                        <TableCell className="text-center text-green-600 dark:text-green-400">${fmt(totalCreditUsd)}</TableCell>
+                        <TableCell className="text-center text-red-600 dark:text-red-400">{usd(totalDebitUsd)}</TableCell>
+                        <TableCell className="text-center text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</TableCell>
                         <TableCell className="text-center text-blue-600 dark:text-blue-400">
-                          ${fmt(finalBalance)}
+                          {usd(finalBalance)}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>

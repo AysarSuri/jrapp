@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { usd } from "@/lib/format-utils";
 
 type Client = {
   id: number;
@@ -132,7 +133,7 @@ export default function SupplierStatementPage() {
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Old Debt USD")}</p>
-                <p className="text-xl font-bold text-red-600 dark:text-red-400">${fmt(parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
+                <p className="text-xl font-bold text-red-600 dark:text-red-400">{usd(parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-orange-500">
@@ -144,7 +145,7 @@ export default function SupplierStatementPage() {
             <Card className="border-l-4 border-l-blue-500">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{t("Final Balance USD")}</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">${fmt(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
+                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{usd(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-emerald-500">
@@ -195,7 +196,7 @@ export default function SupplierStatementPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400">${fmt(parseFloat(statement.supplier.oldDebtUsd || "0"))}</TableCell>
+                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400">{usd(parseFloat(statement.supplier.oldDebtUsd || "0"))}</TableCell>
                         <TableCell className="text-center font-bold text-red-600 dark:text-red-400">{fmt(parseFloat(statement.supplier.oldDebtIqd || "0"))}</TableCell>
                         <TableCell></TableCell>
                       </TableRow>
@@ -206,20 +207,20 @@ export default function SupplierStatementPage() {
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
                           <TableCell className="text-sm">{entry.description}</TableCell>
                           <TableCell className="text-center">
-                            {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">${fmt(entry.debitUsd)}</span> : "-"}
+                            {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{usd(entry.debitUsd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             {entry.debitIqd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{fmt(entry.debitIqd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">${fmt(entry.creditUsd)}</span> : "-"}
+                            {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{usd(entry.creditUsd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             {entry.creditIqd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{fmt(entry.creditIqd)}</span> : "-"}
                           </TableCell>
                           <TableCell className="text-center font-medium">
                             <span className={entry.balanceUsd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
-                              ${fmt(entry.balanceUsd)}
+                              {usd(entry.balanceUsd)}
                             </span>
                           </TableCell>
                           <TableCell className="text-center font-medium">
@@ -234,12 +235,12 @@ export default function SupplierStatementPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
                         <TableCell colSpan={2}>{t("Total")}</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400">${fmt(totalDebitUsd)}</TableCell>
+                        <TableCell className="text-center text-red-600 dark:text-red-400">{usd(totalDebitUsd)}</TableCell>
                         <TableCell className="text-center text-red-600 dark:text-red-400">{fmt(totalDebitIqd)}</TableCell>
-                        <TableCell className="text-center text-green-600 dark:text-green-400">${fmt(totalCreditUsd)}</TableCell>
+                        <TableCell className="text-center text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</TableCell>
                         <TableCell className="text-center text-green-600 dark:text-green-400">{fmt(totalCreditIqd)}</TableCell>
                         <TableCell className="text-center text-blue-600 dark:text-blue-400">
-                          ${fmt(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : parseFloat(statement.supplier.oldDebtUsd || "0"))}
+                          {usd(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : parseFloat(statement.supplier.oldDebtUsd || "0"))}
                         </TableCell>
                         <TableCell className="text-center text-blue-600 dark:text-blue-400">
                           {fmt(entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : parseFloat(statement.supplier.oldDebtIqd || "0"))}

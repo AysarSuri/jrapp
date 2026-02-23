@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertTransactionSchema } from "@shared/routes";
+import { usd } from "@/lib/format-utils";
 import { z } from "zod";
 import { useTransactions, useCreateTransaction } from "@/hooks/use-transactions";
 import { useAccounts } from "@/hooks/use-accounts";
@@ -214,7 +215,7 @@ export default function TransactionsPage() {
                       <TableCell>{getAccountName(tx.fromAccountId)}</TableCell>
                       <TableCell>{getAccountName(tx.toAccountId)}</TableCell>
                       <TableCell className="text-right font-mono">
-                        {tx.currency === 'USD' ? '$' : ''}{Number(tx.amount).toLocaleString()}{tx.currency === 'IQD' ? ' IQD' : ''}
+                        {tx.currency === 'USD' ? usd(tx.amount) : `${Number(tx.amount).toLocaleString()} IQD`}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{tx.reference || '-'}</TableCell>
                       <TableCell>{new Date(tx.date).toLocaleDateString()}</TableCell>
