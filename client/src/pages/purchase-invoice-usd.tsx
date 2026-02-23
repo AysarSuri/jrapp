@@ -650,7 +650,7 @@ export default function PurchaseInvoiceUsdPage() {
               </div>
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
-                <p className="text-3xl font-bold text-primary" data-testid="text-purchase-total-weight">{totalWeight.toFixed(2)} kg</p>
+                <p className="text-lg font-bold text-primary" data-testid="text-purchase-total-weight">{totalWeight.toFixed(2)} kg</p>
               </div>
             </div>
           </CardContent>
