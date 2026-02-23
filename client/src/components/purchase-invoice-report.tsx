@@ -279,15 +279,21 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </p>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 20, background: fieldColor, color: textColor, padding: "6px 10px", borderRadius: 4, marginBottom: 12, fontSize: "12pt", fontWeight: 600 }}>
-              <span>{invoice.supplierName}</span>
-              {invoice.address && <span>|</span>}
-              {invoice.address && <span>{invoice.address}</span>}
-              <span>|</span>
-              <span>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
-            </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 12, fontSize: "12pt" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+                <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
+                <span style={{ fontWeight: 500 }}>{invoice.supplierName}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+                <span style={{ fontWeight: 600, color: "#555" }}>{t("Invoice Type")}:</span>
+                <span style={{ fontWeight: 500 }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
+              </div>
+              {invoice.address && (
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Address")}:</span>
+                  <span style={{ fontWeight: 500 }}>{invoice.address}</span>
+                </div>
+              )}
               {invoice.customsClearance && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Customs Clearance")}:</span>
