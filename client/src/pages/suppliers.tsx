@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertClientSchema, type Client } from "@shared/routes";
@@ -24,7 +25,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Truck, Loader2, MapPin, ChevronsUpDown, Check, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Truck, Loader2, MapPin, ChevronsUpDown, Check, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -130,6 +131,12 @@ export default function SuppliersPage() {
 
   return (
     <div className="space-y-8">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('Suppliers')}</h1>

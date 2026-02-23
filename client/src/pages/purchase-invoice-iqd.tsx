@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
 import { useUser } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -19,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, Banknote, FileText, RotateCcw,
-  ListOrdered, FileBarChart,
+  ListOrdered, FileBarChart, ArrowLeft,
 } from "lucide-react";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import {
@@ -266,6 +267,12 @@ export default function PurchaseInvoiceIqdPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">

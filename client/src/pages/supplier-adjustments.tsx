@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { useSupplierAdjustments, useCreateSupplierAdjustment } from "@/hooks/use-supplier-adjustments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, SupplierAdjustment, Bank, TransferOffice } from "@shared/schema";
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building,
+  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building, ArrowLeft,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -136,6 +137,12 @@ export default function SupplierAdjustmentsPage() {
 
   return (
     <div className="space-y-8">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">

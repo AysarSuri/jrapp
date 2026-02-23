@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, DollarSign, Printer, MessageCircle } from "lucide-react";
+import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, DollarSign, Printer, MessageCircle, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -304,6 +305,12 @@ export default function SupplierStatementUsdPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-supplier-statement-usd-title">
           <DollarSign className="h-8 w-8 text-blue-600" />

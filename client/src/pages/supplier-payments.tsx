@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
 import { useSupplierPayments, useCreateSupplierPayment } from "@/hooks/use-supplier-payments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Building, Landmark, HandCoins,
+  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Building, Landmark, HandCoins, ArrowLeft,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -146,6 +147,12 @@ export default function SupplierPaymentsPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
