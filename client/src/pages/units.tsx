@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUnitSchema, type Unit } from "@shared/routes";
+import { insertUnitSchema } from "@shared/routes";
+import { units } from "@shared/schema";
+type Unit = typeof units.$inferSelect;
 import { z } from "zod";
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit } from "@/hooks/use-units";
 import { Button } from "@/components/ui/button";
@@ -38,18 +40,18 @@ export default function UnitsPage() {
 
   const form = useForm<z.infer<typeof insertUnitSchema>>({
     resolver: zodResolver(insertUnitSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", nameEn: "", nameKu: "", nameTr: "" },
   });
 
   const openCreateDialog = () => {
     setEditingUnit(null);
-    form.reset({ name: "" });
+    form.reset({ name: "", nameEn: "", nameKu: "", nameTr: "" });
     setOpen(true);
   };
 
   const openEditDialog = (unit: Unit) => {
     setEditingUnit(unit);
-    form.reset({ name: unit.name });
+    form.reset({ name: unit.name, nameEn: unit.nameEn || "", nameKu: unit.nameKu || "", nameTr: unit.nameTr || "" });
     setOpen(true);
   };
 
@@ -91,9 +93,13 @@ export default function UnitsPage() {
     });
   };
 
-  const filtered = unitsList?.filter((u) =>
-    u.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filtered = unitsList?.filter((u) => {
+    const term = searchTerm.toLowerCase();
+    return u.name.toLowerCase().includes(term) ||
+      (u.nameEn || "").toLowerCase().includes(term) ||
+      (u.nameKu || "").toLowerCase().includes(term) ||
+      (u.nameTr || "").toLowerCase().includes(term);
+  }) || [];
 
   const isSaving = isCreating || isUpdating;
 
@@ -122,6 +128,27 @@ export default function UnitsPage() {
                   <FormItem>
                     <FormLabel>{t('Unit Name')}</FormLabel>
                     <FormControl><Input data-testid="input-unit-name" placeholder={t('e.g. Piece, Box, Kg')} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameEn" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Unit Name (English)')}</FormLabel>
+                    <FormControl><Input data-testid="input-unit-name-en" placeholder="e.g. Piece, Box, Kg" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameKu" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Unit Name (Kurdish)')}</FormLabel>
+                    <FormControl><Input data-testid="input-unit-name-ku" placeholder="دانە، سندوق، کیلۆ" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameTr" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Unit Name (Turkish)')}</FormLabel>
+                    <FormControl><Input data-testid="input-unit-name-tr" placeholder="Adet, Kutu, Kg" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -173,6 +200,9 @@ export default function UnitsPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Unit Name')}</TableHead>
+                    <TableHead>{t('English')}</TableHead>
+                    <TableHead>{t('Kurdish')}</TableHead>
+                    <TableHead>{t('Turkish')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -186,6 +216,9 @@ export default function UnitsPage() {
                           {unit.name}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">{unit.nameEn || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{unit.nameKu || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{unit.nameTr || "-"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(unit)} data-testid={`button-edit-unit-${unit.id}`}>

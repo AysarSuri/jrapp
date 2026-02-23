@@ -11,6 +11,9 @@ export const addresses = pgTable("addresses", {
 export const units = pgTable("units", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  nameEn: text("name_en").notNull().default(""),
+  nameKu: text("name_ku").notNull().default(""),
+  nameTr: text("name_tr").notNull().default(""),
 });
 
 export const categories = pgTable("categories", {
