@@ -242,21 +242,25 @@ export default function CompanyProfilePage() {
                     {t('Primary Color')}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      id="primaryColor"
-                      value={form.primaryColor}
-                      onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
-                      className="w-10 h-10 rounded cursor-pointer border border-border"
-                      data-testid="input-primary-color"
-                    />
-                    <Input
-                      value={form.primaryColor}
-                      onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
-                      placeholder="#1a1a2e"
-                      className="flex-1"
-                      data-testid="input-primary-color-text"
-                    />
+                    <div className="relative">
+                      <input
+                        type="color"
+                        id="primaryColor"
+                        value={form.primaryColor}
+                        onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
+                        className="w-12 h-12 rounded-lg cursor-pointer border-2 border-border p-0.5"
+                        data-testid="input-primary-color"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Input
+                        value={form.primaryColor}
+                        onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
+                        placeholder="#1a1a2e"
+                        data-testid="input-primary-color-text"
+                      />
+                      <div className="h-2 rounded-full" style={{ backgroundColor: form.primaryColor }} />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -265,21 +269,25 @@ export default function CompanyProfilePage() {
                     {t('Secondary Color')}
                   </Label>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      id="secondaryColor"
-                      value={form.secondaryColor}
-                      onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
-                      className="w-10 h-10 rounded cursor-pointer border border-border"
-                      data-testid="input-secondary-color"
-                    />
-                    <Input
-                      value={form.secondaryColor}
-                      onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
-                      placeholder="#16213e"
-                      className="flex-1"
-                      data-testid="input-secondary-color-text"
-                    />
+                    <div className="relative">
+                      <input
+                        type="color"
+                        id="secondaryColor"
+                        value={form.secondaryColor}
+                        onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
+                        className="w-12 h-12 rounded-lg cursor-pointer border-2 border-border p-0.5"
+                        data-testid="input-secondary-color"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Input
+                        value={form.secondaryColor}
+                        onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
+                        placeholder="#16213e"
+                        data-testid="input-secondary-color-text"
+                      />
+                      <div className="h-2 rounded-full" style={{ backgroundColor: form.secondaryColor }} />
+                    </div>
                   </div>
                 </div>
               </div>
