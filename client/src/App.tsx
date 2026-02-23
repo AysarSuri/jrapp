@@ -31,6 +31,7 @@ import OfficeManagementPage from "@/pages/office-management";
 import ExpenseManagementPage from "@/pages/expense-management";
 import ExternalDebtManagementPage from "@/pages/external-debt-management";
 import OwnerManagementPage from "@/pages/owner-management";
+import SupplierStatementPage from "@/pages/supplier-statement";
 import SupplierStatementUsdPage from "@/pages/supplier-statement-usd";
 import SupplierStatementIqdPage from "@/pages/supplier-statement-iqd";
 import BankReceiptsPage from "@/pages/bank-receipts";
@@ -175,6 +176,9 @@ function Router() {
       </Route>
       <Route path="/owner-management">
         <ProtectedRoute component={OwnerManagementPage} />
+      </Route>
+      <Route path="/supplier-statement">
+        <ProtectedRoute component={SupplierStatementPage} />
       </Route>
       <Route path="/supplier-statement-usd">
         <ProtectedRoute component={SupplierStatementUsdPage} />
