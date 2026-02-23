@@ -758,20 +758,63 @@ export async function registerRoutes(
   app.get('/api/supplier-statement/:id', requireAuth, async (req, res) => {
     try {
       const supplierId = parseInt(req.params.id as string);
+      const { startDate, endDate } = req.query;
       const [supplier] = await db.select().from(clients).where(eq(clients.id, supplierId));
       if (!supplier) return res.status(404).json({ message: "Supplier not found" });
 
-      const invoices = await db.select().from(purchaseInvoices)
-        .where(eq(purchaseInvoices.supplierId, supplierId))
-        .orderBy(purchaseInvoices.date, purchaseInvoices.time);
+      let invoicesQuery = db.select().from(purchaseInvoices).where(eq(purchaseInvoices.supplierId, supplierId));
+      let paymentsQuery = db.select().from(supplierPayments).where(eq(supplierPayments.supplierId, supplierId));
+      let adjustmentsQuery = db.select().from(supplierAdjustments).where(eq(supplierAdjustments.supplierId, supplierId));
 
-      const payments = await db.select().from(supplierPayments)
-        .where(eq(supplierPayments.supplierId, supplierId))
-        .orderBy(supplierPayments.date, supplierPayments.time);
+      let openingBalanceUsd = 0;
+      let openingBalanceIqd = 0;
 
-      const adjustments = await db.select().from(supplierAdjustments)
-        .where(eq(supplierAdjustments.supplierId, supplierId))
-        .orderBy(supplierAdjustments.date, supplierAdjustments.time);
+      if (startDate) {
+        // Calculate opening balance up to startDate
+        const prevInvoices = await db.select().from(purchaseInvoices)
+          .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} < ${startDate}`);
+        const prevPayments = await db.select().from(supplierPayments)
+          .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} < ${startDate}`);
+        const prevAdjustments = await db.select().from(supplierAdjustments)
+          .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${supplierAdjustments.date} < ${startDate}`);
+
+        openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
+        openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
+
+        for (const inv of prevInvoices) {
+          const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+          if (inv.currency === "USD") openingBalanceUsd += amount;
+          else openingBalanceIqd += amount;
+        }
+        for (const pay of prevPayments) {
+          openingBalanceUsd -= parseFloat(pay.amountUsd || "0");
+          openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
+        }
+        for (const adj of prevAdjustments) {
+          openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        }
+
+        invoicesQuery = db.select().from(purchaseInvoices)
+          .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} >= ${startDate}`);
+        paymentsQuery = db.select().from(supplierPayments)
+          .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} >= ${startDate}`);
+        adjustmentsQuery = db.select().from(supplierAdjustments)
+          .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${supplierAdjustments.date} >= ${startDate}`);
+      } else {
+        openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
+        openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
+      }
+
+      if (endDate) {
+        invoicesQuery = invoicesQuery.where(sql`${purchaseInvoices.date} <= ${endDate}`);
+        paymentsQuery = paymentsQuery.where(sql`${supplierPayments.date} <= ${endDate}`);
+        adjustmentsQuery = adjustmentsQuery.where(sql`${supplierAdjustments.date} <= ${endDate}`);
+      }
+
+      const invoices = await invoicesQuery.orderBy(purchaseInvoices.date, purchaseInvoices.time);
+      const payments = await paymentsQuery.orderBy(supplierPayments.date, supplierPayments.time);
+      const adjustments = await adjustmentsQuery.orderBy(supplierAdjustments.date, supplierAdjustments.time);
 
       type StatementEntry = {
         id: number;
@@ -843,6 +886,8 @@ export async function registerRoutes(
       res.json({
         supplier,
         entries,
+        openingBalanceUsd,
+        openingBalanceIqd,
       });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });

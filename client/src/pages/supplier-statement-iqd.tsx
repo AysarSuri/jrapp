@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,8 @@ type CompanyProfileData = {
 export default function SupplierStatementIqdPage() {
   const { t, i18n } = useTranslation();
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
@@ -63,14 +67,17 @@ export default function SupplierStatementIqdPage() {
   const suppliers = clients?.filter((c) => c.type === "supplier") || [];
 
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
-    queryKey: [`/api/supplier-statement/${selectedSupplierId}`],
+    queryKey: [`/api/supplier-statement/${selectedSupplierId}${startDate || endDate ? `?startDate=${startDate}&endDate=${endDate}` : ""}`],
     enabled: !!selectedSupplierId,
   });
 
   const entries = statement?.entries || [];
+  const oldDebt = parseFloat(statement?.supplier?.oldDebtIqd || "0");
+  const openingBalance = statement?.openingBalanceIqd ?? oldDebt;
+
   const iqdEntries = entries.filter(e => e.debitIqd > 0 || e.creditIqd > 0);
 
-  let runningIqd = parseFloat(statement?.supplier?.oldDebtIqd || "0");
+  let runningIqd = openingBalance;
   const entriesWithBalance = iqdEntries.map((entry) => {
     runningIqd += entry.debitIqd - entry.creditIqd;
     return { ...entry, balanceIqd: runningIqd };
@@ -78,7 +85,7 @@ export default function SupplierStatementIqdPage() {
 
   const totalDebitIqd = iqdEntries.reduce((s, e) => s + e.debitIqd, 0);
   const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
-  const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : parseFloat(statement?.supplier?.oldDebtIqd || "0");
+  const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : openingBalance;
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
@@ -324,19 +331,54 @@ export default function SupplierStatementIqdPage() {
             {t("Select Supplier")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
-            <SelectTrigger data-testid="select-supplier-statement-iqd" className="max-w-md">
-              <SelectValue placeholder={t("Select supplier...")} />
-            </SelectTrigger>
-            <SelectContent>
-              {suppliers.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)} data-testid={`select-supplier-iqd-${s.id}`}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Label className="mb-2 block">{t("Select Supplier")}</Label>
+              <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
+                <SelectTrigger data-testid="select-supplier-statement-iqd" className="w-full">
+                  <SelectValue placeholder={t("Select supplier...")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((s) => (
+                    <SelectItem key={s.id} value={String(s.id)} data-testid={`select-supplier-iqd-${s.id}`}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2 block">{t("From Date")}</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-2 block">{t("To Date")}</Label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+              }}
+            >
+              {t("Clear Filters")}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
