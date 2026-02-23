@@ -12,7 +12,8 @@ export function fmtIqd(n: number | string): string {
   return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-export function formatDate(date: Date | string | number): string {
+export function formatDate(date: Date | string | number | null | undefined): string {
+  if (!date) return "";
   const d = new Date(date);
   if (isNaN(d.getTime())) return "";
   const year = d.getFullYear();
