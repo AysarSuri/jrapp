@@ -140,13 +140,13 @@ export default function SupplierStatementPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Old Debt USD")}</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance USD")}</p>
                 <p className="text-xl font-bold text-red-600 dark:text-red-400">{usd(parseFloat(statement.supplier.oldDebtUsd || "0"))}</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-orange-500">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Old Debt IQD")}</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance IQD")}</p>
                 <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{fmt(parseFloat(statement.supplier.oldDebtIqd || "0"))} IQD</p>
               </CardContent>
             </Card>
@@ -199,7 +199,7 @@ export default function SupplierStatementPage() {
                       <TableRow className="bg-muted/30 font-medium">
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Opening Balance (Old Debt)")}</TableCell>
+                        <TableCell colSpan={2}>{t("Opening Balance (Opening Balance)")}</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>

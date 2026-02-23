@@ -131,7 +131,7 @@ export default function TransferOfficesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Old Debt USD')}</FormLabel>
+                      <FormLabel>{t('Opening Balance USD')}</FormLabel>
                       <FormControl>
                         <Input type="number" step="0.01" min="0" placeholder="0.00" data-testid="input-transfer-office-old-debt-usd" {...field} />
                       </FormControl>
@@ -140,7 +140,7 @@ export default function TransferOfficesPage() {
                   )} />
                   <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Old Debt IQD')}</FormLabel>
+                      <FormLabel>{t('Opening Balance IQD')}</FormLabel>
                       <FormControl>
                         <Input type="number" step="250" min="0" placeholder="0" data-testid="input-transfer-office-old-debt-iqd" {...field} />
                       </FormControl>
@@ -196,8 +196,8 @@ export default function TransferOfficesPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Transfer Office Name')}</TableHead>
-                    <TableHead>{t('Old Debt USD')}</TableHead>
-                    <TableHead>{t('Old Debt IQD')}</TableHead>
+                    <TableHead>{t('Opening Balance USD')}</TableHead>
+                    <TableHead>{t('Opening Balance IQD')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>

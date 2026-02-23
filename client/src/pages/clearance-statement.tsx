@@ -113,7 +113,7 @@ export default function ClearanceStatementPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance (Old Debt)')}</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance (Opening Balance)')}</p>
                 <p className="font-mono font-bold text-amber-800 dark:text-amber-300">{usd(statement.clearance.oldDebtUsd)}</p>
                 <p className="font-mono text-sm text-amber-600 dark:text-amber-500">{formatIQD(parseFloat(statement.clearance.oldDebtIqd))}</p>
               </CardContent>
@@ -163,7 +163,7 @@ export default function ClearanceStatementPage() {
                 <TableBody>
                   <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
                     <TableCell colSpan={6} className="text-amber-700 dark:text-amber-400">
-                      {t('Opening Balance (Old Debt)')}
+                      {t('Opening Balance (Opening Balance)')}
                     </TableCell>
                     <TableCell colSpan={4}></TableCell>
                     <TableCell className="font-mono text-blue-600">{usd(statement.clearance.oldDebtUsd)}</TableCell>

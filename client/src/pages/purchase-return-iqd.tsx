@@ -25,6 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 
 interface ReturnItem {
@@ -275,7 +276,7 @@ export default function PurchaseReturnIqdPage() {
                     <TableRow key={ret.id} data-testid={`row-purchase-return-iqd-history-${ret.id}`}>
                       <TableCell>{ret.id}</TableCell>
                       <TableCell className="font-mono">{ret.returnNumber}</TableCell>
-                      <TableCell>{ret.date}</TableCell>
+                      <TableCell>{formatDate(ret.date)}</TableCell>
                       <TableCell>{ret.supplierName}</TableCell>
                       <TableCell>
                         <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>

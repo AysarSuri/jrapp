@@ -216,11 +216,11 @@ export default function ClearanceReceiptsPage() {
                       <p className="font-bold">{selectedClearance.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt USD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance USD')}</p>
                       <p className="font-mono font-bold text-blue-600">{usd(selectedClearance.oldDebtUsd)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt IQD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance IQD')}</p>
                       <p className="font-mono font-bold text-orange-600">{formatIQD(parseFloat(selectedClearance.oldDebtIqd))}</p>
                     </div>
                   </div>

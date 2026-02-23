@@ -169,7 +169,7 @@ export default function AgentPaymentIqdPage() {
                       <TableHead>{t('Agent')}</TableHead>
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
-                      <TableHead>{t('Old Debt')}</TableHead>
+                      <TableHead>{t('Opening Balance')}</TableHead>
                       <TableHead>{t('Remaining')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>

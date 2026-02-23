@@ -9,6 +9,7 @@ import { jsPDF } from "jspdf";
 import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
+import { formatDate } from "@/lib/format-utils";
 
 type InvoiceData = {
   id: number;
@@ -305,7 +306,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 {currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}
               </h1>
               <p style={{ fontSize: "12pt", color: "#666" }}>
-                {t("Invoice #")}: {invoice.invoiceNumber} | {t("Date")}: {invoice.date} | {t("Time")}: {invoice.time}
+                {t("Invoice #")}: {invoice.invoiceNumber} | {t("Date")}: {formatDate(invoice.date)} | {t("Time")}: {invoice.time}
               </p>
             </div>
 
@@ -440,7 +441,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <div style={{ marginTop: 10, border: "2px solid #dc2626", borderRadius: 4, padding: 8 }}>
               <h3 style={{ color: "#dc2626", fontSize: "13pt", marginBottom: 5, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Old Debt")}:</span>
+                <span>{t("Opening Balance")}:</span>
                 <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>

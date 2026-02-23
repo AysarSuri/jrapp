@@ -215,11 +215,11 @@ export default function OfficePaymentsPage() {
                       <p className="font-bold">{selectedOffice.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt USD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance USD')}</p>
                       <p className="font-mono font-bold text-blue-600">{usd(selectedOffice.oldDebtUsd)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt IQD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance IQD')}</p>
                       <p className="font-mono font-bold text-orange-600">{formatIQD(parseFloat(selectedOffice.oldDebtIqd))}</p>
                     </div>
                   </div>

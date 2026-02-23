@@ -174,7 +174,7 @@ export default function CustomerReceiptUsdPage() {
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
                       <TableHead>{t('Discount')}</TableHead>
-                      <TableHead>{t('Old Debt')}</TableHead>
+                      <TableHead>{t('Opening Balance')}</TableHead>
                       <TableHead>{t('Remaining')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>

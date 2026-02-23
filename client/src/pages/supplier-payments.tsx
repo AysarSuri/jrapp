@@ -190,8 +190,8 @@ export default function SupplierPaymentsPage() {
                       <TableHead>{t('IQD Amount')}</TableHead>
                       <TableHead>{t('Commission USD')}</TableHead>
                       <TableHead>{t('Commission IQD')}</TableHead>
-                      <TableHead>{t('Old Debt USD')}</TableHead>
-                      <TableHead>{t('Old Debt IQD')}</TableHead>
+                      <TableHead>{t('Opening Balance USD')}</TableHead>
+                      <TableHead>{t('Opening Balance IQD')}</TableHead>
                       <TableHead>{t('Remaining USD')}</TableHead>
                       <TableHead>{t('Remaining IQD')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>

@@ -410,6 +410,18 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export type User = typeof users.$inferSelect;
+export type Product = typeof products.$inferSelect;
+export type Client = typeof clients.$inferSelect;
+export type PurchaseInvoice = typeof purchaseInvoices.$inferSelect;
+export type PurchaseReturn = typeof purchaseReturns.$inferSelect;
+export type SalesInvoice = typeof salesInvoices.$inferSelect;
+export type SalesReturn = typeof salesReturns.$inferSelect;
+export type SupplierAdjustment = typeof supplierAdjustments.$inferSelect;
+export type Bank = typeof banks.$inferSelect;
+export type TransferOffice = typeof transferOffices.$inferSelect;
+export type CustomsClearance = typeof customsClearances.$inferSelect;
+
 export const insertUserSchema = createInsertSchema(users);
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true });
@@ -479,8 +491,6 @@ export const purchaseReturnItems = pgTable("purchase_return_items", {
 export const insertPurchaseReturnSchema = createInsertSchema(purchaseReturns).omit({ id: true, createdAt: true });
 export const insertPurchaseReturnItemSchema = createInsertSchema(purchaseReturnItems).omit({ id: true });
 
-export type PurchaseReturn = typeof purchaseReturns.$inferSelect;
-export type InsertPurchaseReturn = z.infer<typeof insertPurchaseReturnSchema>;
 export type PurchaseReturnItem = typeof purchaseReturnItems.$inferSelect;
 export type InsertPurchaseReturnItem = z.infer<typeof insertPurchaseReturnItemSchema>;
 

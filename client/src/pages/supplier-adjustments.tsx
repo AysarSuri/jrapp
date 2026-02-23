@@ -24,7 +24,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
@@ -167,10 +167,10 @@ export default function SupplierAdjustmentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>#</TableHead>
-                  <TableHead>{t("Supplier")}</TableHead>
-                  <TableHead>{t("Type")}</TableHead>
-                  <TableHead>{t("Old Debt USD")}</TableHead>
-                  <TableHead>{t("Old Debt IQD")}</TableHead>
+                  <TableHead>{t("Opening Balance")}</TableHead>
+                  <TableHead>{t("Opening Balance USD")}</TableHead>
+                  <TableHead>{t("Opening Balance IQD")}</TableHead>
+                  <TableHead>{t("Opening Balance IQD")}</TableHead>
                   <TableHead>{t("Amount USD")}</TableHead>
                   <TableHead>{t("Amount IQD")}</TableHead>
                   <TableHead>{t("Remaining USD")}</TableHead>
@@ -196,7 +196,7 @@ export default function SupplierAdjustmentsPage() {
                     <TableCell className="text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
                     <TableCell className="font-medium">{usd(adj.remainingUsd)}</TableCell>
                     <TableCell className="font-medium">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell>{adj.date}</TableCell>
+                    <TableCell>{formatDate(adj.date)}</TableCell>
                     <TableCell>{adj.time}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{adj.note || "-"}</TableCell>
                   </TableRow>
@@ -455,7 +455,7 @@ export default function SupplierAdjustmentsPage() {
                         <Badge variant={adj.type === "received" ? "default" : "secondary"} className="text-xs">
                           {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">{adj.date}</span>
+                        <span className="text-xs text-muted-foreground">{formatDate(adj.date)}</span>
                       </div>
                       {parseFloat(adj.amountUsd) > 0 && (
                         <p className="text-sm text-blue-600 font-medium">{usd(adj.amountUsd)}</p>

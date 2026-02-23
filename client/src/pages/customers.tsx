@@ -233,14 +233,14 @@ export default function CustomersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Old Debt (USD)')}</FormLabel>
+                      <FormLabel>{t('Opening Balance (USD)')}</FormLabel>
                       <FormControl><Input data-testid="input-customer-old-debt-usd" type="number" step="0.01" placeholder="0.00" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Old Debt (IQD)')}</FormLabel>
+                      <FormLabel>{t('Opening Balance (IQD)')}</FormLabel>
                       <FormControl><Input data-testid="input-customer-old-debt-iqd" type="number" step="1" placeholder="0" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -271,7 +271,7 @@ export default function CustomersPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Old Debts (USD)')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Total Opening Balances (USD)')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{usd(totalOldDebtUsd)}</div>
@@ -279,7 +279,7 @@ export default function CustomersPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Old Debts (IQD)')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Total Opening Balances (IQD)')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOldDebtIqd.toLocaleString()} IQD</div>
@@ -312,8 +312,8 @@ export default function CustomersPage() {
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Address')}</TableHead>
                     <TableHead>{t('Contact')}</TableHead>
-                    <TableHead className="text-right">{t('Old Debt (USD)')}</TableHead>
-                    <TableHead className="text-right">{t('Old Debt (IQD)')}</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance (USD)')}</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance (IQD)')}</TableHead>
                     <TableHead className="text-right">{t('Balance')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
