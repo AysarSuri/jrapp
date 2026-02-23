@@ -65,6 +65,7 @@ export default function CompanyProfilePage() {
     qrAddress: "",
     primaryColor: "#1a1a2e",
     secondaryColor: "#16213e",
+    clicheColor: "#1a1a2e",
   });
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function CompanyProfilePage() {
         qrAddress: profile.qrAddress || "",
         primaryColor: profile.primaryColor || "#1a1a2e",
         secondaryColor: profile.secondaryColor || "#16213e",
+        clicheColor: profile.clicheColor || "#1a1a2e",
       });
     }
   }, [profile]);
@@ -288,6 +290,34 @@ export default function CompanyProfilePage() {
                       />
                       <div className="h-2 rounded-full" style={{ backgroundColor: form.secondaryColor }} />
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="clicheColor" className="flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5" />
+                  {t('Cliché Color')}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="color"
+                      id="clicheColor"
+                      value={form.clicheColor}
+                      onChange={(e) => setForm((p) => ({ ...p, clicheColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border-2 border-border p-0.5"
+                      data-testid="input-cliche-color"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Input
+                      value={form.clicheColor}
+                      onChange={(e) => setForm((p) => ({ ...p, clicheColor: e.target.value }))}
+                      placeholder="#1a1a2e"
+                      data-testid="input-cliche-color-text"
+                    />
+                    <div className="h-2 rounded-full" style={{ backgroundColor: form.clicheColor }} />
                   </div>
                 </div>
               </div>
