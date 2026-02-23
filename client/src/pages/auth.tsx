@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLogin } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,13 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
   const [selectedRole, setSelectedRole] = useState<string>("admin");
+
+  useEffect(() => {
+    const lng = i18n.language;
+    const dir = (lng === "ar" || lng === "ckb") ? "rtl" : "ltr";
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lng;
+  }, []);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);

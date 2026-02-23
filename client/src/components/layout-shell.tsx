@@ -70,11 +70,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    // Check system preference on mount
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setTheme('dark');
       document.documentElement.classList.add('dark');
     }
+    const lng = i18n.language;
+    const dir = (lng === 'en' || lng === 'tr') ? 'ltr' : 'rtl';
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lng;
   }, []);
 
   const toggleTheme = () => {
@@ -89,7 +92,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
-    document.dir = (lng === 'en' || lng === 'tr') ? 'ltr' : 'rtl';
+    localStorage.setItem("language", lng);
+    const dir = (lng === 'en' || lng === 'tr') ? 'ltr' : 'rtl';
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lng;
   };
 
   const handleLogout = () => {
