@@ -282,7 +282,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 12, fontSize: "12pt" }}>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
-                <span style={{ fontWeight: 500 }} className="text-center">{invoice.supplierName}</span>
+                <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{invoice.supplierName}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Invoice Type")}:</span>
