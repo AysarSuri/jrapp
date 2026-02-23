@@ -62,6 +62,8 @@ type CompanyProfileData = {
   cliche: string | null;
   stamp: string | null;
   qrAddress: string;
+  primaryColor: string;
+  secondaryColor: string;
 };
 
 interface PurchaseInvoiceReportProps {
@@ -106,6 +108,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     queryKey: ["/api/company-profile"],
     enabled: open,
   });
+
+  const fieldColor = companyProfile?.primaryColor || "#333";
+  const textColor = companyProfile?.secondaryColor || "white";
 
   const supplier = clients?.find(c => c.id === invoice?.supplierId);
   const oldDebt = currency === "USD"
@@ -318,13 +323,13 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: "12pt" }}>
               <thead>
                 <tr>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>#</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Code")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Name")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Quantity")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Unit")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Price")}</th>
-                  <th style={{ background: "#333", color: "white", padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Amount")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>#</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Code")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Name")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Quantity")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Unit")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Price")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Amount")}</th>
                 </tr>
               </thead>
               <tbody>
