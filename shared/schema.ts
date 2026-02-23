@@ -610,6 +610,8 @@ export const companyProfile = pgTable("company_profile", {
   cliche: text("cliche"),
   stamp: text("stamp"),
   qrAddress: text("qr_address").notNull().default(""),
+  primaryColor: text("primary_color").notNull().default("#1a1a2e"),
+  secondaryColor: text("secondary_color").notNull().default("#16213e"),
 });
 
 export const insertCompanyProfileSchema = createInsertSchema(companyProfile).omit({ id: true });

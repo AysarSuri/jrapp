@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp } from "lucide-react";
+import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette } from "lucide-react";
 import type { CompanyProfile } from "@shared/schema";
 
 function QRCodeCanvas({ value, size = 200 }: { value: string; size?: number }) {
@@ -63,6 +63,8 @@ export default function CompanyProfilePage() {
     cliche: "" as string | null,
     stamp: "" as string | null,
     qrAddress: "",
+    primaryColor: "#1a1a2e",
+    secondaryColor: "#16213e",
   });
 
   useEffect(() => {
@@ -77,6 +79,8 @@ export default function CompanyProfilePage() {
         cliche: profile.cliche || null,
         stamp: profile.stamp || null,
         qrAddress: profile.qrAddress || "",
+        primaryColor: profile.primaryColor || "#1a1a2e",
+        secondaryColor: profile.secondaryColor || "#16213e",
       });
     }
   }, [profile]);
@@ -226,6 +230,57 @@ export default function CompanyProfilePage() {
                     placeholder="07XX-XXX-XXXX"
                     data-testid="input-mobile2"
                   />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="primaryColor" className="flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5" />
+                    {t('Primary Color')}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      id="primaryColor"
+                      value={form.primaryColor}
+                      onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
+                      className="w-10 h-10 rounded cursor-pointer border border-border"
+                      data-testid="input-primary-color"
+                    />
+                    <Input
+                      value={form.primaryColor}
+                      onChange={(e) => setForm((p) => ({ ...p, primaryColor: e.target.value }))}
+                      placeholder="#1a1a2e"
+                      className="flex-1"
+                      data-testid="input-primary-color-text"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="secondaryColor" className="flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5" />
+                    {t('Secondary Color')}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      id="secondaryColor"
+                      value={form.secondaryColor}
+                      onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
+                      className="w-10 h-10 rounded cursor-pointer border border-border"
+                      data-testid="input-secondary-color"
+                    />
+                    <Input
+                      value={form.secondaryColor}
+                      onChange={(e) => setForm((p) => ({ ...p, secondaryColor: e.target.value }))}
+                      placeholder="#16213e"
+                      className="flex-1"
+                      data-testid="input-secondary-color-text"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
