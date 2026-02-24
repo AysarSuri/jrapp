@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -366,7 +367,7 @@ export default function PurchaseInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-date" />
+              <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-date" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>
@@ -606,8 +607,7 @@ export default function PurchaseInvoiceUsdPage() {
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="date"
+                      <DateInput
                         value={item.productionDate}
                         onChange={(e) => updateItem(index, "productionDate", e.target.value)}
                         className="h-9 text-sm"
@@ -615,8 +615,7 @@ export default function PurchaseInvoiceUsdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="date"
+                      <DateInput
                         value={item.expiryDate}
                         onChange={(e) => updateItem(index, "expiryDate", e.target.value)}
                         className="h-9 text-sm"

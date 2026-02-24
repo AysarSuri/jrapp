@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Representative, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -240,8 +241,7 @@ export default function AgentPaymentIqdPage() {
 
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
-                <Input
-                  type="date"
+                <DateInput
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   data-testid="input-agent-payment-date"

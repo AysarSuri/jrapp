@@ -22,6 +22,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
 
 export default function BankReceiptsPage() {
@@ -199,7 +200,7 @@ export default function BankReceiptsPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-receipt-date" />
+                <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-receipt-date" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Time')}</Label>

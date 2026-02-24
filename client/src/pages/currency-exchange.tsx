@@ -17,6 +17,7 @@ import {
   Save, Loader2, ArrowRightLeft, RotateCcw, Trash2,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
 
 export default function CurrencyExchangePage() {
@@ -127,8 +128,7 @@ export default function CurrencyExchangePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <Label>{t('Date')}</Label>
-              <Input
-                type="date"
+              <DateInput
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 data-testid="input-date"

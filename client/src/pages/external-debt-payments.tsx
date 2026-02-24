@@ -21,6 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
 
 export default function ExternalDebtPaymentsPage() {
@@ -198,7 +199,7 @@ export default function ExternalDebtPaymentsPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-external-debt-payment-date" />
+                <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-external-debt-payment-date" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Time')}</Label>

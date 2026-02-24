@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -361,8 +362,7 @@ export default function SupplierStatementIqdPage() {
             </div>
             <div className="flex-1">
               <Label className="mb-2 block">{t("From Date")}</Label>
-              <Input
-                type="date"
+              <DateInput
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full"
@@ -371,8 +371,7 @@ export default function SupplierStatementIqdPage() {
             </div>
             <div className="flex-1">
               <Label className="mb-2 block">{t("To Date")}</Label>
-              <Input
-                type="date"
+              <DateInput
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full"
