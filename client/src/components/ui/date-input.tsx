@@ -102,16 +102,6 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
       }
     };
 
-    const handleCalendarClick = () => {
-      if (hiddenRef.current && !disabled) {
-        try {
-          hiddenRef.current.showPicker();
-        } catch {
-          hiddenRef.current.click();
-        }
-      }
-    };
-
     const handleCalendarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const iso = e.target.value;
       setDisplayValue(formatToDisplay(iso, lang));
@@ -134,26 +124,19 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
             "flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-9"
           )}
         />
-        <button
-          type="button"
-          onClick={handleCalendarClick}
-          disabled={disabled}
-          data-testid={testId ? `${testId}-calendar` : "button-calendar"}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
-          tabIndex={-1}
-        >
-          <CalendarDays className="h-4 w-4" />
-        </button>
-        <input
-          ref={hiddenRef}
-          type="date"
-          value={value}
-          onChange={handleCalendarChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          style={{ pointerEvents: "none" }}
-          tabIndex={-1}
-          aria-hidden="true"
-        />
+        <div className="absolute right-0 top-0 h-full w-9 flex items-center justify-center">
+          <CalendarDays className="h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            ref={hiddenRef}
+            type="date"
+            value={value}
+            onChange={handleCalendarChange}
+            disabled={disabled}
+            data-testid={testId ? `${testId}-calendar` : "button-calendar"}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            tabIndex={-1}
+          />
+        </div>
       </div>
     );
   }
