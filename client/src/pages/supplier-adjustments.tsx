@@ -455,7 +455,7 @@ export default function SupplierAdjustmentsPage() {
                         <Badge variant={adj.type === "received" ? "default" : "secondary"} className="text-xs">
                           {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
                         </Badge>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(adj.date)}</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap font-mono">{formatDate(adj.date)}</span>
                       </div>
                       {parseFloat(adj.amountUsd) > 0 && (
                         <p className="text-sm text-blue-600 font-medium">{usd(adj.amountUsd)}</p>
