@@ -131,7 +131,7 @@ export default function SupplierStatementUsdPage() {
     const rows = entriesWithBalance.map((e, idx) => `
       <tr>
         <td>${idx + 1}</td>
-        <td>${e.date}<br/><small>${e.time}</small></td>
+        <td>${formatDate(e.date)}<br/><small>${e.time}</small></td>
         <td>${getTypeText(e.type)}</td>
         <td>${e.description}</td>
         <td class="debit">${e.debitUsd > 0 ? dollarFmt(e.debitUsd) : "-"}</td>
@@ -241,7 +241,7 @@ export default function SupplierStatementUsdPage() {
     const rows = entriesWithBalance.map((e, idx) => `
       <tr style="background:${idx % 2 === 0 ? "white" : "#f9f9f9"}">
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${idx + 1}</td>
-        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.date}<br/><small style="color:#999;font-size:7pt">${e.time}</small></td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${formatDate(e.date)}<br/><small style="color:#999;font-size:7pt">${e.time}</small></td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${getTypeText(e.type)}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.description}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#dc2626">${e.debitUsd > 0 ? dollarFmt(e.debitUsd) : "-"}</td>
@@ -468,24 +468,27 @@ export default function SupplierStatementUsdPage() {
                         <TableCell colSpan={2}>{t("Opening Balance")}</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-row-usd">
-                          {usd(openingBalance)}
-                        </TableCell>
+                        <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{usd(openingBalance)}</TableCell>
                         <TableCell>-</TableCell>
                       </TableRow>
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-usd-${idx}`}>
-                          <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
-                          <TableCell className="whitespace-nowrap">{formatDate(entry.date)}<br /><span className="text-xs text-muted-foreground">{entry.time}</span></TableCell>
+                          <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{formatDate(entry.date)}</span>
+                              <span className="text-xs text-muted-foreground">{entry.time}</span>
+                            </div>
+                          </TableCell>
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
-                          <TableCell className="text-sm">{entry.description}</TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
+                          <TableCell className="text-center font-mono">
                             {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{usd(entry.debitUsd)}</span> : "-"}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="text-center font-mono">
                             {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{usd(entry.creditUsd)}</span> : "-"}
                           </TableCell>
-                          <TableCell className="text-center font-medium">
+                          <TableCell className="text-center font-mono font-bold">
                             <span className={entry.balanceUsd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
                               {usd(entry.balanceUsd)}
                             </span>
@@ -497,9 +500,9 @@ export default function SupplierStatementUsdPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
                         <TableCell colSpan={2}>{t("Total")}</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400">{usd(totalDebitUsd)}</TableCell>
-                        <TableCell className="text-center text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</TableCell>
-                        <TableCell className="text-center text-blue-600 dark:text-blue-400">
+                        <TableCell className="text-center text-red-600 dark:text-red-400 font-mono">{usd(totalDebitUsd)}</TableCell>
+                        <TableCell className="text-center text-green-600 dark:text-green-400 font-mono">{usd(totalCreditUsd)}</TableCell>
+                        <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
                           {usd(finalBalance)}
                         </TableCell>
                         <TableCell></TableCell>

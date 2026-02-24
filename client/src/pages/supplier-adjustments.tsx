@@ -167,9 +167,9 @@ export default function SupplierAdjustmentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>#</TableHead>
-                  <TableHead>{t("Opening Balance")}</TableHead>
+                  <TableHead>{t("Supplier")}</TableHead>
+                  <TableHead>{t("Type")}</TableHead>
                   <TableHead>{t("Opening Balance USD")}</TableHead>
-                  <TableHead>{t("Opening Balance IQD")}</TableHead>
                   <TableHead>{t("Opening Balance IQD")}</TableHead>
                   <TableHead>{t("Amount USD")}</TableHead>
                   <TableHead>{t("Amount IQD")}</TableHead>
@@ -196,8 +196,8 @@ export default function SupplierAdjustmentsPage() {
                     <TableCell className="text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
                     <TableCell className="font-medium">{usd(adj.remainingUsd)}</TableCell>
                     <TableCell className="font-medium">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell>{formatDate(adj.date)}</TableCell>
-                    <TableCell>{adj.time}</TableCell>
+                    <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
+                    <TableCell className="font-mono text-sm">{adj.time}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{adj.note || "-"}</TableCell>
                   </TableRow>
                 ))}
@@ -426,13 +426,13 @@ export default function SupplierAdjustmentsPage() {
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("Debt USD")}</p>
+                    <p className="text-sm text-muted-foreground">{t("Opening Balance USD")}</p>
                     <p className="text-xl font-bold text-red-600">
                       {usd(selectedSupplier.oldDebtUsd)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">{t("Debt IQD")}</p>
+                    <p className="text-sm text-muted-foreground">{t("Opening Balance IQD")}</p>
                     <p className="text-xl font-bold text-red-600">
                       {parseFloat(selectedSupplier.oldDebtIqd).toLocaleString()} IQD
                     </p>
@@ -455,7 +455,7 @@ export default function SupplierAdjustmentsPage() {
                         <Badge variant={adj.type === "received" ? "default" : "secondary"} className="text-xs">
                           {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">{formatDate(adj.date)}</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(adj.date)}</span>
                       </div>
                       {parseFloat(adj.amountUsd) > 0 && (
                         <p className="text-sm text-blue-600 font-medium">{usd(adj.amountUsd)}</p>
