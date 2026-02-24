@@ -699,75 +699,171 @@ export default function SupplierStatementUsdPage() {
         </>
       )}
 
-      {selectedSupplierId && activeTab === "products_report" && !statement && (
+      {selectedSupplierId && activeTab === "products_report" && (
         <>
           {productsReportLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : productsReport ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("Incoming Report")} - {productsReport?.supplier?.name || ""} (USD)</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {productsReport.rows.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    {t("No transactions found")}
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="text-center">#</TableHead>
-                          <TableHead>{t("Invoice Number")}</TableHead>
-                          <TableHead>{t("Type")}</TableHead>
-                          <TableHead>{t("Date")}</TableHead>
-                          <TableHead>{t("Product Name")}</TableHead>
-                          <TableHead className="text-center">{t("Quantity")}</TableHead>
-                          <TableHead>{t("Unit")}</TableHead>
-                          <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
-                          <TableHead className="text-center">{t("Purchase Price")}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {productsReport.rows.map((row, idx) => (
-                          <TableRow key={idx} data-testid={`row-products-report-${idx}`}>
-                            <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
-                            <TableCell className="font-medium">{row.invoiceNumber}</TableCell>
-                            <TableCell>
-                              {row.type === "purchase" ? (
-                                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800">{t("Purchase")}</Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800">{t("Return")}</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{formatDate(row.date)}</TableCell>
-                            <TableCell>{row.productName}</TableCell>
-                            <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
-                            <TableCell>{row.unit}</TableCell>
-                            <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
-                            <TableCell className="text-center font-mono">{usd(row.price)}</TableCell>
+            <>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => {
+                  if (!productsReport) return;
+                  const printWindow = window.open("", "_blank", "width=794,height=1123");
+                  if (!printWindow) return;
+                  const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+                  const rows = productsReport.rows.map((row, idx) => {
+                    const purchaseAmount = (row.quantity - row.returnQuantity) * row.price;
+                    return `<tr>
+                      <td>${idx + 1}</td>
+                      <td>${row.invoiceNumber}</td>
+                      <td>${row.type === "purchase" ? t("Purchase") : t("Return")}</td>
+                      <td>${formatDate(row.date)}</td>
+                      <td>${row.productName}</td>
+                      <td>${row.quantity > 0 ? row.quantity : "-"}</td>
+                      <td>${row.unit}</td>
+                      <td class="return-col">${row.returnQuantity > 0 ? row.returnQuantity : "-"}</td>
+                      <td>${usd(row.price)}</td>
+                      <td class="amount">${usd(purchaseAmount)}</td>
+                    </tr>`;
+                  }).join("");
+                  const grandTotalAmount = productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0);
+                  printWindow.document.write(`<!DOCTYPE html>
+                    <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+                    <head><meta charset="UTF-8" />
+                      <title>${t("Incoming Report")} - ${productsReport.supplier?.name || ""} (USD)</title>
+                      <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; font-size: 10pt; direction: ${isRtl ? "rtl" : "ltr"}; }
+                        .cliche { text-align: center; margin-bottom: 8px; }
+                        .cliche img { width: 100%; height: 150px; object-fit: cover; }
+                        .header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid ${fieldColor}; padding-bottom: 8px; }
+                        .header h1 { font-size: 14pt; margin-bottom: 2px; }
+                        .header p { font-size: 10pt; color: #666; }
+                        .supplier-bar { background: ${fieldColor}; color: ${textColor}; text-align: center; padding: 5px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; font-size: 11pt; }
+                        table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+                        th { background: ${fieldColor}; color: ${textColor}; padding: 4px 3px; text-align: center; font-weight: 600; font-size: 9pt; white-space: nowrap; }
+                        td { border: 1px solid #ddd; padding: 3px; text-align: center; font-size: 9pt; }
+                        tr:nth-child(even) { background: #f9f9f9; }
+                        .return-col { color: #dc2626; }
+                        .amount { font-weight: 600; color: #2563eb; }
+                        .total-row { background: #f0f0f0 !important; font-weight: 700; border-top: 2px solid #333; }
+                        .summary { margin-top: 10px; display: flex; gap: 20px; font-size: 10pt; }
+                        .summary span { font-weight: 700; }
+                        @media print { body { padding: 10mm; } @page { margin: 8mm; size: A4 landscape; } }
+                      </style>
+                    </head>
+                    <body>
+                      ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+                      <div class="header">
+                        <h1>${t("Incoming Report")} (USD)</h1>
+                        <p>${formatDate(new Date())}</p>
+                        ${dateRangeHtml}
+                      </div>
+                      <div class="supplier-bar">${productsReport.supplier?.name || ""}</div>
+                      <table>
+                        <thead><tr>
+                          <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
+                          <th>${t("Quantity")}</th><th>${t("Unit")}</th><th>${t("Return")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
+                        </tr></thead>
+                        <tbody>
+                          ${rows}
+                          <tr class="total-row">
+                            <td colspan="5">${t("Total")}</td>
+                            <td>${productsReport.totalQuantity}</td><td></td>
+                            <td class="return-col">${productsReport.totalReturns}</td>
+                            <td>${usd(productsReport.totalAmount)}</td>
+                            <td class="amount">${usd(grandTotalAmount)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div class="summary">
+                        <div>${t("Total Quantity")} - ${t("Returns")}: <span>${(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
+                        <div>${t("Total Amount")}: <span>${usd(grandTotalAmount)}</span></div>
+                      </div>
+                    </body></html>`);
+                  printWindow.document.close();
+                  setTimeout(() => printWindow.print(), 500);
+                }} data-testid="button-print-products-report-usd">
+                  <Printer className="w-4 h-4 mr-1" />
+                  {t("Print")}
+                </Button>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("Incoming Report")} - {productsReport?.supplier?.name || ""} (USD)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {productsReport.rows.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      {t("No transactions found")}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-center">#</TableHead>
+                            <TableHead>{t("Invoice Number")}</TableHead>
+                            <TableHead>{t("Type")}</TableHead>
+                            <TableHead>{t("Date")}</TableHead>
+                            <TableHead>{t("Product Name")}</TableHead>
+                            <TableHead className="text-center">{t("Quantity")}</TableHead>
+                            <TableHead>{t("Unit")}</TableHead>
+                            <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
+                            <TableHead className="text-center">{t("Purchase Price")}</TableHead>
+                            <TableHead className="text-center text-blue-600">{t("Purchase Amount")}</TableHead>
                           </TableRow>
-                        ))}
-                        <TableRow className="bg-muted/50 font-bold border-t-2">
-                          <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
-                          <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
-                          <TableCell></TableCell>
-                          <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
-                          <TableCell className="text-center font-mono">{usd(productsReport.totalAmount)}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {productsReport.rows.map((row, idx) => {
+                            const purchaseAmount = (row.quantity - row.returnQuantity) * row.price;
+                            return (
+                              <TableRow key={idx} data-testid={`row-products-report-${idx}`}>
+                                <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                                <TableCell className="font-medium">{row.invoiceNumber}</TableCell>
+                                <TableCell>
+                                  {row.type === "purchase" ? (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800">{t("Purchase")}</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800">{t("Return")}</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>{formatDate(row.date)}</TableCell>
+                                <TableCell>{row.productName}</TableCell>
+                                <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
+                                <TableCell>{row.unit}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono">{usd(row.price)}</TableCell>
+                                <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{usd(purchaseAmount)}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {(() => {
+                            const grandTotal = productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0);
+                            return (
+                              <TableRow className="bg-muted/50 font-bold border-t-2">
+                                <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
+                                <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
+                                <TableCell></TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
+                                <TableCell className="text-center font-mono">{usd(productsReport.totalAmount)}</TableCell>
+                                <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{usd(grandTotal)}</TableCell>
+                              </TableRow>
+                            );
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
+                    <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
+                    <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0))}</span></div>
                   </div>
-                )}
-                <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
-                  <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
-                  <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport?.totalAmount || 0)}</span></div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </>
           ) : null}
         </>
       )}
