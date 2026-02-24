@@ -896,6 +896,94 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-products-report/:id', requireAuth, async (req, res) => {
+    try {
+      const supplierId = parseInt(req.params.id as string);
+      const { startDate, endDate, currency } = req.query;
+      const curr = (currency as string) || "USD";
+      
+      const [supplier] = await db.select().from(clients).where(eq(clients.id, supplierId));
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+
+      let invoiceConditions = sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.currency} = ${curr}`;
+      let returnConditions = sql`${purchaseReturns.supplierId} = ${supplierId} AND ${purchaseReturns.currency} = ${curr}`;
+
+      if (startDate) {
+        invoiceConditions = sql`${invoiceConditions} AND ${purchaseInvoices.date} >= ${startDate}`;
+        returnConditions = sql`${returnConditions} AND ${purchaseReturns.date} >= ${startDate}`;
+      }
+      if (endDate) {
+        invoiceConditions = sql`${invoiceConditions} AND ${purchaseInvoices.date} <= ${endDate}`;
+        returnConditions = sql`${returnConditions} AND ${purchaseReturns.date} <= ${endDate}`;
+      }
+
+      const invoices = await db.select().from(purchaseInvoices).where(invoiceConditions).orderBy(purchaseInvoices.date);
+      const returns = await db.select().from(purchaseReturns).where(returnConditions).orderBy(purchaseReturns.date);
+
+      type ReportRow = {
+        invoiceNumber: string;
+        type: "purchase" | "return";
+        date: string;
+        productName: string;
+        quantity: number;
+        unit: string;
+        returnQuantity: number;
+        price: number;
+      };
+
+      const rows: ReportRow[] = [];
+
+      for (const inv of invoices) {
+        const items = await db.select().from(purchaseInvoiceItems).where(eq(purchaseInvoiceItems.invoiceId, inv.id));
+        for (const item of items) {
+          rows.push({
+            invoiceNumber: inv.invoiceNumber,
+            type: "purchase",
+            date: inv.date,
+            productName: item.productName,
+            quantity: parseFloat(item.quantity || "0"),
+            unit: item.unit,
+            returnQuantity: 0,
+            price: parseFloat(item.price || "0"),
+          });
+        }
+      }
+
+      for (const ret of returns) {
+        const items = await db.select().from(purchaseReturnItems).where(eq(purchaseReturnItems.returnId, ret.id));
+        for (const item of items) {
+          rows.push({
+            invoiceNumber: ret.returnNumber,
+            type: "return",
+            date: ret.date,
+            productName: item.productName,
+            quantity: 0,
+            unit: item.unit,
+            returnQuantity: parseFloat(item.quantity || "0"),
+            price: parseFloat(item.price || "0"),
+          });
+        }
+      }
+
+      rows.sort((a, b) => a.date.localeCompare(b.date));
+
+      const totalQuantity = rows.reduce((s, r) => s + r.quantity, 0);
+      const totalReturns = rows.reduce((s, r) => s + r.returnQuantity, 0);
+      const totalAmount = rows.reduce((s, r) => s + (r.quantity * r.price) - (r.returnQuantity * r.price), 0);
+
+      res.json({
+        supplier,
+        rows,
+        totalQuantity,
+        totalReturns,
+        totalAmount,
+        currency: curr,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.bankTransactions.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getBankTransactions();
     res.json(data);

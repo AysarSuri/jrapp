@@ -51,7 +51,27 @@ type CompanyProfileData = {
   secondaryColor: string;
 };
 
-type ActiveTab = "general" | "invoices" | "payments" | "adjustments";
+type ActiveTab = "general" | "invoices" | "payments" | "adjustments" | "products_report";
+
+type ProductReportRow = {
+  invoiceNumber: string;
+  type: "purchase" | "return";
+  date: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  returnQuantity: number;
+  price: number;
+};
+
+type ProductReportResponse = {
+  supplier: Client;
+  rows: ProductReportRow[];
+  totalQuantity: number;
+  totalReturns: number;
+  totalAmount: number;
+  currency: string;
+};
 
 export default function SupplierStatementUsdPage() {
   const { t, i18n } = useTranslation();
@@ -78,6 +98,11 @@ export default function SupplierStatementUsdPage() {
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
     queryKey: [`/api/supplier-statement/${selectedSupplierId}${startDate || endDate ? `?startDate=${startDate}&endDate=${endDate}` : ""}`],
     enabled: !!selectedSupplierId,
+  });
+
+  const { data: productsReport, isLoading: productsReportLoading } = useQuery<ProductReportResponse>({
+    queryKey: [`/api/supplier-products-report/${selectedSupplierId}?currency=USD${startDate ? `&startDate=${startDate}` : ""}${endDate ? `&endDate=${endDate}` : ""}`],
+    enabled: !!selectedSupplierId && activeTab === "products_report",
   });
 
   const entries = statement?.entries || [];
@@ -363,6 +388,7 @@ export default function SupplierStatementUsdPage() {
     { key: "invoices", label: t("Purchase Invoices") },
     { key: "payments", label: t("Payments & Transfers") },
     { key: "adjustments", label: t("Agent Adjustments") },
+    { key: "products_report", label: t("Incoming Report") },
   ];
 
   return (
@@ -485,114 +511,264 @@ export default function SupplierStatementUsdPage() {
 
       {selectedSupplierId && statement && !statementLoading && (
         <>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={sendingWhatsApp} className="bg-green-600 hover:bg-green-700 text-white border-green-600" data-testid="button-whatsapp-statement-usd">
-              {sendingWhatsApp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <MessageCircle className="w-4 h-4 mr-1" />}
-              {t("WhatsApp")}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-statement-usd">
-              <Printer className="w-4 h-4 mr-1" />
-              {t("Print")}
-            </Button>
-          </div>
+          {activeTab !== "products_report" && (
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={sendingWhatsApp} className="bg-green-600 hover:bg-green-700 text-white border-green-600" data-testid="button-whatsapp-statement-usd">
+                {sendingWhatsApp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                {t("WhatsApp")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print-statement-usd">
+                <Printer className="w-4 h-4 mr-1" />
+                {t("Print")}
+              </Button>
+            </div>
+          )}
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="border-l-4 border-l-red-500">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance")}</p>
-                <p className="text-xl font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-usd">{usd(openingBalance)}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-green-500">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Total Payments USD")}</p>
-                <p className="text-xl font-bold text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-blue-500">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Final Balance USD")}</p>
-                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{usd(finalBalance)}</p>
-              </CardContent>
-            </Card>
-          </div>
+          {activeTab !== "products_report" ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Card className="border-l-4 border-l-red-500">
+                  <CardContent className="pt-4 pb-3">
+                    <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance")}</p>
+                    <p className="text-xl font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-usd">{usd(openingBalance)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-green-500">
+                  <CardContent className="pt-4 pb-3">
+                    <p className="text-xs text-muted-foreground mb-1">{t("Total Payments USD")}</p>
+                    <p className="text-xl font-bold text-green-600 dark:text-green-400">{usd(totalCreditUsd)}</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-l-4 border-l-blue-500">
+                  <CardContent className="pt-4 pb-3">
+                    <p className="text-xs text-muted-foreground mb-1">{t("Final Balance USD")}</p>
+                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{usd(finalBalance)}</p>
+                  </CardContent>
+                </Card>
+              </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("Account Statement")} - {statement.supplier.name} (USD)</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {filteredEntries.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  {t("No transactions found")}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("Account Statement")} - {statement.supplier.name} (USD)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {filteredEntries.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      {t("No transactions found")}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto" ref={printRef}>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-center">#</TableHead>
+                            <TableHead>{t("Date")}</TableHead>
+                            <TableHead>{t("Type")}</TableHead>
+                            <TableHead>{t("Description")}</TableHead>
+                            <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit USD")}</TableHead>
+                            <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit USD")}</TableHead>
+                            <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance USD")}</TableHead>
+                            <TableHead>{t("Note")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow className="bg-muted/30 font-medium italic">
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell>-</TableCell>
+                            <TableCell colSpan={2}>{t("Opening Balance")}</TableCell>
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{usd(openingBalance)}</TableCell>
+                            <TableCell>-</TableCell>
+                          </TableRow>
+                          {entriesWithBalance.map((entry, idx) => (
+                            <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-usd-${idx}`}>
+                              <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{formatDate(entry.date)}</span>
+                                  <span className="text-xs text-muted-foreground">{entry.time}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{getTypeBadge(entry.type)}</TableCell>
+                              <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
+                              <TableCell className="text-center font-mono">
+                                {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{usd(entry.debitUsd)}</span> : "-"}
+                              </TableCell>
+                              <TableCell className="text-center font-mono">
+                                {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{usd(entry.creditUsd)}</span> : "-"}
+                              </TableCell>
+                              <TableCell className="text-center font-mono font-bold">
+                                <span className={entry.balanceUsd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
+                                  {usd(entry.balanceUsd)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/50 font-bold border-t-2">
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell>-</TableCell>
+                            <TableCell colSpan={2}>{t("Total")}</TableCell>
+                            <TableCell className="text-center text-red-600 dark:text-red-400 font-mono">{usd(totalDebitUsd)}</TableCell>
+                            <TableCell className="text-center text-green-600 dark:text-green-400 font-mono">{usd(totalCreditUsd)}</TableCell>
+                            <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
+                              {usd(finalBalance)}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {productsReportLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
-              ) : (
-                <div className="overflow-x-auto" ref={printRef}>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="text-center">#</TableHead>
-                        <TableHead>{t("Date")}</TableHead>
-                        <TableHead>{t("Type")}</TableHead>
-                        <TableHead>{t("Description")}</TableHead>
-                        <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit USD")}</TableHead>
-                        <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit USD")}</TableHead>
-                        <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance USD")}</TableHead>
-                        <TableHead>{t("Note")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow className="bg-muted/30 font-medium italic">
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Opening Balance")}</TableCell>
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{usd(openingBalance)}</TableCell>
-                        <TableCell>-</TableCell>
-                      </TableRow>
-                      {entriesWithBalance.map((entry, idx) => (
-                        <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-usd-${idx}`}>
-                          <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{formatDate(entry.date)}</span>
-                              <span className="text-xs text-muted-foreground">{entry.time}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{getTypeBadge(entry.type)}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
-                          <TableCell className="text-center font-mono">
-                            {entry.debitUsd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{usd(entry.debitUsd)}</span> : "-"}
-                          </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {entry.creditUsd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{usd(entry.creditUsd)}</span> : "-"}
-                          </TableCell>
-                          <TableCell className="text-center font-mono font-bold">
-                            <span className={entry.balanceUsd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
-                              {usd(entry.balanceUsd)}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
+              ) : productsReport ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("Incoming Report")} - {statement?.supplier?.name || ""} (USD)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {productsReport.rows.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        {t("No transactions found")}
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead className="text-center">#</TableHead>
+                              <TableHead>{t("Invoice Number")}</TableHead>
+                              <TableHead>{t("Type")}</TableHead>
+                              <TableHead>{t("Date")}</TableHead>
+                              <TableHead>{t("Product Name")}</TableHead>
+                              <TableHead className="text-center">{t("Quantity")}</TableHead>
+                              <TableHead>{t("Unit")}</TableHead>
+                              <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
+                              <TableHead className="text-center">{t("Purchase Price")}</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {productsReport.rows.map((row, idx) => (
+                              <TableRow key={idx} data-testid={`row-products-report-${idx}`}>
+                                <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                                <TableCell className="font-medium">{row.invoiceNumber}</TableCell>
+                                <TableCell>
+                                  {row.type === "purchase" ? (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800">{t("Purchase")}</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800">{t("Return")}</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>{formatDate(row.date)}</TableCell>
+                                <TableCell>{row.productName}</TableCell>
+                                <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
+                                <TableCell>{row.unit}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono">{usd(row.price)}</TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="bg-muted/50 font-bold border-t-2">
+                              <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
+                              <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
+                              <TableCell></TableCell>
+                              <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
+                              <TableCell className="text-center font-mono">{usd(productsReport.totalAmount)}</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
+                      <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
+                      <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport?.totalAmount || 0)}</span></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </>
+          )}
+        </>
+      )}
+
+      {selectedSupplierId && activeTab === "products_report" && !statement && (
+        <>
+          {productsReportLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : productsReport ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("Incoming Report")} - {productsReport?.supplier?.name || ""} (USD)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {productsReport.rows.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    {t("No transactions found")}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="text-center">#</TableHead>
+                          <TableHead>{t("Invoice Number")}</TableHead>
+                          <TableHead>{t("Type")}</TableHead>
+                          <TableHead>{t("Date")}</TableHead>
+                          <TableHead>{t("Product Name")}</TableHead>
+                          <TableHead className="text-center">{t("Quantity")}</TableHead>
+                          <TableHead>{t("Unit")}</TableHead>
+                          <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
+                          <TableHead className="text-center">{t("Purchase Price")}</TableHead>
                         </TableRow>
-                      ))}
-                      <TableRow className="bg-muted/50 font-bold border-t-2">
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Total")}</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400 font-mono">{usd(totalDebitUsd)}</TableCell>
-                        <TableCell className="text-center text-green-600 dark:text-green-400 font-mono">{usd(totalCreditUsd)}</TableCell>
-                        <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
-                          {usd(finalBalance)}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {productsReport.rows.map((row, idx) => (
+                          <TableRow key={idx} data-testid={`row-products-report-${idx}`}>
+                            <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                            <TableCell className="font-medium">{row.invoiceNumber}</TableCell>
+                            <TableCell>
+                              {row.type === "purchase" ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800">{t("Purchase")}</Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800">{t("Return")}</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>{formatDate(row.date)}</TableCell>
+                            <TableCell>{row.productName}</TableCell>
+                            <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
+                            <TableCell>{row.unit}</TableCell>
+                            <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
+                            <TableCell className="text-center font-mono">{usd(row.price)}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/50 font-bold border-t-2">
+                          <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
+                          <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
+                          <TableCell></TableCell>
+                          <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
+                          <TableCell className="text-center font-mono">{usd(productsReport.totalAmount)}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
+                  <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
+                  <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport?.totalAmount || 0)}</span></div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : null}
         </>
       )}
     </div>
