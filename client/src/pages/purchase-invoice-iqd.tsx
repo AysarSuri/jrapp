@@ -104,6 +104,9 @@ export default function PurchaseInvoiceIqdPage() {
   const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
+  const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
+  const [historyStartDate, setHistoryStartDate] = useState("");
+  const [historyEndDate, setHistoryEndDate] = useState("");
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -295,6 +298,30 @@ export default function PurchaseInvoiceIqdPage() {
               <DialogHeader>
                 <DialogTitle>{t('Purchase Invoice History')}</DialogTitle>
               </DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier')}</Label>
+                  <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
+                    <SelectTrigger data-testid="select-history-iqd-supplier-filter">
+                      <SelectValue placeholder={t('All Suppliers')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                      {suppliersList.map(c => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">{t('From Date')}</Label>
+                  <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} data-testid="input-history-iqd-start-date" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">{t('To Date')}</Label>
+                  <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-history-iqd-end-date" />
+                </div>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -309,7 +336,14 @@ export default function PurchaseInvoiceIqdPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(invoicesList as PurchaseInvoice[] || []).filter(i => i.currency === 'IQD').map((inv: PurchaseInvoice) => (
+                  {(invoicesList as PurchaseInvoice[] || []).filter(i => {
+                    if (i.currency !== 'IQD') return false;
+                    if (historySupplierFilter !== 'all' && i.supplierId !== parseInt(historySupplierFilter)) return false;
+                    const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
+                    if (historyStartDate && invDate < historyStartDate) return false;
+                    if (historyEndDate && invDate > historyEndDate) return false;
+                    return true;
+                  }).map((inv: PurchaseInvoice) => (
                     <TableRow key={inv.id}>
                       <TableCell>{inv.id}</TableCell>
                       <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
