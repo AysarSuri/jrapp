@@ -76,8 +76,9 @@ type ActiveTab = "general" | "invoices" | "payments" | "adjustments" | "products
 export default function SupplierStatementIqdPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
+  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(today);
+  const [startDate, setStartDate] = useState<string>(firstOfMonth);
   const [endDate, setEndDate] = useState<string>(today);
   const [activeTab, setActiveTab] = useState<ActiveTab>("general");
   const [selectedAgent, setSelectedAgent] = useState<string>("all");
