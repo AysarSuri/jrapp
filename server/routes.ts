@@ -807,9 +807,21 @@ export async function registerRoutes(
       }
 
       if (endDate) {
-        invoicesQuery = invoicesQuery.where(sql`${purchaseInvoices.date} <= ${endDate}`);
-        paymentsQuery = paymentsQuery.where(sql`${supplierPayments.date} <= ${endDate}`);
-        adjustmentsQuery = adjustmentsQuery.where(sql`${supplierAdjustments.date} <= ${endDate}`);
+        if (startDate) {
+          invoicesQuery = db.select().from(purchaseInvoices)
+            .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} >= ${startDate} AND ${purchaseInvoices.date} <= ${endDate}`);
+          paymentsQuery = db.select().from(supplierPayments)
+            .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} >= ${startDate} AND ${supplierPayments.date} <= ${endDate}`);
+          adjustmentsQuery = db.select().from(supplierAdjustments)
+            .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${supplierAdjustments.date} >= ${startDate} AND ${supplierAdjustments.date} <= ${endDate}`);
+        } else {
+          invoicesQuery = db.select().from(purchaseInvoices)
+            .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} <= ${endDate}`);
+          paymentsQuery = db.select().from(supplierPayments)
+            .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} <= ${endDate}`);
+          adjustmentsQuery = db.select().from(supplierAdjustments)
+            .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${supplierAdjustments.date} <= ${endDate}`);
+        }
       }
 
       const invoices = await invoicesQuery.orderBy(purchaseInvoices.date, purchaseInvoices.time);
