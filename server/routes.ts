@@ -827,6 +827,7 @@ export async function registerRoutes(
         creditUsd: number;
         creditIqd: number;
         note: string | null;
+        agentName?: string | null;
       };
 
       const entries: StatementEntry[] = [];
@@ -874,6 +875,7 @@ export async function registerRoutes(
           creditUsd: parseFloat(adj.amountUsd || "0"),
           creditIqd: parseFloat(adj.amountIqd || "0"),
           note: adj.note || null,
+          agentName: adj.payToName || null,
         });
       }
 

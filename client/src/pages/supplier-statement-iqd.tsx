@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +34,7 @@ type StatementEntry = {
   creditUsd: number;
   creditIqd: number;
   note: string | null;
+  agentName?: string | null;
 };
 
 type StatementResponse = {
@@ -50,12 +51,16 @@ type CompanyProfileData = {
   secondaryColor: string;
 };
 
+type ActiveTab = "general" | "invoices" | "payments" | "adjustments";
+
 export default function SupplierStatementIqdPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(today);
   const [endDate, setEndDate] = useState<string>(today);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("general");
+  const [selectedAgent, setSelectedAgent] = useState<string>("all");
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
@@ -79,16 +84,43 @@ export default function SupplierStatementIqdPage() {
   const oldDebt = parseFloat(statement?.supplier?.oldDebtIqd || "0");
   const openingBalance = statement?.openingBalanceIqd ?? oldDebt;
 
-  const iqdEntries = entries.filter(e => e.debitIqd > 0 || e.creditIqd > 0);
+  const agentNames = useMemo(() => {
+    const names = new Set<string>();
+    entries.forEach((e) => {
+      if ((e.type === "adjustment_received" || e.type === "adjustment_discount") && e.agentName) {
+        names.add(e.agentName);
+      }
+    });
+    return Array.from(names).sort();
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    let filtered = entries.filter(e => e.debitIqd > 0 || e.creditIqd > 0);
+    switch (activeTab) {
+      case "invoices":
+        filtered = filtered.filter(e => e.type === "purchase_invoice");
+        break;
+      case "payments":
+        filtered = filtered.filter(e => e.type === "payment");
+        break;
+      case "adjustments":
+        filtered = filtered.filter(e => e.type === "adjustment_received" || e.type === "adjustment_discount");
+        if (selectedAgent !== "all") {
+          filtered = filtered.filter(e => e.agentName === selectedAgent);
+        }
+        break;
+    }
+    return filtered;
+  }, [entries, activeTab, selectedAgent]);
 
   let runningIqd = openingBalance;
-  const entriesWithBalance = iqdEntries.map((entry) => {
+  const entriesWithBalance = filteredEntries.map((entry) => {
     runningIqd += entry.debitIqd - entry.creditIqd;
     return { ...entry, balanceIqd: runningIqd };
   });
 
-  const totalDebitIqd = iqdEntries.reduce((s, e) => s + e.debitIqd, 0);
-  const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
+  const totalDebitIqd = filteredEntries.reduce((s, e) => s + e.debitIqd, 0);
+  const totalCreditIqd = filteredEntries.reduce((s, e) => s + e.creditIqd, 0);
   const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : openingBalance;
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -121,6 +153,15 @@ export default function SupplierStatementIqdPage() {
     }
   };
 
+  const getActiveTabLabel = () => {
+    switch (activeTab) {
+      case "general": return t("General Statement");
+      case "invoices": return t("Purchase Invoices");
+      case "payments": return t("Payments & Transfers");
+      case "adjustments": return t("Agent Adjustments");
+    }
+  };
+
   const handlePrint = () => {
     if (!statement) return;
     const printWindow = window.open("", "_blank", "width=794,height=1123");
@@ -142,13 +183,14 @@ export default function SupplierStatementIqdPage() {
     `).join("");
 
     const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+    const tabLabel = getActiveTabLabel();
 
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
-        <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name}</title>
+        <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name} - ${tabLabel}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; font-size: 10pt; direction: ${isRtl ? "rtl" : "ltr"}; }
@@ -184,7 +226,7 @@ export default function SupplierStatementIqdPage() {
       <body>
         ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
         <div class="header">
-          <h1>${t("Supplier Statement - IQD")}</h1>
+          <h1>${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
           <p>${formatDate(new Date())}</p>
           ${dateRangeHtml}
         </div>
@@ -252,11 +294,12 @@ export default function SupplierStatementIqdPage() {
     `).join("");
 
     const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #666;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+    const tabLabel = getActiveTabLabel();
 
     tempDiv.innerHTML = `
       ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:8px"><img src="${companyProfile.cliche}" style="width:100%;height:150px;object-fit:cover" /></div>` : ""}
       <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
-        <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")}</h1>
+        <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
         <p style="font-size:10pt;color:#666">${formatDate(new Date())}</p>
         ${dateRangeHtml}
       </div>
@@ -319,6 +362,13 @@ export default function SupplierStatementIqdPage() {
       setSendingWhatsApp(false);
     }
   };
+
+  const tabs: { key: ActiveTab; label: string }[] = [
+    { key: "general", label: t("General Statement") },
+    { key: "invoices", label: t("Purchase Invoices") },
+    { key: "payments", label: t("Payments & Transfers") },
+    { key: "adjustments", label: t("Agent Adjustments") },
+  ];
 
   return (
     <div className="space-y-6">
@@ -395,6 +445,47 @@ export default function SupplierStatementIqdPage() {
         </CardContent>
       </Card>
 
+      {selectedSupplierId && (
+        <div className="flex flex-wrap gap-2 items-center" data-testid="tab-buttons-container">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setActiveTab(tab.key);
+                if (tab.key !== "adjustments") {
+                  setSelectedAgent("all");
+                }
+              }}
+              data-testid={`tab-${tab.key}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.key
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          {activeTab === "adjustments" && agentNames.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                <SelectTrigger className="w-[200px]" data-testid="select-agent-filter">
+                  <SelectValue placeholder={t("Select Agent")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" data-testid="select-agent-all">{t("All Agents")}</SelectItem>
+                  {agentNames.map((name) => (
+                    <SelectItem key={name} value={name} data-testid={`select-agent-${name}`}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      )}
+
       {selectedSupplierId && statementLoading && (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -437,10 +528,10 @@ export default function SupplierStatementIqdPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{t("Account Statement")} - {statement.supplier.name} (IQD)</CardTitle>
+              <CardTitle>{t("Account Statement")} - {statement.supplier.name} (IQD) - {getActiveTabLabel()}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {entries.length === 0 ? (
+              {filteredEntries.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {t("No transactions found")}
                 </div>

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +34,7 @@ type StatementEntry = {
   creditUsd: number;
   creditIqd: number;
   note: string | null;
+  agentName?: string | null;
 };
 
 type StatementResponse = {
@@ -50,12 +51,16 @@ type CompanyProfileData = {
   secondaryColor: string;
 };
 
+type ActiveTab = "general" | "invoices" | "payments" | "adjustments";
+
 export default function SupplierStatementUsdPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(today);
   const [endDate, setEndDate] = useState<string>(today);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("general");
+  const [selectedAgent, setSelectedAgent] = useState<string>("all");
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
@@ -79,16 +84,48 @@ export default function SupplierStatementUsdPage() {
   const oldDebt = parseFloat(statement?.supplier?.oldDebtUsd || "0");
   const openingBalance = statement?.openingBalanceUsd ?? oldDebt;
 
-  const usdEntries = entries.filter(e => e.debitUsd > 0 || e.creditUsd > 0);
+  const agentNames = useMemo(() => {
+    const adjustmentEntries = entries.filter(
+      (e) => e.type === "adjustment_received" || e.type === "adjustment_discount"
+    );
+    const names = new Set<string>();
+    adjustmentEntries.forEach((e) => {
+      if (e.agentName) names.add(e.agentName);
+    });
+    return Array.from(names).sort();
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    let filtered = entries.filter(e => e.debitUsd > 0 || e.creditUsd > 0);
+
+    switch (activeTab) {
+      case "invoices":
+        filtered = filtered.filter((e) => e.type === "purchase_invoice");
+        break;
+      case "payments":
+        filtered = filtered.filter((e) => e.type === "payment");
+        break;
+      case "adjustments":
+        filtered = filtered.filter(
+          (e) => e.type === "adjustment_received" || e.type === "adjustment_discount"
+        );
+        if (selectedAgent !== "all") {
+          filtered = filtered.filter((e) => e.agentName === selectedAgent);
+        }
+        break;
+    }
+
+    return filtered;
+  }, [entries, activeTab, selectedAgent]);
 
   let runningUsd = openingBalance;
-  const entriesWithBalance = usdEntries.map((entry) => {
+  const entriesWithBalance = filteredEntries.map((entry) => {
     runningUsd += entry.debitUsd - entry.creditUsd;
     return { ...entry, balanceUsd: runningUsd };
   });
 
-  const totalDebitUsd = usdEntries.reduce((s, e) => s + e.debitUsd, 0);
-  const totalCreditUsd = usdEntries.reduce((s, e) => s + e.creditUsd, 0);
+  const totalDebitUsd = filteredEntries.reduce((s, e) => s + e.debitUsd, 0);
+  const totalCreditUsd = filteredEntries.reduce((s, e) => s + e.creditUsd, 0);
   const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceUsd : openingBalance;
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -321,6 +358,13 @@ export default function SupplierStatementUsdPage() {
     }
   };
 
+  const tabs: { key: ActiveTab; label: string }[] = [
+    { key: "general", label: t("General Statement") },
+    { key: "invoices", label: t("Purchase Invoices") },
+    { key: "payments", label: t("Payments & Transfers") },
+    { key: "adjustments", label: t("Agent Adjustments") },
+  ];
+
   return (
     <div className="space-y-6">
       <Link href="/supplier-management">
@@ -396,6 +440,43 @@ export default function SupplierStatementUsdPage() {
         </CardContent>
       </Card>
 
+      {selectedSupplierId && (
+        <div className="flex flex-wrap gap-2 items-center" data-testid="tab-buttons-container">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => {
+                setActiveTab(tab.key);
+                if (tab.key !== "adjustments") setSelectedAgent("all");
+              }}
+              data-testid={`tab-${tab.key}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.key
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          {activeTab === "adjustments" && agentNames.length > 0 && (
+            <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+              <SelectTrigger className="w-[200px]" data-testid="select-agent-filter">
+                <SelectValue placeholder={t("Select Agent")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" data-testid="select-agent-all">{t("All Agents")}</SelectItem>
+                {agentNames.map((name) => (
+                  <SelectItem key={name} value={name} data-testid={`select-agent-${name}`}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      )}
+
       {selectedSupplierId && statementLoading && (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -441,7 +522,7 @@ export default function SupplierStatementUsdPage() {
               <CardTitle>{t("Account Statement")} - {statement.supplier.name} (USD)</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {entries.length === 0 ? (
+              {filteredEntries.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {t("No transactions found")}
                 </div>
