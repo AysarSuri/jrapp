@@ -121,6 +121,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/supplier-adjustments",
     "/supplier-statement-usd",
     "/supplier-statement-iqd",
+    "/supplier-debts",
   ];
 
   const bankSubRoutes = [
@@ -246,6 +247,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/supplier-adjustments", icon: ArrowDownToLine, label: "Supplier Adjustments" },
     { href: "/supplier-statement-usd", icon: FileText, label: "Supplier Statement USD" },
     { href: "/supplier-statement-iqd", icon: FileText, label: "Supplier Statement IQD" },
+    { href: "/supplier-debts", icon: DollarSign, label: "Supplier Debts" },
   ];
 
   const bankNavItems: NavItem[] = [
