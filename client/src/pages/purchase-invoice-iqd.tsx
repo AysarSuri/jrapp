@@ -111,8 +111,8 @@ export default function PurchaseInvoiceIqdPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
-  const [historyStartDate, setHistoryStartDate] = useState("");
-  const [historyEndDate, setHistoryEndDate] = useState("");
+  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [deleteInvoice, setDeleteInvoice] = useState<{ id: number; number: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
