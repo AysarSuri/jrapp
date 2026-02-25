@@ -11,6 +11,7 @@ import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
+import { logExport } from "@/lib/export-log";
 
 type InvoiceData = {
   id: number;
@@ -188,6 +189,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     setTimeout(() => {
       printWindow.print();
     }, 300);
+    if (invoice) {
+      logExport({ reportName: t("Purchase Invoice Report"), supplierName: invoice.supplierName, invoiceNumber: invoice.invoiceNumber, exportType: "print", currency });
+    }
   };
 
   const generatePdf = async (): Promise<Blob | null> => {
@@ -239,6 +243,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
         );
         const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
         window.open(waUrl, "_blank");
+      }
+      if (invoice) {
+        logExport({ reportName: t("Purchase Invoice Report"), supplierName: invoice.supplierName, invoiceNumber: invoice.invoiceNumber, exportType: "whatsapp", currency });
       }
     } finally {
       setSendingWhatsApp(false);

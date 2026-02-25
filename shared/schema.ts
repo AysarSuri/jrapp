@@ -635,6 +635,21 @@ export const insertCompanyProfileSchema = createInsertSchema(companyProfile).omi
 export type CompanyProfile = typeof companyProfile.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
 
+export const exportLogs = pgTable("export_logs", {
+  id: serial("id").primaryKey(),
+  reportName: text("report_name").notNull(),
+  supplierName: text("supplier_name").notNull().default(""),
+  invoiceNumber: text("invoice_number").notNull().default(""),
+  exportType: text("export_type").notNull(),
+  currency: text("currency").notNull().default(""),
+  exportedAt: timestamp("exported_at").defaultNow().notNull(),
+  exportedBy: text("exported_by").notNull().default(""),
+});
+
+export const insertExportLogSchema = createInsertSchema(exportLogs).omit({ id: true, exportedAt: true });
+export type ExportLog = typeof exportLogs.$inferSelect;
+export type InsertExportLog = z.infer<typeof insertExportLogSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

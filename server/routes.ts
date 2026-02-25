@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -2630,6 +2630,32 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/export-logs', requireAuth, async (req, res) => {
+    try {
+      const { reportName, supplierName, invoiceNumber, exportType, currency } = req.body;
+      const [log] = await db.insert(exportLogs).values({
+        reportName: reportName || "",
+        supplierName: supplierName || "",
+        invoiceNumber: invoiceNumber || "",
+        exportType: exportType || "pdf",
+        currency: currency || "",
+        exportedBy: (req.session as any).userId || "",
+      }).returning();
+      res.json(log);
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/export-logs', requireAuth, async (_req, res) => {
+    try {
+      const logs = await db.select().from(exportLogs).orderBy(sql`${exportLogs.exportedAt} DESC`).limit(500);
+      res.json(logs);
+    } catch {
       res.status(500).json({ message: "Internal server error" });
     }
   });

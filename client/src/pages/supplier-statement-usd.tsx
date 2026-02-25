@@ -21,6 +21,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
+import { logExport } from "@/lib/export-log";
 
 type Client = {
   id: number;
@@ -440,6 +441,7 @@ export default function SupplierStatementUsdPage() {
     `);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 300);
+    logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "print", currency: "USD" });
   };
 
   const generatePdf = async (): Promise<Blob | null> => {
@@ -532,6 +534,7 @@ export default function SupplierStatementUsdPage() {
         const text = encodeURIComponent(`${t("Supplier Statement - USD")}\n${statement.supplier.name}\n${t("Final Balance USD")}: ${dollarFmt(finalBalance)}`);
         window.open(`https://wa.me/?text=${text}`, "_blank");
       }
+      logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "whatsapp", currency: "USD" });
     } finally {
       setSendingWhatsApp(false);
     }
@@ -882,6 +885,7 @@ export default function SupplierStatementUsdPage() {
                     </body></html>`);
                   printWindow.document.close();
                   setTimeout(() => printWindow.print(), 500);
+                  logExport({ reportName: t("Incoming Report"), supplierName: productsReport?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "USD" });
                 }} data-testid="button-print-products-report-usd">
                   <Printer className="w-4 h-4 mr-1" />
                   {t("Print")}
@@ -1049,6 +1053,7 @@ export default function SupplierStatementUsdPage() {
                     </body></html>`);
                   printWindow.document.close();
                   setTimeout(() => printWindow.print(), 500);
+                  logExport({ reportName: t("Incoming Vehicle Expenses"), supplierName: vehicleExpenses?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "USD" });
                 }} data-testid="button-print-vehicle-expenses-usd">
                   <Printer className="w-4 h-4 mr-1" />
                   {t("Print")}

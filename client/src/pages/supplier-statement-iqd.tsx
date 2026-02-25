@@ -21,6 +21,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
+import { logExport } from "@/lib/export-log";
 
 type Client = {
   id: number;
@@ -442,6 +443,7 @@ export default function SupplierStatementIqdPage() {
     `);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 300);
+    logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "print", currency: "IQD" });
   };
 
   const generatePdf = async (): Promise<Blob | null> => {
@@ -531,6 +533,7 @@ export default function SupplierStatementIqdPage() {
         const text = encodeURIComponent(`${t("Supplier Statement - IQD")}\n${statement.supplier.name}\n${t("Final Balance IQD")}: ${fmt(finalBalance)} IQD`);
         window.open(`https://wa.me/?text=${text}`, "_blank");
       }
+      logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "whatsapp", currency: "IQD" });
     } finally {
       setSendingWhatsApp(false);
     }
@@ -874,6 +877,7 @@ export default function SupplierStatementIqdPage() {
                     </body></html>`);
                   printWindow.document.close();
                   setTimeout(() => printWindow.print(), 500);
+                  logExport({ reportName: t("Incoming Report"), supplierName: productsReport?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "IQD" });
                 }} data-testid="button-print-products-report-iqd">
                   <Printer className="w-4 h-4 mr-1" />
                   {t("Print")}
@@ -1041,6 +1045,7 @@ export default function SupplierStatementIqdPage() {
                     </body></html>`);
                   printWindow.document.close();
                   setTimeout(() => printWindow.print(), 500);
+                  logExport({ reportName: t("Incoming Vehicle Expenses"), supplierName: vehicleExpenses?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "IQD" });
                 }} data-testid="button-print-vehicle-expenses-iqd">
                   <Printer className="w-4 h-4 mr-1" />
                   {t("Print")}
