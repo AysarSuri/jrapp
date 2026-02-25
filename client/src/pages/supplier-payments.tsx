@@ -20,13 +20,17 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Building, Landmark, HandCoins, ArrowLeft,
+  Eye, Pencil, Trash2,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, usd } from "@/lib/format-utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { playDeleteSound } from "@/lib/sounds";
+import SupplierPaymentReport from "@/components/supplier-payment-report";
 
 export default function SupplierPaymentsPage() {
   const { t } = useTranslation();
@@ -62,6 +66,13 @@ export default function SupplierPaymentsPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
+  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [reportPaymentId, setReportPaymentId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [deletePayment, setDeletePayment] = useState<{ id: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const editId = new URLSearchParams(window.location.search).get("edit");
 
@@ -115,6 +126,22 @@ export default function SupplierPaymentsPage() {
   }, [banksList, transferOfficesList, t]);
 
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
+
+  const handleDeletePayment = async () => {
+    if (!deletePayment) return;
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/supplier-payments/${deletePayment.id}`);
+      playDeleteSound();
+      toast({ title: t("Payment deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
+      setDeletePayment(null);
+    } catch (err: any) {
+      toast({ title: t("Failed to delete payment"), description: err.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const resetForm = () => {
     setSupplierId("");
@@ -214,10 +241,30 @@ export default function SupplierPaymentsPage() {
                 {t('Payment History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Payment History')}</DialogTitle>
               </DialogHeader>
+              <div className="flex flex-wrap gap-3 mb-4">
+                <div className="w-48">
+                  <Label className="text-xs mb-1 block">{t('Supplier')}</Label>
+                  <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
+                    <SelectTrigger data-testid="select-history-supplier-filter"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                      {suppliers?.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs mb-1 block">{t('From Date')}</Label>
+                  <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} data-testid="input-payment-history-start-date" />
+                </div>
+                <div>
+                  <Label className="text-xs mb-1 block">{t('To Date')}</Label>
+                  <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-payment-history-end-date" />
+                </div>
+              </div>
               {paymentsLoading ? (
                 <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
               ) : (
@@ -239,10 +286,17 @@ export default function SupplierPaymentsPage() {
                       <TableHead>{t('Remaining IQD')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>
+                      <TableHead>{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {payments?.map((p, i) => (
+                    {payments?.filter(p => {
+                      if (historySupplierFilter !== 'all' && p.supplierId !== parseInt(historySupplierFilter)) return false;
+                      const pDate = typeof p.date === 'string' ? p.date.split('T')[0] : new Date(p.date).toISOString().split('T')[0];
+                      if (historyStartDate && pDate < historyStartDate) return false;
+                      if (historyEndDate && pDate > historyEndDate) return false;
+                      return true;
+                    }).map((p, i) => (
                       <TableRow key={p.id} data-testid={`row-payment-${p.id}`}>
                         <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                         <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
@@ -279,11 +333,24 @@ export default function SupplierPaymentsPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportPaymentId(p.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-payment-${p.id}`}>
+                              <Eye className="h-3.5 w-3.5 text-blue-600" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/supplier-payments?edit=${p.id}`); }} data-testid={`btn-edit-payment-${p.id}`}>
+                              <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeletePayment({ id: p.id })} data-testid={`btn-delete-payment-${p.id}`}>
+                              <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {(!payments || payments.length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={15} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={16} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
@@ -624,6 +691,31 @@ export default function SupplierPaymentsPage() {
           )}
         </div>
       </div>
+
+      <SupplierPaymentReport
+        paymentId={reportPaymentId}
+        open={reportOpen}
+        onOpenChange={(open) => { setReportOpen(open); if (!open) setReportPaymentId(null); }}
+        currency="USD"
+      />
+
+      <AlertDialog open={!!deletePayment} onOpenChange={(open) => { if (!open) setDeletePayment(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete this payment")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePayment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-payment">
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
