@@ -53,6 +53,53 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       letter-spacing: -0.5px;
     }
 
+    .report-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 16px 20px;
+      border: 2px solid ${accent}30;
+      border-radius: 12px;
+      background: linear-gradient(135deg, ${accent}05, ${accent}10);
+    }
+    .report-banner .banner-right {
+      text-align: right;
+    }
+    .report-banner .banner-right h1 {
+      font-size: 16pt;
+      font-weight: 800;
+      color: ${accent};
+      margin-bottom: 4px;
+    }
+    .report-banner .banner-right .supplier-name {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 3px;
+    }
+    .report-banner .banner-right .date-range {
+      font-size: 9pt;
+      color: #666;
+    }
+    .report-banner .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .report-banner .banner-left img {
+      width: 65px;
+      height: 65px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    .report-banner .banner-left .company-name {
+      font-size: 16pt;
+      font-weight: 800;
+      color: ${accent};
+    }
+
     .header {
       text-align: center;
       margin-bottom: 16px;
