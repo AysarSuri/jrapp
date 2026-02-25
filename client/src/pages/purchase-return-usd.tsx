@@ -26,6 +26,8 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { playDeleteSound } from "@/lib/sounds";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { fmtUsd, usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
@@ -89,6 +91,8 @@ export default function PurchaseReturnUsdPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reportReturnId, setReportReturnId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [deleteReturn, setDeleteReturn] = useState<{ id: number; number: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
 

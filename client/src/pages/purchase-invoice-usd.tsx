@@ -22,12 +22,14 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, FileBarChart, ArrowLeft,
+  ListOrdered, FileBarChart, ArrowLeft, Eye,
 } from "lucide-react";
+import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
@@ -115,6 +117,8 @@ export default function PurchaseInvoiceUsdPage() {
   const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
   const [historyStartDate, setHistoryStartDate] = useState("");
   const [historyEndDate, setHistoryEndDate] = useState("");
+  const [deleteInvoice, setDeleteInvoice] = useState<{ id: number; number: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (nextNumber?.number && !editId) {
@@ -259,6 +263,22 @@ export default function PurchaseInvoiceUsdPage() {
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
     setFormKey(k => k + 1);
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoice) return;
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/purchase-invoices/${deleteInvoice.id}`);
+      playDeleteSound();
+      toast({ title: t("Invoice deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
+      setDeleteInvoice(null);
+    } catch (err: any) {
+      toast({ title: t("Failed to delete invoice"), description: err.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSave = () => {
@@ -411,7 +431,7 @@ export default function PurchaseInvoiceUsdPage() {
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Total')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Report')}</TableHead>
+                    <TableHead>{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -436,19 +456,14 @@ export default function PurchaseInvoiceUsdPage() {
                       <TableCell className="font-mono">${inv.subtotal}</TableCell>
                       <TableCell className="font-mono text-red-600">${inv.remaining}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setReportInvoiceId(inv.id);
-                            setReportOpen(true);
-                            setHistoryOpen(false);
-                          }}
-                          data-testid={`button-report-invoice-${inv.id}`}
-                        >
-                          <FileBarChart className="w-4 h-4 mr-1" />
-                          {t('Report')}
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-invoice-${inv.id}`}>
+                            <Eye className="h-3.5 w-3.5 text-blue-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-invoice-${inv.id}`}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -833,6 +848,24 @@ export default function PurchaseInvoiceUsdPage() {
         onOpenChange={setReportOpen}
         currency="USD"
       />
+
+      <AlertDialog open={!!deleteInvoice} onOpenChange={(open) => { if (!open) setDeleteInvoice(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete invoice")} #{deleteInvoice?.number}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-invoice">
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
