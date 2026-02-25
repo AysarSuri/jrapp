@@ -1,8 +1,8 @@
 import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft, RotateCcw } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft, RotateCcw, Eye, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,15 @@ import { DateInput } from "@/components/ui/date-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 
 type Client = {
   id: number;
@@ -111,7 +116,13 @@ export default function SupplierStatementIqdPage() {
   const [selectedAgent, setSelectedAgent] = useState<string>("all");
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const [viewEntry, setViewEntry] = useState<(StatementEntry & { balanceIqd?: number }) | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<StatementEntry | null>(null);
+  const [viewDetails, setViewDetails] = useState<any>(null);
+  const [viewDetailsLoading, setViewDetailsLoading] = useState(false);
 
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -137,6 +148,72 @@ export default function SupplierStatementIqdPage() {
     queryKey: [`/api/supplier-vehicle-expenses/${selectedSupplierId}?currency=IQD${startDate ? `&startDate=${startDate}` : ""}${endDate ? `&endDate=${endDate}` : ""}`],
     enabled: !!selectedSupplierId && activeTab === "vehicle_expenses",
   });
+
+  const getDeleteUrl = (entry: StatementEntry) => {
+    switch (entry.type) {
+      case "purchase_invoice": return `/api/purchase-invoices/${entry.id}`;
+      case "return_invoice": return `/api/purchase-returns/${entry.id}`;
+      case "payment": return `/api/supplier-payments/${entry.id}`;
+      case "adjustment_received":
+      case "adjustment_discount": return `/api/supplier-adjustments/${entry.id}`;
+      default: return null;
+    }
+  };
+
+  const getViewUrl = (entry: StatementEntry) => {
+    switch (entry.type) {
+      case "purchase_invoice": return `/api/purchase-invoices/${entry.id}`;
+      case "return_invoice": return `/api/purchase-returns/${entry.id}`;
+      case "payment": return `/api/supplier-payments/${entry.id}`;
+      case "adjustment_received":
+      case "adjustment_discount": return `/api/supplier-adjustments/${entry.id}`;
+      default: return null;
+    }
+  };
+
+  const getEditRoute = (entry: StatementEntry) => {
+    switch (entry.type) {
+      case "purchase_invoice": return `/purchase-invoice-iqd?edit=${entry.id}`;
+      case "return_invoice": return `/purchase-return-iqd?edit=${entry.id}`;
+      default: return null;
+    }
+  };
+
+  const handleView = async (entry: StatementEntry & { balanceIqd?: number }) => {
+    setViewEntry(entry);
+    setViewDetailsLoading(true);
+    const url = getViewUrl(entry);
+    if (url) {
+      try {
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        if (entry.type === "purchase_invoice") {
+          const itemsRes = await fetch(`/api/purchase-invoices/${entry.id}/items`, { credentials: "include" });
+          data.items = await itemsRes.json();
+        } else if (entry.type === "return_invoice") {
+          const itemsRes = await fetch(`/api/purchase-returns/${entry.id}/items`, { credentials: "include" });
+          data.items = await itemsRes.json();
+        }
+        setViewDetails(data);
+      } catch { setViewDetails(null); }
+    }
+    setViewDetailsLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEntry) return;
+    const url = getDeleteUrl(deleteEntry);
+    if (!url) return;
+    try {
+      await apiRequest("DELETE", url);
+      queryClient.invalidateQueries({ queryKey: [`/api/supplier-statement/${selectedSupplierId}`] });
+      toast({ title: t("Deleted successfully") });
+      playDeleteSound();
+    } catch {
+      toast({ title: t("Error"), variant: "destructive" });
+    }
+    setDeleteEntry(null);
+  };
 
   const entries = statement?.entries || [];
   const oldDebt = parseFloat(statement?.supplier?.oldDebtIqd || "0");
@@ -595,6 +672,7 @@ export default function SupplierStatementIqdPage() {
                         <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit IQD")}</TableHead>
                         <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance IQD")}</TableHead>
                         <TableHead>{t("Note")}</TableHead>
+                        <TableHead className="text-center">{t("Actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -606,6 +684,7 @@ export default function SupplierStatementIqdPage() {
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{fmt(openingBalance)} IQD</TableCell>
                         <TableCell>-</TableCell>
+                        <TableCell></TableCell>
                       </TableRow>
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-iqd-${idx}`}>
@@ -630,6 +709,21 @@ export default function SupplierStatementIqdPage() {
                             </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 justify-center">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleView(entry)} data-testid={`btn-view-iqd-${entry.type}-${entry.id}`}>
+                                <Eye className="h-3.5 w-3.5 text-blue-600" />
+                              </Button>
+                              {getEditRoute(entry) && (
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(getEditRoute(entry)!)} data-testid={`btn-edit-iqd-${entry.type}-${entry.id}`}>
+                                  <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteEntry(entry)} data-testid={`btn-delete-iqd-${entry.type}-${entry.id}`}>
+                                <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                              </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold border-t-2">
@@ -641,6 +735,7 @@ export default function SupplierStatementIqdPage() {
                         <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
                           {fmt(finalBalance)} IQD
                         </TableCell>
+                        <TableCell></TableCell>
                         <TableCell></TableCell>
                       </TableRow>
                     </TableBody>
@@ -938,6 +1033,89 @@ export default function SupplierStatementIqdPage() {
           ) : null}
         </>
       )}
+      <Dialog open={!!viewEntry} onOpenChange={(open) => { if (!open) { setViewEntry(null); setViewDetails(null); } }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("View Details")}</DialogTitle>
+            <DialogDescription>{viewEntry?.description}</DialogDescription>
+          </DialogHeader>
+          {viewDetailsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
+          ) : viewEntry && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-muted-foreground">{t("Date")}:</span> <span className="font-medium">{formatDate(viewEntry.date)}</span></div>
+                <div><span className="text-muted-foreground">{t("Time")}:</span> <span className="font-medium">{viewEntry.time}</span></div>
+                <div><span className="text-muted-foreground">{t("Type")}:</span> <span className="font-medium">{viewEntry.type === "purchase_invoice" ? t("Purchase Invoice") : viewEntry.type === "return_invoice" ? t("Return Invoice") : viewEntry.type === "payment" ? t("Payment") : t("Adjustment")}</span></div>
+                <div><span className="text-muted-foreground">{t("Description")}:</span> <span className="font-medium">{viewEntry.description}</span></div>
+                {viewEntry.debitIqd > 0 && <div><span className="text-muted-foreground">{t("Debit IQD")}:</span> <span className="font-medium text-red-600">{fmt(viewEntry.debitIqd)} IQD</span></div>}
+                {viewEntry.creditIqd > 0 && <div><span className="text-muted-foreground">{t("Credit IQD")}:</span> <span className="font-medium text-green-600">{fmt(viewEntry.creditIqd)} IQD</span></div>}
+                {viewEntry.note && <div className="col-span-2"><span className="text-muted-foreground">{t("Note")}:</span> <span className="font-medium">{viewEntry.note}</span></div>}
+              </div>
+              {viewDetails && (viewEntry.type === "purchase_invoice" || viewEntry.type === "return_invoice") && (
+                <div className="space-y-2">
+                  {viewDetails.carNumber && <div className="text-sm"><span className="text-muted-foreground">{t("Vehicle Number")}:</span> <span className="font-medium">{viewDetails.carNumber}</span></div>}
+                  {viewDetails.manifest && <div className="text-sm"><span className="text-muted-foreground">{t("Manifest")}:</span> <span className="font-medium">{viewDetails.manifest}</span></div>}
+                  {viewDetails.driverName && <div className="text-sm"><span className="text-muted-foreground">{t("Driver Name")}:</span> <span className="font-medium">{viewDetails.driverName}</span></div>}
+                  {viewDetails.driverMobile && <div className="text-sm"><span className="text-muted-foreground">{t("Driver Mobile")}:</span> <span className="font-medium">{viewDetails.driverMobile}</span></div>}
+                  {viewDetails.items && viewDetails.items.length > 0 && (
+                    <div className="border rounded-md overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-center">#</TableHead>
+                            <TableHead>{t("Product Name")}</TableHead>
+                            <TableHead className="text-center">{t("Quantity")}</TableHead>
+                            <TableHead>{t("Unit")}</TableHead>
+                            <TableHead className="text-center">{t("Price")}</TableHead>
+                            <TableHead className="text-center">{t("Total")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {viewDetails.items.map((item: any, i: number) => (
+                            <TableRow key={i}>
+                              <TableCell className="text-center text-xs">{i + 1}</TableCell>
+                              <TableCell>{item.productName}</TableCell>
+                              <TableCell className="text-center">{item.quantity}</TableCell>
+                              <TableCell>{item.unit}</TableCell>
+                              <TableCell className="text-center">{fmt(parseFloat(item.price || "0"))} IQD</TableCell>
+                              <TableCell className="text-center font-medium">{fmt(parseFloat(item.quantity || "0") * parseFloat(item.price || "0"))} IQD</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              )}
+              {viewDetails && viewEntry.type === "payment" && (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {viewDetails.paymentSourceName && <div><span className="text-muted-foreground">{t("Payment Source")}:</span> <span className="font-medium">{viewDetails.paymentSourceName}</span></div>}
+                  {viewDetails.amountUsd && parseFloat(viewDetails.amountUsd) > 0 && <div><span className="text-muted-foreground">{t("Amount USD")}:</span> <span className="font-medium">${parseFloat(viewDetails.amountUsd).toLocaleString()}</span></div>}
+                  {viewDetails.amountIqd && parseFloat(viewDetails.amountIqd) > 0 && <div><span className="text-muted-foreground">{t("Amount IQD")}:</span> <span className="font-medium">{parseFloat(viewDetails.amountIqd).toLocaleString()} IQD</span></div>}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteEntry} onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Delete Confirmation")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Are you sure you want to delete this record?")} ({deleteEntry?.description})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-iqd">
+              {t("Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

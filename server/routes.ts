@@ -634,6 +634,38 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/purchase-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.transaction(async (tx) => {
+        await tx.delete(purchaseInvoiceItems).where(eq(purchaseInvoiceItems.invoiceId, id));
+        await tx.delete(purchaseInvoices).where(eq(purchaseInvoices.id, id));
+      });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/purchase-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { invoice, items } = req.body;
+      const result = await db.transaction(async (tx) => {
+        const [updated] = await tx.update(purchaseInvoices).set(invoice).where(eq(purchaseInvoices.id, id)).returning();
+        await tx.delete(purchaseInvoiceItems).where(eq(purchaseInvoiceItems.invoiceId, id));
+        if (items && items.length > 0) {
+          const itemsWithInvoiceId = items.map((item: any) => ({ ...item, invoiceId: id }));
+          await tx.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
+        }
+        return updated;
+      });
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.supplierPayments.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getSupplierPayments();
     res.json(data);
@@ -751,6 +783,48 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/supplier-payments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(supplierPayments).where(eq(supplierPayments.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/supplier-payments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const [payment] = await db.select().from(supplierPayments).where(eq(supplierPayments.id, id));
+      if (!payment) return res.status(404).json({ message: "Payment not found" });
+      res.json(payment);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(supplierAdjustments).where(eq(supplierAdjustments.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const [adj] = await db.select().from(supplierAdjustments).where(eq(supplierAdjustments.id, id));
+      if (!adj) return res.status(404).json({ message: "Adjustment not found" });
+      res.json(adj);
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1682,6 +1756,19 @@ export async function registerRoutes(
         return res.status(400).json({ message: err.errors[0].message });
       }
       console.error("Error creating purchase return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/purchase-returns/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.transaction(async (tx) => {
+        await tx.delete(purchaseReturnItems).where(eq(purchaseReturnItems.returnId, id));
+        await tx.delete(purchaseReturns).where(eq(purchaseReturns.id, id));
+      });
+      res.json({ success: true });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
