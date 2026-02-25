@@ -60,6 +60,7 @@ type CompanyProfileData = {
 };
 
 type ProductReportRow = {
+  invoiceId: number;
   invoiceNumber: string;
   type: "purchase" | "return";
   date: string;
@@ -82,6 +83,7 @@ type ProductReportResponse = {
 type ActiveTab = "general" | "invoices" | "returns" | "payments" | "adjustments" | "products_report" | "vehicle_expenses";
 
 type VehicleExpenseRow = {
+  invoiceId: number;
   invoiceNumber: string;
   date: string;
   carNumber: string;
@@ -151,6 +153,7 @@ export default function SupplierStatementIqdPage() {
   const [viewDetailsLoading, setViewDetailsLoading] = useState(false);
   const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [deleteReportEntry, setDeleteReportEntry] = useState<{ id: number; type: "purchase" | "return"; description: string } | null>(null);
 
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -244,6 +247,24 @@ export default function SupplierStatementIqdPage() {
       toast({ title: t("Error"), variant: "destructive" });
     }
     setDeleteEntry(null);
+  };
+
+  const handleDeleteReportEntry = async () => {
+    if (!deleteReportEntry) return;
+    const url = deleteReportEntry.type === "purchase"
+      ? `/api/purchase-invoices/${deleteReportEntry.id}`
+      : `/api/purchase-returns/${deleteReportEntry.id}`;
+    try {
+      await apiRequest("DELETE", url);
+      queryClient.invalidateQueries({ queryKey: [`/api/supplier-products-report/${selectedSupplierId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/supplier-vehicle-expenses/${selectedSupplierId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/supplier-statement/${selectedSupplierId}`] });
+      toast({ title: t("Deleted successfully") });
+      playDeleteSound();
+    } catch {
+      toast({ title: t("Error"), variant: "destructive" });
+    }
+    setDeleteReportEntry(null);
   };
 
   const entries = statement?.entries || [];
@@ -882,6 +903,7 @@ export default function SupplierStatementIqdPage() {
                             <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
                             <TableHead className="text-center">{t("Purchase Price")}</TableHead>
                             <TableHead className="text-center text-blue-600">{t("Purchase Amount")}</TableHead>
+                            <TableHead className="text-center">{t("Actions")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -905,6 +927,21 @@ export default function SupplierStatementIqdPage() {
                                 <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(row.price)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(purchaseAmount)} IQD</TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex items-center justify-center gap-0.5">
+                                    {row.type === "purchase" ? (
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-product-iqd-${idx}`}>
+                                        <Eye className="h-3.5 w-3.5 text-blue-600" />
+                                      </Button>
+                                    ) : null}
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(row.type === "purchase" ? `/purchase-invoice-iqd?edit=${row.invoiceId}` : `/purchase-return-iqd?edit=${row.invoiceId}`)} data-testid={`btn-edit-product-iqd-${idx}`}>
+                                      <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: row.type, description: `${row.invoiceNumber} - ${row.productName}` })} data-testid={`btn-delete-product-iqd-${idx}`}>
+                                      <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
                               </TableRow>
                             );
                           })}
@@ -918,6 +955,7 @@ export default function SupplierStatementIqdPage() {
                                 <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(productsReport.totalAmount)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(grandTotal)} IQD</TableCell>
+                                <TableCell></TableCell>
                               </TableRow>
                             );
                           })()}
@@ -1034,6 +1072,7 @@ export default function SupplierStatementIqdPage() {
                             <TableHead className="text-center">{t("Invoice Amount")}</TableHead>
                             <TableHead className="text-center text-green-600">{t("Amount Paid")}</TableHead>
                             <TableHead className="text-center text-red-600">{t("Remaining")}</TableHead>
+                            <TableHead className="text-center">{t("Actions")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1051,6 +1090,19 @@ export default function SupplierStatementIqdPage() {
                               <TableCell className="text-center font-mono font-bold">{fmt(row.invoiceAmount)}</TableCell>
                               <TableCell className="text-center font-mono text-green-600">{fmt(row.amountPaid)}</TableCell>
                               <TableCell className="text-center font-mono text-red-600 font-bold">{fmt(row.remaining)}</TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-0.5">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-vehicle-iqd-${idx}`}>
+                                    <Eye className="h-3.5 w-3.5 text-blue-600" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/purchase-invoice-iqd?edit=${row.invoiceId}`)} data-testid={`btn-edit-vehicle-iqd-${idx}`}>
+                                    <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: "purchase", description: row.invoiceNumber })} data-testid={`btn-delete-vehicle-iqd-${idx}`}>
+                                    <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))}
                           <TableRow className="bg-muted/50 font-bold border-t-2">
@@ -1060,6 +1112,7 @@ export default function SupplierStatementIqdPage() {
                             <TableCell className="text-center font-mono font-bold">{fmt(vehicleExpenses.totalInvoiceAmount)}</TableCell>
                             <TableCell className="text-center font-mono text-green-600">{fmt(vehicleExpenses.totalPaid)}</TableCell>
                             <TableCell className="text-center font-mono text-red-600 font-bold">{fmt(vehicleExpenses.totalRemaining)}</TableCell>
+                            <TableCell></TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
@@ -1149,6 +1202,23 @@ export default function SupplierStatementIqdPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-iqd">
+              {t("Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteReportEntry} onOpenChange={(open) => { if (!open) setDeleteReportEntry(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Delete Confirmation")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Are you sure you want to delete this record?")} ({deleteReportEntry?.description})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteReportEntry} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-report-iqd">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

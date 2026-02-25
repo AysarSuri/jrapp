@@ -1144,6 +1144,7 @@ export async function registerRoutes(
       const returns = await db.select().from(purchaseReturns).where(returnConditions).orderBy(purchaseReturns.date);
 
       type ReportRow = {
+        invoiceId: number;
         invoiceNumber: string;
         type: "purchase" | "return";
         date: string;
@@ -1160,6 +1161,7 @@ export async function registerRoutes(
         const items = await db.select().from(purchaseInvoiceItems).where(eq(purchaseInvoiceItems.invoiceId, inv.id));
         for (const item of items) {
           rows.push({
+            invoiceId: inv.id,
             invoiceNumber: inv.invoiceNumber,
             type: "purchase",
             date: inv.date,
@@ -1176,6 +1178,7 @@ export async function registerRoutes(
         const items = await db.select().from(purchaseReturnItems).where(eq(purchaseReturnItems.returnId, ret.id));
         for (const item of items) {
           rows.push({
+            invoiceId: ret.id,
             invoiceNumber: ret.returnNumber,
             type: "return",
             date: ret.date,
@@ -1228,6 +1231,7 @@ export async function registerRoutes(
         const discount = parseFloat(inv.discount || "0");
         const invoiceAmount = subtotal + totalExpenses - discount;
         return {
+          invoiceId: inv.id,
           invoiceNumber: inv.invoiceNumber,
           date: inv.date,
           carNumber: inv.carNumber || "",
