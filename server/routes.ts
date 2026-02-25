@@ -1102,6 +1102,62 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-vehicle-expenses/:id', requireAuth, async (req, res) => {
+    try {
+      const supplierId = parseInt(req.params.id as string);
+      const { startDate, endDate, currency } = req.query;
+      const curr = (currency as string) || "USD";
+
+      const [supplier] = await db.select().from(clients).where(eq(clients.id, supplierId));
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+
+      let conditions = sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.currency} = ${curr}`;
+      if (startDate) conditions = sql`${conditions} AND ${purchaseInvoices.date} >= ${startDate}`;
+      if (endDate) conditions = sql`${conditions} AND ${purchaseInvoices.date} <= ${endDate}`;
+
+      const invoices = await db.select().from(purchaseInvoices).where(conditions).orderBy(purchaseInvoices.date);
+
+      const rows = invoices.map(inv => {
+        const subtotal = parseFloat(inv.subtotal || "0");
+        const totalExpenses = parseFloat(inv.totalExpenses || "0");
+        const discount = parseFloat(inv.discount || "0");
+        const invoiceAmount = subtotal + totalExpenses - discount;
+        return {
+          invoiceNumber: inv.invoiceNumber,
+          date: inv.date,
+          carNumber: inv.carNumber || "",
+          manifest: inv.manifest || "",
+          driverName: inv.driverName || "",
+          driverMobile: inv.driverMobile || "",
+          customsExpense: parseFloat(inv.customsExpense || "0"),
+          carExpense: parseFloat(inv.carExpense || "0"),
+          invoiceAmount,
+          amountPaid: parseFloat(inv.amountPaid || "0"),
+          remaining: parseFloat(inv.remaining || "0"),
+        };
+      });
+
+      const totalCustoms = rows.reduce((s, r) => s + r.customsExpense, 0);
+      const totalCarExpense = rows.reduce((s, r) => s + r.carExpense, 0);
+      const totalInvoiceAmount = rows.reduce((s, r) => s + r.invoiceAmount, 0);
+      const totalPaid = rows.reduce((s, r) => s + r.amountPaid, 0);
+      const totalRemaining = rows.reduce((s, r) => s + r.remaining, 0);
+
+      res.json({
+        supplier,
+        rows,
+        totalCustoms,
+        totalCarExpense,
+        totalInvoiceAmount,
+        totalPaid,
+        totalRemaining,
+        currency: curr,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.bankTransactions.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getBankTransactions();
     res.json(data);

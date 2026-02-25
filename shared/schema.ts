@@ -140,6 +140,8 @@ export const purchaseInvoices = pgTable("purchase_invoices", {
   customsClearance: text("customs_clearance"),
   carNumber: text("car_number"),
   manifest: text("manifest"),
+  driverName: text("driver_name"),
+  driverMobile: text("driver_mobile"),
   invoiceType: text("invoice_type").notNull().default("cash"),
   carExpense: numeric("car_expense").notNull().default("0"),
   customsExpense: numeric("customs_expense").notNull().default("0"),

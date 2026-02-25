@@ -93,6 +93,8 @@ export default function PurchaseInvoiceUsdPage() {
   const [customsClearance, setCustomsClearance] = useState("");
   const [carNumber, setCarNumber] = useState("");
   const [manifest, setManifest] = useState("");
+  const [driverName, setDriverName] = useState("");
+  const [driverMobile, setDriverMobile] = useState("");
   const [invoiceType, setInvoiceType] = useState("cash");
   const [carExpense, setCarExpense] = useState("");
   const [customsExpense, setCustomsExpense] = useState("");
@@ -187,6 +189,8 @@ export default function PurchaseInvoiceUsdPage() {
     setCustomsClearance("");
     setCarNumber("");
     setManifest("");
+    setDriverName("");
+    setDriverMobile("");
     setInvoiceType("cash");
     setCarExpense("");
     setCustomsExpense("");
@@ -221,6 +225,8 @@ export default function PurchaseInvoiceUsdPage() {
       customsClearance: customsClearance || null,
       carNumber: carNumber || null,
       manifest: manifest || null,
+      driverName: driverName || null,
+      driverMobile: driverMobile || null,
       invoiceType,
       carExpense: carExpense || "0",
       customsExpense: customsExpense || "0",
@@ -478,6 +484,14 @@ export default function PurchaseInvoiceUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Manifest')}</Label>
               <Input value={manifest} onChange={(e) => setManifest(e.target.value)} placeholder={t('Manifest #')} data-testid="input-purchase-manifest" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Name')}</Label>
+              <Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder={t('Driver Name')} data-testid="input-purchase-driver-name" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Mobile')}</Label>
+              <Input value={driverMobile} onChange={(e) => setDriverMobile(e.target.value)} placeholder={t('Driver Mobile')} data-testid="input-purchase-driver-mobile" />
             </div>
           </div>
         </CardContent>

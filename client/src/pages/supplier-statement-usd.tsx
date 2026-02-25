@@ -53,7 +53,32 @@ type CompanyProfileData = {
   secondaryColor: string;
 };
 
-type ActiveTab = "general" | "invoices" | "returns" | "payments" | "adjustments" | "products_report";
+type ActiveTab = "general" | "invoices" | "returns" | "payments" | "adjustments" | "products_report" | "vehicle_expenses";
+
+type VehicleExpenseRow = {
+  invoiceNumber: string;
+  date: string;
+  carNumber: string;
+  manifest: string;
+  driverName: string;
+  driverMobile: string;
+  customsExpense: number;
+  carExpense: number;
+  invoiceAmount: number;
+  amountPaid: number;
+  remaining: number;
+};
+
+type VehicleExpenseResponse = {
+  supplier: Client;
+  rows: VehicleExpenseRow[];
+  totalCustoms: number;
+  totalCarExpense: number;
+  totalInvoiceAmount: number;
+  totalPaid: number;
+  totalRemaining: number;
+  currency: string;
+};
 
 type ProductReportRow = {
   invoiceNumber: string;
@@ -106,6 +131,11 @@ export default function SupplierStatementUsdPage() {
   const { data: productsReport, isLoading: productsReportLoading } = useQuery<ProductReportResponse>({
     queryKey: [`/api/supplier-products-report/${selectedSupplierId}?currency=USD${startDate ? `&startDate=${startDate}` : ""}${endDate ? `&endDate=${endDate}` : ""}`],
     enabled: !!selectedSupplierId && activeTab === "products_report",
+  });
+
+  const { data: vehicleExpenses, isLoading: vehicleExpensesLoading } = useQuery<VehicleExpenseResponse>({
+    queryKey: [`/api/supplier-vehicle-expenses/${selectedSupplierId}?currency=USD${startDate ? `&startDate=${startDate}` : ""}${endDate ? `&endDate=${endDate}` : ""}`],
+    enabled: !!selectedSupplierId && activeTab === "vehicle_expenses",
   });
 
   const entries = statement?.entries || [];
@@ -385,6 +415,7 @@ export default function SupplierStatementUsdPage() {
     { key: "payments", label: t("Payments & Transfers") },
     { key: "adjustments", label: t("Agent Adjustments") },
     { key: "products_report", label: t("Incoming Report") },
+    { key: "vehicle_expenses", label: t("Incoming Vehicle Expenses") },
   ];
 
   return (
@@ -507,7 +538,7 @@ export default function SupplierStatementUsdPage() {
 
       {selectedSupplierId && statement && !statementLoading && (
         <>
-          {activeTab !== "products_report" && (
+          {activeTab !== "products_report" && activeTab !== "vehicle_expenses" && (
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={sendingWhatsApp} className="bg-green-600 hover:bg-green-700 text-white border-green-600" data-testid="button-whatsapp-statement-usd">
                 {sendingWhatsApp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <MessageCircle className="w-4 h-4 mr-1" />}
@@ -520,7 +551,7 @@ export default function SupplierStatementUsdPage() {
             </div>
           )}
 
-          {activeTab !== "products_report" ? (
+          {activeTab !== "products_report" && activeTab !== "vehicle_expenses" ? (
             <>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Card className="border-l-4 border-l-red-500">
@@ -772,6 +803,142 @@ export default function SupplierStatementUsdPage() {
                     <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
                     <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0))}</span></div>
                   </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : null}
+        </>
+      )}
+      {selectedSupplierId && activeTab === "vehicle_expenses" && (
+        <>
+          {vehicleExpensesLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : vehicleExpenses ? (
+            <>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => {
+                  if (!vehicleExpenses) return;
+                  const printWindow = window.open("", "_blank", "width=794,height=1123");
+                  if (!printWindow) return;
+                  const dateRangeHtml = startDate || endDate ? `${startDate || t("Beginning")} - ${endDate || t("Now")}` : "";
+                  const rows = vehicleExpenses.rows.map((row, idx) => `<tr>
+                    <td>${idx + 1}</td>
+                    <td>${row.invoiceNumber}</td>
+                    <td>${formatDate(row.date)}</td>
+                    <td>${row.carNumber || "-"}</td>
+                    <td>${row.manifest || "-"}</td>
+                    <td>${row.driverName || "-"}</td>
+                    <td>${row.driverMobile || "-"}</td>
+                    <td>${row.customsExpense > 0 ? dollarFmt(row.customsExpense) : "-"}</td>
+                    <td>${row.carExpense > 0 ? dollarFmt(row.carExpense) : "-"}</td>
+                    <td>${dollarFmt(row.invoiceAmount)}</td>
+                    <td class="credit">${dollarFmt(row.amountPaid)}</td>
+                    <td class="debit">${dollarFmt(row.remaining)}</td>
+                  </tr>`).join("");
+                  const vPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
+                  printWindow.document.write(`<!DOCTYPE html>
+                    <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+                    <head><meta charset="UTF-8" />
+                      <title>${t("Incoming Vehicle Expenses")} - ${vehicleExpenses.supplier?.name || ""} (USD)</title>
+                      <style>${vPrintStyles}</style>
+                    </head>
+                    <body>
+                      <div class="report-banner">
+                        <div class="banner-right">
+                          <h1>${t("Incoming Vehicle Expenses")} (USD)</h1>
+                          <div class="supplier-name">${vehicleExpenses.supplier?.name || ""}</div>
+                          <div class="date-range">${formatDate(new Date())}${dateRangeHtml ? ` | ${dateRangeHtml}` : ""}</div>
+                        </div>
+                        <div class="banner-left">
+                          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}
+                          <span class="company-name">${companyProfile?.name || ""}</span>
+                        </div>
+                      </div>
+                      <table>
+                        <thead><tr>
+                          <th>#</th><th>${t("Invoice Number")}</th><th>${t("Date")}</th><th>${t("Vehicle Number")}</th><th>${t("Manifest")}</th>
+                          <th>${t("Driver Name")}</th><th>${t("Driver Mobile")}</th><th>${t("Customs")}</th><th>${t("Transport Fee")}</th>
+                          <th>${t("Invoice Amount")}</th><th>${t("Amount Paid")}</th><th>${t("Remaining")}</th>
+                        </tr></thead>
+                        <tbody>
+                          ${rows}
+                          <tr class="total-row">
+                            <td colspan="7">${t("Total")}</td>
+                            <td>${dollarFmt(vehicleExpenses.totalCustoms)}</td>
+                            <td>${dollarFmt(vehicleExpenses.totalCarExpense)}</td>
+                            <td>${dollarFmt(vehicleExpenses.totalInvoiceAmount)}</td>
+                            <td class="credit">${dollarFmt(vehicleExpenses.totalPaid)}</td>
+                            <td class="debit">${dollarFmt(vehicleExpenses.totalRemaining)}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </body></html>`);
+                  printWindow.document.close();
+                  setTimeout(() => printWindow.print(), 500);
+                }} data-testid="button-print-vehicle-expenses-usd">
+                  <Printer className="w-4 h-4 mr-1" />
+                  {t("Print")}
+                </Button>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("Incoming Vehicle Expenses")} - {vehicleExpenses?.supplier?.name || ""} (USD)</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {vehicleExpenses.rows.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      {t("No transactions found")}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-center">#</TableHead>
+                            <TableHead>{t("Invoice Number")}</TableHead>
+                            <TableHead>{t("Date")}</TableHead>
+                            <TableHead>{t("Vehicle Number")}</TableHead>
+                            <TableHead>{t("Manifest")}</TableHead>
+                            <TableHead>{t("Driver Name")}</TableHead>
+                            <TableHead>{t("Driver Mobile")}</TableHead>
+                            <TableHead className="text-center">{t("Customs")}</TableHead>
+                            <TableHead className="text-center">{t("Transport Fee")}</TableHead>
+                            <TableHead className="text-center">{t("Invoice Amount")}</TableHead>
+                            <TableHead className="text-center text-green-600">{t("Amount Paid")}</TableHead>
+                            <TableHead className="text-center text-red-600">{t("Remaining")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {vehicleExpenses.rows.map((row, idx) => (
+                            <TableRow key={idx} data-testid={`row-vehicle-expense-${idx}`}>
+                              <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                              <TableCell className="font-medium">{row.invoiceNumber}</TableCell>
+                              <TableCell>{formatDate(row.date)}</TableCell>
+                              <TableCell>{row.carNumber || "-"}</TableCell>
+                              <TableCell>{row.manifest || "-"}</TableCell>
+                              <TableCell>{row.driverName || "-"}</TableCell>
+                              <TableCell>{row.driverMobile || "-"}</TableCell>
+                              <TableCell className="text-center font-mono">{row.customsExpense > 0 ? dollarFmt(row.customsExpense) : "-"}</TableCell>
+                              <TableCell className="text-center font-mono">{row.carExpense > 0 ? dollarFmt(row.carExpense) : "-"}</TableCell>
+                              <TableCell className="text-center font-mono font-bold">{dollarFmt(row.invoiceAmount)}</TableCell>
+                              <TableCell className="text-center font-mono text-green-600">{dollarFmt(row.amountPaid)}</TableCell>
+                              <TableCell className="text-center font-mono text-red-600 font-bold">{dollarFmt(row.remaining)}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/50 font-bold border-t-2">
+                            <TableCell colSpan={7} className="text-center">{t("Total")}</TableCell>
+                            <TableCell className="text-center font-mono">{dollarFmt(vehicleExpenses.totalCustoms)}</TableCell>
+                            <TableCell className="text-center font-mono">{dollarFmt(vehicleExpenses.totalCarExpense)}</TableCell>
+                            <TableCell className="text-center font-mono font-bold">{dollarFmt(vehicleExpenses.totalInvoiceAmount)}</TableCell>
+                            <TableCell className="text-center font-mono text-green-600">{dollarFmt(vehicleExpenses.totalPaid)}</TableCell>
+                            <TableCell className="text-center font-mono text-red-600 font-bold">{dollarFmt(vehicleExpenses.totalRemaining)}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </>
