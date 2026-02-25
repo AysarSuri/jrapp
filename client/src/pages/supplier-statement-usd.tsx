@@ -20,6 +20,7 @@ import { getModernPrintStyles } from "@/lib/print-styles";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
+import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 
 type Client = {
   id: number;
@@ -123,6 +124,8 @@ export default function SupplierStatementUsdPage() {
   const [deleteEntry, setDeleteEntry] = useState<StatementEntry | null>(null);
   const [viewDetails, setViewDetails] = useState<any>(null);
   const [viewDetailsLoading, setViewDetailsLoading] = useState(false);
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -713,7 +716,14 @@ export default function SupplierStatementUsdPage() {
                               <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1 justify-center">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleView(entry)} data-testid={`btn-view-${entry.type}-${entry.id}`}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                                    if (entry.type === "purchase_invoice") {
+                                      setReportInvoiceId(entry.id);
+                                      setReportOpen(true);
+                                    } else {
+                                      handleView(entry);
+                                    }
+                                  }} data-testid={`btn-view-${entry.type}-${entry.id}`}>
                                     <Eye className="h-3.5 w-3.5 text-blue-600" />
                                   </Button>
                                   {getEditRoute(entry) && (
@@ -1124,6 +1134,13 @@ export default function SupplierStatementUsdPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PurchaseInvoiceReport
+        invoiceId={reportInvoiceId}
+        open={reportOpen}
+        onOpenChange={(open) => { setReportOpen(open); if (!open) setReportInvoiceId(null); }}
+        currency="USD"
+      />
     </div>
   );
 }
