@@ -4,6 +4,7 @@ import type {
   ToastActionElement,
   ToastProps,
 } from "@/components/ui/toast"
+import { playSuccessSound, playErrorSound, playDeleteSound } from "@/lib/sounds"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -160,6 +161,17 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  if (props.variant === "destructive") {
+    playErrorSound();
+  } else {
+    const titleStr = typeof props.title === "string" ? props.title.toLowerCase() : "";
+    if (titleStr.includes("delet") || titleStr.includes("remov") || titleStr.includes("حذف")) {
+      playDeleteSound();
+    } else {
+      playSuccessSound();
+    }
+  }
 
   return {
     id: id,
