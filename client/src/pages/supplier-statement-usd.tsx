@@ -110,14 +110,39 @@ export default function SupplierStatementUsdPage() {
   const { t, i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
   const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-  const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(firstOfMonth);
-  const [endDate, setEndDate] = useState<string>(today);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("general");
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const [selectedSupplierId, setSelectedSupplierIdRaw] = useState<string>(urlParams.get("supplier") || "");
+  const [startDate, setStartDateRaw] = useState<string>(urlParams.get("from") || firstOfMonth);
+  const [endDate, setEndDateRaw] = useState<string>(urlParams.get("to") || today);
+  const [activeTab, setActiveTab] = useState<ActiveTab>((urlParams.get("tab") as ActiveTab) || "general");
   const [selectedAgent, setSelectedAgent] = useState<string>("all");
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [, navigate] = useLocation();
+
+  const updateUrl = (supplierId: string, from: string, to: string, tab: string) => {
+    const params = new URLSearchParams();
+    if (supplierId) params.set("supplier", supplierId);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (tab && tab !== "general") params.set("tab", tab);
+    const qs = params.toString();
+    window.history.replaceState({}, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+  };
+
+  const setSelectedSupplierId = (val: string) => {
+    setSelectedSupplierIdRaw(val);
+    updateUrl(val, startDate, endDate, activeTab);
+  };
+  const setStartDate = (val: string) => {
+    setStartDateRaw(val);
+    updateUrl(selectedSupplierId, val, endDate, activeTab);
+  };
+  const setEndDate = (val: string) => {
+    setEndDateRaw(val);
+    updateUrl(selectedSupplierId, startDate, val, activeTab);
+  };
   const { toast } = useToast();
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const [viewEntry, setViewEntry] = useState<(StatementEntry & { balanceUsd?: number }) | null>(null);
