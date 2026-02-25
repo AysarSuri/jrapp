@@ -178,6 +178,9 @@ export default function SupplierStatementIqdPage() {
     switch (entry.type) {
       case "purchase_invoice": return `/purchase-invoice-iqd?edit=${entry.id}`;
       case "return_invoice": return `/purchase-return-iqd?edit=${entry.id}`;
+      case "payment": return `/supplier-payments?edit=${entry.id}`;
+      case "adjustment_received":
+      case "adjustment_discount": return `/supplier-adjustments?edit=${entry.id}`;
       default: return null;
     }
   };

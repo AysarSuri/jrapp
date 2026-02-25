@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
@@ -86,12 +87,53 @@ export default function PurchaseReturnUsdPage() {
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const editId = new URLSearchParams(window.location.search).get("edit");
 
   useEffect(() => {
-    if (nextNumber?.number) {
+    if (!editId && nextNumber?.number) {
       setReturnNumber(nextNumber.number);
     }
-  }, [nextNumber]);
+  }, [nextNumber, editId]);
+
+  useEffect(() => {
+    if (!editId) return;
+    const fetchEditData = async () => {
+      try {
+        const returnRes = await fetch(`/api/purchase-returns/${editId}`, { credentials: "include" });
+        const returnData = await returnRes.json();
+        const itemsRes = await fetch(`/api/purchase-returns/${editId}/items`, { credentials: "include" });
+        const itemsData = await itemsRes.json();
+
+        setReturnNumber(returnData.returnNumber || "");
+        setDate(returnData.date || new Date().toISOString().split("T")[0]);
+        setTime(returnData.time || "");
+        setSupplierId(returnData.supplierId || null);
+        setSupplierName(returnData.supplierName || "");
+        setAddress(returnData.address || "");
+        setNote(returnData.note || "");
+        setDiscount(returnData.discount || "");
+
+        const mappedItems: ReturnItem[] = (itemsData || []).map((item: any) => ({
+          productId: item.productId,
+          productCode: item.productCode || "",
+          productName: item.productName || "",
+          quantity: String(item.quantity || ""),
+          unit: item.unit || "",
+          price: String(item.price || ""),
+          amount: String(item.amount || "0"),
+        }));
+        if (mappedItems.length > 0) {
+          setItems([...mappedItems, emptyItem()]);
+        }
+        setIsEditMode(true);
+      } catch (err) {
+        console.error("Failed to load edit data", err);
+      }
+    };
+    fetchEditData();
+  }, [editId]);
 
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
@@ -201,15 +243,26 @@ export default function PurchaseReturnUsdPage() {
       amount: item.amount,
     }));
 
-    createReturn({ returnData, items: itemsData }, {
-      onSuccess: () => {
-        toast({ title: t("Purchase return saved successfully") });
-        resetForm();
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (isEditMode && editId) {
+      apiRequest("PATCH", `/api/purchase-returns/${editId}`, { returnData, items: itemsData })
+        .then(() => {
+          toast({ title: t("Purchase return updated successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
+        })
+        .catch((err: any) => {
+          toast({ title: t("Failed to update return"), description: err.message, variant: "destructive" });
+        });
+    } else {
+      createReturn({ returnData, items: itemsData }, {
+        onSuccess: () => {
+          toast({ title: t("Purchase return saved successfully") });
+          resetForm();
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const selectSupplier = (clientId: string) => {
@@ -240,9 +293,9 @@ export default function PurchaseReturnUsdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-purchase-return-usd-title">
             <Undo2 className="h-8 w-8 text-red-600" />
-            {t('Purchase Return - USD')}
+            {isEditMode ? t('Edit Purchase Return - USD') : t('Purchase Return - USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create purchase return in US Dollar')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase return in US Dollar') : t('Create purchase return in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>

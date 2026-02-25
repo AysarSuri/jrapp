@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
 import { useUser } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -64,6 +65,11 @@ export default function PurchaseInvoiceUsdPage() {
   const { data: nextNumber } = useNextPurchaseInvoiceNumber();
   const { mutate: createInvoice, isPending: isSaving } = useCreatePurchaseInvoice();
   const { data: invoicesList } = usePurchaseInvoices();
+  const [, navigate] = useLocation();
+
+  const editId = new URLSearchParams(window.location.search).get("edit");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const { data: units } = useUnits();
   const unitsList = units || [];
@@ -111,10 +117,62 @@ export default function PurchaseInvoiceUsdPage() {
   const [historyEndDate, setHistoryEndDate] = useState("");
 
   useEffect(() => {
-    if (nextNumber?.number) {
+    if (nextNumber?.number && !editId) {
       setInvoiceNumber(nextNumber.number);
     }
-  }, [nextNumber]);
+  }, [nextNumber, editId]);
+
+  useEffect(() => {
+    if (!editId) return;
+    setIsEditMode(true);
+    const fetchEditData = async () => {
+      try {
+        const [invRes, itemsRes] = await Promise.all([
+          fetch(`/api/purchase-invoices/${editId}`, { credentials: "include" }),
+          fetch(`/api/purchase-invoices/${editId}/items`, { credentials: "include" }),
+        ]);
+        if (!invRes.ok || !itemsRes.ok) return;
+        const inv = await invRes.json();
+        const fetchedItems = await itemsRes.json();
+        setInvoiceNumber(inv.invoiceNumber || "");
+        setDate(typeof inv.date === "string" ? inv.date.split("T")[0] : new Date(inv.date).toISOString().split("T")[0]);
+        setTime(inv.time || "");
+        setSupplierId(inv.supplierId || null);
+        setSupplierName(inv.supplierName || "");
+        setAddress(inv.address || "");
+        setNote(inv.note || "");
+        setCustomsClearance(inv.customsClearance || "");
+        setCarNumber(inv.carNumber || "");
+        setManifest(inv.manifest || "");
+        setDriverName(inv.driverName || "");
+        setDriverMobile(inv.driverMobile || "");
+        setInvoiceType(inv.invoiceType || "cash");
+        setCarExpense(inv.carExpense || "");
+        setCustomsExpense(inv.customsExpense || "");
+        setOtherExpenses(inv.otherExpenses || "");
+        setDiscount(inv.discount || "");
+        setAmountPaid(inv.amountPaid || "");
+        if (fetchedItems && fetchedItems.length > 0) {
+          const mappedItems: InvoiceItem[] = fetchedItems.map((item: any) => ({
+            productId: item.productId || null,
+            productCode: item.productCode || "",
+            productName: item.productName || "",
+            quantity: item.quantity || "",
+            unit: item.unit || "",
+            price: item.price || "",
+            amount: item.amount || "0",
+            weight: item.weight || "0",
+            productionDate: item.productionDate || "",
+            expiryDate: item.expiryDate || "",
+          }));
+          mappedItems.push(emptyItem());
+          setItems(mappedItems);
+        }
+      } catch (err) {
+      }
+    };
+    fetchEditData();
+  }, [editId]);
 
   const totalExpenses = (parseFloat(carExpense || "0") + parseFloat(customsExpense || "0") + parseFloat(otherExpenses || "0"));
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
@@ -254,15 +312,32 @@ export default function PurchaseInvoiceUsdPage() {
       expiryDate: item.expiryDate || null,
     }));
 
-    createInvoice({ invoice: invoiceData, items: itemsData }, {
-      onSuccess: () => {
-        toast({ title: t("Purchase invoice saved successfully") });
-        resetForm();
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (editId) {
+      setIsUpdating(true);
+      apiRequest("PATCH", `/api/purchase-invoices/${editId}`, { invoice: invoiceData, items: itemsData })
+        .then(() => {
+          toast({ title: t("Purchase invoice updated successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", editId] });
+          navigate("/purchase-invoice-usd");
+        })
+        .catch((err: any) => {
+          toast({ title: t("Failed to update invoice"), description: err.message, variant: "destructive" });
+        })
+        .finally(() => {
+          setIsUpdating(false);
+        });
+    } else {
+      createInvoice({ invoice: invoiceData, items: itemsData }, {
+        onSuccess: () => {
+          toast({ title: t("Purchase invoice saved successfully") });
+          resetForm();
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const selectSupplier = (clientId: string) => {
@@ -286,9 +361,9 @@ export default function PurchaseInvoiceUsdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <DollarSign className="h-8 w-8 text-blue-600" />
-            {t('Purchase Invoice - USD')}
+            {isEditMode ? t('Edit Purchase Invoice - USD') : t('Purchase Invoice - USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create purchase invoice in US Dollar')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase invoice in US Dollar') : t('Create purchase invoice in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
@@ -385,9 +460,9 @@ export default function PurchaseInvoiceUsdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700" data-testid="button-save-purchase-invoice">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            {t('Save Invoice')}
+          <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-green-600 hover:bg-green-700" data-testid="button-save-purchase-invoice">
+            {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {isEditMode ? t('Update Invoice') : t('Save Invoice')}
           </Button>
         </div>
       </div>

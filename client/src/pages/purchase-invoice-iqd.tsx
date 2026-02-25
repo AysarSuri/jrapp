@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
 import { useUser } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,12 +110,68 @@ export default function PurchaseInvoiceIqdPage() {
   const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
   const [historyStartDate, setHistoryStartDate] = useState("");
   const [historyEndDate, setHistoryEndDate] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const editId = new URLSearchParams(window.location.search).get("edit");
 
   useEffect(() => {
-    if (nextNumber?.number) {
+    if (!editId && nextNumber?.number) {
       setInvoiceNumber(nextNumber.number);
     }
-  }, [nextNumber]);
+  }, [nextNumber, editId]);
+
+  useEffect(() => {
+    if (!editId) return;
+    setIsEditMode(true);
+    const fetchEditData = async () => {
+      try {
+        const [invRes, itemsRes] = await Promise.all([
+          fetch(`/api/purchase-invoices/${editId}`, { credentials: "include" }),
+          fetch(`/api/purchase-invoices/${editId}/items`, { credentials: "include" }),
+        ]);
+        if (!invRes.ok || !itemsRes.ok) return;
+        const inv = await invRes.json();
+        const fetchedItems = await itemsRes.json();
+        setInvoiceNumber(inv.invoiceNumber || "");
+        setDate(typeof inv.date === "string" ? inv.date.split("T")[0] : new Date(inv.date).toISOString().split("T")[0]);
+        setTime(inv.time || "");
+        setSupplierId(inv.supplierId ?? null);
+        setSupplierName(inv.supplierName || "");
+        setAddress(inv.address || "");
+        setNote(inv.note || "");
+        setCustomsClearance(inv.customsClearance || "");
+        setCarNumber(inv.carNumber || "");
+        setManifest(inv.manifest || "");
+        setDriverName(inv.driverName || "");
+        setDriverMobile(inv.driverMobile || "");
+        setInvoiceType(inv.invoiceType || "cash");
+        setCarExpense(inv.carExpense || "");
+        setCustomsExpense(inv.customsExpense || "");
+        setOtherExpenses(inv.otherExpenses || "");
+        setDiscount(inv.discount || "");
+        setAmountPaid(inv.amountPaid || "");
+        const mappedItems: InvoiceItem[] = (fetchedItems || []).map((it: any) => ({
+          productId: it.productId ?? null,
+          productCode: it.productCode || "",
+          productName: it.productName || "",
+          quantity: it.quantity || "",
+          unit: it.unit || "",
+          price: it.price || "",
+          amount: it.amount || "0",
+          weight: it.weight || "0",
+          productionDate: it.productionDate || "",
+          expiryDate: it.expiryDate || "",
+        }));
+        if (mappedItems.length > 0) {
+          mappedItems.push(emptyItem());
+        }
+        setItems(mappedItems.length > 0 ? mappedItems : [emptyItem()]);
+      } catch (err) {
+        console.error("Failed to load invoice for editing", err);
+      }
+    };
+    fetchEditData();
+  }, [editId]);
 
   const totalExpenses = (parseFloat(carExpense || "0") + parseFloat(customsExpense || "0") + parseFloat(otherExpenses || "0"));
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
@@ -254,15 +311,27 @@ export default function PurchaseInvoiceIqdPage() {
       expiryDate: item.expiryDate || null,
     }));
 
-    createInvoice({ invoice: invoiceData, items: itemsData }, {
-      onSuccess: () => {
-        toast({ title: t("Purchase invoice saved successfully") });
-        resetForm();
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (editId) {
+      apiRequest("PATCH", `/api/purchase-invoices/${editId}`, { invoice: invoiceData, items: itemsData })
+        .then(() => {
+          toast({ title: t("Purchase invoice updated successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", editId] });
+        })
+        .catch((err: any) => {
+          toast({ title: t("Failed to update invoice"), description: err.message, variant: "destructive" });
+        });
+    } else {
+      createInvoice({ invoice: invoiceData, items: itemsData }, {
+        onSuccess: () => {
+          toast({ title: t("Purchase invoice saved successfully") });
+          resetForm();
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const selectSupplier = (clientId: string) => {
@@ -288,9 +357,9 @@ export default function PurchaseInvoiceIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <Banknote className="h-8 w-8 text-orange-600" />
-            {t('Purchase Invoice - IQD')}
+            {isEditMode ? t('Edit Purchase Invoice - IQD') : t('Purchase Invoice - IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create purchase invoice in Iraqi Dinar')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase invoice in Iraqi Dinar') : t('Create purchase invoice in Iraqi Dinar')}</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>

@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useSupplierAdjustments, useCreateSupplierAdjustment } from "@/hooks/use-supplier-adjustments";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Client, SupplierAdjustment, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,29 @@ export default function SupplierAdjustmentsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const editId = new URLSearchParams(window.location.search).get("edit");
+
+  useEffect(() => {
+    if (editId) {
+      fetch(`/api/supplier-adjustments/${editId}`, { credentials: "include" })
+        .then(res => res.json())
+        .then((data: any) => {
+          setSupplierId(String(data.supplierId));
+          setSupplierName(data.supplierName || "");
+          setAdjustmentType(data.type || "");
+          setAmountUsd(data.amountUsd || "");
+          setAmountIqd(data.amountIqd || "");
+          setNote(data.note || "");
+          setDate(data.date || new Date().toISOString().split('T')[0]);
+          setTime(data.time || new Date().toTimeString().slice(0, 5));
+          setPayTo(data.payTo || "");
+          setPayToName(data.payToName || "");
+          setIsEditMode(true);
+        });
+    }
+  }, [editId]);
 
   const selectSupplier = useCallback((id: string) => {
     setSupplierId(id);
@@ -109,7 +133,7 @@ export default function SupplierAdjustmentsPage() {
       return;
     }
 
-    createAdjustment({
+    const payload = {
       supplierId: parseInt(supplierId),
       supplierName,
       type: adjustmentType,
@@ -120,15 +144,29 @@ export default function SupplierAdjustmentsPage() {
       note: note || undefined,
       date,
       time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Adjustment saved successfully") });
-        resetForm();
-      },
-      onError: (err: any) => {
-        toast({ title: err.message || t("Failed to save"), variant: "destructive" });
-      },
-    });
+    };
+
+    if (isEditMode && editId) {
+      apiRequest("PATCH", `/api/supplier-adjustments/${editId}`, payload)
+        .then(() => {
+          toast({ title: t("Adjustment saved successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
+          resetForm();
+        })
+        .catch((err: any) => {
+          toast({ title: err.message || t("Failed to save"), variant: "destructive" });
+        });
+    } else {
+      createAdjustment(payload, {
+        onSuccess: () => {
+          toast({ title: t("Adjustment saved successfully") });
+          resetForm();
+        },
+        onError: (err: any) => {
+          toast({ title: err.message || t("Failed to save"), variant: "destructive" });
+        },
+      });
+    }
   };
 
   const supplierAdjustments = adjustments as SupplierAdjustment[] | undefined;
@@ -147,7 +185,7 @@ export default function SupplierAdjustmentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">
-            {t("Supplier Adjustments")}
+            {isEditMode ? t("Edit Adjustment") : t("Supplier Adjustments")}
           </h1>
           <p className="text-muted-foreground mt-1">
             {t("Record received amounts or discounts from suppliers")}

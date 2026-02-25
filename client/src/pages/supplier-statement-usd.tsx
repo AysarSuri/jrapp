@@ -178,6 +178,9 @@ export default function SupplierStatementUsdPage() {
     switch (entry.type) {
       case "purchase_invoice": return `/purchase-invoice-usd?edit=${entry.id}`;
       case "return_invoice": return `/purchase-return-usd?edit=${entry.id}`;
+      case "payment": return `/supplier-payments?edit=${entry.id}`;
+      case "adjustment_received":
+      case "adjustment_discount": return `/supplier-adjustments?edit=${entry.id}`;
       default: return null;
     }
   };

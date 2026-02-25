@@ -787,6 +787,22 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/supplier-payments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { supplierId, supplierName, paymentSource, paymentSourceName, amountUsd, amountIqd, commissionUsd, commissionIqd, note, reference, date, time } = req.body;
+      const [updated] = await db.update(supplierPayments).set({
+        supplierId, supplierName, paymentSource, paymentSourceName,
+        amountUsd, amountIqd, commissionUsd, commissionIqd,
+        note, reference, date, time,
+      }).where(eq(supplierPayments.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Payment not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
@@ -803,6 +819,21 @@ export async function registerRoutes(
       const [payment] = await db.select().from(supplierPayments).where(eq(supplierPayments.id, id));
       if (!payment) return res.status(404).json({ message: "Payment not found" });
       res.json(payment);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { supplierId, supplierName, type, amountUsd, amountIqd, payTo, payToName, note, date, time } = req.body;
+      const [updated] = await db.update(supplierAdjustments).set({
+        supplierId, supplierName, type, amountUsd, amountIqd,
+        payTo, payToName, note, date, time,
+      }).where(eq(supplierAdjustments.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Adjustment not found" });
+      res.json(updated);
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1756,6 +1787,25 @@ export async function registerRoutes(
         return res.status(400).json({ message: err.errors[0].message });
       }
       console.error("Error creating purchase return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/purchase-returns/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { returnData, items } = req.body;
+      const result = await db.transaction(async (tx) => {
+        const [updated] = await tx.update(purchaseReturns).set(returnData).where(eq(purchaseReturns.id, id)).returning();
+        await tx.delete(purchaseReturnItems).where(eq(purchaseReturnItems.returnId, id));
+        if (items && items.length > 0) {
+          const itemsWithReturnId = items.map((item: any) => ({ ...item, returnId: id }));
+          await tx.insert(purchaseReturnItems).values(itemsWithReturnId);
+        }
+        return updated;
+      });
+      res.json(result);
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

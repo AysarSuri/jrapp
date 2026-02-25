@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useSupplierPayments, useCreateSupplierPayment } from "@/hooks/use-supplier-payments";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, usd } from "@/lib/format-utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function SupplierPaymentsPage() {
   const { t } = useTranslation();
@@ -59,6 +60,31 @@ export default function SupplierPaymentsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const editId = new URLSearchParams(window.location.search).get("edit");
+
+  useEffect(() => {
+    if (editId) {
+      fetch(`/api/supplier-payments/${editId}`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+          setSupplierId(String(data.supplierId));
+          setSupplierName(data.supplierName || "");
+          setAmountUsd(data.amountUsd || "0");
+          setAmountIqd(data.amountIqd || "0");
+          setCommissionUsd(data.commissionUsd || "0");
+          setCommissionIqd(data.commissionIqd || "0");
+          setNote(data.note || "");
+          setReference(data.reference || "");
+          setDate(data.date || new Date().toISOString().split('T')[0]);
+          setTime(data.time || new Date().toTimeString().slice(0, 5));
+          setPaymentSource(data.paymentSource || "");
+          setPaymentSourceName(data.paymentSourceName || "");
+          setIsEditMode(true);
+        });
+    }
+  }, [editId]);
 
   const banks = banksList || [];
   const transferOffices = transferOfficesList || [];
@@ -104,7 +130,7 @@ export default function SupplierPaymentsPage() {
     setTime(new Date().toTimeString().slice(0, 5));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!supplierId) {
       toast({ title: t("Please select a supplier"), variant: "destructive" });
       return;
@@ -120,10 +146,10 @@ export default function SupplierPaymentsPage() {
       return;
     }
 
-    createPayment({
+    const payload = {
       supplierId: parseInt(supplierId),
       supplierName,
-      paymentSource: paymentSource.split(":")[0],
+      paymentSource: paymentSource.includes(":") ? paymentSource.split(":")[0] : paymentSource,
       paymentSourceName,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
@@ -133,15 +159,27 @@ export default function SupplierPaymentsPage() {
       reference: reference || null,
       date,
       time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Payment saved successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Failed to save payment"), variant: "destructive" });
-      },
-    });
+    };
+
+    if (isEditMode && editId) {
+      try {
+        await apiRequest("PATCH", `/api/supplier-payments/${editId}`, payload);
+        toast({ title: t("Payment updated successfully") });
+        queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
+      } catch {
+        toast({ title: t("Failed to update payment"), variant: "destructive" });
+      }
+    } else {
+      createPayment(payload, {
+        onSuccess: () => {
+          toast({ title: t("Payment saved successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to save payment"), variant: "destructive" });
+        },
+      });
+    }
   };
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
@@ -160,7 +198,7 @@ export default function SupplierPaymentsPage() {
             <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
               <Banknote className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
             </div>
-            {t('Supplier Payments')}
+            {isEditMode ? t('Edit Payment') : t('Supplier Payments')}
           </h1>
           <p className="text-muted-foreground mt-1">{t('Transfer or pay to supplier from bank or transfer office')}</p>
         </div>
