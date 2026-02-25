@@ -151,7 +151,7 @@ export default function SupplierAdjustmentsPage() {
         .then(() => {
           toast({ title: t("Adjustment saved successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
-          resetForm();
+          window.history.back();
         })
         .catch((err: any) => {
           toast({ title: err.message || t("Failed to save"), variant: "destructive" });

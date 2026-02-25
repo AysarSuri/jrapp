@@ -319,7 +319,7 @@ export default function PurchaseInvoiceUsdPage() {
           toast({ title: t("Purchase invoice updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", editId] });
-          navigate("/purchase-invoice-usd");
+          window.history.back();
         })
         .catch((err: any) => {
           toast({ title: t("Failed to update invoice"), description: err.message, variant: "destructive" });

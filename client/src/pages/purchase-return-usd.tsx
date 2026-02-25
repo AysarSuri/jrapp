@@ -248,6 +248,7 @@ export default function PurchaseReturnUsdPage() {
         .then(() => {
           toast({ title: t("Purchase return updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
+          window.history.back();
         })
         .catch((err: any) => {
           toast({ title: t("Failed to update return"), description: err.message, variant: "destructive" });

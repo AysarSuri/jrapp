@@ -166,6 +166,7 @@ export default function SupplierPaymentsPage() {
         await apiRequest("PATCH", `/api/supplier-payments/${editId}`, payload);
         toast({ title: t("Payment updated successfully") });
         queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
+        window.history.back();
       } catch {
         toast({ title: t("Failed to update payment"), variant: "destructive" });
       }
