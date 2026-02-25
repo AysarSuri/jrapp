@@ -10,6 +10,7 @@ import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
 
 type InvoiceData = {
   id: number;
@@ -164,6 +165,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     if (!content) return;
     const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: "#1e293b", accentTextColor: "#ffffff" });
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
@@ -171,38 +173,12 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
         <meta charset="UTF-8" />
         <title>${t("Purchase Invoice Report")} - ${invoice?.invoiceNumber || ""}</title>
         <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; font-size: 12pt; direction: ${isRtl ? "rtl" : "ltr"}; }
-          .cliche-container { text-align: center; margin-bottom: 10px; }
-          .cliche-container img { width: 100%; height: 170px; object-fit: cover; }
-          .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-          .header h1 { font-size: 16pt; margin-bottom: 3px; }
-          .header p { font-size: 12pt; color: #666; }
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-bottom: 12px; font-size: 12pt; }
-          .info-item { display: flex; justify-content: space-between; border-bottom: 1px dotted #ddd; padding: 2px 0; }
-          .info-label { font-weight: 600; color: #555; }
-          .info-value { font-weight: 500; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12pt; }
-          th { background: #333; color: white; padding: 5px 4px; text-align: center; font-weight: 600; font-size: 12pt; }
-          td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 12pt; }
-          tr:nth-child(even) { background: #f9f9f9; }
-          .summary-section { margin-top: 10px; }
-          .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-          .summary-box { border: 1px solid #ddd; border-radius: 4px; padding: 8px; }
-          .summary-box h3 { font-size: 13pt; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
-          .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12pt; }
-          .summary-row.total { font-weight: 700; font-size: 14pt; border-top: 2px solid #333; padding-top: 5px; margin-top: 5px; }
-          .debt-section { margin-top: 10px; border: 2px solid #dc2626; border-radius: 4px; padding: 8px; }
-          .debt-section h3 { color: #dc2626; font-size: 13pt; margin-bottom: 5px; }
-          .debt-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12pt; }
-          .debt-row.final { font-weight: 700; font-size: 14pt; color: #dc2626; border-top: 2px solid #dc2626; padding-top: 5px; margin-top: 5px; }
-          .footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 12pt; }
-          .signature-box { text-align: center; width: 200px; }
-          .signature-line { border-top: 1px solid #333; margin-top: 40px; padding-top: 3px; }
-          @media print {
-            body { padding: 15mm; }
-            @page { margin: 10mm; size: A4; }
-          }
+          ${printStyles}
+          .cliche-container { text-align: center; margin-bottom: 12px; }
+          .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }
+          table { font-size: 10pt; }
+          th { font-size: 9.5pt; }
+          td { font-size: 10pt; }
         </style>
       </head>
       <body>${content.innerHTML}</body>

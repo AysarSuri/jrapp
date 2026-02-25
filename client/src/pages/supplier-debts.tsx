@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { usd, fmtIqd, formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
 
 type SupplierDebt = {
   id: number;
@@ -32,30 +33,65 @@ export default function SupplierDebtsPage() {
   });
 
   const handlePrint = () => {
-    if (!printRef.current) return;
-    const printContent = printRef.current.innerHTML;
-    const printWindow = window.open("", "_blank");
+    if (!debts) return;
+    const dir = i18n.language === "en" ? "ltr" : "rtl";
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
-    printWindow.document.write(`
-      <html dir="rtl">
-        <head>
-          <title>${t("Supplier Debts List")}</title>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; direction: rtl; }
-            h2 { text-align: center; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #333; padding: 8px 12px; text-align: center; font-size: 13px; }
-            th { background-color: #f0f0f0; font-weight: bold; }
-            .totals-row { font-weight: bold; background-color: #f9f9f9; }
-            .sub-line { font-size: 11px; color: #666; margin-top: 2px; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>${printContent}</body>
-      </html>
-    `);
+
+    const rows = suppliersWithDebt.map((s, i) => {
+      const invParts: string[] = [];
+      if (s.lastInvoiceAmountUsd !== null) invParts.push(`<div><span class="green" style="font-weight:600">${usd(s.lastInvoiceAmountUsd)}</span><div style="font-size:7.5pt;color:#94a3b8">${formatDate(s.lastInvoiceDateUsd)}</div></div>`);
+      if (s.lastInvoiceAmountIqd !== null) invParts.push(`<div><span class="orange" style="font-weight:600">${fmtIqd(s.lastInvoiceAmountIqd)} IQD</span><div style="font-size:7.5pt;color:#94a3b8">${formatDate(s.lastInvoiceDateIqd)}</div></div>`);
+      const payParts: string[] = [];
+      if ((s.lastPaymentAmountUsd || 0) > 0) payParts.push(`<div><span class="green" style="font-weight:600">${usd(s.lastPaymentAmountUsd!)}</span><div style="font-size:7.5pt;color:#94a3b8">${formatDate(s.lastPaymentDateUsd)}</div></div>`);
+      if ((s.lastPaymentAmountIqd || 0) > 0) payParts.push(`<div><span class="orange" style="font-weight:600">${fmtIqd(s.lastPaymentAmountIqd!)} IQD</span><div style="font-size:7.5pt;color:#94a3b8">${formatDate(s.lastPaymentDateIqd)}</div></div>`);
+      return `<tr>
+        <td>${i + 1}</td>
+        <td style="font-weight:600">${s.name}</td>
+        <td class="debit">${s.remainingUsd !== 0 ? usd(s.remainingUsd) : "-"}</td>
+        <td style="font-weight:700;color:#d97706">${s.remainingIqd !== 0 ? fmtIqd(s.remainingIqd) + " IQD" : "-"}</td>
+        <td>${invParts.length > 0 ? invParts.join("") : "-"}</td>
+        <td>${payParts.length > 0 ? payParts.join("") : "-"}</td>
+      </tr>`;
+    }).join("");
+
+    printWindow.document.write(`<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head><meta charset="UTF-8" />
+        <title>${t("Supplier Debts List")}</title>
+        <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor: "#991b1b", accentTextColor: "#ffffff" })}</style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${t("Supplier Debts List")}</h1>
+          <p>${formatDate(new Date())}</p>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-green"><div class="label">${t("Total Remaining USD")}</div><div class="value green">${usd(totalRemainingUsd)}</div></div>
+          <div class="summary-card accent-orange"><div class="label">${t("Total Remaining IQD")}</div><div class="value orange">${totalRemainingIqd !== 0 ? fmtIqd(totalRemainingIqd) + " IQD" : "-"}</div></div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>${t("Supplier Name")}</th>
+            <th>${t("Remaining Balance")} ($)</th>
+            <th>${t("Remaining Balance")} (IQD)</th>
+            <th>${t("Last Invoice Amount & Date")}</th>
+            <th>${t("Last Payment Amount & Date")}</th>
+          </tr></thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="2" style="font-weight:800">${t("Total")}</td>
+              <td class="debit">${usd(totalRemainingUsd)}</td>
+              <td style="font-weight:800;color:#d97706">${totalRemainingIqd !== 0 ? fmtIqd(totalRemainingIqd) + " IQD" : "-"}</td>
+              <td>-</td><td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </body></html>`);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+    setTimeout(() => { printWindow.print(); }, 500);
   };
 
   const totalRemainingUsd = debts?.reduce((sum, d) => sum + d.remainingUsd, 0) || 0;

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
 
 type Client = {
   id: number;
@@ -212,56 +213,27 @@ export default function SupplierStatementIqdPage() {
     const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
     const tabLabel = getActiveTabLabel();
 
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
         <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name} - ${tabLabel}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; font-size: 10pt; direction: ${isRtl ? "rtl" : "ltr"}; }
-          .cliche { text-align: center; margin-bottom: 8px; }
-          .cliche img { width: 100%; height: 150px; object-fit: cover; }
-          .header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid ${fieldColor}; padding-bottom: 8px; }
-          .header h1 { font-size: 14pt; margin-bottom: 2px; }
-          .header p { font-size: 10pt; color: #666; }
-          .supplier-bar { background: ${fieldColor}; color: ${textColor}; text-align: center; padding: 5px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; font-size: 11pt; }
-          .summary-cards { display: flex; gap: 10px; margin-bottom: 10px; }
-          .summary-card { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; text-align: center; }
-          .summary-card .label { font-size: 8pt; color: #666; }
-          .summary-card .value { font-size: 12pt; font-weight: 700; }
-          .red { color: #dc2626; }
-          .green { color: #16a34a; }
-          .blue { color: #2563eb; }
-          table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-          th { background: ${fieldColor}; color: ${textColor}; padding: 4px 3px; text-align: center; font-weight: 600; font-size: 9pt; white-space: nowrap; }
-          td { border: 1px solid #ddd; padding: 3px; text-align: center; font-size: 9pt; }
-          td small { color: #999; font-size: 7pt; }
-          tr:nth-child(even) { background: #f9f9f9; }
-          .debit { color: #dc2626; font-weight: 500; }
-          .credit { color: #16a34a; font-weight: 500; }
-          .balance { font-weight: 600; }
-          .total-row { background: #f0f0f0 !important; font-weight: 700; border-top: 2px solid #333; }
-          .opening-row { background: #f5f5f5; font-weight: 500; }
-          @media print {
-            body { padding: 10mm; }
-            @page { margin: 8mm; size: A4; }
-          }
-        </style>
+        <style>${printStyles}</style>
       </head>
       <body>
         ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
         <div class="header">
           <h1>${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
           <p>${formatDate(new Date())}</p>
-          ${dateRangeHtml}
+          ${dateRangeHtml ? `<div class="date-range">${startDate || t("Beginning")} - ${endDate || t("Now")}</div>` : ""}
         </div>
-        <div class="supplier-bar">${statement.supplier.name}</div>
+        <div class="entity-bar">${statement.supplier.name}</div>
         <div class="summary-cards">
-          <div class="summary-card"><div class="label">${t("Opening Balance")}</div><div class="value red">${fmt(openingBalanceVal)} IQD</div></div>
-          <div class="summary-card"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
-          <div class="summary-card"><div class="label">${t("Final Balance IQD")}</div><div class="value blue">${fmt(finalBalance)} IQD</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Opening Balance")}</div><div class="value red">${fmt(openingBalanceVal)} IQD</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
+          <div class="summary-card accent-blue"><div class="label">${t("Final Balance IQD")}</div><div class="value blue">${fmt(finalBalance)} IQD</div></div>
         </div>
         <table>
           <thead>
@@ -663,39 +635,21 @@ export default function SupplierStatementIqdPage() {
                     </tr>`;
                   }).join("");
                   const grandTotalAmount = productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0);
+                  const incomingPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
                     <head><meta charset="UTF-8" />
                       <title>${t("Incoming Report")} - ${productsReport.supplier?.name || ""} (IQD)</title>
-                      <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; font-size: 10pt; direction: ${isRtl ? "rtl" : "ltr"}; }
-                        .cliche { text-align: center; margin-bottom: 8px; }
-                        .cliche img { width: 100%; height: 150px; object-fit: cover; }
-                        .header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid ${fieldColor}; padding-bottom: 8px; }
-                        .header h1 { font-size: 14pt; margin-bottom: 2px; }
-                        .header p { font-size: 10pt; color: #666; }
-                        .supplier-bar { background: ${fieldColor}; color: ${textColor}; text-align: center; padding: 5px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; font-size: 11pt; }
-                        table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-                        th { background: ${fieldColor}; color: ${textColor}; padding: 4px 3px; text-align: center; font-weight: 600; font-size: 9pt; white-space: nowrap; }
-                        td { border: 1px solid #ddd; padding: 3px; text-align: center; font-size: 9pt; }
-                        tr:nth-child(even) { background: #f9f9f9; }
-                        .return-col { color: #dc2626; }
-                        .amount { font-weight: 600; color: #2563eb; }
-                        .total-row { background: #f0f0f0 !important; font-weight: 700; border-top: 2px solid #333; }
-                        .summary { margin-top: 10px; display: flex; gap: 20px; font-size: 10pt; }
-                        .summary span { font-weight: 700; }
-                        @media print { body { padding: 10mm; } @page { margin: 8mm; size: A4 landscape; } }
-                      </style>
+                      <style>${incomingPrintStyles}</style>
                     </head>
                     <body>
                       ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
                       <div class="header">
                         <h1>${t("Incoming Report")} (IQD)</h1>
                         <p>${formatDate(new Date())}</p>
-                        ${dateRangeHtml}
+                        ${dateRangeHtml ? `<div class="date-range">${startDate || t("Beginning")} - ${endDate || t("Now")}</div>` : ""}
                       </div>
-                      <div class="supplier-bar">${productsReport.supplier?.name || ""}</div>
+                      <div class="entity-bar">${productsReport.supplier?.name || ""}</div>
                       <table>
                         <thead><tr>
                           <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
@@ -712,7 +666,7 @@ export default function SupplierStatementIqdPage() {
                           </tr>
                         </tbody>
                       </table>
-                      <div class="summary">
+                      <div class="summary-footer">
                         <div>${t("Total Quantity")} - ${t("Returns")}: <span>${(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
                         <div>${t("Total Amount")}: <span>${fmt(grandTotalAmount)} IQD</span></div>
                       </div>
