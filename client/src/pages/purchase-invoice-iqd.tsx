@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
 import { useUser } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, Banknote, FileText, RotateCcw,
-  ListOrdered, FileBarChart, ArrowLeft, Eye,
+  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil,
 } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
@@ -63,6 +63,7 @@ const emptyItem = (): InvoiceItem => ({
 export default function PurchaseInvoiceIqdPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { data: user } = useUser();
   const { data: nextNumber } = useNextPurchaseInvoiceNumber();
   const { mutate: createInvoice, isPending: isSaving } = useCreatePurchaseInvoice();
@@ -456,6 +457,9 @@ export default function PurchaseInvoiceIqdPage() {
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-iqd-invoice-${inv.id}`}>
                             <Eye className="h-3.5 w-3.5 text-blue-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-iqd?edit=${inv.id}`); }} data-testid={`btn-edit-iqd-invoice-${inv.id}`}>
+                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-iqd-invoice-${inv.id}`}>
                             <Trash2 className="h-3.5 w-3.5 text-red-600" />
