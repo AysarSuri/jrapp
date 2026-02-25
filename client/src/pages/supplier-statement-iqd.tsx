@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import { logExport } from "@/lib/export-log";
+import PurchaseReturnReport from "@/components/purchase-return-report";
 
 type Client = {
   id: number;
@@ -154,6 +155,8 @@ export default function SupplierStatementIqdPage() {
   const [viewDetailsLoading, setViewDetailsLoading] = useState(false);
   const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [returnReportId, setReturnReportId] = useState<number | null>(null);
+  const [returnReportOpen, setReturnReportOpen] = useState(false);
   const [deleteReportEntry, setDeleteReportEntry] = useState<{ id: number; type: "purchase" | "return"; description: string } | null>(null);
 
   const { data: clients } = useQuery<Client[]>({
@@ -770,6 +773,9 @@ export default function SupplierStatementIqdPage() {
                                     if (entry.type === "purchase_invoice") {
                                       setReportInvoiceId(entry.id);
                                       setReportOpen(true);
+                                    } else if (entry.type === "return_invoice") {
+                                      setReturnReportId(entry.id);
+                                      setReturnReportOpen(true);
                                     } else {
                                       handleView(entry);
                                     }
@@ -933,11 +939,12 @@ export default function SupplierStatementIqdPage() {
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(purchaseAmount)} IQD</TableCell>
                                 <TableCell className="text-center">
                                   <div className="flex items-center justify-center gap-0.5">
-                                    {row.type === "purchase" ? (
-                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-product-iqd-${idx}`}>
-                                        <Eye className="h-3.5 w-3.5 text-blue-600" />
-                                      </Button>
-                                    ) : null}
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                                      if (row.type === "purchase") { setReportInvoiceId(row.invoiceId); setReportOpen(true); }
+                                      else { setReturnReportId(row.invoiceId); setReturnReportOpen(true); }
+                                    }} data-testid={`btn-view-product-iqd-${idx}`}>
+                                      <Eye className="h-3.5 w-3.5 text-blue-600" />
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(row.type === "purchase" ? `/purchase-invoice-iqd?edit=${row.invoiceId}` : `/purchase-return-iqd?edit=${row.invoiceId}`)} data-testid={`btn-edit-product-iqd-${idx}`}>
                                       <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                     </Button>
@@ -1234,6 +1241,13 @@ export default function SupplierStatementIqdPage() {
         invoiceId={reportInvoiceId}
         open={reportOpen}
         onOpenChange={(open) => { setReportOpen(open); if (!open) setReportInvoiceId(null); }}
+        currency="IQD"
+      />
+
+      <PurchaseReturnReport
+        returnId={returnReportId}
+        open={returnReportOpen}
+        onOpenChange={(open) => { setReturnReportOpen(open); if (!open) setReturnReportId(null); }}
         currency="IQD"
       />
     </div>
