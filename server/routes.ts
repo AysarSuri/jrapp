@@ -755,6 +755,75 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-debts', requireAuth, async (req, res) => {
+    try {
+      const suppliers = await db.select().from(clients).where(eq(clients.type, "supplier"));
+      const allInvoices = await db.select().from(purchaseInvoices);
+      const allPayments = await db.select().from(supplierPayments);
+      const allAdjustments = await db.select().from(supplierAdjustments);
+
+      const results = suppliers.map(supplier => {
+        const sInvoices = allInvoices.filter(i => i.supplierId === supplier.id);
+        const sPayments = allPayments.filter(p => p.supplierId === supplier.id);
+        const sAdjustments = allAdjustments.filter(a => a.supplierId === supplier.id);
+
+        let totalDebitUsd = parseFloat(supplier.oldDebtUsd || "0");
+        let totalDebitIqd = parseFloat(supplier.oldDebtIqd || "0");
+        let totalCreditUsd = 0;
+        let totalCreditIqd = 0;
+
+        for (const inv of sInvoices) {
+          const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+          if (inv.currency === "USD") totalDebitUsd += amount;
+          else totalDebitIqd += amount;
+        }
+        for (const pay of sPayments) {
+          totalCreditUsd += parseFloat(pay.amountUsd || "0");
+          totalCreditIqd += parseFloat(pay.amountIqd || "0");
+        }
+        for (const adj of sAdjustments) {
+          totalCreditUsd += parseFloat(adj.amountUsd || "0");
+          totalCreditIqd += parseFloat(adj.amountIqd || "0");
+        }
+
+        const remainingUsd = totalDebitUsd - totalCreditUsd;
+        const remainingIqd = totalDebitIqd - totalCreditIqd;
+
+        const lastInvoice = sInvoices.sort((a, b) => {
+          const da = `${a.date} ${a.time}`;
+          const db2 = `${b.date} ${b.time}`;
+          return db2.localeCompare(da);
+        })[0] || null;
+
+        const lastPayment = sPayments.sort((a, b) => {
+          const da = `${a.date} ${a.time}`;
+          const db2 = `${b.date} ${b.time}`;
+          return db2.localeCompare(da);
+        })[0] || null;
+
+        return {
+          id: supplier.id,
+          name: supplier.name,
+          remainingUsd,
+          remainingIqd,
+          lastInvoiceAmount: lastInvoice
+            ? parseFloat(lastInvoice.subtotal || "0") + parseFloat(lastInvoice.totalExpenses || "0") - parseFloat(lastInvoice.discount || "0")
+            : null,
+          lastInvoiceCurrency: lastInvoice?.currency || null,
+          lastInvoiceDate: lastInvoice?.date || null,
+          lastPaymentAmountUsd: lastPayment ? parseFloat(lastPayment.amountUsd || "0") : null,
+          lastPaymentAmountIqd: lastPayment ? parseFloat(lastPayment.amountIqd || "0") : null,
+          lastPaymentDate: lastPayment?.date || null,
+        };
+      });
+
+      res.json(results);
+    } catch (error: any) {
+      console.error("Error fetching supplier debts:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get('/api/supplier-statement/:id', requireAuth, async (req, res) => {
     try {
       const supplierId = parseInt(req.params.id as string);
