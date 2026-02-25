@@ -797,11 +797,13 @@ export async function registerRoutes(
         const lastInvoiceUsd = sortedInvoices.find(i => i.currency === "USD") || null;
         const lastInvoiceIqd = sortedInvoices.find(i => i.currency === "IQD") || null;
 
-        const lastPayment = [...sPayments].sort((a, b) => {
+        const sortedPayments = [...sPayments].sort((a, b) => {
           const da = `${a.date} ${a.time}`;
           const db2 = `${b.date} ${b.time}`;
           return db2.localeCompare(da);
-        })[0] || null;
+        });
+        const lastPaymentUsd = sortedPayments.find(p => parseFloat(p.amountUsd || "0") > 0) || null;
+        const lastPaymentIqd = sortedPayments.find(p => parseFloat(p.amountIqd || "0") > 0) || null;
 
         const calcInvAmount = (inv: typeof sortedInvoices[0] | null) =>
           inv ? parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0") : null;
@@ -815,9 +817,10 @@ export async function registerRoutes(
           lastInvoiceDateUsd: lastInvoiceUsd?.date || null,
           lastInvoiceAmountIqd: calcInvAmount(lastInvoiceIqd),
           lastInvoiceDateIqd: lastInvoiceIqd?.date || null,
-          lastPaymentAmountUsd: lastPayment ? parseFloat(lastPayment.amountUsd || "0") : null,
-          lastPaymentAmountIqd: lastPayment ? parseFloat(lastPayment.amountIqd || "0") : null,
-          lastPaymentDate: lastPayment?.date || null,
+          lastPaymentAmountUsd: lastPaymentUsd ? parseFloat(lastPaymentUsd.amountUsd || "0") : null,
+          lastPaymentDateUsd: lastPaymentUsd?.date || null,
+          lastPaymentAmountIqd: lastPaymentIqd ? parseFloat(lastPaymentIqd.amountIqd || "0") : null,
+          lastPaymentDateIqd: lastPaymentIqd?.date || null,
         };
       });
 

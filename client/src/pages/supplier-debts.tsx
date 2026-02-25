@@ -18,8 +18,9 @@ type SupplierDebt = {
   lastInvoiceAmountIqd: number | null;
   lastInvoiceDateIqd: string | null;
   lastPaymentAmountUsd: number | null;
+  lastPaymentDateUsd: string | null;
   lastPaymentAmountIqd: number | null;
-  lastPaymentDate: string | null;
+  lastPaymentDateIqd: string | null;
 };
 
 export default function SupplierDebtsPage() {
@@ -158,19 +159,20 @@ export default function SupplierDebtsPage() {
                                 ) : "-"}
                               </TableCell>
                               <TableCell className="text-center text-sm">
-                                {supplier.lastPaymentDate ? (
+                                {supplier.lastPaymentAmountUsd !== null || supplier.lastPaymentAmountIqd !== null ? (
                                   <div className="space-y-1">
-                                    {(supplier.lastPaymentAmountUsd || 0) > 0 && (
+                                    {supplier.lastPaymentAmountUsd !== null && (supplier.lastPaymentAmountUsd || 0) > 0 && (
                                       <div>
-                                        <span className="font-medium text-green-600 dark:text-green-400">{usd(supplier.lastPaymentAmountUsd!)}</span>
+                                        <span className="font-medium text-green-600 dark:text-green-400">{usd(supplier.lastPaymentAmountUsd)}</span>
+                                        <div className="text-muted-foreground text-xs">{formatDate(supplier.lastPaymentDateUsd)}</div>
                                       </div>
                                     )}
-                                    {(supplier.lastPaymentAmountIqd || 0) > 0 && (
+                                    {supplier.lastPaymentAmountIqd !== null && (supplier.lastPaymentAmountIqd || 0) > 0 && (
                                       <div>
-                                        <span className="font-medium text-orange-600 dark:text-orange-400">{`${fmtIqd(supplier.lastPaymentAmountIqd!)} IQD`}</span>
+                                        <span className="font-medium text-orange-600 dark:text-orange-400">{`${fmtIqd(supplier.lastPaymentAmountIqd)} IQD`}</span>
+                                        <div className="text-muted-foreground text-xs">{formatDate(supplier.lastPaymentDateIqd)}</div>
                                       </div>
                                     )}
-                                    <div className="text-muted-foreground text-xs">{formatDate(supplier.lastPaymentDate)}</div>
                                   </div>
                                 ) : "-"}
                               </TableCell>
