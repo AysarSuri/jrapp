@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useSupplierPayments, useCreateSupplierPayment } from "@/hooks/use-supplier-payments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
@@ -31,6 +31,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 export default function SupplierPaymentsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { data: payments, isLoading: paymentsLoading } = useSupplierPayments();
   const { mutate: createPayment, isPending: isSaving } = useCreateSupplierPayment();
 
@@ -166,7 +167,9 @@ export default function SupplierPaymentsPage() {
         await apiRequest("PATCH", `/api/supplier-payments/${editId}`, payload);
         toast({ title: t("Payment updated successfully") });
         queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
-        window.history.back();
+        resetForm();
+        setIsEditMode(false);
+        navigate("/supplier-payments");
       } catch {
         toast({ title: t("Failed to update payment"), variant: "destructive" });
       }

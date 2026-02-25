@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useSupplierAdjustments, useCreateSupplierAdjustment } from "@/hooks/use-supplier-adjustments";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -31,6 +31,7 @@ import { usd, formatDate } from "@/lib/format-utils";
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { data: adjustments, isLoading: adjustmentsLoading } = useSupplierAdjustments();
   const { mutate: createAdjustment, isPending: isSaving } = useCreateSupplierAdjustment();
 
@@ -151,7 +152,9 @@ export default function SupplierAdjustmentsPage() {
         .then(() => {
           toast({ title: t("Adjustment saved successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
-          window.history.back();
+          resetForm();
+          setIsEditMode(false);
+          navigate("/supplier-adjustments");
         })
         .catch((err: any) => {
           toast({ title: err.message || t("Failed to save"), variant: "destructive" });

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { useNextPurchaseReturnNumber, useCreatePurchaseReturn, usePurchaseReturns, useApprovePurchaseReturn } from "@/hooks/use-purchase-returns";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, PurchaseReturn } from "@shared/schema";
@@ -56,6 +57,7 @@ const emptyItem = (): ReturnItem => ({
 export default function PurchaseReturnUsdPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { data: user } = useUser();
   const { data: nextNumber } = useNextPurchaseReturnNumber();
   const { mutate: createReturn, isPending: isSaving } = useCreatePurchaseReturn();
@@ -255,7 +257,9 @@ export default function PurchaseReturnUsdPage() {
         .then(() => {
           toast({ title: t("Purchase return updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
-          window.history.back();
+          resetForm();
+          setIsEditMode(false);
+          navigate("/purchase-return-usd");
         })
         .catch((err: any) => {
           toast({ title: t("Failed to update return"), description: err.message, variant: "destructive" });
