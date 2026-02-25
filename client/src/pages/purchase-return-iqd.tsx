@@ -429,7 +429,7 @@ export default function PurchaseReturnIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select key={`supplier-return-iqd-${formKey}`} onValueChange={selectSupplier}>
+              <Select key={`supplier-return-iqd-${formKey}`} value={supplierId ? String(supplierId) : undefined} onValueChange={selectSupplier}>
                 <SelectTrigger data-testid="select-purchase-return-iqd-supplier">
                   <SelectValue placeholder={t('Select Supplier')} />
                 </SelectTrigger>

@@ -507,7 +507,7 @@ export default function PurchaseInvoiceIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select key={`supplier-iqd-${formKey}`} onValueChange={selectSupplier}>
+              <Select key={`supplier-iqd-${formKey}`} value={supplierId ? String(supplierId) : undefined} onValueChange={selectSupplier}>
                 <SelectTrigger data-testid="select-supplier-iqd">
                   <SelectValue placeholder={t('Select Supplier')} />
                 </SelectTrigger>
