@@ -22,7 +22,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -212,6 +212,22 @@ export default function PurchaseReturnIqdPage() {
     setFormKey(k => k + 1);
   };
 
+  const handleDeleteReturn = async () => {
+    if (!deleteReturn) return;
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/purchase-returns/${deleteReturn.id}`);
+      playDeleteSound();
+      toast({ title: t("Return deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
+      setDeleteReturn(null);
+    } catch (err: any) {
+      toast({ title: t("Failed to delete return"), description: err.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSave = () => {
     if (!supplierName.trim()) {
       toast({ title: t("Supplier name is required"), variant: "destructive" });
@@ -366,6 +382,12 @@ export default function PurchaseReturnIqdPage() {
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-iqd-${ret.id}`}>
                             <Eye className="h-3.5 w-3.5 text-blue-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-return-iqd?edit=${ret.id}`); }} data-testid={`btn-edit-return-iqd-${ret.id}`}>
+                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReturn({ id: ret.id, number: ret.returnNumber })} data-testid={`btn-delete-return-iqd-${ret.id}`}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
                           </Button>
                           {(userRole === 'admin' || userRole === 'user') && ret.status === 'pending' && (
                             <Button
@@ -671,6 +693,24 @@ export default function PurchaseReturnIqdPage() {
         onOpenChange={(open) => { setReportOpen(open); if (!open) setReportReturnId(null); }}
         currency="IQD"
       />
+
+      <AlertDialog open={!!deleteReturn} onOpenChange={(open) => { if (!open) setDeleteReturn(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete return")} #{deleteReturn?.number}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteReturn} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-return-iqd">
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
