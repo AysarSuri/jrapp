@@ -325,6 +325,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
     { href: "/barcode-print", icon: QrCode, label: "Barcode Print" },
     { href: "/company-profile", icon: Building2, label: "Company Profile" },
+    { href: "/company-contact", icon: Globe, label: "Company Contact & Social Media" },
     { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
   ];

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette, MessageCircle, Globe, Navigation, Facebook, Instagram, Camera } from "lucide-react";
+import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette } from "lucide-react";
 import type { CompanyProfile } from "@shared/schema";
 
 function QRCodeCanvas({ value, size = 200 }: { value: string; size?: number }) {
@@ -56,21 +56,13 @@ export default function CompanyProfilePage() {
   const [form, setForm] = useState({
     name: "",
     address: "",
-    addressName: "",
     mobile1: "",
-    mobile1Whatsapp: "",
     mobile2: "",
-    mobile2Whatsapp: "",
     businessType: "",
     logo: "" as string | null,
     cliche: "" as string | null,
     stamp: "" as string | null,
     qrAddress: "",
-    gpsLocation: "",
-    facebookLink: "",
-    instagramLink: "",
-    tiktokLink: "",
-    snapchatLink: "",
     primaryColor: "#1a1a2e",
     secondaryColor: "#16213e",
     clicheColor: "#1a1a2e",
@@ -81,21 +73,13 @@ export default function CompanyProfilePage() {
       setForm({
         name: profile.name || "",
         address: profile.address || "",
-        addressName: profile.addressName || "",
         mobile1: profile.mobile1 || "",
-        mobile1Whatsapp: profile.mobile1Whatsapp || "",
         mobile2: profile.mobile2 || "",
-        mobile2Whatsapp: profile.mobile2Whatsapp || "",
         businessType: profile.businessType || "",
         logo: profile.logo || null,
         cliche: profile.cliche || null,
         stamp: profile.stamp || null,
         qrAddress: profile.qrAddress || "",
-        gpsLocation: profile.gpsLocation || "",
-        facebookLink: profile.facebookLink || "",
-        instagramLink: profile.instagramLink || "",
-        tiktokLink: profile.tiktokLink || "",
-        snapchatLink: profile.snapchatLink || "",
         primaryColor: profile.primaryColor || "#1a1a2e",
         secondaryColor: profile.secondaryColor || "#16213e",
         clicheColor: profile.clicheColor || "#1a1a2e",
@@ -222,36 +206,6 @@ export default function CompanyProfilePage() {
 
               <Separator />
 
-              <div className="space-y-1.5">
-                <Label htmlFor="addressName" className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {t('Address Name')}
-                </Label>
-                <Input
-                  id="addressName"
-                  value={form.addressName}
-                  onChange={(e) => setForm((p) => ({ ...p, addressName: e.target.value }))}
-                  placeholder={t('Enter address name')}
-                  data-testid="input-address-name"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="gpsLocation" className="flex items-center gap-1.5">
-                  <Navigation className="w-3.5 h-3.5" />
-                  {t('GPS Location')}
-                </Label>
-                <Input
-                  id="gpsLocation"
-                  value={form.gpsLocation}
-                  onChange={(e) => setForm((p) => ({ ...p, gpsLocation: e.target.value }))}
-                  placeholder={t('Enter GPS coordinates or Google Maps link')}
-                  data-testid="input-gps-location"
-                />
-              </div>
-
-              <Separator />
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="mobile1" className="flex items-center gap-1.5">
@@ -267,22 +221,6 @@ export default function CompanyProfilePage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="mobile1Whatsapp" className="flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    {t('WhatsApp Link')} 1
-                  </Label>
-                  <Input
-                    id="mobile1Whatsapp"
-                    value={form.mobile1Whatsapp}
-                    onChange={(e) => setForm((p) => ({ ...p, mobile1Whatsapp: e.target.value }))}
-                    placeholder="https://wa.me/964XXXXXXXXX"
-                    data-testid="input-mobile1-whatsapp"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
                   <Label htmlFor="mobile2" className="flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5" />
                     {t('Mobile 2')}
@@ -293,84 +231,6 @@ export default function CompanyProfilePage() {
                     onChange={(e) => setForm((p) => ({ ...p, mobile2: e.target.value }))}
                     placeholder="07XX-XXX-XXXX"
                     data-testid="input-mobile2"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="mobile2Whatsapp" className="flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    {t('WhatsApp Link')} 2
-                  </Label>
-                  <Input
-                    id="mobile2Whatsapp"
-                    value={form.mobile2Whatsapp}
-                    onChange={(e) => setForm((p) => ({ ...p, mobile2Whatsapp: e.target.value }))}
-                    placeholder="https://wa.me/964XXXXXXXXX"
-                    data-testid="input-mobile2-whatsapp"
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <CardTitle className="text-base flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                {t('Social Media')}
-              </CardTitle>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="facebookLink" className="flex items-center gap-1.5">
-                    <Facebook className="w-3.5 h-3.5" />
-                    {t('Facebook')}
-                  </Label>
-                  <Input
-                    id="facebookLink"
-                    value={form.facebookLink}
-                    onChange={(e) => setForm((p) => ({ ...p, facebookLink: e.target.value }))}
-                    placeholder="https://facebook.com/..."
-                    data-testid="input-facebook-link"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="instagramLink" className="flex items-center gap-1.5">
-                    <Instagram className="w-3.5 h-3.5" />
-                    {t('Instagram')}
-                  </Label>
-                  <Input
-                    id="instagramLink"
-                    value={form.instagramLink}
-                    onChange={(e) => setForm((p) => ({ ...p, instagramLink: e.target.value }))}
-                    placeholder="https://instagram.com/..."
-                    data-testid="input-instagram-link"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="tiktokLink" className="flex items-center gap-1.5">
-                    <Camera className="w-3.5 h-3.5" />
-                    {t('TikTok')}
-                  </Label>
-                  <Input
-                    id="tiktokLink"
-                    value={form.tiktokLink}
-                    onChange={(e) => setForm((p) => ({ ...p, tiktokLink: e.target.value }))}
-                    placeholder="https://tiktok.com/@..."
-                    data-testid="input-tiktok-link"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="snapchatLink" className="flex items-center gap-1.5">
-                    <Camera className="w-3.5 h-3.5" />
-                    {t('Snapchat')}
-                  </Label>
-                  <Input
-                    id="snapchatLink"
-                    value={form.snapchatLink}
-                    onChange={(e) => setForm((p) => ({ ...p, snapchatLink: e.target.value }))}
-                    placeholder="https://snapchat.com/add/..."
-                    data-testid="input-snapchat-link"
                   />
                 </div>
               </div>
