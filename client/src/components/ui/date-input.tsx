@@ -121,7 +121,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
           disabled={disabled}
           data-testid={testId}
           className={cn(
-            "flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-9"
+            "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-all duration-200 ring-offset-background placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50 pr-9"
           )}
         />
         <div className="absolute right-0 top-0 h-full w-9 flex items-center justify-center">

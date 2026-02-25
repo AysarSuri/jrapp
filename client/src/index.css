@@ -3,106 +3,212 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Arial', sans-serif;
-  --font-display: 'Arial', sans-serif;
-  --font-arabic: 'Arial', sans-serif;
+  --font-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-arabic: 'Tajawal', 'Noto Sans Arabic', system-ui, sans-serif;
 
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
+  --background: 220 20% 97%;
+  --foreground: 222 47% 11%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
+  --card-foreground: 222 47% 11%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 0%;
+  --popover-foreground: 222 47% 11%;
 
-  --primary: 45 95% 46%;
-  --primary-foreground: 0 0% 0%;
+  --primary: 45 93% 47%;
+  --primary-foreground: 26 83% 14%;
 
-  --secondary: 45 30% 92%;
-  --secondary-foreground: 0 0% 0%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
 
-  --muted: 45 20% 94%;
-  --muted-foreground: 0 0% 40%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
 
-  --accent: 45 30% 92%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 45 20% 88%;
-  --input: 45 20% 88%;
-  --ring: 45 95% 46%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 45 93% 47%;
 
   --radius: 0.75rem;
+
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
 }
 
 .dark {
-  --background: 220 20% 10%;
-  --foreground: 220 10% 92%;
+  --background: 224 28% 8%;
+  --foreground: 220 14% 96%;
 
-  --card: 220 18% 13%;
-  --card-foreground: 220 10% 92%;
+  --card: 224 24% 11%;
+  --card-foreground: 220 14% 96%;
 
-  --popover: 220 18% 13%;
-  --popover-foreground: 220 10% 92%;
+  --popover: 224 24% 11%;
+  --popover-foreground: 220 14% 96%;
 
-  --primary: 45 95% 50%;
-  --primary-foreground: 220 20% 8%;
+  --primary: 45 93% 50%;
+  --primary-foreground: 224 28% 8%;
 
-  --secondary: 220 15% 18%;
-  --secondary-foreground: 220 10% 85%;
+  --secondary: 224 18% 16%;
+  --secondary-foreground: 220 14% 90%;
 
-  --muted: 220 14% 16%;
-  --muted-foreground: 220 8% 55%;
+  --muted: 224 14% 15%;
+  --muted-foreground: 220 9% 55%;
 
-  --accent: 220 15% 18%;
-  --accent-foreground: 220 10% 90%;
+  --accent: 224 18% 16%;
+  --accent-foreground: 220 14% 96%;
 
   --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 220 12% 20%;
-  --input: 220 12% 20%;
-  --ring: 45 95% 50%;
+  --border: 224 14% 18%;
+  --input: 224 14% 18%;
+  --ring: 45 93% 50%;
 }
 
 @layer base {
   * {
-    font-family: 'Arial', sans-serif !important;
-    font-weight: 700;
+    @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Arial', sans-serif;
-    font-weight: 700;
+    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+    font-weight: 400;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Arial', sans-serif;
-    @apply font-bold tracking-tight;
+    font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+    @apply font-semibold tracking-tight;
   }
 
-  /* Support RTL fonts */
-  [dir="rtl"] body {
-    font-family: 'Arial', sans-serif;
-    font-weight: 700;
+  [dir="rtl"] body,
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
+  [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+    font-family: 'Tajawal', 'Noto Sans Arabic', system-ui, sans-serif;
+  }
+
+  [dir="rtl"] * {
+    font-family: 'Tajawal', 'Noto Sans Arabic', system-ui, sans-serif;
   }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full;
+  @apply bg-muted-foreground/15 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/40;
+  @apply bg-muted-foreground/30;
+}
+
+@layer components {
+  .erp-page-header {
+    @apply flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8;
+  }
+
+  .erp-page-title {
+    @apply text-2xl md:text-3xl font-bold tracking-tight text-foreground;
+  }
+
+  .erp-page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  .erp-kpi-card {
+    @apply relative overflow-hidden transition-all duration-300;
+  }
+
+  .erp-kpi-card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1 rounded-t-xl;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.6));
+  }
+
+  .erp-kpi-card:nth-child(2)::before {
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+
+  .erp-kpi-card:nth-child(3)::before {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  }
+
+  .erp-kpi-card:nth-child(4)::before {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+  }
+
+  .erp-table-container {
+    @apply rounded-xl border border-border/60 overflow-hidden;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .dark .erp-table-container {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  }
+
+  .erp-empty-state {
+    @apply flex flex-col items-center justify-center py-16 text-center text-muted-foreground;
+  }
+
+  .erp-empty-state-icon {
+    @apply w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4;
+  }
+
+  .erp-search-wrapper {
+    @apply relative;
+  }
+
+  .erp-search-wrapper svg:first-child {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none;
+  }
+}
+
+@layer utilities {
+  .glass-effect {
+    @apply bg-white/80 dark:bg-card/80 backdrop-blur-xl;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  .card-hover:hover {
+    @apply shadow-lg -translate-y-0.5;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(45 93% 60%));
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
