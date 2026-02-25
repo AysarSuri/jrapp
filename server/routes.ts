@@ -839,6 +839,7 @@ export async function registerRoutes(
       if (!supplier) return res.status(404).json({ message: "Supplier not found" });
 
       let invoicesQuery = db.select().from(purchaseInvoices).where(eq(purchaseInvoices.supplierId, supplierId));
+      let returnsQuery = db.select().from(purchaseReturns).where(eq(purchaseReturns.supplierId, supplierId));
       let paymentsQuery = db.select().from(supplierPayments).where(eq(supplierPayments.supplierId, supplierId));
       let adjustmentsQuery = db.select().from(supplierAdjustments).where(eq(supplierAdjustments.supplierId, supplierId));
 
@@ -846,9 +847,10 @@ export async function registerRoutes(
       let openingBalanceIqd = 0;
 
       if (startDate) {
-        // Calculate opening balance up to startDate
         const prevInvoices = await db.select().from(purchaseInvoices)
           .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} < ${startDate}`);
+        const prevReturns = await db.select().from(purchaseReturns)
+          .where(sql`${purchaseReturns.supplierId} = ${supplierId} AND ${purchaseReturns.date} < ${startDate}`);
         const prevPayments = await db.select().from(supplierPayments)
           .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} < ${startDate}`);
         const prevAdjustments = await db.select().from(supplierAdjustments)
@@ -862,6 +864,11 @@ export async function registerRoutes(
           if (inv.currency === "USD") openingBalanceUsd += amount;
           else openingBalanceIqd += amount;
         }
+        for (const ret of prevReturns) {
+          const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+          if (ret.currency === "USD") openingBalanceUsd -= amount;
+          else openingBalanceIqd -= amount;
+        }
         for (const pay of prevPayments) {
           openingBalanceUsd -= parseFloat(pay.amountUsd || "0");
           openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
@@ -873,6 +880,8 @@ export async function registerRoutes(
 
         invoicesQuery = db.select().from(purchaseInvoices)
           .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} >= ${startDate}`);
+        returnsQuery = db.select().from(purchaseReturns)
+          .where(sql`${purchaseReturns.supplierId} = ${supplierId} AND ${purchaseReturns.date} >= ${startDate}`);
         paymentsQuery = db.select().from(supplierPayments)
           .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} >= ${startDate}`);
         adjustmentsQuery = db.select().from(supplierAdjustments)
@@ -886,6 +895,8 @@ export async function registerRoutes(
         if (startDate) {
           invoicesQuery = db.select().from(purchaseInvoices)
             .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} >= ${startDate} AND ${purchaseInvoices.date} <= ${endDate}`);
+          returnsQuery = db.select().from(purchaseReturns)
+            .where(sql`${purchaseReturns.supplierId} = ${supplierId} AND ${purchaseReturns.date} >= ${startDate} AND ${purchaseReturns.date} <= ${endDate}`);
           paymentsQuery = db.select().from(supplierPayments)
             .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} >= ${startDate} AND ${supplierPayments.date} <= ${endDate}`);
           adjustmentsQuery = db.select().from(supplierAdjustments)
@@ -893,6 +904,8 @@ export async function registerRoutes(
         } else {
           invoicesQuery = db.select().from(purchaseInvoices)
             .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${purchaseInvoices.date} <= ${endDate}`);
+          returnsQuery = db.select().from(purchaseReturns)
+            .where(sql`${purchaseReturns.supplierId} = ${supplierId} AND ${purchaseReturns.date} <= ${endDate}`);
           paymentsQuery = db.select().from(supplierPayments)
             .where(sql`${supplierPayments.supplierId} = ${supplierId} AND ${supplierPayments.date} <= ${endDate}`);
           adjustmentsQuery = db.select().from(supplierAdjustments)
@@ -901,6 +914,7 @@ export async function registerRoutes(
       }
 
       const invoices = await invoicesQuery.orderBy(purchaseInvoices.date, purchaseInvoices.time);
+      const returns = await returnsQuery.orderBy(purchaseReturns.date, purchaseReturns.time);
       const payments = await paymentsQuery.orderBy(supplierPayments.date, supplierPayments.time);
       const adjustments = await adjustmentsQuery.orderBy(supplierAdjustments.date, supplierAdjustments.time);
 
@@ -933,6 +947,22 @@ export async function registerRoutes(
           creditUsd: 0,
           creditIqd: 0,
           note: inv.note || null,
+        });
+      }
+
+      for (const ret of returns) {
+        const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+        entries.push({
+          id: ret.id,
+          date: ret.date,
+          time: ret.time || "00:00",
+          type: "return_invoice",
+          description: `${ret.returnNumber} (${ret.currency})`,
+          debitUsd: 0,
+          debitIqd: 0,
+          creditUsd: ret.currency === "USD" ? amount : 0,
+          creditIqd: ret.currency === "IQD" ? amount : 0,
+          note: ret.note || null,
         });
       }
 

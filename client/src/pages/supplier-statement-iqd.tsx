@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft } from "lucide-react";
+import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -73,7 +73,7 @@ type ProductReportResponse = {
   currency: string;
 };
 
-type ActiveTab = "general" | "invoices" | "payments" | "adjustments" | "products_report";
+type ActiveTab = "general" | "invoices" | "returns" | "payments" | "adjustments" | "products_report";
 
 export default function SupplierStatementIqdPage() {
   const { t, i18n } = useTranslation();
@@ -128,6 +128,9 @@ export default function SupplierStatementIqdPage() {
       case "invoices":
         filtered = filtered.filter(e => e.type === "purchase_invoice");
         break;
+      case "returns":
+        filtered = filtered.filter(e => e.type === "return_invoice");
+        break;
       case "payments":
         filtered = filtered.filter(e => e.type === "payment");
         break;
@@ -167,6 +170,8 @@ export default function SupplierStatementIqdPage() {
     switch (type) {
       case "purchase_invoice":
         return <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800 gap-1"><Receipt className="w-3 h-3" />{t("Purchase Invoice")}</Badge>;
+      case "return_invoice":
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400 border-orange-200 dark:border-orange-800 gap-1"><RotateCcw className="w-3 h-3" />{t("Return Invoice")}</Badge>;
       case "payment":
         return <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 gap-1"><Banknote className="w-3 h-3" />{t("Payment")}</Badge>;
       case "adjustment_received":
@@ -181,6 +186,7 @@ export default function SupplierStatementIqdPage() {
   const getTypeText = (type: string) => {
     switch (type) {
       case "purchase_invoice": return t("Purchase Invoice");
+      case "return_invoice": return t("Return Invoice");
       case "payment": return t("Payment");
       case "adjustment_received": return t("Received");
       case "adjustment_discount": return t("Discount");
@@ -192,6 +198,7 @@ export default function SupplierStatementIqdPage() {
     switch (activeTab) {
       case "general": return t("General Statement");
       case "invoices": return t("Purchase Invoices");
+      case "returns": return t("Return Invoices");
       case "payments": return t("Payments & Transfers");
       case "adjustments": return t("Agent Adjustments");
       case "products_report": return t("Incoming Report");
@@ -373,6 +380,7 @@ export default function SupplierStatementIqdPage() {
   const tabs: { key: ActiveTab; label: string }[] = [
     { key: "general", label: t("General Statement") },
     { key: "invoices", label: t("Purchase Invoices") },
+    { key: "returns", label: t("Return Invoices") },
     { key: "payments", label: t("Payments & Transfers") },
     { key: "adjustments", label: t("Agent Adjustments") },
     { key: "products_report", label: t("Incoming Report") },
