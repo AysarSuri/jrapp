@@ -25,7 +25,7 @@ type SupplierDebt = {
 };
 
 export default function SupplierDebtsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
 
   const { data: debts, isLoading } = useQuery<SupplierDebt[]>({
