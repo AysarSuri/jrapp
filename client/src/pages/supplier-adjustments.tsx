@@ -21,12 +21,16 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building, ArrowLeft,
+  Eye, Pencil, Trash2,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
+import { playDeleteSound } from "@/lib/sounds";
+import SupplierAdjustmentReport from "@/components/supplier-adjustment-report";
 
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
@@ -60,6 +64,13 @@ export default function SupplierAdjustmentsPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
+  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [reportAdjustmentId, setReportAdjustmentId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [deleteAdjustment, setDeleteAdjustment] = useState<{ id: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const editId = new URLSearchParams(window.location.search).get("edit");
 
@@ -108,6 +119,22 @@ export default function SupplierAdjustmentsPage() {
   }, [banksList, transferOfficesList, t]);
 
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
+
+  const handleDeleteAdjustment = async () => {
+    if (!deleteAdjustment) return;
+    setIsDeleting(true);
+    try {
+      await apiRequest("DELETE", `/api/supplier-adjustments/${deleteAdjustment.id}`);
+      playDeleteSound();
+      toast({ title: t("Adjustment deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
+      setDeleteAdjustment(null);
+    } catch (err: any) {
+      toast({ title: t("Failed to delete adjustment"), description: err.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const resetForm = () => {
     setSupplierId("");
@@ -205,6 +232,26 @@ export default function SupplierAdjustmentsPage() {
             <DialogHeader>
               <DialogTitle>{t("Adjustment History")}</DialogTitle>
             </DialogHeader>
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="w-48">
+                <Label className="text-xs mb-1 block">{t('Supplier')}</Label>
+                <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
+                  <SelectTrigger data-testid="select-adj-history-supplier-filter"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                    {suppliers?.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1 block">{t('From Date')}</Label>
+                <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} data-testid="input-adj-history-start-date" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1 block">{t('To Date')}</Label>
+                <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-adj-history-end-date" />
+              </div>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -220,10 +267,17 @@ export default function SupplierAdjustmentsPage() {
                   <TableHead>{t("Date")}</TableHead>
                   <TableHead>{t("Time")}</TableHead>
                   <TableHead>{t("Note")}</TableHead>
+                  <TableHead>{t("Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {supplierAdjustments?.map((adj, i) => (
+                {supplierAdjustments?.filter(adj => {
+                  if (historySupplierFilter !== 'all' && adj.supplierId !== parseInt(historySupplierFilter)) return false;
+                  const adjDate = typeof adj.date === 'string' ? adj.date.split('T')[0] : new Date(adj.date).toISOString().split('T')[0];
+                  if (historyStartDate && adjDate < historyStartDate) return false;
+                  if (historyEndDate && adjDate > historyEndDate) return false;
+                  return true;
+                }).map((adj, i) => (
                   <TableRow key={adj.id} data-testid={`row-adjustment-${adj.id}`}>
                     <TableCell>{i + 1}</TableCell>
                     <TableCell className="font-medium">{adj.supplierName}</TableCell>
@@ -241,11 +295,24 @@ export default function SupplierAdjustmentsPage() {
                     <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
                     <TableCell className="font-mono text-sm">{adj.time}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{adj.note || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportAdjustmentId(adj.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-adjustment-${adj.id}`}>
+                          <Eye className="h-3.5 w-3.5 text-blue-600" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/supplier-adjustments?edit=${adj.id}`); }} data-testid={`btn-edit-adjustment-${adj.id}`}>
+                          <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteAdjustment({ id: adj.id })} data-testid={`btn-delete-adjustment-${adj.id}`}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {(!supplierAdjustments || supplierAdjustments.length === 0) && (
                   <TableRow>
-                    <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
                       {t("No adjustments recorded yet")}
                     </TableCell>
                   </TableRow>
@@ -512,6 +579,31 @@ export default function SupplierAdjustmentsPage() {
           )}
         </div>
       </div>
+
+      <SupplierAdjustmentReport
+        adjustmentId={reportAdjustmentId}
+        open={reportOpen}
+        onOpenChange={(open) => { setReportOpen(open); if (!open) setReportAdjustmentId(null); }}
+        currency="USD"
+      />
+
+      <AlertDialog open={!!deleteAdjustment} onOpenChange={(open) => { if (!open) setDeleteAdjustment(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete this adjustment")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAdjustment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-adjustment">
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
