@@ -29,6 +29,30 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     .cliche { text-align: center; margin-bottom: 12px; }
     .cliche img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; }
 
+    .company-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, ${accent}08, ${accent}15);
+      border: 1px solid ${accent}20;
+      border-radius: 12px;
+    }
+    .company-header img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    .company-header .company-name {
+      font-size: 20pt;
+      font-weight: 800;
+      color: ${accent};
+      letter-spacing: -0.5px;
+    }
+
     .header {
       text-align: center;
       margin-bottom: 16px;

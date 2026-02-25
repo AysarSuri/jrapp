@@ -47,6 +47,7 @@ type StatementResponse = {
 type CompanyProfileData = {
   id: number;
   name: string;
+  logo: string | null;
   cliche: string | null;
   primaryColor: string;
   secondaryColor: string;
@@ -155,6 +156,13 @@ export default function SupplierStatementIqdPage() {
   const fieldColor = companyProfile?.primaryColor || "#333";
   const textColor = companyProfile?.secondaryColor || "white";
 
+  const companyHeaderHtml = (companyProfile?.logo || companyProfile?.name)
+    ? `<div class="company-header">${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}<span class="company-name">${companyProfile?.name || ""}</span></div>`
+    : "";
+  const companyHeaderInlineHtml = (companyProfile?.logo || companyProfile?.name)
+    ? `<div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px;padding:12px 16px;background:linear-gradient(135deg,${fieldColor}08,${fieldColor}15);border:1px solid ${fieldColor}20;border-radius:10px">${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:60px;height:60px;object-fit:contain;border-radius:8px" />` : ""}<span style="font-size:18pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span></div>`
+    : "";
+
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "purchase_invoice":
@@ -223,7 +231,7 @@ export default function SupplierStatementIqdPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+        ${companyHeaderHtml}
         <div class="header">
           <h1>${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
           <p>${formatDate(new Date())}</p>
@@ -296,7 +304,7 @@ export default function SupplierStatementIqdPage() {
     const tabLabel = getActiveTabLabel();
 
     tempDiv.innerHTML = `
-      ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:8px"><img src="${companyProfile.cliche}" style="width:100%;height:150px;object-fit:cover" /></div>` : ""}
+      ${companyHeaderInlineHtml}
       <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
         <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
         <p style="font-size:10pt;color:#666">${formatDate(new Date())}</p>
@@ -643,7 +651,7 @@ export default function SupplierStatementIqdPage() {
                       <style>${incomingPrintStyles}</style>
                     </head>
                     <body>
-                      ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+                      ${companyHeaderHtml}
                       <div class="header">
                         <h1>${t("Incoming Report")} (IQD)</h1>
                         <p>${formatDate(new Date())}</p>
