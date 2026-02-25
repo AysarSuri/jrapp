@@ -789,28 +789,32 @@ export async function registerRoutes(
         const remainingUsd = totalDebitUsd - totalCreditUsd;
         const remainingIqd = totalDebitIqd - totalCreditIqd;
 
-        const lastInvoice = sInvoices.sort((a, b) => {
+        const sortedInvoices = [...sInvoices].sort((a, b) => {
+          const da = `${a.date} ${a.time}`;
+          const db2 = `${b.date} ${b.time}`;
+          return db2.localeCompare(da);
+        });
+        const lastInvoiceUsd = sortedInvoices.find(i => i.currency === "USD") || null;
+        const lastInvoiceIqd = sortedInvoices.find(i => i.currency === "IQD") || null;
+
+        const lastPayment = [...sPayments].sort((a, b) => {
           const da = `${a.date} ${a.time}`;
           const db2 = `${b.date} ${b.time}`;
           return db2.localeCompare(da);
         })[0] || null;
 
-        const lastPayment = sPayments.sort((a, b) => {
-          const da = `${a.date} ${a.time}`;
-          const db2 = `${b.date} ${b.time}`;
-          return db2.localeCompare(da);
-        })[0] || null;
+        const calcInvAmount = (inv: typeof sortedInvoices[0] | null) =>
+          inv ? parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0") : null;
 
         return {
           id: supplier.id,
           name: supplier.name,
           remainingUsd,
           remainingIqd,
-          lastInvoiceAmount: lastInvoice
-            ? parseFloat(lastInvoice.subtotal || "0") + parseFloat(lastInvoice.totalExpenses || "0") - parseFloat(lastInvoice.discount || "0")
-            : null,
-          lastInvoiceCurrency: lastInvoice?.currency || null,
-          lastInvoiceDate: lastInvoice?.date || null,
+          lastInvoiceAmountUsd: calcInvAmount(lastInvoiceUsd),
+          lastInvoiceDateUsd: lastInvoiceUsd?.date || null,
+          lastInvoiceAmountIqd: calcInvAmount(lastInvoiceIqd),
+          lastInvoiceDateIqd: lastInvoiceIqd?.date || null,
           lastPaymentAmountUsd: lastPayment ? parseFloat(lastPayment.amountUsd || "0") : null,
           lastPaymentAmountIqd: lastPayment ? parseFloat(lastPayment.amountIqd || "0") : null,
           lastPaymentDate: lastPayment?.date || null,

@@ -13,25 +13,14 @@ type SupplierDebt = {
   name: string;
   remainingUsd: number;
   remainingIqd: number;
-  lastInvoiceAmount: number | null;
-  lastInvoiceCurrency: string | null;
-  lastInvoiceDate: string | null;
+  lastInvoiceAmountUsd: number | null;
+  lastInvoiceDateUsd: string | null;
+  lastInvoiceAmountIqd: number | null;
+  lastInvoiceDateIqd: string | null;
   lastPaymentAmountUsd: number | null;
   lastPaymentAmountIqd: number | null;
   lastPaymentDate: string | null;
 };
-
-function iqd(n: number | string): string {
-  const num = typeof n === "string" ? parseFloat(n) : n;
-  if (isNaN(num) || num === 0) return "-";
-  return `${fmtIqd(num)} IQD`;
-}
-
-function formatCurrency(amount: number | null, currency: string | null): string {
-  if (amount === null || amount === 0) return "-";
-  if (currency === "IQD") return `${fmtIqd(amount)} IQD`;
-  return usd(amount);
-}
 
 export default function SupplierDebtsPage() {
   const { t } = useTranslation();
@@ -57,6 +46,7 @@ export default function SupplierDebtsPage() {
             th, td { border: 1px solid #333; padding: 8px 12px; text-align: center; font-size: 13px; }
             th { background-color: #f0f0f0; font-weight: bold; }
             .totals-row { font-weight: bold; background-color: #f9f9f9; }
+            .sub-line { font-size: 11px; color: #666; margin-top: 2px; }
             @media print { body { padding: 0; } }
           </style>
         </head>
@@ -150,21 +140,36 @@ export default function SupplierDebtsPage() {
                                 {supplier.remainingIqd !== 0 ? `${fmtIqd(supplier.remainingIqd)} IQD` : "-"}
                               </TableCell>
                               <TableCell className="text-center text-sm">
-                                {supplier.lastInvoiceAmount !== null ? (
-                                  <div>
-                                    <div className="font-medium">{formatCurrency(supplier.lastInvoiceAmount, supplier.lastInvoiceCurrency)}</div>
-                                    <div className="text-muted-foreground text-xs">{formatDate(supplier.lastInvoiceDate)}</div>
+                                {supplier.lastInvoiceAmountUsd !== null || supplier.lastInvoiceAmountIqd !== null ? (
+                                  <div className="space-y-1">
+                                    {supplier.lastInvoiceAmountUsd !== null && (
+                                      <div>
+                                        <span className="font-medium text-green-600 dark:text-green-400">{usd(supplier.lastInvoiceAmountUsd)}</span>
+                                        <div className="text-muted-foreground text-xs">{formatDate(supplier.lastInvoiceDateUsd)}</div>
+                                      </div>
+                                    )}
+                                    {supplier.lastInvoiceAmountIqd !== null && (
+                                      <div>
+                                        <span className="font-medium text-orange-600 dark:text-orange-400">{`${fmtIqd(supplier.lastInvoiceAmountIqd)} IQD`}</span>
+                                        <div className="text-muted-foreground text-xs">{formatDate(supplier.lastInvoiceDateIqd)}</div>
+                                      </div>
+                                    )}
                                   </div>
                                 ) : "-"}
                               </TableCell>
                               <TableCell className="text-center text-sm">
                                 {supplier.lastPaymentDate ? (
-                                  <div>
-                                    <div className="font-medium">
-                                      {(supplier.lastPaymentAmountUsd || 0) > 0 && usd(supplier.lastPaymentAmountUsd!)}
-                                      {(supplier.lastPaymentAmountUsd || 0) > 0 && (supplier.lastPaymentAmountIqd || 0) > 0 && " + "}
-                                      {(supplier.lastPaymentAmountIqd || 0) > 0 && `${fmtIqd(supplier.lastPaymentAmountIqd!)} IQD`}
-                                    </div>
+                                  <div className="space-y-1">
+                                    {(supplier.lastPaymentAmountUsd || 0) > 0 && (
+                                      <div>
+                                        <span className="font-medium text-green-600 dark:text-green-400">{usd(supplier.lastPaymentAmountUsd!)}</span>
+                                      </div>
+                                    )}
+                                    {(supplier.lastPaymentAmountIqd || 0) > 0 && (
+                                      <div>
+                                        <span className="font-medium text-orange-600 dark:text-orange-400">{`${fmtIqd(supplier.lastPaymentAmountIqd!)} IQD`}</span>
+                                      </div>
+                                    )}
                                     <div className="text-muted-foreground text-xs">{formatDate(supplier.lastPaymentDate)}</div>
                                   </div>
                                 ) : "-"}
