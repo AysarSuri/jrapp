@@ -21,7 +21,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -29,6 +29,7 @@ import {
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
+import PurchaseReturnReport from "@/components/purchase-return-report";
 
 interface ReturnItem {
   productId: number | null;
@@ -86,6 +87,8 @@ export default function PurchaseReturnIqdPage() {
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reportReturnId, setReportReturnId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -321,9 +324,7 @@ export default function PurchaseReturnIqdPage() {
                     <TableHead>{t('Total')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
-                    {(userRole === 'admin' || userRole === 'user') && (
-                      <TableHead>{t('Actions')}</TableHead>
-                    )}
+                    <TableHead>{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -353,9 +354,12 @@ export default function PurchaseReturnIqdPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      {(userRole === 'admin' || userRole === 'user') && (
-                        <TableCell>
-                          {ret.status === 'pending' && (
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-iqd-${ret.id}`}>
+                            <Eye className="h-3.5 w-3.5 text-blue-600" />
+                          </Button>
+                          {(userRole === 'admin' || userRole === 'user') && ret.status === 'pending' && (
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700"
@@ -367,8 +371,8 @@ export default function PurchaseReturnIqdPage() {
                               {t('Approve')}
                             </Button>
                           )}
-                        </TableCell>
-                      )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -652,6 +656,13 @@ export default function PurchaseReturnIqdPage() {
           </div>
         </CardContent>
       </Card>
+
+      <PurchaseReturnReport
+        returnId={reportReturnId}
+        open={reportOpen}
+        onOpenChange={(open) => { setReportOpen(open); if (!open) setReportReturnId(null); }}
+        currency="IQD"
+      />
     </div>
   );
 }
