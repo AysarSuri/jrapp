@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Loader2, Printer, MessageCircle } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
 import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
@@ -91,6 +92,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const { data: invoice, isLoading: invoiceLoading } = useQuery<InvoiceData>({
     queryKey: ["/api/purchase-invoices", invoiceId],
@@ -121,6 +123,17 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     queryKey: ["/api/company-profile"],
     enabled: open,
   });
+
+  useEffect(() => {
+    if (open && companyProfile) {
+      const qrUrl = companyProfile.qrAddress || `${window.location.origin}/info`;
+      if (qrUrl) {
+        QRCode.toDataURL(qrUrl, { width: 120, margin: 1 })
+          .then(url => setQrDataUrl(url))
+          .catch(() => setQrDataUrl(null));
+      }
+    }
+  }, [open, companyProfile]);
 
   const { data: units } = useUnits();
   const unitsList = units || [];
@@ -437,10 +450,15 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             </div>
 
-            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "flex-end", fontSize: "12pt" }}>
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
               </div>
+              {qrDataUrl && (
+                <div style={{ textAlign: "center" }}>
+                  <img src={qrDataUrl} alt="QR" style={{ width: 90, height: 90 }} />
+                </div>
+              )}
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
               </div>
