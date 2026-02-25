@@ -23,6 +23,7 @@ import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import { logExport } from "@/lib/export-log";
 import PurchaseReturnReport from "@/components/purchase-return-report";
+import SupplierPaymentReport from "@/components/supplier-payment-report";
 
 type Client = {
   id: number;
@@ -157,6 +158,8 @@ export default function SupplierStatementIqdPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [returnReportId, setReturnReportId] = useState<number | null>(null);
   const [returnReportOpen, setReturnReportOpen] = useState(false);
+  const [paymentReportId, setPaymentReportId] = useState<number | null>(null);
+  const [paymentReportOpen, setPaymentReportOpen] = useState(false);
   const [deleteReportEntry, setDeleteReportEntry] = useState<{ id: number; type: "purchase" | "return"; description: string } | null>(null);
 
   const { data: clients } = useQuery<Client[]>({
@@ -776,6 +779,9 @@ export default function SupplierStatementIqdPage() {
                                     } else if (entry.type === "return_invoice") {
                                       setReturnReportId(entry.id);
                                       setReturnReportOpen(true);
+                                    } else if (entry.type === "payment") {
+                                      setPaymentReportId(entry.id);
+                                      setPaymentReportOpen(true);
                                     } else {
                                       handleView(entry);
                                     }
@@ -1248,6 +1254,13 @@ export default function SupplierStatementIqdPage() {
         returnId={returnReportId}
         open={returnReportOpen}
         onOpenChange={(open) => { setReturnReportOpen(open); if (!open) setReturnReportId(null); }}
+        currency="IQD"
+      />
+
+      <SupplierPaymentReport
+        paymentId={paymentReportId}
+        open={paymentReportOpen}
+        onOpenChange={(open) => { setPaymentReportOpen(open); if (!open) setPaymentReportId(null); }}
         currency="IQD"
       />
     </div>
