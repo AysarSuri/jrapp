@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette } from "lucide-react";
+import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette, Navigation, Globe } from "lucide-react";
+import { SiFacebook, SiInstagram, SiTiktok, SiSnapchat } from "react-icons/si";
 import type { CompanyProfile } from "@shared/schema";
 
 function QRCodeCanvas({ value, size = 200 }: { value: string; size?: number }) {
@@ -66,6 +67,11 @@ export default function CompanyProfilePage() {
     primaryColor: "#1a1a2e",
     secondaryColor: "#16213e",
     clicheColor: "#1a1a2e",
+    gpsLocation: "",
+    facebookLink: "",
+    instagramLink: "",
+    tiktokLink: "",
+    snapchatLink: "",
   });
 
   useEffect(() => {
@@ -83,6 +89,11 @@ export default function CompanyProfilePage() {
         primaryColor: profile.primaryColor || "#1a1a2e",
         secondaryColor: profile.secondaryColor || "#16213e",
         clicheColor: profile.clicheColor || "#1a1a2e",
+        gpsLocation: profile.gpsLocation || "",
+        facebookLink: profile.facebookLink || "",
+        instagramLink: profile.instagramLink || "",
+        tiktokLink: profile.tiktokLink || "",
+        snapchatLink: profile.snapchatLink || "",
       });
     }
   }, [profile]);
@@ -323,6 +334,85 @@ export default function CompanyProfilePage() {
               {form.qrAddress && (
                 <p className="text-xs text-muted-foreground text-center">{t('QR code will encode')}: {form.qrAddress}</p>
               )}
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                {t('Social Media & Links')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="gpsLocation" className="flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5" />
+                  {t('GPS Link')}
+                </Label>
+                <Input
+                  id="gpsLocation"
+                  value={form.gpsLocation}
+                  onChange={(e) => setForm((p) => ({ ...p, gpsLocation: e.target.value }))}
+                  placeholder="https://maps.google.com/..."
+                  data-testid="input-gps-location"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="facebookLink" className="flex items-center gap-1.5">
+                  <SiFacebook className="w-3.5 h-3.5" />
+                  {t('Facebook Link')}
+                </Label>
+                <Input
+                  id="facebookLink"
+                  value={form.facebookLink}
+                  onChange={(e) => setForm((p) => ({ ...p, facebookLink: e.target.value }))}
+                  placeholder="https://facebook.com/..."
+                  data-testid="input-facebook-link"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="instagramLink" className="flex items-center gap-1.5">
+                  <SiInstagram className="w-3.5 h-3.5" />
+                  {t('Instagram Link')}
+                </Label>
+                <Input
+                  id="instagramLink"
+                  value={form.instagramLink}
+                  onChange={(e) => setForm((p) => ({ ...p, instagramLink: e.target.value }))}
+                  placeholder="https://instagram.com/..."
+                  data-testid="input-instagram-link"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="tiktokLink" className="flex items-center gap-1.5">
+                  <SiTiktok className="w-3.5 h-3.5" />
+                  {t('TikTok Link')}
+                </Label>
+                <Input
+                  id="tiktokLink"
+                  value={form.tiktokLink}
+                  onChange={(e) => setForm((p) => ({ ...p, tiktokLink: e.target.value }))}
+                  placeholder="https://tiktok.com/@..."
+                  data-testid="input-tiktok-link"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="snapchatLink" className="flex items-center gap-1.5">
+                  <SiSnapchat className="w-3.5 h-3.5" />
+                  {t('Snapchat Link')}
+                </Label>
+                <Input
+                  id="snapchatLink"
+                  value={form.snapchatLink}
+                  onChange={(e) => setForm((p) => ({ ...p, snapchatLink: e.target.value }))}
+                  placeholder="https://snapchat.com/add/..."
+                  data-testid="input-snapchat-link"
+                />
+              </div>
             </CardContent>
           </Card>
         </div>

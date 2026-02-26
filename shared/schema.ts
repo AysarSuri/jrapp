@@ -629,6 +629,14 @@ export const companyProfile = pgTable("company_profile", {
   primaryColor: text("primary_color").notNull().default("#1a1a2e"),
   secondaryColor: text("secondary_color").notNull().default("#16213e"),
   clicheColor: text("cliche_color").notNull().default("#1a1a2e"),
+  addressName: text("address_name").notNull().default(""),
+  mobile1Whatsapp: text("mobile1_whatsapp").notNull().default(""),
+  mobile2Whatsapp: text("mobile2_whatsapp").notNull().default(""),
+  gpsLocation: text("gps_location").notNull().default(""),
+  facebookLink: text("facebook_link").notNull().default(""),
+  instagramLink: text("instagram_link").notNull().default(""),
+  tiktokLink: text("tiktok_link").notNull().default(""),
+  snapchatLink: text("snapchat_link").notNull().default(""),
 });
 
 export const insertCompanyProfileSchema = createInsertSchema(companyProfile).omit({ id: true });
