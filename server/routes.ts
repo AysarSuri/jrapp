@@ -1409,6 +1409,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/clearance-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { clearanceId, clearanceName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(customsClearanceTransactions).set({
+        clearanceId, clearanceName, type, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(customsClearanceTransactions.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Transaction not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/clearance-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(customsClearanceTransactions).where(eq(customsClearanceTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/clearance-statement/:id', requireAuth, async (req, res) => {
     try {
       const clearanceId = parseInt(req.params.id as string);

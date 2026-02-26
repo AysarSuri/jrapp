@@ -20,3 +20,29 @@ export function useCreateClearanceTransaction() {
     },
   });
 }
+
+export function useUpdateClearanceTransaction() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertCustomsClearanceTransaction> }) => {
+      const res = await apiRequest("PATCH", `/api/clearance-transactions/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clearance-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customs-clearances"] });
+    },
+  });
+}
+
+export function useDeleteClearanceTransaction() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/clearance-transactions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clearance-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customs-clearances"] });
+    },
+  });
+}

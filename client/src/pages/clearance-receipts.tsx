@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useClearanceTransactions, useCreateClearanceTransaction } from "@/hooks/use-clearance-transactions";
+import { useClearanceTransactions, useCreateClearanceTransaction, useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
 import { useQuery } from "@tanstack/react-query";
-import type { CustomsClearance } from "@shared/schema";
+import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
+  Eye, Pencil, Trash2,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
@@ -30,6 +35,8 @@ export default function ClearanceReceiptsPage() {
   const { toast } = useToast();
   const { data: allTxns, isLoading: txnsLoading } = useClearanceTransactions();
   const { mutate: createTxn, isPending: isSaving } = useCreateClearanceTransaction();
+  const { mutate: updateTxn, isPending: isUpdating } = useUpdateClearanceTransaction();
+  const { mutate: deleteTxn } = useDeleteClearanceTransaction();
 
   const { data: clearancesList } = useQuery<CustomsClearance[]>({
     queryKey: ["/api/customs-clearances"],
@@ -44,6 +51,16 @@ export default function ClearanceReceiptsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [viewReceipt, setViewReceipt] = useState<CustomsClearanceTransaction | null>(null);
+  const [editReceipt, setEditReceipt] = useState<CustomsClearanceTransaction | null>(null);
+  const [editClearanceId, setEditClearanceId] = useState("");
+  const [editClearanceName, setEditClearanceName] = useState("");
+  const [editAmountUsd, setEditAmountUsd] = useState("");
+  const [editAmountIqd, setEditAmountIqd] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
 
   const clearances = clearancesList || [];
 
@@ -99,6 +116,63 @@ export default function ClearanceReceiptsPage() {
     });
   };
 
+  const openEdit = (r: CustomsClearanceTransaction) => {
+    setEditReceipt(r);
+    setEditClearanceId(String(r.clearanceId));
+    setEditClearanceName(r.clearanceName);
+    setEditAmountUsd(r.amountUsd);
+    setEditAmountIqd(r.amountIqd);
+    setEditDescription(r.description || "");
+    setEditReference(r.reference || "");
+    setEditDate(r.date);
+    setEditTime(r.time || "00:00");
+  };
+
+  const handleUpdate = () => {
+    if (!editReceipt) return;
+    if (!editClearanceId) {
+      toast({ title: t("Please select a clearance"), variant: "destructive" });
+      return;
+    }
+    const usdVal = parseFloat(editAmountUsd || "0");
+    const iqdVal = parseFloat(editAmountIqd || "0");
+    if (usdVal <= 0 && iqdVal <= 0) {
+      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
+      return;
+    }
+
+    updateTxn({ id: editReceipt.id, data: {
+      clearanceId: parseInt(editClearanceId),
+      clearanceName: editClearanceName,
+      type: "receipt",
+      amountUsd: editAmountUsd || "0",
+      amountIqd: editAmountIqd || "0",
+      description: editDescription || null,
+      reference: editReference || null,
+      date: editDate,
+      time: editTime,
+    }}, {
+      onSuccess: () => {
+        toast({ title: t("Receipt updated successfully") });
+        setEditReceipt(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update receipt"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteTxn(id, {
+      onSuccess: () => {
+        toast({ title: t("Receipt deleted successfully") });
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete receipt"), variant: "destructive" });
+      },
+    });
+  };
+
   const receipts = allTxns?.filter(t => t.type === "receipt") || [];
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
@@ -122,7 +196,7 @@ export default function ClearanceReceiptsPage() {
                 {t('Receipt History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Receipt History')}</DialogTitle>
               </DialogHeader>
@@ -140,6 +214,7 @@ export default function ClearanceReceiptsPage() {
                       <TableHead>{t('IQD Amount')}</TableHead>
                       <TableHead>{t('Description')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
+                      <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -157,11 +232,55 @@ export default function ClearanceReceiptsPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.description || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => setViewReceipt(r)}
+                              data-testid={`button-view-clearance-receipt-${r.id}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                              onClick={() => openEdit(r)}
+                              data-testid={`button-edit-clearance-receipt-${r.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  data-testid={`button-delete-clearance-receipt-${r.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t('This will permanently delete this receipt.')}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(r.id)}>{t('Yes')}</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {receipts.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                           {t('No receipts yet')}
                         </TableCell>
                       </TableRow>
@@ -323,6 +442,142 @@ export default function ClearanceReceiptsPage() {
           </Card>
         </div>
       </div>
+
+      {/* View Receipt Dialog */}
+      <Dialog open={!!viewReceipt} onOpenChange={(open) => { if (!open) setViewReceipt(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              {t('Receipt Details')}
+            </DialogTitle>
+          </DialogHeader>
+          {viewReceipt && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('Date')}</p>
+                  <p className="font-mono font-medium">{viewReceipt.date}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('Time')}</p>
+                  <p className="font-mono font-medium">{viewReceipt.time || "-"}</p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">{t('Customs Clearance')}</p>
+                <p className="font-bold text-lg">{viewReceipt.clearanceName}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="border-blue-200 dark:border-blue-900">
+                  <CardContent className="pt-3 pb-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">{t('USD Amount')}</p>
+                    <p className="font-mono font-bold text-blue-600 text-lg">
+                      {parseFloat(viewReceipt.amountUsd) > 0 ? usd(viewReceipt.amountUsd) : "-"}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="border-orange-200 dark:border-orange-900">
+                  <CardContent className="pt-3 pb-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">{t('IQD Amount')}</p>
+                    <p className="font-mono font-bold text-orange-600 text-lg">
+                      {parseFloat(viewReceipt.amountIqd) > 0 ? formatIQD(parseFloat(viewReceipt.amountIqd)) : "-"}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+              {viewReceipt.reference && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('Reference')}</p>
+                  <p className="font-medium">{viewReceipt.reference}</p>
+                </div>
+              )}
+              {viewReceipt.description && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t('Description')}</p>
+                  <p className="text-sm">{viewReceipt.description}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Receipt Dialog */}
+      <Dialog open={!!editReceipt} onOpenChange={(open) => { if (!open) setEditReceipt(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-orange-600" />
+              {t('Edit Receipt')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Customs Clearance')}</Label>
+                <Select value={editClearanceId} onValueChange={(v) => {
+                  setEditClearanceId(v);
+                  const c = clearances.find(b => b.id === parseInt(v));
+                  if (c) setEditClearanceName(c.name);
+                }}>
+                  <SelectTrigger data-testid="select-edit-clearance-receipt">
+                    <SelectValue placeholder={t('Select clearance...')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clearances.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-clearance-receipt-date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Time')}</Label>
+              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-clearance-receipt-time" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-blue-600">{t('USD Amount')}</Label>
+                <Input
+                  type="number" step="0.01" min="0" placeholder="0.00"
+                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-clearance-receipt-usd"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-orange-600">{t('IQD Amount')}</Label>
+                <Input
+                  type="number" step="250" min="0" placeholder="0"
+                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-clearance-receipt-iqd"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-clearance-receipt-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Description')}</Label>
+              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-clearance-receipt-description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditReceipt(null)}>{t('Cancel')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700" data-testid="button-update-clearance-receipt">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {t('Save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
