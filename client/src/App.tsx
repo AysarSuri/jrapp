@@ -72,8 +72,6 @@ import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
 import BarcodePrintPage from "@/pages/barcode-print";
 import CompanyProfilePage from "@/pages/company-profile";
-import CompanyContactPage from "@/pages/company-contact";
-import CompanyInfoPublicPage from "@/pages/company-info-public";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -105,7 +103,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
-      <Route path="/info" component={CompanyInfoPublicPage} />
       <Route path="/">
         <ProtectedRoute component={Dashboard} />
       </Route>
@@ -297,9 +294,6 @@ function Router() {
       </Route>
       <Route path="/company-profile">
         <ProtectedRoute component={CompanyProfilePage} />
-      </Route>
-      <Route path="/company-contact">
-        <ProtectedRoute component={CompanyContactPage} />
       </Route>
       <Route path="/purchase-return-usd">
         <ProtectedRoute component={PurchaseReturnUsdPage} />

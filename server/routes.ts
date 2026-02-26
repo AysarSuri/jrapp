@@ -122,33 +122,6 @@ export async function registerRoutes(
     next();
   };
 
-  app.get('/api/public/company-info', async (_req, res) => {
-    try {
-      const profile = await storage.getCompanyProfile();
-      if (!profile) {
-        return res.status(404).json({ message: "Company info not found" });
-      }
-      res.json({
-        name: profile.name || "",
-        address: profile.address || "",
-        addressName: profile.addressName || "",
-        mobile1: profile.mobile1 || "",
-        mobile2: profile.mobile2 || "",
-        mobile1Whatsapp: profile.mobile1Whatsapp || "",
-        mobile2Whatsapp: profile.mobile2Whatsapp || "",
-        gpsLocation: profile.gpsLocation || "",
-        facebookLink: profile.facebookLink || "",
-        instagramLink: profile.instagramLink || "",
-        tiktokLink: profile.tiktokLink || "",
-        snapchatLink: profile.snapchatLink || "",
-        businessType: profile.businessType || "",
-        logo: profile.logo || null,
-      });
-    } catch (err) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
   app.get(api.addresses.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getAddresses();
     res.json(data);
