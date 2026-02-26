@@ -130,6 +130,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/bank-receipts",
     "/bank-payments",
     "/bank-statement",
+    "/bank-statement-usd",
+    "/bank-statement-iqd",
   ];
 
   const clearanceSubRoutes = [
@@ -254,7 +256,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/banks", icon: Landmark, label: "Banks" },
     { href: "/bank-receipts", icon: ArrowDownToLine, label: "Bank Receipts" },
     { href: "/bank-payments", icon: ArrowUpFromLine, label: "Bank Payments" },
-    { href: "/bank-statement", icon: FileText, label: "Bank Account Statement" },
+    { href: "/bank-statement-usd", icon: DollarSign, label: "Bank Statement USD" },
+    { href: "/bank-statement-iqd", icon: Banknote, label: "Bank Statement IQD" },
   ];
 
   const clearanceNavItems: NavItem[] = [
