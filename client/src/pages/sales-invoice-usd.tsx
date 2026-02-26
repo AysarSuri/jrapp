@@ -28,6 +28,8 @@ import {
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
+import SalesInvoiceReport from "@/components/sales-invoice-report";
+import { Eye } from "lucide-react";
 
 interface InvoiceItem {
   productId: number | null;
@@ -95,6 +97,8 @@ export default function SalesInvoiceUsdPage() {
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -307,9 +311,7 @@ export default function SalesInvoiceUsdPage() {
                     <TableHead>{t('Total')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
-                    {(userRole === 'admin' || userRole === 'user') && (
-                      <TableHead>{t('Actions')}</TableHead>
-                    )}
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -340,9 +342,18 @@ export default function SalesInvoiceUsdPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      {(userRole === 'admin' || userRole === 'user') && (
-                        <TableCell>
-                          {inv.status === 'pending' && (
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }}
+                            data-testid={`button-view-sales-invoice-${inv.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700"
@@ -354,8 +365,8 @@ export default function SalesInvoiceUsdPage() {
                               {t('Approve')}
                             </Button>
                           )}
-                        </TableCell>
-                      )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -677,6 +688,13 @@ export default function SalesInvoiceUsdPage() {
           </CardContent>
         </Card>
       </div>
+
+      <SalesInvoiceReport
+        invoiceId={reportInvoiceId}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        currency="USD"
+      />
     </div>
   );
 }
