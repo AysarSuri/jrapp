@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette, Navigation, Globe } from "lucide-react";
 import { SiFacebook, SiInstagram, SiTiktok, SiSnapchat } from "react-icons/si";
 import type { CompanyProfile } from "@shared/schema";
@@ -434,15 +438,28 @@ export default function CompanyProfilePage() {
                     className="w-full max-h-48 object-contain rounded-lg border bg-white p-2"
                     data-testid="img-logo"
                   />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => setForm((p) => ({ ...p, logo: null }))}
-                    data-testid="button-remove-logo"
-                  >
-                    <Trash2 />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        data-testid="button-remove-logo"
+                      >
+                        <Trash2 />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('This will remove the logo image.')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel data-testid="button-cancel-remove-logo">{t('No')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => setForm((p) => ({ ...p, logo: null }))} data-testid="button-confirm-remove-logo">{t('Yes')}</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ) : (
                 <div
@@ -486,15 +503,28 @@ export default function CompanyProfilePage() {
                     className="w-full max-h-48 object-contain rounded-lg border bg-white p-2"
                     data-testid="img-stamp"
                   />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => setForm((p) => ({ ...p, stamp: null }))}
-                    data-testid="button-remove-stamp"
-                  >
-                    <Trash2 />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        data-testid="button-remove-stamp"
+                      >
+                        <Trash2 />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('This will remove the stamp image.')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel data-testid="button-cancel-remove-stamp">{t('No')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => setForm((p) => ({ ...p, stamp: null }))} data-testid="button-confirm-remove-stamp">{t('Yes')}</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ) : (
                 <div
@@ -542,15 +572,28 @@ export default function CompanyProfilePage() {
                 style={{ maxHeight: "280px" }}
                 data-testid="img-cliche"
               />
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => setForm((p) => ({ ...p, cliche: null }))}
-                data-testid="button-remove-cliche"
-              >
-                <Trash2 />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    data-testid="button-remove-cliche"
+                  >
+                    <Trash2 />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('This will remove the cliché image.')}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid="button-cancel-remove-cliche">{t('No')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => setForm((p) => ({ ...p, cliche: null }))} data-testid="button-confirm-remove-cliche">{t('Yes')}</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           ) : (
             <div
