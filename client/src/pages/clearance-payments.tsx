@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useClearanceTransactions, useCreateClearanceTransaction } from "@/hooks/use-clearance-transactions";
+import { useClearanceTransactions, useCreateClearanceTransaction, useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
 import { useQuery } from "@tanstack/react-query";
-import type { CustomsClearance } from "@shared/schema";
+import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,19 +16,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowUpFromLine,
+  Eye, Pencil, Trash2, Printer, MessageCircle,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export default function ClearancePaymentsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const printRef = useRef<HTMLDivElement>(null);
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+
+  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null; stamp: string | null; primaryColor: string; secondaryColor: string; mobile1: string }>({
+    queryKey: ["/api/company-profile"],
+  });
   const { data: allTxns, isLoading: txnsLoading } = useClearanceTransactions();
   const { mutate: createTxn, isPending: isSaving } = useCreateClearanceTransaction();
+  const { mutate: updateTxn, isPending: isUpdating } = useUpdateClearanceTransaction();
+  const { mutate: deleteTxn } = useDeleteClearanceTransaction();
 
   const { data: clearancesList } = useQuery<CustomsClearance[]>({
     queryKey: ["/api/customs-clearances"],
@@ -43,6 +60,16 @@ export default function ClearancePaymentsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [viewPayment, setViewPayment] = useState<CustomsClearanceTransaction | null>(null);
+  const [editPayment, setEditPayment] = useState<CustomsClearanceTransaction | null>(null);
+  const [editClearanceId, setEditClearanceId] = useState("");
+  const [editClearanceName, setEditClearanceName] = useState("");
+  const [editAmountUsd, setEditAmountUsd] = useState("");
+  const [editAmountIqd, setEditAmountIqd] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
 
   const clearances = clearancesList || [];
 
@@ -98,8 +125,69 @@ export default function ClearancePaymentsPage() {
     });
   };
 
+  const openEdit = (r: CustomsClearanceTransaction) => {
+    setEditPayment(r);
+    setEditClearanceId(String(r.clearanceId));
+    setEditClearanceName(r.clearanceName);
+    setEditAmountUsd(r.amountUsd);
+    setEditAmountIqd(r.amountIqd);
+    setEditDescription(r.description || "");
+    setEditReference(r.reference || "");
+    setEditDate(r.date);
+    setEditTime(r.time || "00:00");
+  };
+
+  const handleUpdate = () => {
+    if (!editPayment) return;
+    if (!editClearanceId) {
+      toast({ title: t("Please select a clearance"), variant: "destructive" });
+      return;
+    }
+    const usdVal = parseFloat(editAmountUsd || "0");
+    const iqdVal = parseFloat(editAmountIqd || "0");
+    if (usdVal <= 0 && iqdVal <= 0) {
+      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
+      return;
+    }
+
+    updateTxn({ id: editPayment.id, data: {
+      clearanceId: parseInt(editClearanceId),
+      clearanceName: editClearanceName,
+      type: "payment",
+      amountUsd: editAmountUsd || "0",
+      amountIqd: editAmountIqd || "0",
+      description: editDescription || null,
+      reference: editReference || null,
+      date: editDate,
+      time: editTime,
+    }}, {
+      onSuccess: () => {
+        toast({ title: t("Payment updated successfully") });
+        setEditPayment(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update payment"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteTxn(id, {
+      onSuccess: () => {
+        toast({ title: t("Payment deleted successfully") });
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete payment"), variant: "destructive" });
+      },
+    });
+  };
+
   const payments = allTxns?.filter(t => t.type === "payment") || [];
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+  const fmt = (n: number | string) => {
+    const num = typeof n === "string" ? parseFloat(n) : n;
+    return num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  };
 
   return (
     <div className="space-y-6">
@@ -121,7 +209,7 @@ export default function ClearancePaymentsPage() {
                 {t('Payment History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Payment History')}</DialogTitle>
               </DialogHeader>
@@ -139,6 +227,7 @@ export default function ClearancePaymentsPage() {
                       <TableHead>{t('IQD Amount')}</TableHead>
                       <TableHead>{t('Description')}</TableHead>
                       <TableHead>{t('Reference')}</TableHead>
+                      <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -156,11 +245,55 @@ export default function ClearancePaymentsPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.description || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => setViewPayment(p)}
+                              data-testid={`button-view-clearance-payment-${p.id}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                              onClick={() => openEdit(p)}
+                              data-testid={`button-edit-clearance-payment-${p.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  data-testid={`button-delete-clearance-payment-${p.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t('This will permanently delete this payment.')}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(p.id)}>{t('Yes')}</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {payments.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
@@ -320,6 +453,205 @@ export default function ClearancePaymentsPage() {
           </Card>
         </div>
       </div>
+
+      {/* View Payment Dialog - Printable Invoice */}
+      <Dialog open={!!viewPayment} onOpenChange={(open) => { if (!open) setViewPayment(null); }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{t('Clearance Payment')}</span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={async () => {
+                  if (!viewPayment) return;
+                  setSendingWhatsApp(true);
+                  try {
+                    const content = printRef.current;
+                    if (!content) return;
+                    const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    const pdf = new jsPDF("p", "mm", "a4");
+                    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+                    const pdfBlob = pdf.output("blob");
+                    const fileName = `${t("Clearance Payment")}_${viewPayment.clearanceName}_${viewPayment.date}.pdf`;
+                    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+                    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                      await navigator.share({ title: fileName, files: [file] });
+                    } else {
+                      const url = URL.createObjectURL(pdfBlob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = fileName; a.click();
+                      URL.revokeObjectURL(url);
+                      const text = encodeURIComponent(`${t("Clearance Payment")}\n${t("Customs Clearance")}: ${viewPayment.clearanceName}\n${t("Date")}: ${viewPayment.date}\n${parseFloat(viewPayment.amountUsd) > 0 ? t("USD Amount") + ": $" + fmt(viewPayment.amountUsd) : ""}${parseFloat(viewPayment.amountIqd) > 0 ? "\n" + t("IQD Amount") + ": " + fmt(viewPayment.amountIqd) + " IQD" : ""}`);
+                      window.open(`https://wa.me/?text=${text}`, "_blank");
+                    }
+                  } finally { setSendingWhatsApp(false); }
+                }} disabled={sendingWhatsApp} data-testid="button-whatsapp-clearance-payment" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                  {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                  {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const content = printRef.current;
+                  if (!content) return;
+                  const printWindow = window.open("", "_blank", "width=794,height=1123");
+                  if (!printWindow) return;
+                  const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: "#1e293b", accentTextColor: "#ffffff" });
+                  printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head><meta charset="UTF-8" /><title>${t("Clearance Payment")}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
+                  printWindow.document.close();
+                  setTimeout(() => { printWindow.print(); }, 300);
+                }} data-testid="button-print-clearance-payment">
+                  <Printer className="w-4 h-4 mr-1" />
+                  {t("Print")}
+                </Button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          {viewPayment && (
+            <div ref={printRef} style={{ fontFamily: "Arial, sans-serif", padding: 15 }}>
+              {companyProfile?.cliche && (
+                <div style={{ textAlign: "center", marginBottom: 10 }}>
+                  <img src={companyProfile.cliche} alt={companyProfile?.name || ""} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                </div>
+              )}
+              <div style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
+                <h1 style={{ fontSize: "18pt", marginBottom: 3, fontWeight: 700 }}>{t("Clearance Payment")}</h1>
+                <p style={{ fontSize: "12pt", color: "#666" }}>
+                  {t("Date")}: {formatDate(viewPayment.date)} | {t("Time")}: {viewPayment.time || "-"}
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 15, fontSize: "12pt" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Customs Clearance")}:</span>
+                  <span style={{ fontWeight: 600, flex: 1, textAlign: "center" }}>{viewPayment.clearanceName}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Type")}:</span>
+                  <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{t("Payment")}</span>
+                </div>
+                {viewPayment.reference && (
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Reference")}:</span>
+                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewPayment.reference}</span>
+                  </div>
+                )}
+                {viewPayment.description && (
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Description")}:</span>
+                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewPayment.description}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginBottom: 15 }}>
+                {parseFloat(viewPayment.amountUsd) > 0 && (
+                  <div style={{ border: "2px solid #dc2626", borderRadius: 6, padding: 15, textAlign: "center" }}>
+                    <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>
+                    <p style={{ fontSize: "22pt", fontWeight: 700, color: "#dc2626", fontFamily: "monospace" }}>${fmt(viewPayment.amountUsd)}</p>
+                  </div>
+                )}
+                {parseFloat(viewPayment.amountIqd) > 0 && (
+                  <div style={{ border: "2px solid #ea580c", borderRadius: 6, padding: 15, textAlign: "center" }}>
+                    <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("IQD Amount")}</p>
+                    <p style={{ fontSize: "22pt", fontWeight: 700, color: "#ea580c", fontFamily: "monospace" }}>{fmt(viewPayment.amountIqd)} IQD</p>
+                  </div>
+                )}
+              </div>
+
+              {companyProfile?.stamp && (
+                <div style={{ textAlign: "center", marginTop: 15 }}>
+                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxHeight: 120, opacity: 0.8 }} />
+                </div>
+              )}
+
+              <div style={{ marginTop: 30, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
+                <div style={{ textAlign: "center", width: 200 }}>
+                  <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Recipient Signature")}</div>
+                </div>
+                <div style={{ textAlign: "center", width: 200 }}>
+                  <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={!!editPayment} onOpenChange={(open) => { if (!open) setEditPayment(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-orange-600" />
+              {t('Edit Payment')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Customs Clearance')}</Label>
+                <Select value={editClearanceId} onValueChange={(v) => {
+                  setEditClearanceId(v);
+                  const c = clearances.find(b => b.id === parseInt(v));
+                  if (c) setEditClearanceName(c.name);
+                }}>
+                  <SelectTrigger data-testid="select-edit-clearance-payment">
+                    <SelectValue placeholder={t('Select clearance...')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clearances.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-clearance-payment-date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Time')}</Label>
+              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-clearance-payment-time" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-blue-600">{t('USD Amount')}</Label>
+                <Input
+                  type="number" step="0.01" min="0" placeholder="0.00"
+                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-clearance-payment-usd"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-orange-600">{t('IQD Amount')}</Label>
+                <Input
+                  type="number" step="250" min="0" placeholder="0"
+                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-clearance-payment-iqd"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-clearance-payment-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Description')}</Label>
+              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-clearance-payment-description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPayment(null)}>{t('Cancel')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-clearance-payment">
+              {isUpdating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {t('Update')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
