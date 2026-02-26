@@ -1295,6 +1295,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/bank-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { bankId, bankName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(bankTransactions).set({
+        bankId, bankName, type, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(bankTransactions.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Transaction not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/bank-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(bankTransactions).where(eq(bankTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/bank-statement/:id', requireAuth, async (req, res) => {
     try {
       const bankId = parseInt(req.params.id as string);

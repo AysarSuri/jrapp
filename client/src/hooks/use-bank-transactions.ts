@@ -20,3 +20,29 @@ export function useCreateBankTransaction() {
     },
   });
 }
+
+export function useUpdateBankTransaction() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertBankTransaction> }) => {
+      const res = await apiRequest("PATCH", `/api/bank-transactions/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bank-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/banks"] });
+    },
+  });
+}
+
+export function useDeleteBankTransaction() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/bank-transactions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bank-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/banks"] });
+    },
+  });
+}
