@@ -50,8 +50,7 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        const jsonStr = JSON.stringify(capturedJsonResponse);
-        logLine += ` :: ${jsonStr.length > 500 ? jsonStr.substring(0, 500) + "...[truncated]" : jsonStr}`;
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
       log(logLine);
@@ -91,10 +90,6 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  process.on('SIGHUP', () => {
-    log('Received SIGHUP, ignoring...');
-  });
-
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
