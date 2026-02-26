@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
+process.on('SIGHUP', () => {});
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -50,7 +52,8 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        const responseStr = JSON.stringify(capturedJsonResponse);
+        logLine += ` :: ${responseStr.length > 500 ? responseStr.substring(0, 500) + '...[truncated]' : responseStr}`;
       }
 
       log(logLine);
