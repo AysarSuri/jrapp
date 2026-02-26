@@ -80,6 +80,7 @@ export const products = pgTable("products", {
   bigUnit: text("big_unit").notNull(), // e.g. Box
   smallUnit: text("small_unit").notNull(), // e.g. Piece
   conversionFactor: integer("conversion_factor").notNull(), // e.g. 24
+  image: text("image"),
 });
 
 export const inventory = pgTable("inventory", {

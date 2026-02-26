@@ -31,7 +31,7 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,7 @@ const defaultValues: FormValues = {
   smallUnitPriceUsd: "0",
   smallUnitPriceIqd: "0",
   minStock: 0,
+  image: null,
 };
 
 function ProductForm({
@@ -73,6 +74,7 @@ function ProductForm({
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   return (
     <Form {...form}>
@@ -293,6 +295,59 @@ function ProductForm({
           )}
         />
 
+        <div className="space-y-1.5">
+          <FormLabel className="flex items-center gap-1.5">
+            <ImageIcon className="w-3.5 h-3.5" />
+            {t('Product Image')}
+          </FormLabel>
+          {form.watch("image") ? (
+            <div className="relative group">
+              <img
+                src={form.watch("image")!}
+                alt={t('Product Image')}
+                className="w-full max-h-40 object-contain rounded-lg border bg-white p-2"
+                data-testid="img-product-image"
+              />
+              <Button
+                variant="destructive"
+                size="icon"
+                type="button"
+                className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => form.setValue("image", null)}
+                data-testid="button-remove-product-image"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <div
+              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  if (file.size > 2 * 1024 * 1024) {
+                    toast({ title: t("Image size must be less than 2MB"), variant: "destructive" });
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => form.setValue("image", reader.result as string);
+                  reader.readAsDataURL(file);
+                };
+                input.click();
+              }}
+              data-testid="upload-product-image-area"
+            >
+              <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+              <span className="text-xs text-muted-foreground">{t('Click to upload product image')}</span>
+              <span className="text-xs text-muted-foreground">{t('Max 2MB')}</span>
+            </div>
+          )}
+        </div>
+
         <DialogFooter className="pt-4">
           <Button variant="outline" type="button" onClick={onCancel} data-testid="button-cancel-product">
             {t('Cancel')}
@@ -370,6 +425,7 @@ export default function ProductsPage() {
       smallUnitPriceUsd: product.smallUnitPriceUsd,
       smallUnitPriceIqd: product.smallUnitPriceIqd,
       minStock: product.minStock,
+      image: product.image || null,
     });
     setEditProduct(product);
   };
