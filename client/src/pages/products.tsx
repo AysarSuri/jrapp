@@ -308,16 +308,29 @@ function ProductForm({
                 className="w-full max-h-40 object-contain rounded-lg border bg-white p-2"
                 data-testid="img-product-image"
               />
-              <Button
-                variant="destructive"
-                size="icon"
-                type="button"
-                className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => form.setValue("image", null)}
-                data-testid="button-remove-product-image"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    type="button"
+                    className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    data-testid="button-remove-product-image"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('This will remove the product image.')}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => form.setValue("image", null)}>{t('Yes')}</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           ) : (
             <div
