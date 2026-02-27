@@ -1441,9 +1441,11 @@ export async function registerRoutes(
 
       const txns = await storage.getCustomsClearanceTransactionsByClearanceId(clearanceId);
 
-      const invoicesWithCustoms = await db.select().from(purchaseInvoices).where(
-        sql`${purchaseInvoices.customsClearance} = ${clearance.name} AND CAST(${purchaseInvoices.customsExpense} AS numeric) > 0`
-      );
+      const allClearanceInvoices = await db.select().from(purchaseInvoices).where(
+        sql`${purchaseInvoices.customsClearance} = ${clearance.name}`
+      ).orderBy(purchaseInvoices.date);
+
+      const invoicesWithCustoms = allClearanceInvoices.filter(inv => parseFloat(inv.customsExpense || "0") > 0);
 
       const txnEntries = txns.map((t) => {
         const usdAmt = parseFloat(t.amountUsd || "0");
@@ -1487,7 +1489,30 @@ export async function registerRoutes(
         return a.time.localeCompare(b.time);
       });
 
-      res.json({ clearance, entries: allEntries });
+      const vehicles = allClearanceInvoices.map(inv => {
+        const subtotal = parseFloat(inv.subtotal || "0");
+        const totalExpenses = parseFloat(inv.totalExpenses || "0");
+        const discount = parseFloat(inv.discount || "0");
+        const invoiceAmount = subtotal + totalExpenses - discount;
+        return {
+          invoiceId: inv.id,
+          invoiceNumber: inv.invoiceNumber,
+          date: inv.date,
+          currency: inv.currency,
+          supplierName: inv.supplierName || "",
+          carNumber: inv.carNumber || "",
+          manifest: inv.manifest || "",
+          driverName: inv.driverName || "",
+          driverMobile: inv.driverMobile || "",
+          customsExpense: parseFloat(inv.customsExpense || "0"),
+          carExpense: parseFloat(inv.carExpense || "0"),
+          invoiceAmount,
+          amountPaid: parseFloat(inv.amountPaid || "0"),
+          remaining: parseFloat(inv.remaining || "0"),
+        };
+      });
+
+      res.json({ clearance, entries: allEntries, vehicles });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
