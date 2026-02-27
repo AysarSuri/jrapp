@@ -137,7 +137,9 @@ export default function ClearanceStatementIqdPage() {
     return { ...entry, balance: runIqd };
   });
 
-  const totalDebitIqd = iqdEntries.reduce((s, e) => s + e.debitIqd, 0);
+  const totalCustomsFeeIqd = iqdEntries.filter(e => e.source === "invoice").reduce((s, e) => s + e.debitIqd, 0);
+  const totalReceiptsIqd = iqdEntries.filter(e => e.source !== "invoice" && e.type === "receipt").reduce((s, e) => s + e.debitIqd, 0);
+  const totalDebitIqd = totalCustomsFeeIqd + totalReceiptsIqd;
   const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
   const finalBalanceIqd = openingIqd + totalDebitIqd - totalCreditIqd;
 
@@ -290,17 +292,23 @@ export default function ClearanceStatementIqdPage() {
 
       {selectedClearanceId && statement && !statementLoading && (
         <>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+          <div className="grid gap-4 sm:grid-cols-5">
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance')}</p>
-                <p className="font-mono font-bold text-amber-800 dark:text-amber-300" data-testid="text-iqd-opening">{formatIQD(openingIqd)}</p>
+                <p className="text-xs text-purple-700 dark:text-purple-400 mb-1">{t('Customs Fee')}</p>
+                <p className="font-mono font-bold text-purple-800 dark:text-purple-300" data-testid="text-iqd-customs-fee">{formatIQD(totalCustomsFeeIqd)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Receipts')}</p>
-                <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-iqd-total-debit">{formatIQD(totalDebitIqd)}</p>
+                <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Receipts from Clearance')}</p>
+                <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-iqd-total-receipts">{formatIQD(totalReceiptsIqd)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Old Debt')}</p>
+                <p className="font-mono font-bold text-amber-800 dark:text-amber-300" data-testid="text-iqd-opening">{formatIQD(openingIqd)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
