@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import type { CustomsClearance } from "@shared/schema";
-import { formatDate } from "@/lib/format-utils";
+import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
+import { usd, formatDate } from "@/lib/format-utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { playDeleteSound } from "@/lib/sounds";
+import { getModernPrintStyles } from "@/lib/print-styles";
+import { useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -11,7 +19,22 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Loader2, DollarSign, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Banknote,
+} from "lucide-react";
+import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 
 interface StatementEntry {
   id: number;
@@ -33,12 +56,37 @@ interface StatementResponse {
 }
 
 export default function ClearanceStatementUsdPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const printRef = useRef<HTMLDivElement>(null);
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+
   const [selectedClearanceId, setSelectedClearanceId] = useState<string>("");
+  const [viewEntry, setViewEntry] = useState<(StatementEntry & { balance: number }) | null>(null);
+  const [editEntry, setEditEntry] = useState<StatementEntry | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<StatementEntry | null>(null);
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+
+  const [editAmountUsd, setEditAmountUsd] = useState("");
+  const [editAmountIqd, setEditAmountIqd] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null; stamp: string | null; primaryColor: string; secondaryColor: string }>({
+    queryKey: ["/api/company-profile"],
+  });
 
   const { data: clearancesList } = useQuery<CustomsClearance[]>({
     queryKey: ["/api/customs-clearances"],
   });
+
+  const { mutate: updateTxn, isPending: isUpdating } = useUpdateClearanceTransaction();
+  const { mutate: deleteTxn } = useDeleteClearanceTransaction();
 
   const clearances = clearancesList || [];
 
@@ -63,11 +111,91 @@ export default function ClearanceStatementUsdPage() {
   const finalBalanceUsd = openingUsd + totalDebitUsd - totalCreditUsd;
 
   const fmtUsd = (val: number) => "$" + val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (val: string | number) => {
+    const n = typeof val === "string" ? parseFloat(val) : val;
+    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
 
   const typeBadge = (type: string, source: string) => {
     if (source === "invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs Fee')}</Badge>;
     if (type === "receipt") return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Receipt')}</Badge>;
     return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Payment')}</Badge>;
+  };
+
+  const handleViewClick = (entry: StatementEntry & { balance: number }) => {
+    if (entry.source === "invoice") {
+      setReportInvoiceId(entry.id);
+      setReportOpen(true);
+    } else {
+      setViewEntry(entry);
+    }
+  };
+
+  const handleEditClick = (entry: StatementEntry) => {
+    if (entry.source === "invoice") {
+      navigate(`/purchase-invoice-usd?edit=${entry.id}`);
+    } else {
+      setEditEntry(entry);
+      setEditAmountUsd(String(entry.type === "receipt" ? entry.debitUsd : entry.creditUsd));
+      setEditAmountIqd(String(entry.type === "receipt" ? entry.debitIqd : entry.creditIqd));
+      setEditDescription(entry.description || "");
+      setEditReference(entry.reference || "");
+      setEditDate(entry.date);
+      setEditTime(entry.time || "");
+    }
+  };
+
+  const handleUpdate = () => {
+    if (!editEntry) return;
+    updateTxn({
+      id: editEntry.id,
+      data: {
+        amountUsd: editAmountUsd,
+        amountIqd: editAmountIqd,
+        description: editDescription,
+        reference: editReference,
+        date: editDate,
+        time: editTime,
+      },
+    }, {
+      onSuccess: () => {
+        toast({ title: t("Updated successfully") });
+        setEditEntry(null);
+        queryClient.invalidateQueries({ queryKey: ["/api/clearance-statement", selectedClearanceId] });
+      },
+      onError: () => {
+        toast({ title: t("Error"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEntry) return;
+    try {
+      if (deleteEntry.source === "invoice") {
+        await apiRequest("DELETE", `/api/purchase-invoices/${deleteEntry.id}`);
+        queryClient.invalidateQueries({ queryKey: ["/api/clearance-statement", selectedClearanceId] });
+        toast({ title: t("Deleted successfully") });
+        playDeleteSound();
+        setDeleteEntry(null);
+      } else {
+        deleteTxn(deleteEntry.id, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/clearance-statement", selectedClearanceId] });
+            toast({ title: t("Deleted successfully") });
+            playDeleteSound();
+            setDeleteEntry(null);
+          },
+          onError: () => {
+            toast({ title: t("Error"), variant: "destructive" });
+            setDeleteEntry(null);
+          },
+        });
+      }
+    } catch {
+      toast({ title: t("Error"), variant: "destructive" });
+      setDeleteEntry(null);
+    }
   };
 
   return (
@@ -150,6 +278,7 @@ export default function ClearanceStatementUsdPage() {
                     <TableHead className="text-green-700 dark:text-green-400">{t('Debit')}</TableHead>
                     <TableHead className="text-red-700 dark:text-red-400">{t('Credit')}</TableHead>
                     <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -159,6 +288,7 @@ export default function ClearanceStatementUsdPage() {
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                     <TableCell className="font-mono text-sm text-blue-600 font-bold">{fmtUsd(openingUsd)}</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
                   {usdWithBalance.map((entry, i) => (
                     <TableRow key={`usd-${entry.source}-${entry.id}`} data-testid={`row-usd-statement-${entry.id}`}>
@@ -176,11 +306,24 @@ export default function ClearanceStatementUsdPage() {
                       <TableCell className="font-mono text-sm font-medium text-blue-600">
                         {fmtUsd(entry.balance)}
                       </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 justify-center">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleViewClick(entry)} data-testid={`btn-view-${entry.source}-${entry.id}`}>
+                            <Eye className="h-3.5 w-3.5 text-blue-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(entry)} data-testid={`btn-edit-${entry.source}-${entry.id}`}>
+                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteEntry(entry)} data-testid={`btn-delete-${entry.source}-${entry.id}`}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {usdEntries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                         {t('No transactions found')}
                       </TableCell>
                     </TableRow>
@@ -191,6 +334,7 @@ export default function ClearanceStatementUsdPage() {
                       <TableCell className="font-mono text-green-700">{fmtUsd(totalDebitUsd)}</TableCell>
                       <TableCell className="font-mono text-red-700">{fmtUsd(totalCreditUsd)}</TableCell>
                       <TableCell className="font-mono text-blue-700">{fmtUsd(finalBalanceUsd)}</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -199,6 +343,202 @@ export default function ClearanceStatementUsdPage() {
           </Card>
         </>
       )}
+
+      <Dialog open={!!viewEntry} onOpenChange={(open) => { if (!open) setViewEntry(null); }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{viewEntry?.type === "receipt" ? t('Clearance Receipt') : t('Clearance Payment')}</span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={async () => {
+                  if (!viewEntry) return;
+                  setSendingWhatsApp(true);
+                  try {
+                    const content = printRef.current;
+                    if (!content) return;
+                    const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    const pdf = new jsPDF("p", "mm", "a4");
+                    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+                    const pdfBlob = pdf.output("blob");
+                    const title = viewEntry.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
+                    const fileName = `${title}_${statement?.clearance?.name}_${viewEntry.date}.pdf`;
+                    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+                    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                      await navigator.share({ title: fileName, files: [file] });
+                    } else {
+                      const url = URL.createObjectURL(pdfBlob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = fileName; a.click();
+                      URL.revokeObjectURL(url);
+                      const text = encodeURIComponent(`${title}\n${t("Customs Clearance")}: ${statement?.clearance?.name}\n${t("Date")}: ${viewEntry.date}\n${viewEntry.debitUsd > 0 ? t("USD Amount") + ": $" + fmt(viewEntry.debitUsd) : ""}${viewEntry.creditUsd > 0 ? t("USD Amount") + ": $" + fmt(viewEntry.creditUsd) : ""}`);
+                      window.open(`https://wa.me/?text=${text}`, "_blank");
+                    }
+                  } finally { setSendingWhatsApp(false); }
+                }} disabled={sendingWhatsApp} data-testid="button-whatsapp-statement" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
+                  {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                  {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const content = printRef.current;
+                  if (!content) return;
+                  const printWindow = window.open("", "_blank", "width=794,height=1123");
+                  if (!printWindow) return;
+                  const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: viewEntry?.type === "receipt" ? "#1e293b" : "#dc2626", accentTextColor: "#ffffff" });
+                  const title = viewEntry?.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
+                  printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head><meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
+                  printWindow.document.close();
+                  setTimeout(() => { printWindow.print(); }, 300);
+                }} data-testid="button-print-statement">
+                  <Printer className="w-4 h-4 mr-1" />
+                  {t("Print")}
+                </Button>
+              </div>
+            </DialogTitle>
+            <DialogDescription>{viewEntry?.description}</DialogDescription>
+          </DialogHeader>
+          {viewEntry && (
+            <div ref={printRef} style={{ fontFamily: "Arial, sans-serif", padding: 15 }}>
+              {companyProfile?.cliche && (
+                <div style={{ textAlign: "center", marginBottom: 10 }}>
+                  <img src={companyProfile.cliche} alt={companyProfile?.name || ""} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                </div>
+              )}
+              <div style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${viewEntry.type === "receipt" ? "#333" : "#dc2626"}`, paddingBottom: 10 }}>
+                <h1 style={{ fontSize: "18pt", marginBottom: 3, fontWeight: 700, color: viewEntry.type === "payment" ? "#dc2626" : "#333" }}>
+                  {viewEntry.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment")}
+                </h1>
+                <p style={{ fontSize: "12pt", color: "#666" }}>
+                  {t("Date")}: {formatDate(viewEntry.date)} | {t("Time")}: {viewEntry.time || "-"}
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 15, fontSize: "12pt" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Customs Clearance")}:</span>
+                  <span style={{ fontWeight: 600, flex: 1, textAlign: "center" }}>{statement?.clearance?.name}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Type")}:</span>
+                  <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.type === "receipt" ? t("Receipt") : t("Payment")}</span>
+                </div>
+                {viewEntry.reference && (
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Reference")}:</span>
+                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.reference}</span>
+                  </div>
+                )}
+                {viewEntry.description && (
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Description")}:</span>
+                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.description}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 15, marginBottom: 15 }}>
+                {(viewEntry.debitUsd > 0 || viewEntry.creditUsd > 0) && (
+                  <div style={{ border: `2px solid ${viewEntry.type === "receipt" ? "#2563eb" : "#dc2626"}`, borderRadius: 6, padding: 15, textAlign: "center" }}>
+                    <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>
+                    <p style={{ fontSize: "22pt", fontWeight: 700, color: viewEntry.type === "receipt" ? "#2563eb" : "#dc2626", fontFamily: "monospace" }}>
+                      ${fmt(viewEntry.debitUsd > 0 ? viewEntry.debitUsd : viewEntry.creditUsd)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {companyProfile?.stamp && (
+                <div style={{ textAlign: "center", marginTop: 15 }}>
+                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxHeight: 120, opacity: 0.8 }} />
+                </div>
+              )}
+
+              <div style={{ marginTop: 30, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
+                <div style={{ textAlign: "center", width: 200 }}>
+                  <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Recipient Signature")}</div>
+                </div>
+                <div style={{ textAlign: "center", width: 200 }}>
+                  <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editEntry} onOpenChange={(open) => { if (!open) setEditEntry(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-orange-600" />
+              {editEntry?.type === "receipt" ? t('Edit Receipt') : t('Edit Payment')}
+            </DialogTitle>
+            <DialogDescription>{editEntry?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-statement-date" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-statement-time" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-blue-600">{t('USD Amount')}</Label>
+                <Input type="number" step="0.01" min="0" placeholder="0.00" value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)} className="font-mono" data-testid="input-edit-statement-usd" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-orange-600">{t('IQD Amount')}</Label>
+                <Input type="number" step="250" min="0" placeholder="0" value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)} className="font-mono" data-testid="input-edit-statement-iqd" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-statement-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Description')}</Label>
+              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-statement-description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditEntry(null)}>{t('Cancel')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700" data-testid="button-update-statement">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {t('Save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteEntry} onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Delete Confirmation")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Are you sure you want to delete this record?")} ({deleteEntry?.description || "-"})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-statement">
+              {t("Delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <PurchaseInvoiceReport
+        invoiceId={reportInvoiceId}
+        open={reportOpen}
+        onOpenChange={(open) => { setReportOpen(open); if (!open) setReportInvoiceId(null); }}
+        currency="USD"
+      />
     </div>
   );
 }
