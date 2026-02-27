@@ -273,11 +273,11 @@ export default function ClearanceStatementUsdPage() {
             <div className="flex items-end gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t('From Date')}</label>
-                <DateInput value={dateFrom} onChange={setDateFrom} data-testid="input-date-from-usd" />
+                <DateInput value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} data-testid="input-date-from-usd" />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t('To Date')}</label>
-                <DateInput value={dateTo} onChange={setDateTo} data-testid="input-date-to-usd" />
+                <DateInput value={dateTo} onChange={(e) => setDateTo(e.target.value)} data-testid="input-date-to-usd" />
               </div>
             </div>
           </div>

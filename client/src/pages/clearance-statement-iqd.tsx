@@ -273,11 +273,11 @@ export default function ClearanceStatementIqdPage() {
             <div className="flex items-end gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t('From Date')}</label>
-                <DateInput value={dateFrom} onChange={setDateFrom} data-testid="input-date-from-iqd" />
+                <DateInput value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} data-testid="input-date-from-iqd" />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{t('To Date')}</label>
-                <DateInput value={dateTo} onChange={setDateTo} data-testid="input-date-to-iqd" />
+                <DateInput value={dateTo} onChange={(e) => setDateTo(e.target.value)} data-testid="input-date-to-iqd" />
               </div>
             </div>
           </div>
