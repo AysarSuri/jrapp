@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { CustomsClearance } from "@shared/schema";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, DollarSign, Banknote } from "lucide-react";
 
 interface StatementEntry {
   id: number;
   date: string;
   time: string;
   type: string;
+  source: string;
   description: string | null;
   reference: string | null;
   debitUsd: number;
@@ -42,30 +43,43 @@ export default function ClearanceStatementPage() {
   const clearances = clearancesList || [];
 
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
-    queryKey: [`/api/clearance-statement/${selectedClearanceId}`],
+    queryKey: ["/api/clearance-statement", selectedClearanceId],
     enabled: !!selectedClearanceId,
   });
 
   const entries = statement?.entries || [];
 
-  let runningUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0");
-  let runningIqd = parseFloat(statement?.clearance?.oldDebtIqd || "0");
-  const entriesWithBalance = entries.map((entry) => {
-    runningUsd += entry.debitUsd - entry.creditUsd;
-    runningIqd += entry.debitIqd - entry.creditIqd;
-    return { ...entry, balanceUsd: runningUsd, balanceIqd: runningIqd };
+  const usdEntries = entries.filter(e => e.debitUsd > 0 || e.creditUsd > 0);
+  const iqdEntries = entries.filter(e => e.debitIqd > 0 || e.creditIqd > 0);
+
+  const openingUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0");
+  const openingIqd = parseFloat(statement?.clearance?.oldDebtIqd || "0");
+
+  let runUsd = openingUsd;
+  const usdWithBalance = usdEntries.map((entry) => {
+    runUsd += entry.debitUsd - entry.creditUsd;
+    return { ...entry, balance: runUsd };
   });
 
-  const totalDebitUsd = entries.reduce((s, e) => s + e.debitUsd, 0);
-  const totalDebitIqd = entries.reduce((s, e) => s + e.debitIqd, 0);
-  const totalCreditUsd = entries.reduce((s, e) => s + e.creditUsd, 0);
-  const totalCreditIqd = entries.reduce((s, e) => s + e.creditIqd, 0);
-  const finalBalanceUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0") + totalDebitUsd - totalCreditUsd;
-  const finalBalanceIqd = parseFloat(statement?.clearance?.oldDebtIqd || "0") + totalDebitIqd - totalCreditIqd;
+  let runIqd = openingIqd;
+  const iqdWithBalance = iqdEntries.map((entry) => {
+    runIqd += entry.debitIqd - entry.creditIqd;
+    return { ...entry, balance: runIqd };
+  });
+
+  const totalDebitUsd = usdEntries.reduce((s, e) => s + e.debitUsd, 0);
+  const totalCreditUsd = usdEntries.reduce((s, e) => s + e.creditUsd, 0);
+  const finalBalanceUsd = openingUsd + totalDebitUsd - totalCreditUsd;
+
+  const totalDebitIqd = iqdEntries.reduce((s, e) => s + e.debitIqd, 0);
+  const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
+  const finalBalanceIqd = openingIqd + totalDebitIqd - totalCreditIqd;
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+  const fmtUsd = (val: number) => "$" + val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const typeBadge = (type: string) => {
+  const typeBadge = (type: string, source: string) => {
+    if (source === "invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs Fee')}</Badge>;
     if (type === "receipt") return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Receipt')}</Badge>;
     return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Payment')}</Badge>;
   };
@@ -109,117 +123,195 @@ export default function ClearanceStatementPage() {
       )}
 
       {selectedClearanceId && statement && !statementLoading && (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance (Opening Balance)')}</p>
-                <p className="font-mono font-bold text-amber-800 dark:text-amber-300">{usd(statement.clearance.oldDebtUsd)}</p>
-                <p className="font-mono text-sm text-amber-600 dark:text-amber-500">{formatIQD(parseFloat(statement.clearance.oldDebtIqd))}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Receipts')}</p>
-                <p className="font-mono font-bold text-green-800 dark:text-green-300">{usd(totalDebitUsd)}</p>
-                <p className="font-mono text-sm text-green-600 dark:text-green-500">{formatIQD(totalDebitIqd)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Payments')}</p>
-                <p className="font-mono font-bold text-red-800 dark:text-red-300">{usd(totalCreditUsd)}</p>
-                <p className="font-mono text-sm text-red-600 dark:text-red-500">{formatIQD(totalCreditIqd)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-blue-800 dark:text-blue-300">{usd(finalBalanceUsd)}</p>
-                <p className="font-mono text-sm text-blue-600 dark:text-blue-500">{formatIQD(finalBalanceIqd)}</p>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* USD Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-6 w-6 text-blue-600" />
+              <h2 className="text-xl font-bold text-blue-700 dark:text-blue-400">{t('USD Statement')}</h2>
+            </div>
+
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 mb-0.5">{t('Opening Balance')}</p>
+                  <p className="font-mono font-bold text-sm text-amber-800 dark:text-amber-300" data-testid="text-usd-opening">{fmtUsd(openingUsd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-green-700 dark:text-green-400 mb-0.5">{t('Total Receipts')}</p>
+                  <p className="font-mono font-bold text-sm text-green-800 dark:text-green-300" data-testid="text-usd-total-debit">{fmtUsd(totalDebitUsd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-red-700 dark:text-red-400 mb-0.5">{t('Total Payments')}</p>
+                  <p className="font-mono font-bold text-sm text-red-800 dark:text-red-300" data-testid="text-usd-total-credit">{fmtUsd(totalCreditUsd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-blue-700 dark:text-blue-400 mb-0.5">{t('Final Balance')}</p>
+                  <p className="font-mono font-bold text-sm text-blue-800 dark:text-blue-300" data-testid="text-usd-final-balance">{fmtUsd(finalBalanceUsd)}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-blue-200 dark:border-blue-900 shadow-sm">
+              <CardContent className="pt-4 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-50/50 dark:bg-blue-950/20">
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Type')}</TableHead>
+                      <TableHead>{t('Description')}</TableHead>
+                      <TableHead className="text-green-700 dark:text-green-400">{t('Debit')}</TableHead>
+                      <TableHead className="text-red-700 dark:text-red-400">{t('Credit')}</TableHead>
+                      <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
+                      <TableCell colSpan={4} className="text-amber-700 dark:text-amber-400 text-sm">
+                        {t('Opening Balance')}
+                      </TableCell>
+                      <TableCell colSpan={2}></TableCell>
+                      <TableCell className="font-mono text-sm text-blue-600 font-bold">{fmtUsd(openingUsd)}</TableCell>
+                    </TableRow>
+                    {usdWithBalance.map((entry, i) => (
+                      <TableRow key={`usd-${entry.source}-${entry.id}`} data-testid={`row-usd-statement-${entry.id}`}>
+                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                        <TableCell className="font-mono text-xs">{formatDate(entry.date)}</TableCell>
+                        <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
+                        <TableCell className="text-xs max-w-[150px] truncate">{entry.description || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm text-green-600">
+                          {entry.debitUsd > 0 ? fmtUsd(entry.debitUsd) : ""}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {entry.creditUsd > 0 ? fmtUsd(entry.creditUsd) : ""}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm font-medium text-blue-600">
+                          {fmtUsd(entry.balance)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {usdEntries.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-6 text-sm">
+                          {t('No transactions found')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {usdEntries.length > 0 && (
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell colSpan={4} className="text-end text-sm">{t('Total')}</TableCell>
+                        <TableCell className="font-mono text-green-700 text-sm">{fmtUsd(totalDebitUsd)}</TableCell>
+                        <TableCell className="font-mono text-red-700 text-sm">{fmtUsd(totalCreditUsd)}</TableCell>
+                        <TableCell className="font-mono text-blue-700 text-sm">{fmtUsd(finalBalanceUsd)}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="border-border/50 shadow-sm">
-            <CardContent className="pt-6 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Time')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Description')}</TableHead>
-                    <TableHead>{t('Reference')}</TableHead>
-                    <TableHead className="text-green-700 dark:text-green-400">{t('Debit USD')}</TableHead>
-                    <TableHead className="text-green-700 dark:text-green-400">{t('Debit IQD')}</TableHead>
-                    <TableHead className="text-red-700 dark:text-red-400">{t('Credit USD')}</TableHead>
-                    <TableHead className="text-red-700 dark:text-red-400">{t('Credit IQD')}</TableHead>
-                    <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance USD')}</TableHead>
-                    <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance IQD')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
-                    <TableCell colSpan={6} className="text-amber-700 dark:text-amber-400">
-                      {t('Opening Balance (Opening Balance)')}
-                    </TableCell>
-                    <TableCell colSpan={4}></TableCell>
-                    <TableCell className="font-mono text-blue-600">{usd(statement.clearance.oldDebtUsd)}</TableCell>
-                    <TableCell className="font-mono text-blue-600">{formatIQD(parseFloat(statement.clearance.oldDebtIqd))}</TableCell>
-                  </TableRow>
-                  {entriesWithBalance.map((entry, i) => (
-                    <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-clearance-statement-${entry.id}`}>
-                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{entry.date}</TableCell>
-                      <TableCell className="font-mono text-sm">{entry.time}</TableCell>
-                      <TableCell>{typeBadge(entry.type)}</TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm text-green-600">
-                        {entry.debitUsd > 0 ? usd(entry.debitUsd) : ""}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-green-600">
-                        {entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {entry.creditUsd > 0 ? usd(entry.creditUsd) : ""}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm font-medium text-blue-600">
-                        {usd(entry.balanceUsd)}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm font-medium text-blue-600">
-                        {formatIQD(entry.balanceIqd)}
-                      </TableCell>
+          {/* IQD Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Banknote className="h-6 w-6 text-orange-600" />
+              <h2 className="text-xl font-bold text-orange-700 dark:text-orange-400">{t('IQD Statement')}</h2>
+            </div>
+
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 mb-0.5">{t('Opening Balance')}</p>
+                  <p className="font-mono font-bold text-sm text-amber-800 dark:text-amber-300" data-testid="text-iqd-opening">{formatIQD(openingIqd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-green-700 dark:text-green-400 mb-0.5">{t('Total Receipts')}</p>
+                  <p className="font-mono font-bold text-sm text-green-800 dark:text-green-300" data-testid="text-iqd-total-debit">{formatIQD(totalDebitIqd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-red-700 dark:text-red-400 mb-0.5">{t('Total Payments')}</p>
+                  <p className="font-mono font-bold text-sm text-red-800 dark:text-red-300" data-testid="text-iqd-total-credit">{formatIQD(totalCreditIqd)}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="pt-3 pb-2 px-3">
+                  <p className="text-[10px] text-blue-700 dark:text-blue-400 mb-0.5">{t('Final Balance')}</p>
+                  <p className="font-mono font-bold text-sm text-blue-800 dark:text-blue-300" data-testid="text-iqd-final-balance">{formatIQD(finalBalanceIqd)}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-orange-200 dark:border-orange-900 shadow-sm">
+              <CardContent className="pt-4 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-orange-50/50 dark:bg-orange-950/20">
+                      <TableHead className="w-8">#</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Type')}</TableHead>
+                      <TableHead>{t('Description')}</TableHead>
+                      <TableHead className="text-green-700 dark:text-green-400">{t('Debit')}</TableHead>
+                      <TableHead className="text-red-700 dark:text-red-400">{t('Credit')}</TableHead>
+                      <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')}</TableHead>
                     </TableRow>
-                  ))}
-                  {entries.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
-                        {t('No transactions found')}
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
+                      <TableCell colSpan={4} className="text-amber-700 dark:text-amber-400 text-sm">
+                        {t('Opening Balance')}
                       </TableCell>
+                      <TableCell colSpan={2}></TableCell>
+                      <TableCell className="font-mono text-sm text-blue-600 font-bold">{formatIQD(openingIqd)}</TableCell>
                     </TableRow>
-                  )}
-                  {entries.length > 0 && (
-                    <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
-                      <TableCell className="font-mono text-green-700">{usd(totalDebitUsd)}</TableCell>
-                      <TableCell className="font-mono text-green-700">{formatIQD(totalDebitIqd)}</TableCell>
-                      <TableCell className="font-mono text-red-700">{usd(totalCreditUsd)}</TableCell>
-                      <TableCell className="font-mono text-red-700">{formatIQD(totalCreditIqd)}</TableCell>
-                      <TableCell className="font-mono text-blue-700">{usd(finalBalanceUsd)}</TableCell>
-                      <TableCell className="font-mono text-blue-700">{formatIQD(finalBalanceIqd)}</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </>
+                    {iqdWithBalance.map((entry, i) => (
+                      <TableRow key={`iqd-${entry.source}-${entry.id}`} data-testid={`row-iqd-statement-${entry.id}`}>
+                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                        <TableCell className="font-mono text-xs">{formatDate(entry.date)}</TableCell>
+                        <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
+                        <TableCell className="text-xs max-w-[150px] truncate">{entry.description || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm text-green-600">
+                          {entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm font-medium text-blue-600">
+                          {formatIQD(entry.balance)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {iqdEntries.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-6 text-sm">
+                          {t('No transactions found')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {iqdEntries.length > 0 && (
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell colSpan={4} className="text-end text-sm">{t('Total')}</TableCell>
+                        <TableCell className="font-mono text-green-700 text-sm">{formatIQD(totalDebitIqd)}</TableCell>
+                        <TableCell className="font-mono text-red-700 text-sm">{formatIQD(totalCreditIqd)}</TableCell>
+                        <TableCell className="font-mono text-blue-700 text-sm">{formatIQD(finalBalanceIqd)}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
     </div>
   );

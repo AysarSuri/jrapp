@@ -1441,24 +1441,53 @@ export async function registerRoutes(
 
       const txns = await storage.getCustomsClearanceTransactionsByClearanceId(clearanceId);
 
-      const entries = txns.map((t) => {
-        const usd = parseFloat(t.amountUsd || "0");
-        const iqd = parseFloat(t.amountIqd || "0");
+      const invoicesWithCustoms = await db.select().from(purchaseInvoices).where(
+        sql`${purchaseInvoices.customsClearance} = ${clearance.name} AND CAST(${purchaseInvoices.customsExpense} AS numeric) > 0`
+      );
+
+      const txnEntries = txns.map((t) => {
+        const usdAmt = parseFloat(t.amountUsd || "0");
+        const iqdAmt = parseFloat(t.amountIqd || "0");
         return {
           id: t.id,
           date: t.date,
           time: t.time || "00:00",
           type: t.type,
+          source: "clearance" as const,
           description: t.description,
           reference: t.reference,
-          debitUsd: t.type === "receipt" ? usd : 0,
-          debitIqd: t.type === "receipt" ? iqd : 0,
-          creditUsd: t.type === "payment" ? usd : 0,
-          creditIqd: t.type === "payment" ? iqd : 0,
+          debitUsd: t.type === "receipt" ? usdAmt : 0,
+          debitIqd: t.type === "receipt" ? iqdAmt : 0,
+          creditUsd: t.type === "payment" ? usdAmt : 0,
+          creditIqd: t.type === "payment" ? iqdAmt : 0,
         };
       });
 
-      res.json({ clearance, entries });
+      const invoiceEntries = invoicesWithCustoms.map((inv) => {
+        const expense = parseFloat(inv.customsExpense || "0");
+        const isUsd = inv.currency === "USD";
+        return {
+          id: inv.id,
+          date: inv.date,
+          time: inv.time || "00:00",
+          type: "customs_expense" as const,
+          source: "invoice" as const,
+          description: `${inv.invoiceNumber} - ${inv.supplierName}`,
+          reference: inv.invoiceNumber,
+          debitUsd: isUsd ? expense : 0,
+          debitIqd: !isUsd ? expense : 0,
+          creditUsd: 0,
+          creditIqd: 0,
+        };
+      });
+
+      const allEntries = [...txnEntries, ...invoiceEntries].sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+
+      res.json({ clearance, entries: allEntries });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
