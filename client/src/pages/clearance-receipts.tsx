@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
-  Eye, Pencil, Trash2, Printer, MessageCircle,
+  Eye, Pencil, Trash2, Printer, MessageCircle, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -61,6 +61,10 @@ export default function ClearanceReceiptsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [viewReceipt, setViewReceipt] = useState<CustomsClearanceTransaction | null>(null);
   const [editReceipt, setEditReceipt] = useState<CustomsClearanceTransaction | null>(null);
   const [editClearanceId, setEditClearanceId] = useState("");
@@ -184,9 +188,15 @@ export default function ClearanceReceiptsPage() {
   };
 
   const receipts = allTxns?.filter(t => t.type === "receipt") || [];
-  const filteredReceipts = historyFilter && historyFilter !== "all"
-    ? receipts.filter(r => String(r.clearanceId) === historyFilter)
-    : receipts;
+  const filteredReceipts = receipts.filter(r => {
+    if (historyFilter && historyFilter !== "all" && String(r.clearanceId) !== historyFilter) return false;
+    if (historyFromDate && r.date < historyFromDate) return false;
+    if (historyToDate && r.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
   const fmt = (n: number | string) => {
     const num = typeof n === "string" ? parseFloat(n) : n;
@@ -361,24 +371,34 @@ export default function ClearanceReceiptsPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <ListOrdered className="h-5 w-5 text-green-600" />
               {t('Receipt History')}
               <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
             </CardTitle>
-            <div className="w-64">
-              <Select value={historyFilter} onValueChange={setHistoryFilter}>
-                <SelectTrigger data-testid="select-filter-receipt-history">
-                  <SelectValue placeholder={t('All Clearances')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('All Clearances')}</SelectItem>
-                  {clearances.map(b => (
-                    <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-receipt-history" className="h-9">
+                    <SelectValue placeholder={t('All Clearances')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Clearances')}</SelectItem>
+                    {clearances.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -386,6 +406,7 @@ export default function ClearanceReceiptsPage() {
           {txnsLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : (
+            <>
             <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -402,9 +423,9 @@ export default function ClearanceReceiptsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReceipts.map((r, i) => (
+                  {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-clearance-receipt-${r.id}`}>
-                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{r.date}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.clearanceName}</TableCell>
@@ -462,7 +483,7 @@ export default function ClearanceReceiptsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredReceipts.length === 0 && (
+                  {paginatedReceipts.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                         {t('No receipts yet')}
@@ -472,6 +493,48 @@ export default function ClearanceReceiptsPage() {
                 </TableBody>
               </Table>
             </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredReceipts.length)} {t('of')} {filteredReceipts.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    data-testid="button-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <Button
+                      key={page}
+                      variant={page === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(page)}
+                      data-testid={`button-page-${page}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    data-testid="button-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </CardContent>
       </Card>
