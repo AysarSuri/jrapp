@@ -42,7 +42,8 @@ import BankStatementUsdPage from "@/pages/bank-statement-usd";
 import BankStatementIqdPage from "@/pages/bank-statement-iqd";
 import ClearanceReceiptsPage from "@/pages/clearance-receipts";
 import ClearancePaymentsPage from "@/pages/clearance-payments";
-import ClearanceStatementPage from "@/pages/clearance-statement";
+import ClearanceStatementUsdPage from "@/pages/clearance-statement-usd";
+import ClearanceStatementIqdPage from "@/pages/clearance-statement-iqd";
 import OfficeReceiptsPage from "@/pages/office-receipts";
 import OfficePaymentsPage from "@/pages/office-payments";
 import OfficeStatementPage from "@/pages/office-statement";
@@ -213,8 +214,11 @@ function Router() {
       <Route path="/clearance-payments">
         <ProtectedRoute component={ClearancePaymentsPage} />
       </Route>
-      <Route path="/clearance-statement">
-        <ProtectedRoute component={ClearanceStatementPage} />
+      <Route path="/clearance-statement-usd">
+        <ProtectedRoute component={ClearanceStatementUsdPage} />
+      </Route>
+      <Route path="/clearance-statement-iqd">
+        <ProtectedRoute component={ClearanceStatementIqdPage} />
       </Route>
       <Route path="/office-receipts">
         <ProtectedRoute component={OfficeReceiptsPage} />
