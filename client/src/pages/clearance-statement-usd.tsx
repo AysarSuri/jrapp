@@ -82,6 +82,8 @@ export default function ClearanceStatementUsdPage() {
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
 
   const [selectedClearanceId, setSelectedClearanceId] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [viewEntry, setViewEntry] = useState<(StatementEntry & { balance: number }) | null>(null);
   const [editEntry, setEditEntry] = useState<StatementEntry | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<StatementEntry | null>(null);
@@ -114,7 +116,18 @@ export default function ClearanceStatementUsdPage() {
   });
 
   const entries = statement?.entries || [];
-  const usdEntries = entries.filter(e => e.debitUsd > 0 || e.creditUsd > 0);
+  const usdEntries = entries.filter(e => {
+    if (!(e.debitUsd > 0 || e.creditUsd > 0)) return false;
+    if (dateFrom) {
+      const entryDate = new Date(e.date).toISOString().slice(0, 10);
+      if (entryDate < dateFrom) return false;
+    }
+    if (dateTo) {
+      const entryDate = new Date(e.date).toISOString().slice(0, 10);
+      if (entryDate > dateTo) return false;
+    }
+    return true;
+  });
 
   const openingUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0");
 
@@ -240,18 +253,32 @@ export default function ClearanceStatementUsdPage() {
           <CardTitle className="text-lg">{t('Select Clearance')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedClearanceId} onValueChange={setSelectedClearanceId}>
-            <SelectTrigger data-testid="select-clearance-statement-usd" className="max-w-md">
-              <SelectValue placeholder={t('Select clearance...')} />
-            </SelectTrigger>
-            <SelectContent>
-              {clearances.map((b) => (
-                <SelectItem key={b.id} value={String(b.id)} data-testid={`select-clearance-usd-${b.id}`}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="w-full sm:w-auto sm:min-w-[250px]">
+              <Select value={selectedClearanceId} onValueChange={setSelectedClearanceId}>
+                <SelectTrigger data-testid="select-clearance-statement-usd">
+                  <SelectValue placeholder={t('Select clearance...')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {clearances.map((b) => (
+                    <SelectItem key={b.id} value={String(b.id)} data-testid={`select-clearance-usd-${b.id}`}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('From Date')}</label>
+                <DateInput value={dateFrom} onChange={setDateFrom} data-testid="input-date-from-usd" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">{t('To Date')}</label>
+                <DateInput value={dateTo} onChange={setDateTo} data-testid="input-date-to-usd" />
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
