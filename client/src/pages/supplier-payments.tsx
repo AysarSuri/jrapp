@@ -20,11 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Building, Landmark, HandCoins, ArrowLeft,
-  Eye, Pencil, Trash2,
+  Eye, Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, usd } from "@/lib/format-utils";
@@ -64,11 +61,12 @@ export default function SupplierPaymentsPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
-  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
-  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [reportPaymentId, setReportPaymentId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [deletePayment, setDeletePayment] = useState<{ id: number } | null>(null);
@@ -215,6 +213,17 @@ export default function SupplierPaymentsPage() {
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
+  const filteredPayments = (payments || []).filter(p => {
+    if (historyFilter && historyFilter !== "all" && String(p.supplierId) !== historyFilter) return false;
+    const pDate = typeof p.date === 'string' ? p.date.split('T')[0] : new Date(p.date).toISOString().split('T')[0];
+    if (historyFromDate && pDate < historyFromDate) return false;
+    if (historyToDate && pDate > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedPayments = filteredPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="space-y-6">
       <Link href="/supplier-management">
@@ -234,132 +243,6 @@ export default function SupplierPaymentsPage() {
           <p className="text-muted-foreground mt-1">{t('Transfer or pay to supplier from bank or transfer office')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2" data-testid="button-payment-history">
-                <ListOrdered className="h-4 w-4" />
-                {t('Payment History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Payment History')}</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-wrap gap-3 mb-4">
-                <div className="w-48">
-                  <Label className="text-xs mb-1 block">{t('Supplier')}</Label>
-                  <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
-                    <SelectTrigger data-testid="select-history-supplier-filter"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('All Suppliers')}</SelectItem>
-                      {suppliers?.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs mb-1 block">{t('From Date')}</Label>
-                  <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} data-testid="input-payment-history-start-date" />
-                </div>
-                <div>
-                  <Label className="text-xs mb-1 block">{t('To Date')}</Label>
-                  <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-payment-history-end-date" />
-                </div>
-              </div>
-              {paymentsLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('Supplier')}</TableHead>
-                      <TableHead>{t('Source')}</TableHead>
-                      <TableHead>{t('USD Amount')}</TableHead>
-                      <TableHead>{t('IQD Amount')}</TableHead>
-                      <TableHead>{t('Commission USD')}</TableHead>
-                      <TableHead>{t('Commission IQD')}</TableHead>
-                      <TableHead>{t('Opening Balance USD')}</TableHead>
-                      <TableHead>{t('Opening Balance IQD')}</TableHead>
-                      <TableHead>{t('Remaining USD')}</TableHead>
-                      <TableHead>{t('Remaining IQD')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
-                      <TableHead>{t('Notes')}</TableHead>
-                      <TableHead>{t('Actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments?.filter(p => {
-                      if (historySupplierFilter !== 'all' && p.supplierId !== parseInt(historySupplierFilter)) return false;
-                      const pDate = typeof p.date === 'string' ? p.date.split('T')[0] : new Date(p.date).toISOString().split('T')[0];
-                      if (historyStartDate && pDate < historyStartDate) return false;
-                      if (historyEndDate && pDate > historyEndDate) return false;
-                      return true;
-                    }).map((p, i) => (
-                      <TableRow key={p.id} data-testid={`row-payment-${p.id}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
-                        <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
-                        <TableCell className="font-medium">{p.supplierName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {p.paymentSourceName}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {parseFloat(p.amountUsd) > 0 ? usd(p.amountUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {parseFloat(p.amountIqd) > 0 ? formatIQD(parseFloat(p.amountIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {parseFloat(p.commissionUsd) > 0 ? usd(p.commissionUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(p.oldDebtUsd) !== 0 ? usd(p.oldDebtUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(p.oldDebtIqd) !== 0 ? formatIQD(parseFloat(p.oldDebtIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-emerald-600">
-                          {parseFloat(p.remainingUsd) !== 0 ? usd(p.remainingUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-emerald-600">
-                          {parseFloat(p.remainingIqd) !== 0 ? formatIQD(parseFloat(p.remainingIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportPaymentId(p.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-payment-${p.id}`}>
-                              <Eye className="h-3.5 w-3.5 text-blue-600" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/supplier-payments?edit=${p.id}`); }} data-testid={`btn-edit-payment-${p.id}`}>
-                              <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeletePayment({ id: p.id })} data-testid={`btn-delete-payment-${p.id}`}>
-                              <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {(!payments || payments.length === 0) && (
-                      <TableRow>
-                        <TableCell colSpan={16} className="text-center text-muted-foreground py-8">
-                          {t('No payments yet')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-payment">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -691,6 +574,193 @@ export default function SupplierPaymentsPage() {
           )}
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-emerald-600" />
+              {t('Payment History')}
+              <Badge variant="secondary" className="ml-2">{filteredPayments.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-payment-history" className="h-9">
+                    <SelectValue placeholder={t('All Suppliers')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                    {suppliers?.map(s => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {paymentsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('Supplier')}</TableHead>
+                    <TableHead>{t('Source')}</TableHead>
+                    <TableHead>{t('USD Amount')}</TableHead>
+                    <TableHead>{t('IQD Amount')}</TableHead>
+                    <TableHead>{t('Commission USD')}</TableHead>
+                    <TableHead>{t('Commission IQD')}</TableHead>
+                    <TableHead>{t('Opening Balance USD')}</TableHead>
+                    <TableHead>{t('Opening Balance IQD')}</TableHead>
+                    <TableHead>{t('Remaining USD')}</TableHead>
+                    <TableHead>{t('Remaining IQD')}</TableHead>
+                    <TableHead>{t('Reference')}</TableHead>
+                    <TableHead>{t('Notes')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPayments.map((p, i) => (
+                    <TableRow key={p.id} data-testid={`row-payment-${p.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
+                      <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
+                      <TableCell className="font-medium">{p.supplierName}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {p.paymentSourceName}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {parseFloat(p.amountUsd) > 0 ? usd(p.amountUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {parseFloat(p.amountIqd) > 0 ? formatIQD(parseFloat(p.amountIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {parseFloat(p.commissionUsd) > 0 ? usd(p.commissionUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(p.oldDebtUsd) !== 0 ? usd(p.oldDebtUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(p.oldDebtIqd) !== 0 ? formatIQD(parseFloat(p.oldDebtIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-emerald-600">
+                        {parseFloat(p.remainingUsd) !== 0 ? usd(p.remainingUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-emerald-600">
+                        {parseFloat(p.remainingIqd) !== 0 ? formatIQD(parseFloat(p.remainingIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => { setReportPaymentId(p.id); setReportOpen(true); }}
+                            data-testid={`btn-view-payment-${p.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => navigate(`/supplier-payments?edit=${p.id}`)}
+                            data-testid={`btn-edit-payment-${p.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setDeletePayment({ id: p.id })}
+                            data-testid={`btn-delete-payment-${p.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedPayments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={16} className="text-center text-muted-foreground py-8">
+                        {t('No payments yet')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredPayments.length)} {t('of')} {filteredPayments.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-payment-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                    <Button
+                      key={pg}
+                      variant={pg === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pg)}
+                      data-testid={`button-payment-page-${pg}`}
+                    >
+                      {pg}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-payment-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <SupplierPaymentReport
         paymentId={reportPaymentId}
