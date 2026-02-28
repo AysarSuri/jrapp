@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -15,25 +15,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight,
+  Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getModernPrintStyles } from "@/lib/print-styles";
+
+type AgentClientWithDetails = AgentClient & {
+  clientAddress?: string | null;
+  clientContact?: string | null;
+};
 
 export default function AgentClientsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const printRef = useRef<HTMLDivElement>(null);
 
+  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null }>({
+    queryKey: ["/api/company-profile"],
+  });
   const { data: agentsList } = useQuery<{ id: string; name: string }[]>({
     queryKey: ["/api/agents"],
   });
   const { data: customersList } = useQuery<{ id: number; name: string; type: string }[]>({
     queryKey: ["/api/clients"],
   });
-  const { data: allAssignments, isLoading } = useQuery<AgentClient[]>({
+  const { data: allAssignments, isLoading } = useQuery<AgentClientWithDetails[]>({
     queryKey: ["/api/agent-clients"],
   });
 
@@ -139,6 +150,88 @@ export default function AgentClientsPage() {
   const paginatedAssignments = filteredAssignments.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const assignedToAgent = agentAssignments || [];
+
+  const handlePrintReport = () => {
+    const dataToUse = filteredAssignments;
+    if (dataToUse.length === 0) {
+      toast({ title: t("No assignments to print"), variant: "destructive" });
+      return;
+    }
+
+    const grouped: Record<string, AgentClientWithDetails[]> = {};
+    dataToUse.forEach(a => {
+      if (!grouped[a.agentName]) grouped[a.agentName] = [];
+      grouped[a.agentName].push(a);
+    });
+
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#7c3aed", accentTextColor: "#ffffff" });
+
+    let tableRows = "";
+    let globalIndex = 1;
+    const agentNames = Object.keys(grouped).sort();
+
+    agentNames.forEach(agentName => {
+      const clients = grouped[agentName];
+      tableRows += `<tr><td colspan="5" style="background:#7c3aed; color:white; font-weight:700; padding:10px 12px; font-size:13pt; border:none;">${agentName} (${clients.length})</td></tr>`;
+      clients.forEach(c => {
+        tableRows += `<tr>
+          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-family:monospace; font-size:10pt; text-align:center; width:40px;">${globalIndex}</td>
+          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-weight:600; font-size:11pt;">${c.clientName}</td>
+          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-size:10pt; color:#555;">${c.clientAddress || "-"}</td>
+          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-size:10pt; color:#555; direction:ltr;">${c.clientContact || "-"}</td>
+        </tr>`;
+        globalIndex++;
+      });
+    });
+
+    const today = new Date().toISOString().split("T")[0];
+    const clicheHtml = companyProfile?.cliche
+      ? `<div style="text-align:center; margin-bottom:10px;"><img src="${companyProfile.cliche}" alt="" style="width:100%; max-height:160px; object-fit:cover; border-radius:6px;" /></div>`
+      : "";
+
+    const filterLabel = historyFilter && historyFilter !== "all"
+      ? agents.find(a => a.id === historyFilter)?.name || t("All Agents")
+      : t("All Agents");
+
+    const html = `<!DOCTYPE html>
+<html dir="${dir}" lang="${i18n.language}">
+<head>
+<meta charset="UTF-8" />
+<title>${t("Agent Client Assignments Report")}</title>
+<style>${printStyles}
+  body { font-family: Arial, sans-serif; padding: 15px; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+${clicheHtml}
+<div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #333; padding-bottom:10px;">
+  <h1 style="font-size:18pt; margin-bottom:3px; font-weight:700;">${t("Agent Client Assignments Report")}</h1>
+  <p style="font-size:11pt; color:#666;">${t("Date")}: ${today} | ${t("Filter")}: ${filterLabel} | ${t("Total")}: ${dataToUse.length}</p>
+</div>
+<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+  <thead>
+    <tr style="background:#f3f4f6;">
+      <th style="padding:10px 12px; text-align:center; border-bottom:2px solid #d1d5db; font-size:10pt; width:40px;">#</th>
+      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Client Name")}</th>
+      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Address")}</th>
+      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Mobile")}</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tableRows}
+  </tbody>
+</table>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 400);
+  };
 
   return (
     <div className="space-y-6">
@@ -328,6 +421,10 @@ export default function AgentClientsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <Button variant="outline" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-assignments">
+                <Printer className="h-4 w-4" />
+                {t('Print')}
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -343,6 +440,8 @@ export default function AgentClientsPage() {
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>{t('Agent')}</TableHead>
                     <TableHead>{t('Client Name')}</TableHead>
+                    <TableHead>{t('Address')}</TableHead>
+                    <TableHead>{t('Mobile')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -352,6 +451,8 @@ export default function AgentClientsPage() {
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-medium text-violet-600">{a.agentName}</TableCell>
                       <TableCell className="font-medium">{a.clientName}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{a.clientAddress || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground" dir="ltr">{a.clientContact || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <AlertDialog>
@@ -382,7 +483,7 @@ export default function AgentClientsPage() {
                   ))}
                   {paginatedAssignments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         {t('No assignments yet')}
                       </TableCell>
                     </TableRow>

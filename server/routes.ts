@@ -2388,7 +2388,20 @@ export async function registerRoutes(
 
   app.get('/api/agent-clients', requireAuth, async (_req, res) => {
     try {
-      const data = await db.select().from(agentClients).orderBy(agentClients.agentName, agentClients.clientName);
+      const data = await db
+        .select({
+          id: agentClients.id,
+          agentUserId: agentClients.agentUserId,
+          agentName: agentClients.agentName,
+          clientId: agentClients.clientId,
+          clientName: agentClients.clientName,
+          assignedAt: agentClients.assignedAt,
+          clientAddress: clients.address,
+          clientContact: clients.contact,
+        })
+        .from(agentClients)
+        .leftJoin(clients, eq(agentClients.clientId, clients.id))
+        .orderBy(agentClients.agentName, agentClients.clientName);
       res.json(data);
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
