@@ -69,8 +69,8 @@ export default function AgentProductLoadPage() {
   const [note, setNote] = useState("");
   const [items, setItems] = useState<LoadItem[]>([emptyItem()]);
   const [historyFilter, setHistoryFilter] = useState<string>("");
-  const [historyFromDate, setHistoryFromDate] = useState("");
-  const [historyToDate, setHistoryToDate] = useState("");
+  const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [detailLoadId, setDetailLoadId] = useState<number | null>(null);
