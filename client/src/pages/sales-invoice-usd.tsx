@@ -78,6 +78,7 @@ export default function SalesInvoiceUsdPage() {
 
   const customersList = clients?.filter(c => c.type === "customer") || [];
 
+  const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [time, setTime] = useState(() => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
@@ -174,6 +175,7 @@ export default function SalesInvoiceUsdPage() {
     setDiscount("");
     setAmountPaid("");
     setItems([emptyItem()]);
+    setFormKey(k => k + 1);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
   };
@@ -420,7 +422,7 @@ export default function SalesInvoiceUsdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
-              <Select onValueChange={selectCustomer}>
+              <Select key={`cust-${formKey}`} onValueChange={selectCustomer}>
                 <SelectTrigger data-testid="select-customer">
                   <SelectValue placeholder={t('Select Customer')} />
                 </SelectTrigger>
@@ -450,7 +452,7 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Name')}</Label>
-              <Select onValueChange={selectRepresentative}>
+              <Select key={`rep-${formKey}`} onValueChange={selectRepresentative}>
                 <SelectTrigger data-testid="select-representative">
                   <SelectValue placeholder={t('Select Representative')} />
                 </SelectTrigger>
