@@ -332,6 +332,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/company-profile", icon: Building2, label: "Company Profile" },
     { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
     { href: "/accounts", icon: CreditCard, label: "Accounts" },
+    { href: "/user-management", icon: Users, label: "User Management" },
   ];
 
   const renderNavLink = (item: NavItem, indent = false) => {

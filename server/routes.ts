@@ -122,6 +122,100 @@ export async function registerRoutes(
     next();
   };
 
+  app.get('/api/users', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can manage users" });
+      }
+      const allUsers = await storage.getAllUsers();
+      const safeUsers = allUsers.map(({ password, ...u }) => u);
+      res.json(safeUsers);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/users', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can manage users" });
+      }
+      const { username, password, fullName, role } = req.body;
+      if (!username || !password || !role) {
+        return res.status(400).json({ message: "Username, password, and role are required" });
+      }
+      const allowedRoles = ["admin", "user", "sales_rep"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      const existing = await storage.getUserByUsername(username);
+      if (existing) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      const hashed = await bcrypt.hash(password, 12);
+      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", role });
+      const { password: _, ...safeUser } = user;
+      res.status(201).json(safeUser);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/users/:id', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can manage users" });
+      }
+      const { id } = req.params;
+      const { username, password, fullName, role, isActive } = req.body;
+      const updateData: any = {};
+      if (username !== undefined) updateData.username = username;
+      if (fullName !== undefined) updateData.fullName = fullName;
+      if (role !== undefined) {
+        const allowedRoles = ["admin", "user", "sales_rep"];
+        if (!allowedRoles.includes(role)) {
+          return res.status(400).json({ message: "Invalid role" });
+        }
+        updateData.role = role;
+      }
+      if (isActive !== undefined) updateData.isActive = isActive;
+      if (password) {
+        updateData.password = await bcrypt.hash(password, 12);
+      }
+      if (username) {
+        const existing = await storage.getUserByUsername(username);
+        if (existing && existing.id !== id) {
+          return res.status(400).json({ message: "Username already exists" });
+        }
+      }
+      const user = await storage.updateUser(id, updateData);
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/users/:id', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can manage users" });
+      }
+      const { id } = req.params;
+      if (id === currentUser.id) {
+        return res.status(400).json({ message: "Cannot delete yourself" });
+      }
+      await storage.deleteUser(id);
+      res.json({ message: "User deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.addresses.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getAddresses();
     res.json(data);

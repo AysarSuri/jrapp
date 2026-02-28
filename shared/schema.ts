@@ -62,7 +62,10 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull(), // 'admin', 'accountant', 'purchasing', 'warehouse', 'sales_rep'
+  fullName: text("full_name").notNull().default(""),
+  role: text("role").notNull(), // 'admin', 'user', 'sales_rep'
+  isActive: integer("is_active").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const products = pgTable("products", {

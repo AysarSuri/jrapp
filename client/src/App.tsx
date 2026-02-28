@@ -75,6 +75,7 @@ import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
 import BarcodePrintPage from "@/pages/barcode-print";
 import CompanyProfilePage from "@/pages/company-profile";
+import UserManagementPage from "@/pages/user-management";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -312,6 +313,9 @@ function Router() {
       </Route>
       <Route path="/purchase-return-iqd">
         <ProtectedRoute component={PurchaseReturnIqdPage} />
+      </Route>
+      <Route path="/user-management">
+        <ProtectedRoute component={UserManagementPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>
