@@ -18,17 +18,16 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import {
-  Popover, PopoverContent, PopoverTrigger,
-} from "@/components/ui/popover";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Users, Loader2, MapPin, ChevronsUpDown, Check, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Users, Loader2, MapPin, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { usd } from "@/lib/format-utils";
 
 const customerSchema = insertClientSchema.extend({
@@ -46,8 +45,6 @@ export default function CustomersPage() {
   const [open, setOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [addressOpen, setAddressOpen] = useState(false);
-  const [addressSearch, setAddressSearch] = useState("");
 
   const form = useForm<z.infer<typeof customerSchema>>({
     resolver: zodResolver(customerSchema),
@@ -121,10 +118,7 @@ export default function CustomersPage() {
   const totalOldDebtUsd = customers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
   const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
 
-  const addressNames = dbAddresses?.map(a => a.name) || [];
-  const filteredAddresses = addressSearch
-    ? addressNames.filter(a => a.includes(addressSearch))
-    : addressNames;
+  const addresses = dbAddresses || [];
 
   const isSaving = isCreating || isUpdating;
 
@@ -164,69 +158,25 @@ export default function CustomersPage() {
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="address" render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>{t('Address')}</FormLabel>
-                    <Popover open={addressOpen} onOpenChange={setAddressOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={addressOpen}
-                            className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
-                            data-testid="combobox-customer-address"
-                          >
-                            {field.value ? (
-                              <span className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                {field.value}
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                {t('Select address...')}
-                              </span>
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                        <div className="p-2 border-b">
-                          <Input
-                            placeholder={t('Search or type address...')}
-                            value={addressSearch}
-                            onChange={(e) => setAddressSearch(e.target.value)}
-                            data-testid="input-address-search"
-                            className="h-9"
-                          />
-                        </div>
-                        <div className="max-h-[200px] overflow-y-auto p-1">
-                          {filteredAddresses.map((addr) => (
-                            <button
-                              key={addr}
-                              type="button"
-                              className={cn(
-                                "flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors cursor-pointer",
-                                field.value === addr && "bg-primary/10 text-primary"
-                              )}
-                              onClick={() => {
-                                field.onChange(addr);
-                                setAddressSearch("");
-                                requestAnimationFrame(() => setAddressOpen(false));
-                              }}
-                            >
-                              <Check className={cn("h-4 w-4", field.value === addr ? "opacity-100" : "opacity-0")} />
-                              <MapPin className="h-3 w-3 text-muted-foreground" />
-                              {addr}
-                            </button>
-                          ))}
-                          {filteredAddresses.length === 0 && (
-                            <div className="px-3 py-2 text-sm text-muted-foreground">{t('No addresses found')}</div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-customer-address">
+                          <SelectValue placeholder={t('Select address...')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {addresses.map((addr) => (
+                          <SelectItem key={addr.id} value={addr.name}>
+                            <span className="flex items-center gap-2">
+                              <MapPin className="h-3 w-3" />
+                              {addr.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )} />

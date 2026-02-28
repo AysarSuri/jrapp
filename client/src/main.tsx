@@ -36,11 +36,14 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-window.onerror = (message, source, lineno, colno, error) => {
+window.onerror = (message, _source, _lineno, _colno, error) => {
+  if (typeof message === "string" && message.includes("ResizeObserver")) {
+    return true;
+  }
   if (error instanceof Error) {
     console.warn("[window.onerror]", error.message, error.stack);
   } else {
-    console.warn("[window.onerror] non-Error:", typeof error, message, source, lineno, colno);
+    console.warn("[window.onerror] non-Error:", typeof error, message);
   }
   return true;
 };
