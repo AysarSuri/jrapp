@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -2384,6 +2384,53 @@ export async function registerRoutes(
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  app.get('/api/agent-clients', requireAuth, async (_req, res) => {
+    try {
+      const data = await db.select().from(agentClients).orderBy(agentClients.agentName, agentClients.clientName);
+      res.json(data);
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  app.get('/api/agent-clients/by-agent/:agentUserId', requireAuth, async (req, res) => {
+    try {
+      const { agentUserId } = req.params;
+      const data = await db.select().from(agentClients).where(eq(agentClients.agentUserId, agentUserId)).orderBy(agentClients.clientName);
+      res.json(data);
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  app.post('/api/agent-clients', requireAuth, async (req, res) => {
+    try {
+      const { agentUserId, agentName, clientIds } = req.body;
+      if (!agentUserId || !agentName || !Array.isArray(clientIds)) {
+        return res.status(400).json({ message: "agentUserId, agentName, and clientIds are required" });
+      }
+      await db.delete(agentClients).where(eq(agentClients.agentUserId, agentUserId));
+      if (clientIds.length > 0) {
+        const customerList = await db.select().from(clients).where(eq(clients.type, 'customer'));
+        const customerMap = new Map(customerList.map(c => [c.id, c.name]));
+        const values = clientIds
+          .filter((id: number) => customerMap.has(id))
+          .map((id: number) => ({ agentUserId, agentName, clientId: id, clientName: customerMap.get(id)! }));
+        if (values.length > 0) {
+          await db.insert(agentClients).values(values);
+        }
+      }
+      const data = await db.select().from(agentClients).where(eq(agentClients.agentUserId, agentUserId)).orderBy(agentClients.clientName);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/agent-clients/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(agentClients).where(eq(agentClients.id, id));
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
   });
 
   // Inventory Report

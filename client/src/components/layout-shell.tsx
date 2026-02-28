@@ -296,6 +296,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const agentManagementNavItems: NavItem[] = [
+    { href: "/agent-clients", icon: Users, label: "Agent Clients" },
     { href: "/agent-product-load", icon: Truck, label: "Agent Product Load" },
   ];
 

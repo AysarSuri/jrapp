@@ -692,6 +692,19 @@ export type InsertAgentProductLoad = z.infer<typeof insertAgentProductLoadSchema
 export type AgentProductLoadItem = typeof agentProductLoadItems.$inferSelect;
 export type InsertAgentProductLoadItem = z.infer<typeof insertAgentProductLoadItemSchema>;
 
+export const agentClients = pgTable("agent_clients", {
+  id: serial("id").primaryKey(),
+  agentUserId: text("agent_user_id").notNull(),
+  agentName: text("agent_name").notNull(),
+  clientId: integer("client_id").notNull(),
+  clientName: text("client_name").notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+});
+
+export const insertAgentClientSchema = createInsertSchema(agentClients).omit({ id: true, assignedAt: true });
+export type AgentClient = typeof agentClients.$inferSelect;
+export type InsertAgentClient = z.infer<typeof insertAgentClientSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

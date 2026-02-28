@@ -71,6 +71,7 @@ import AgentStatementIqdPage from "@/pages/agent-statement-iqd";
 import CurrencyExchangePage from "@/pages/currency-exchange";
 import WarehouseTransferPage from "@/pages/warehouse-transfer";
 import AgentProductLoadPage from "@/pages/agent-product-load";
+import AgentClientsPage from "@/pages/agent-clients";
 import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
 import BarcodePrintPage from "@/pages/barcode-print";
@@ -295,6 +296,9 @@ function Router() {
       </Route>
       <Route path="/agent-product-load">
         <ProtectedRoute component={AgentProductLoadPage} />
+      </Route>
+      <Route path="/agent-clients">
+        <ProtectedRoute component={AgentClientsPage} />
       </Route>
       <Route path="/product-damage">
         <ProtectedRoute component={ProductDamagePage} />
