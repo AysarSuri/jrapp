@@ -77,6 +77,18 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/login-users', async (_req, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const safeList = allUsers
+        .filter(u => u.isActive !== false)
+        .map(u => ({ id: u.id, username: u.username, fullName: u.fullName, role: u.role }));
+      res.json(safeList);
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post('/api/login-by-role', async (req, res) => {
     try {
       const { role } = req.body;

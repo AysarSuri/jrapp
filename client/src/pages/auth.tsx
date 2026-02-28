@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,16 +18,42 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Shield, User, Truck } from "lucide-react";
+import { Loader2, ShieldCheck, Shield, User, Truck, Users, LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+type LoginUser = {
+  id: string;
+  username: string;
+  fullName: string;
+  role: string;
+};
+
+function getRoleIcon(role: string) {
+  switch (role) {
+    case "admin": return Shield;
+    case "sales_rep": return Truck;
+    default: return User;
+  }
+}
+
+function getRoleColor(role: string) {
+  switch (role) {
+    case "admin": return "text-red-600 bg-red-100 dark:bg-red-900/30";
+    case "sales_rep": return "text-blue-600 bg-blue-100 dark:bg-blue-900/30";
+    default: return "text-green-600 bg-green-100 dark:bg-green-900/30";
+  }
+}
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { mutate: login, isPending } = useLogin();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
-  const [selectedRole, setSelectedRole] = useState<string>("admin");
+  const [selectedUser, setSelectedUser] = useState<LoginUser | null>(null);
+
+  const { data: loginUsers } = useQuery<LoginUser[]>({
+    queryKey: ["/api/login-users"],
+  });
 
   useEffect(() => {
     const lng = i18n.language;
@@ -67,6 +94,18 @@ export default function AuthPage() {
     });
   }
 
+  const handleUserSelect = (user: LoginUser) => {
+    setSelectedUser(user);
+    form.setValue("username", user.username);
+    form.setFocus("password");
+  };
+
+  const handleBack = () => {
+    setSelectedUser(null);
+    form.setValue("username", "");
+    form.setValue("password", "");
+  };
+
   const languages = [
     { code: "en", label: "English" },
     { code: "ar", label: "العربية" },
@@ -74,11 +113,15 @@ export default function AuthPage() {
     { code: "tr", label: "Türkçe" },
   ];
 
-  const roles = [
-    { value: "admin", icon: Shield, labelKey: "roleAdmin" },
-    { value: "user", icon: User, labelKey: "roleUser" },
-    { value: "sales_rep", icon: Truck, labelKey: "roleRepresentative" },
-  ];
+  const users = loginUsers || [];
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "admin": return t("roleAdmin");
+      case "sales_rep": return t("roleRepresentative");
+      default: return t("roleUser");
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4 relative overflow-hidden">
@@ -108,89 +151,128 @@ export default function AuthPage() {
           <p className="text-muted-foreground text-lg">{t("erpSystem")}</p>
         </div>
 
-        <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold text-center">
-              {t("selectRole")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6">
-              <RadioGroup
-                value={selectedRole}
-                onValueChange={setSelectedRole}
-                className="flex gap-3"
-                data-testid="radio-role"
-              >
-                {roles.map((role) => {
-                  const Icon = role.icon;
-                  const isSelected = selectedRole === role.value;
-                  return (
-                    <label
-                      key={role.value}
-                      className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50 hover:bg-muted/50"
-                      }`}
-                      data-testid={`role-${role.value}`}
-                    >
-                      <RadioGroupItem value={role.value} className="sr-only" />
-                      <Icon className={`w-6 h-6 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className="font-bold text-sm">{t(role.labelKey)}</span>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-            </div>
-
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("username")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("username")} className="h-11 font-bold" data-testid="input-username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("password")}</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                  disabled={isPending}
-                  data-testid="button-login"
+        {!selectedUser ? (
+          <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
+            <CardHeader className="space-y-1 pb-4">
+              <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+                <Users className="h-6 w-6" />
+                {t("selectUser")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {users.length > 0 ? (
+                <div className="space-y-2">
+                  {users.map((user) => {
+                    const Icon = getRoleIcon(user.role);
+                    const colorClass = getRoleColor(user.role);
+                    return (
+                      <button
+                        key={user.id}
+                        onClick={() => handleUserSelect(user)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-border hover:border-primary/50 hover:bg-muted/50 transition-all text-start"
+                        data-testid={`button-select-user-${user.username}`}
+                      >
+                        <div className={`p-2 rounded-lg ${colorClass}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm truncate">
+                            {user.fullName || user.username}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {user.username} — {getRoleLabel(user.role)}
+                          </p>
+                        </div>
+                        <LogIn className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="font-bold">{t("No users found")}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
+            <CardHeader className="space-y-1 pb-4">
+              <CardTitle className="text-2xl font-bold text-center">
+                {t("signIn")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-5">
+                <button
+                  onClick={handleBack}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-primary bg-primary/10 transition-all text-start"
+                  data-testid="button-selected-user"
                 >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      {t("authenticating")}
-                    </>
-                  ) : (
-                    t("signIn")
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  {(() => {
+                    const Icon = getRoleIcon(selectedUser.role);
+                    const colorClass = getRoleColor(selectedUser.role);
+                    return (
+                      <div className={`p-2 rounded-lg ${colorClass}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    );
+                  })()}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm truncate">
+                      {selectedUser.fullName || selectedUser.username}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedUser.username} — {getRoleLabel(selectedUser.role)}
+                    </p>
+                  </div>
+                  <span className="text-xs text-primary font-bold">{t("Change")}</span>
+                </button>
+              </div>
+
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <input type="hidden" {...field} />
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold">{t("password")}</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" autoFocus {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full h-11 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                    disabled={isPending}
+                    data-testid="button-login"
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                        {t("authenticating")}
+                      </>
+                    ) : (
+                      t("signIn")
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        )}
 
         <p className="mt-6 text-center text-sm text-muted-foreground font-bold">
           {t("protectedSystem")}
