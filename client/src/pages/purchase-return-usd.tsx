@@ -22,11 +22,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight,
 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
@@ -90,7 +87,11 @@ export default function PurchaseReturnUsdPage() {
   const [discount, setDiscount] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [reportReturnId, setReportReturnId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [deleteReturn, setDeleteReturn] = useState<{ id: number; number: string } | null>(null);
@@ -315,6 +316,18 @@ export default function PurchaseReturnUsdPage() {
 
   const userRole = user?.role || 'user';
 
+  const usdReturns = (returnsList as PurchaseReturn[] || []).filter(i => i.currency === 'USD');
+  const filteredReturns = usdReturns.filter(ret => {
+    if (historyFilter && historyFilter !== "all" && String(ret.supplierId) !== historyFilter) return false;
+    const retDate = typeof ret.date === 'string' ? ret.date.split('T')[0] : new Date(ret.date).toISOString().split('T')[0];
+    if (historyFromDate && retDate < historyFromDate) return false;
+    if (historyToDate && retDate > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredReturns.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedReturns = filteredReturns.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -326,89 +339,6 @@ export default function PurchaseReturnUsdPage() {
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase return in US Dollar') : t('Create purchase return in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-purchase-return-history">
-                <ListOrdered className="w-4 h-4 mr-2" />
-                {t('Return History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Purchase Return History')}</DialogTitle>
-              </DialogHeader>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Return #')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Supplier')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Total')}</TableHead>
-                    <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Status')}</TableHead>
-                    <TableHead>{t('Actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(returnsList as PurchaseReturn[] || []).filter(i => i.currency === 'USD').map((ret: PurchaseReturn) => (
-                    <TableRow key={ret.id} data-testid={`row-purchase-return-history-${ret.id}`}>
-                      <TableCell>{ret.id}</TableCell>
-                      <TableCell className="font-mono">{ret.returnNumber}</TableCell>
-                      <TableCell>{formatDate(ret.date)}</TableCell>
-                      <TableCell>{ret.supplierName}</TableCell>
-                      <TableCell>
-                        <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>
-                          {ret.returnType === 'cash' ? t('Cash') : t('Credit')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">${ret.subtotal}</TableCell>
-                      <TableCell className="font-mono text-red-600">${ret.remaining}</TableCell>
-                      <TableCell>
-                        {ret.status === 'approved' ? (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            {t('Approved')}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {t('Pending')}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-${ret.id}`}>
-                            <Eye className="h-3.5 w-3.5 text-blue-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-return-usd?edit=${ret.id}`); }} data-testid={`btn-edit-return-${ret.id}`}>
-                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReturn({ id: ret.id, number: ret.returnNumber })} data-testid={`btn-delete-return-${ret.id}`}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                          </Button>
-                          {(userRole === 'admin' || userRole === 'user') && ret.status === 'pending' && (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleApprove(ret.id)}
-                              disabled={isApproving}
-                              data-testid={`button-approve-purchase-return-${ret.id}`}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              {t('Approve')}
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-return-form">
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
@@ -685,6 +615,165 @@ export default function PurchaseReturnUsdPage() {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-red-600" />
+              {t('Return History')}
+              <Badge variant="secondary" className="ml-2">{filteredReturns.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-return-usd-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-return-usd-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-return-usd-history" className="h-9">
+                    <SelectValue placeholder={t('All Suppliers')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                    {suppliersList.map(s => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>{t('Return #')}</TableHead>
+                  <TableHead>{t('Date')}</TableHead>
+                  <TableHead>{t('Supplier')}</TableHead>
+                  <TableHead>{t('Type')}</TableHead>
+                  <TableHead>{t('Total')}</TableHead>
+                  <TableHead>{t('Remaining')}</TableHead>
+                  <TableHead>{t('Status')}</TableHead>
+                  <TableHead className="text-center">{t('Actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedReturns.map((ret, i) => (
+                  <TableRow key={ret.id} data-testid={`row-purchase-return-history-${ret.id}`}>
+                    <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                    <TableCell className="font-mono">{ret.returnNumber}</TableCell>
+                    <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(ret.date)}</TableCell>
+                    <TableCell className="font-medium">{ret.supplierName}</TableCell>
+                    <TableCell>
+                      <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>
+                        {ret.returnType === 'cash' ? t('Cash') : t('Credit')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">${ret.subtotal}</TableCell>
+                    <TableCell className="font-mono text-sm text-red-600">${ret.remaining}</TableCell>
+                    <TableCell>
+                      {ret.status === 'approved' ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {t('Approved')}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {t('Pending')}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-${ret.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => navigate(`/purchase-return-usd?edit=${ret.id}`)} data-testid={`btn-edit-return-${ret.id}`}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteReturn({ id: ret.id, number: ret.returnNumber })} data-testid={`btn-delete-return-${ret.id}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        {(userRole === 'admin' || userRole === 'user') && ret.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleApprove(ret.id)}
+                            disabled={isApproving}
+                            data-testid={`button-approve-purchase-return-${ret.id}`}
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            {t('Approve')}
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paginatedReturns.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      {t('No returns yet')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredReturns.length)} {t('of')} {filteredReturns.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={safePage <= 1}
+                  onClick={() => setCurrentPage(safePage - 1)}
+                  data-testid="button-return-usd-prev-page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                  <Button
+                    key={pg}
+                    variant={pg === safePage ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setCurrentPage(pg)}
+                    data-testid={`button-return-usd-page-${pg}`}
+                  >
+                    {pg}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setCurrentPage(safePage + 1)}
+                  data-testid="button-return-usd-next-page"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+          </>
         </CardContent>
       </Card>
 
