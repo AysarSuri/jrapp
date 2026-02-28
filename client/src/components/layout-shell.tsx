@@ -325,6 +325,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/representatives", icon: UserCheck, label: "Representatives" },
+    { href: "/agent-product-load", icon: Truck, label: "Agent Product Load" },
     { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
