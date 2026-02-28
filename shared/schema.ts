@@ -705,6 +705,21 @@ export const insertAgentClientSchema = createInsertSchema(agentClients).omit({ i
 export type AgentClient = typeof agentClients.$inferSelect;
 export type InsertAgentClient = z.infer<typeof insertAgentClientSchema>;
 
+export const agentLocations = pgTable("agent_locations", {
+  id: serial("id").primaryKey(),
+  agentUserId: text("agent_user_id").notNull(),
+  agentName: text("agent_name").notNull(),
+  latitude: numeric("latitude").notNull(),
+  longitude: numeric("longitude").notNull(),
+  accuracy: numeric("accuracy"),
+  deviceType: text("device_type").notNull().default("unknown"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAgentLocationSchema = createInsertSchema(agentLocations).omit({ id: true, updatedAt: true });
+export type AgentLocation = typeof agentLocations.$inferSelect;
+export type InsertAgentLocation = z.infer<typeof insertAgentLocationSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

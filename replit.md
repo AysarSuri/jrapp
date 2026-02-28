@@ -10,6 +10,7 @@ Key business domains:
 - **Financial Accounts** — Bank, cash, and transfer office accounts in USD or IQD
 - **Invoicing** — Sales and purchase invoices linked to clients
 - **Transactions** — Deposits, withdrawals, and transfers between accounts
+- **Agent Management** — Agent-client assignments, agent product loading, GPS location tracking (real-time via browser Geolocation API)
 - **Dashboard** — Aggregated analytics with charts (recharts)
 
 ## User Preferences

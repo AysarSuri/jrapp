@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -2442,6 +2442,43 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id as string, 10);
       await db.delete(agentClients).where(eq(agentClients.id, id));
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  app.get('/api/agent-locations', requireAuth, async (_req, res) => {
+    try {
+      const data = await db.select().from(agentLocations).orderBy(agentLocations.agentName);
+      res.json(data);
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  app.post('/api/agent-locations', requireAuth, async (req, res) => {
+    try {
+      const { agentUserId, agentName, latitude, longitude, accuracy, deviceType } = req.body;
+      if (!agentUserId || !agentName || latitude == null || longitude == null) {
+        return res.status(400).json({ message: "agentUserId, agentName, latitude, longitude are required" });
+      }
+      const existing = await db.select().from(agentLocations).where(eq(agentLocations.agentUserId, agentUserId));
+      if (existing.length > 0) {
+        const [updated] = await db.update(agentLocations)
+          .set({ agentName, latitude: String(latitude), longitude: String(longitude), accuracy: accuracy ? String(accuracy) : null, deviceType: deviceType || "unknown", updatedAt: new Date() })
+          .where(eq(agentLocations.agentUserId, agentUserId))
+          .returning();
+        return res.json(updated);
+      }
+      const [created] = await db.insert(agentLocations).values({
+        agentUserId, agentName, latitude: String(latitude), longitude: String(longitude),
+        accuracy: accuracy ? String(accuracy) : null, deviceType: deviceType || "unknown",
+      }).returning();
+      res.json(created);
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
+  app.delete('/api/agent-locations/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(agentLocations).where(eq(agentLocations.id, id));
       res.json({ message: "Deleted" });
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });

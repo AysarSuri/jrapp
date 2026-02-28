@@ -177,6 +177,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-management",
     "/agent-clients",
     "/agent-product-load",
+    "/agent-gps",
   ];
 
   const salesSubRoutes = [
@@ -310,6 +311,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const agentManagementNavItems: NavItem[] = [
     { href: "/agent-clients", icon: Users, label: "Agent Clients" },
     { href: "/agent-product-load", icon: Truck, label: "Agent Product Load" },
+    { href: "/agent-gps", icon: MapPin, label: "Agent GPS" },
   ];
 
   const salesNavItems: NavItem[] = [
