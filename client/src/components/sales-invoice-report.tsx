@@ -285,52 +285,63 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
               </div>
             )}
-            <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
-              <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>
+            <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10 }}>
+              <h1 style={{ fontSize: "16pt", marginBottom: 6 }}>
                 {currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}
               </h1>
-              <p style={{ fontSize: "12pt", color: "#666" }}>
-                {t("Invoice #")}: {invoice.invoiceNumber} | {t("Date")}: {formatDate(invoice.date)} | {t("Time")}: {invoice.time}
-              </p>
+              <div style={{ display: "flex", justifyContent: "center", gap: 20, fontSize: "12pt", flexWrap: "wrap" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 10h8"/><path d="M8 14h4"/></svg>
+                  {t("Invoice #")}: {invoice.invoiceNumber}
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  {t("Date")}: {formatDate(invoice.date)}
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {t("Time")}: {invoice.time}
+                </span>
+              </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: 12, fontSize: "11pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Customer Name")}:</span>
-                <span style={{ fontWeight: 600, marginLeft: "auto", color: "#1e293b" }}>{invoice.customerName}</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: 12, fontSize: "12pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Customer Name")}:</span>
+                <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.customerName}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Invoice Type")}:</span>
-                <span style={{ fontWeight: 600, marginLeft: "auto", color: invoice.invoiceType === "cash" ? "#16a34a" : "#dc2626", background: invoice.invoiceType === "cash" ? "#f0fdf4" : "#fef2f2", padding: "1px 8px", borderRadius: 4, fontSize: "10pt" }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Invoice Type")}:</span>
+                <span style={{ fontWeight: 700, marginLeft: "auto", color: invoice.invoiceType === "cash" ? "#16a34a" : fieldColor, background: invoice.invoiceType === "cash" ? "#f0fdf4" : "#fef2f2", padding: "2px 10px", borderRadius: 4, fontSize: "12pt" }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
               </div>
               {invoice.mobile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Mobile")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{invoice.mobile}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Mobile")}:</span>
+                  <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{invoice.mobile}</span>
                 </div>
               )}
               {invoice.address && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: invoice.mobile ? "none" : "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Address")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{invoice.address}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", borderBottom: "1px solid #e2e8f0", borderRight: invoice.mobile ? "none" : "1px solid #e2e8f0" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Address")}:</span>
+                  <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.address}</span>
                 </div>
               )}
               {invoice.representativeName && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Representative")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{invoice.representativeName}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Representative")}:</span>
+                  <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.representativeName}</span>
                 </div>
               )}
               {invoice.representativeMobile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Rep. Mobile")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{invoice.representativeMobile}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", borderBottom: "1px solid #e2e8f0" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Rep. Mobile")}:</span>
+                  <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{invoice.representativeMobile}</span>
                 </div>
               )}
               {invoice.driverName && (
@@ -418,7 +429,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <span>{t("Amount Paid")}:</span>
                   <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.amountPaid)}{currencySuffix}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #333", marginTop: 5, color: "#dc2626" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: `2px solid ${fieldColor}`, marginTop: 5, color: fieldColor }}>
                   <span>{t("Remaining")}:</span>
                   <span>{currencyPrefix}{fmt(invoice.remaining)}{currencySuffix}</span>
                 </div>
@@ -453,9 +464,9 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </div>
             </div>
 
-            <div style={{ marginTop: 10, border: "2px solid #dc2626", borderRadius: 6, padding: 8 }}>
-              <h3 style={{ color: "#dc2626", fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <div style={{ marginTop: 10, border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8 }}>
+              <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 {t("Customer Balance")}
               </h3>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
@@ -466,7 +477,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 <span>{t("Invoice Remaining")}:</span>
                 <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, color: "#dc2626", borderTop: "2px solid #dc2626", marginTop: 5 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, color: fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
                 <span>{t("Total Balance")}:</span>
                 <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
               </div>
