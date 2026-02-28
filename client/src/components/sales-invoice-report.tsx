@@ -468,7 +468,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 </div>
               </div>
 
-              <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8 }}>
+              <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8, alignSelf: "end" }}>
                 <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   {t("Customer Balance")}
