@@ -180,6 +180,12 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-gps",
   ];
 
+  const warehouseSubRoutes = [
+    "/warehouse-management",
+    "/warehouses",
+    "/warehouse-transfer",
+  ];
+
   const salesSubRoutes = [
     "/sales-management",
     "/customers",
@@ -203,6 +209,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isExternalDebtSection = externalDebtSubRoutes.includes(location);
   const isOwnerSection = ownerSubRoutes.includes(location);
   const isAgentSection = agentSubRoutes.includes(location);
+  const isWarehouseSection = warehouseSubRoutes.includes(location);
   const isSalesSection = salesSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
@@ -212,6 +219,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
   const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
   const [agentOpen, setAgentOpen] = useState(isAgentSection);
+  const [warehouseOpen, setWarehouseOpen] = useState(isWarehouseSection);
   const [salesOpen, setSalesOpen] = useState(isSalesSection);
 
   useEffect(() => {
@@ -245,6 +253,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isAgentSection) setAgentOpen(true);
   }, [isAgentSection]);
+
+  useEffect(() => {
+    if (isWarehouseSection) setWarehouseOpen(true);
+  }, [isWarehouseSection]);
 
   useEffect(() => {
     if (isSalesSection) setSalesOpen(true);
@@ -314,6 +326,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-gps", icon: MapPin, label: "Agent GPS" },
   ];
 
+  const warehouseNavItems: NavItem[] = [
+    { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
+    { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
+  ];
+
   const salesNavItems: NavItem[] = [
     { href: "/customers", icon: Users, label: "Customers" },
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
@@ -343,8 +360,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "External Debt Management", icon: HandCoins, children: externalDebtNavItems },
     { type: 'group', label: "Owner Management", icon: UserCog, children: ownerNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
-    { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
-    { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
+    { type: 'group', label: "Warehouse Management", icon: Warehouse, children: warehouseNavItems },
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
     { href: "/barcode-print", icon: QrCode, label: "Barcode Print" },
@@ -393,6 +409,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "External Debt Management": { isOpen: externalDebtOpen, setOpen: setExternalDebtOpen, isActive: isExternalDebtSection },
               "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
               "Agent Management": { isOpen: agentOpen, setOpen: setAgentOpen, isActive: isAgentSection },
+              "Warehouse Management": { isOpen: warehouseOpen, setOpen: setWarehouseOpen, isActive: isWarehouseSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
             const isOpen = group.isOpen;
@@ -408,6 +425,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "External Debt Management": "/external-debt-management",
               "Owner Management": "/owner-management",
               "Agent Management": "/agent-clients",
+              "Warehouse Management": "/warehouses",
             };
             const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
             const isLandingActive = location === landingRoute;
