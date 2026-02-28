@@ -21,11 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building, ArrowLeft,
-  Eye, Pencil, Trash2,
+  Eye, Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
@@ -62,11 +59,12 @@ export default function SupplierAdjustmentsPage() {
   const [payToName, setPayToName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
-  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
-  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [reportAdjustmentId, setReportAdjustmentId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [deleteAdjustment, setDeleteAdjustment] = useState<{ id: number } | null>(null);
@@ -204,6 +202,17 @@ export default function SupplierAdjustmentsPage() {
     a => supplierId ? a.supplierId === parseInt(supplierId) : true
   ) || [];
 
+  const filteredAdjustments = (supplierAdjustments || []).filter(adj => {
+    if (historyFilter && historyFilter !== "all" && String(adj.supplierId) !== historyFilter) return false;
+    const adjDate = typeof adj.date === 'string' ? adj.date.split('T')[0] : new Date(adj.date).toISOString().split('T')[0];
+    if (historyFromDate && adjDate < historyFromDate) return false;
+    if (historyToDate && adjDate > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredAdjustments.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedAdjustments = filteredAdjustments.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="space-y-8">
       <Link href="/supplier-management">
@@ -221,106 +230,12 @@ export default function SupplierAdjustmentsPage() {
             {t("Record received amounts or discounts from suppliers")}
           </p>
         </div>
-        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2" data-testid="button-history">
-              <ListOrdered className="h-4 w-4" />
-              {t("History")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t("Adjustment History")}</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-wrap gap-3 mb-4">
-              <div className="w-48">
-                <Label className="text-xs mb-1 block">{t('Supplier')}</Label>
-                <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
-                  <SelectTrigger data-testid="select-adj-history-supplier-filter"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
-                    {suppliers?.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs mb-1 block">{t('From Date')}</Label>
-                <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} data-testid="input-adj-history-start-date" />
-              </div>
-              <div>
-                <Label className="text-xs mb-1 block">{t('To Date')}</Label>
-                <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-adj-history-end-date" />
-              </div>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>{t("Supplier")}</TableHead>
-                  <TableHead>{t("Type")}</TableHead>
-                  <TableHead>{t("Opening Balance USD")}</TableHead>
-                  <TableHead>{t("Opening Balance IQD")}</TableHead>
-                  <TableHead>{t("Amount USD")}</TableHead>
-                  <TableHead>{t("Amount IQD")}</TableHead>
-                  <TableHead>{t("Remaining USD")}</TableHead>
-                  <TableHead>{t("Remaining IQD")}</TableHead>
-                  <TableHead>{t("Date")}</TableHead>
-                  <TableHead>{t("Time")}</TableHead>
-                  <TableHead>{t("Note")}</TableHead>
-                  <TableHead>{t("Actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {supplierAdjustments?.filter(adj => {
-                  if (historySupplierFilter !== 'all' && adj.supplierId !== parseInt(historySupplierFilter)) return false;
-                  const adjDate = typeof adj.date === 'string' ? adj.date.split('T')[0] : new Date(adj.date).toISOString().split('T')[0];
-                  if (historyStartDate && adjDate < historyStartDate) return false;
-                  if (historyEndDate && adjDate > historyEndDate) return false;
-                  return true;
-                }).map((adj, i) => (
-                  <TableRow key={adj.id} data-testid={`row-adjustment-${adj.id}`}>
-                    <TableCell>{i + 1}</TableCell>
-                    <TableCell className="font-medium">{adj.supplierName}</TableCell>
-                    <TableCell>
-                      <Badge variant={adj.type === "received" ? "default" : "secondary"}>
-                        {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-red-600 font-medium">{usd(adj.oldDebtUsd)}</TableCell>
-                    <TableCell className="text-red-600 font-medium">{parseFloat(adj.oldDebtIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell className="text-blue-600 font-bold">{usd(adj.amountUsd)}</TableCell>
-                    <TableCell className="text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell className="font-medium">{usd(adj.remainingUsd)}</TableCell>
-                    <TableCell className="font-medium">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
-                    <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
-                    <TableCell className="font-mono text-sm">{adj.time}</TableCell>
-                    <TableCell className="max-w-[150px] truncate">{adj.note || "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportAdjustmentId(adj.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-adjustment-${adj.id}`}>
-                          <Eye className="h-3.5 w-3.5 text-blue-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/supplier-adjustments?edit=${adj.id}`); }} data-testid={`btn-edit-adjustment-${adj.id}`}>
-                          <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteAdjustment({ id: adj.id })} data-testid={`btn-delete-adjustment-${adj.id}`}>
-                          <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {(!supplierAdjustments || supplierAdjustments.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
-                      {t("No adjustments recorded yet")}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
+            <RotateCcw className="h-4 w-4" />
+            {t('Reset')}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -512,10 +427,6 @@ export default function SupplierAdjustmentsPage() {
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {t("Save")}
               </Button>
-              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
-                <RotateCcw className="h-4 w-4" />
-                {t("Reset")}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -579,6 +490,171 @@ export default function SupplierAdjustmentsPage() {
           )}
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-emerald-600" />
+              {t('Adjustment History')}
+              <Badge variant="secondary" className="ml-2">{filteredAdjustments.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-adj-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-adj-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-adj-history" className="h-9">
+                    <SelectValue placeholder={t('All Suppliers')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
+                    {suppliers?.map(s => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {adjustmentsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Supplier')}</TableHead>
+                    <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('Opening Balance USD')}</TableHead>
+                    <TableHead>{t('Opening Balance IQD')}</TableHead>
+                    <TableHead>{t('Amount USD')}</TableHead>
+                    <TableHead>{t('Amount IQD')}</TableHead>
+                    <TableHead>{t('Remaining USD')}</TableHead>
+                    <TableHead>{t('Remaining IQD')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('Note')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedAdjustments.map((adj, i) => (
+                    <TableRow key={adj.id} data-testid={`row-adjustment-${adj.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-medium">{adj.supplierName}</TableCell>
+                      <TableCell>
+                        <Badge variant={adj.type === "received" ? "default" : "secondary"}>
+                          {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">{usd(adj.oldDebtUsd)}</TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">{parseFloat(adj.oldDebtIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="font-mono text-sm text-blue-600 font-bold">{usd(adj.amountUsd)}</TableCell>
+                      <TableCell className="font-mono text-sm text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="font-mono text-sm">{usd(adj.remainingUsd)}</TableCell>
+                      <TableCell className="font-mono text-sm">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
+                      <TableCell className="font-mono text-sm">{adj.time}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{adj.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => { setReportAdjustmentId(adj.id); setReportOpen(true); }}
+                            data-testid={`btn-view-adjustment-${adj.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => navigate(`/supplier-adjustments?edit=${adj.id}`)}
+                            data-testid={`btn-edit-adjustment-${adj.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setDeleteAdjustment({ id: adj.id })}
+                            data-testid={`btn-delete-adjustment-${adj.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedAdjustments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
+                        {t('No adjustments recorded yet')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredAdjustments.length)} {t('of')} {filteredAdjustments.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-adj-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                    <Button
+                      key={pg}
+                      variant={pg === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pg)}
+                      data-testid={`button-adj-page-${pg}`}
+                    >
+                      {pg}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-adj-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <SupplierAdjustmentReport
         adjustmentId={reportAdjustmentId}
