@@ -14,11 +14,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, ArrowRightLeft, RotateCcw, Trash2,
+  Save, Loader2, ArrowRightLeft, RotateCcw, Trash2, ListOrdered,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
+import type { CurrencyExchange } from "@shared/schema";
 
 export default function CurrencyExchangePage() {
   const { t } = useTranslation();
@@ -34,6 +40,11 @@ export default function CurrencyExchangePage() {
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const toAmount = useMemo(() => {
     const amt = parseFloat(fromAmount) || 0;
@@ -96,19 +107,33 @@ export default function CurrencyExchangePage() {
     });
   }, [fromCurrency, toCurrency, fromAmount, exchangeRate, note, date, time, createExchange, toast, t, resetForm]);
 
-  const handleDelete = useCallback((id: number) => {
+  const handleDelete = (id: number) => {
     deleteExchange(id, {
       onSuccess: () => {
         toast({ title: t("Success"), description: t("Exchange record deleted") });
       },
     });
-  }, [deleteExchange, toast, t]);
+  };
 
   const formatAmount = (amount: string, currency: string) => {
     const num = parseFloat(amount) || 0;
     if (currency === "USD") return usd(num);
     return `${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} IQD`;
   };
+
+  const allExchanges = exchanges || [];
+  const filteredExchanges = allExchanges.filter((ex: CurrencyExchange) => {
+    if (historyFilter && historyFilter !== "all") {
+      const direction = `${ex.fromCurrency}-${ex.toCurrency}`;
+      if (direction !== historyFilter) return false;
+    }
+    if (historyFromDate && ex.date < historyFromDate) return false;
+    if (historyToDate && ex.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredExchanges.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedExchanges = filteredExchanges.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -227,74 +252,165 @@ export default function CurrencyExchangePage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">{t('Exchange History')}</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-primary" />
+              {t('Exchange History')}
+              <Badge variant="secondary" className="ml-2">{filteredExchanges.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-exchange-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-exchange-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-exchange-history" className="h-9">
+                    <SelectValue placeholder={t('All Directions')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Directions')}</SelectItem>
+                    <SelectItem value="USD-IQD">USD → IQD</SelectItem>
+                    <SelectItem value="IQD-USD">IQD → USD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          ) : !exchanges?.length ? (
-            <div className="text-center py-12 text-muted-foreground">{t('No records found')}</div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>#</TableHead>
-                  <TableHead>{t('Date')}</TableHead>
-                  <TableHead>{t('Time')}</TableHead>
-                  <TableHead>{t('From')}</TableHead>
-                  <TableHead>{t('Amount')}</TableHead>
-                  <TableHead>{t('Rate')}</TableHead>
-                  <TableHead>{t('To')}</TableHead>
-                  <TableHead>{t('Result')}</TableHead>
-                  <TableHead>{t('Note')}</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {exchanges.map((ex, i) => (
-                  <TableRow key={ex.id} data-testid={`row-exchange-${ex.id}`}>
-                    <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                    <TableCell className="font-mono text-sm">{ex.date}</TableCell>
-                    <TableCell className="font-mono text-sm">{ex.time}</TableCell>
-                    <TableCell>
-                      <Badge variant={ex.fromCurrency === "USD" ? "default" : "secondary"}>
-                        {ex.fromCurrency}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-medium">
-                      {formatAmount(ex.fromAmount, ex.fromCurrency)}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {parseFloat(ex.exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 4 })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={ex.toCurrency === "USD" ? "default" : "secondary"}>
-                        {ex.toCurrency}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-bold">
-                      {formatAmount(ex.toAmount, ex.toCurrency)}
-                    </TableCell>
-                    <TableCell className="text-sm max-w-[200px] truncate text-muted-foreground">
-                      {ex.note || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(ex.id)}
-                        data-testid={`button-delete-${ex.id}`}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('From')}</TableHead>
+                    <TableHead>{t('Amount')}</TableHead>
+                    <TableHead>{t('Rate')}</TableHead>
+                    <TableHead>{t('To')}</TableHead>
+                    <TableHead>{t('Result')}</TableHead>
+                    <TableHead>{t('Note')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedExchanges.map((ex: CurrencyExchange, i: number) => (
+                    <TableRow key={ex.id} data-testid={`row-exchange-${ex.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{ex.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{ex.time}</TableCell>
+                      <TableCell>
+                        <Badge variant={ex.fromCurrency === "USD" ? "default" : "secondary"}>
+                          {ex.fromCurrency}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-medium">
+                        {formatAmount(ex.fromAmount, ex.fromCurrency)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {parseFloat(ex.exchangeRate).toLocaleString("en-US", { maximumFractionDigits: 4 })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={ex.toCurrency === "USD" ? "default" : "secondary"}>
+                          {ex.toCurrency}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-bold">
+                        {formatAmount(ex.toAmount, ex.toCurrency)}
+                      </TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate text-muted-foreground">
+                        {ex.note || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-exchange-${ex.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this exchange record.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(ex.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedExchanges.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                        {t('No records found')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredExchanges.length)} {t('of')} {filteredExchanges.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-exchange-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                    <Button
+                      key={pg}
+                      variant={pg === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pg)}
+                      data-testid={`button-exchange-page-${pg}`}
+                    >
+                      {pg}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-exchange-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </CardContent>
       </Card>

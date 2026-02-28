@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useProductDamages, useNextDamageNumber, useCreateProductDamage, useProductDamageItems } from "@/hooks/use-product-damages";
+import { useProductDamages, useNextDamageNumber, useCreateProductDamage, useDeleteProductDamage, useProductDamageItems } from "@/hooks/use-product-damages";
 import { useQuery } from "@tanstack/react-query";
 import type { ProductDamage } from "@shared/schema";
 import { products, warehouses } from "@shared/schema";
@@ -20,10 +20,12 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, AlertTriangle,
+  ChevronLeft, ChevronRight, Eye,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
@@ -61,6 +63,7 @@ export default function ProductDamagePage() {
   const { data: damages, isLoading: damagesLoading } = useProductDamages();
   const { data: nextNumber } = useNextDamageNumber();
   const { mutate: createDamage, isPending: isSaving } = useCreateProductDamage();
+  const { mutate: deleteDamage } = useDeleteProductDamage();
 
   const { data: productsList } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -77,7 +80,11 @@ export default function ProductDamagePage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [note, setNote] = useState("");
   const [items, setItems] = useState<DamageItem[]>([emptyItem()]);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [detailDamageId, setDetailDamageId] = useState<number | null>(null);
 
   const { data: detailItems } = useProductDamageItems(detailDamageId);
@@ -194,6 +201,18 @@ export default function ProductDamagePage() {
     });
   }, [reason, warehouseId, warehouseName, damageNumber, note, date, time, items, createDamage, toast, t, resetForm]);
 
+  const handleDelete = (id: number) => {
+    deleteDamage(id, {
+      onSuccess: () => {
+        toast({ title: t("Damage report deleted successfully") });
+        if (detailDamageId === id) setDetailDamageId(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete damage report"), variant: "destructive" });
+      },
+    });
+  };
+
   const { data: unitsData } = useUnits();
   const unitsList = unitsData || [];
   const whs = warehousesList || [];
@@ -212,6 +231,17 @@ export default function ProductDamagePage() {
     return labels[r] || r;
   };
 
+  const allDamages = damages || [];
+  const filteredDamages = allDamages.filter((dmg: ProductDamage) => {
+    if (historyFilter && historyFilter !== "all" && dmg.reason !== historyFilter) return false;
+    if (historyFromDate && dmg.date < historyFromDate) return false;
+    if (historyToDate && dmg.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredDamages.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedDamages = filteredDamages.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -219,93 +249,6 @@ export default function ProductDamagePage() {
           <AlertTriangle className="w-7 h-7 text-destructive" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Product Damage')}</h1>
         </div>
-        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2" data-testid="button-history">
-              <ListOrdered className="w-4 h-4" />
-              {t('Damage History')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t('Damage History')}</DialogTitle>
-            </DialogHeader>
-            {damagesLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : !damages?.length ? (
-              <div className="text-center py-8 text-muted-foreground">{t('No records found')}</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Damage No')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Warehouse')}</TableHead>
-                    <TableHead>{t('Reason')}</TableHead>
-                    <TableHead>{t('Note')}</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {damages.map((dmg, i) => (
-                    <TableRow key={dmg.id} data-testid={`row-damage-${dmg.id}`}>
-                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm font-medium">{dmg.damageNumber}</TableCell>
-                      <TableCell className="font-mono text-sm">{dmg.date} {dmg.time}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{dmg.warehouseName || "-"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="destructive">{reasonLabel(dmg.reason)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm max-w-[150px] truncate text-muted-foreground">{dmg.note || "-"}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDetailDamageId(detailDamageId === dmg.id ? null : dmg.id)}
-                          data-testid={`button-detail-${dmg.id}`}
-                        >
-                          {t('Details')}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {detailDamageId && detailItems && detailItems.length > 0 && (
-              <div className="mt-4 border rounded-lg p-4 bg-muted/30">
-                <h4 className="font-semibold mb-2">{t('Damaged Items')}</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Product Code')}</TableHead>
-                      <TableHead>{t('Product Name')}</TableHead>
-                      <TableHead>{t('Quantity')}</TableHead>
-                      <TableHead>{t('Unit')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {detailItems.map((item, i) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
-                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
-                        <TableCell className="font-mono">{item.quantity}</TableCell>
-                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -486,6 +429,194 @@ export default function ProductDamagePage() {
               {t('Reset')}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-destructive" />
+              {t('Damage History')}
+              <Badge variant="secondary" className="ml-2">{filteredDamages.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-damage-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-damage-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-damage-history" className="h-9">
+                    <SelectValue placeholder={t('All Reasons')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Reasons')}</SelectItem>
+                    {DAMAGE_REASONS.map(r => (
+                      <SelectItem key={r} value={r}>{reasonLabel(r)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {damagesLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Damage No')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('Warehouse')}</TableHead>
+                    <TableHead>{t('Reason')}</TableHead>
+                    <TableHead>{t('Note')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedDamages.map((dmg: ProductDamage, i: number) => (
+                    <TableRow key={dmg.id} data-testid={`row-damage-${dmg.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{dmg.damageNumber}</TableCell>
+                      <TableCell className="font-mono text-sm">{dmg.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{dmg.time || "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{dmg.warehouseName || "-"}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{reasonLabel(dmg.reason)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm max-w-[150px] truncate text-muted-foreground">{dmg.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => setDetailDamageId(detailDamageId === dmg.id ? null : dmg.id)}
+                            data-testid={`button-detail-${dmg.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-damage-${dmg.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this damage report and all its items.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(dmg.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedDamages.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        {t('No records found')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {detailDamageId && detailItems && detailItems.length > 0 && (
+              <div className="mt-4 border rounded-lg p-4 bg-muted/30">
+                <h4 className="font-semibold mb-2">{t('Damaged Items')}</h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>{t('Product Code')}</TableHead>
+                      <TableHead>{t('Product Name')}</TableHead>
+                      <TableHead>{t('Quantity')}</TableHead>
+                      <TableHead>{t('Unit')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {detailItems.map((item, i) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
+                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
+                        <TableCell className="font-mono">{item.quantity}</TableCell>
+                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredDamages.length)} {t('of')} {filteredDamages.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-damage-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                    <Button
+                      key={pg}
+                      variant={pg === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pg)}
+                      data-testid={`button-damage-page-${pg}`}
+                    >
+                      {pg}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-damage-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

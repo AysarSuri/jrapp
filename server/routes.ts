@@ -2208,6 +2208,19 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/warehouse-transfers/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.transaction(async (tx) => {
+        await tx.delete(warehouseTransferItems).where(eq(warehouseTransferItems.transferId, id));
+        await tx.delete(warehouseTransfers).where(eq(warehouseTransfers.id, id));
+      });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Inventory Report
   app.get('/api/inventory-report', requireAuth, async (req, res) => {
     try {
@@ -2396,6 +2409,19 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/product-damages/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.transaction(async (tx) => {
+        await tx.delete(productDamageItems).where(eq(productDamageItems.damageId, id));
+        await tx.delete(productDamages).where(eq(productDamages.id, id));
+      });
+      res.json({ success: true });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -10,7 +10,12 @@ export function useProductDamages() {
 
 export function useProductDamageItems(damageId: number | null) {
   return useQuery<ProductDamageItem[]>({
-    queryKey: [`/api/product-damages/${damageId}/items`],
+    queryKey: ["/api/product-damages", damageId, "items"],
+    queryFn: async () => {
+      const res = await fetch(`/api/product-damages/${damageId}/items`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
     enabled: !!damageId,
   });
 }
@@ -30,6 +35,18 @@ export function useCreateProductDamage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/product-damages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/product-damages/next-number"] });
+    },
+  });
+}
+
+export function useDeleteProductDamage() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/product-damages/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/product-damages"] });
     },
   });
 }

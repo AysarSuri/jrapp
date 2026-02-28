@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useWarehouseTransfers, useNextTransferNumber, useCreateWarehouseTransfer, useWarehouseTransferItems } from "@/hooks/use-warehouse-transfers";
+import { useWarehouseTransfers, useNextTransferNumber, useCreateWarehouseTransfer, useDeleteWarehouseTransfer, useWarehouseTransferItems } from "@/hooks/use-warehouse-transfers";
 import { useQuery } from "@tanstack/react-query";
 import type { WarehouseTransfer } from "@shared/schema";
 import type { products, warehouses } from "@shared/schema";
@@ -20,10 +20,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ArrowRightLeft, Warehouse as WarehouseIcon,
+  ChevronLeft, ChevronRight, Eye,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
@@ -51,6 +56,7 @@ export default function WarehouseTransferPage() {
   const { data: transfers, isLoading: transfersLoading } = useWarehouseTransfers();
   const { data: nextNumber } = useNextTransferNumber();
   const { mutate: createTransfer, isPending: isSaving } = useCreateWarehouseTransfer();
+  const { mutate: deleteTransfer } = useDeleteWarehouseTransfer();
 
   const { data: productsList } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -68,7 +74,11 @@ export default function WarehouseTransferPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [note, setNote] = useState("");
   const [items, setItems] = useState<TransferItem[]>([emptyItem()]);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [detailTransferId, setDetailTransferId] = useState<number | null>(null);
 
   const { data: detailItems } = useWarehouseTransferItems(detailTransferId);
@@ -197,10 +207,33 @@ export default function WarehouseTransferPage() {
     });
   }, [fromWarehouseId, toWarehouseId, fromWarehouseName, toWarehouseName, transferNumber, note, date, time, items, createTransfer, toast, t, resetForm]);
 
+  const handleDelete = (id: number) => {
+    deleteTransfer(id, {
+      onSuccess: () => {
+        toast({ title: t("Transfer deleted successfully") });
+        if (detailTransferId === id) setDetailTransferId(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete transfer"), variant: "destructive" });
+      },
+    });
+  };
+
   const { data: unitsData } = useUnits();
   const unitsList = unitsData || [];
-  const warehouses = warehousesList || [];
-  const products = productsList || [];
+  const whList = warehousesList || [];
+  const prodList = productsList || [];
+
+  const allTransfers = transfers || [];
+  const filteredTransfers = allTransfers.filter((tr: WarehouseTransfer) => {
+    if (historyFilter && historyFilter !== "all" && String(tr.fromWarehouseId) !== historyFilter && String(tr.toWarehouseId) !== historyFilter) return false;
+    if (historyFromDate && tr.date < historyFromDate) return false;
+    if (historyToDate && tr.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredTransfers.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedTransfers = filteredTransfers.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -209,93 +242,6 @@ export default function WarehouseTransferPage() {
           <ArrowRightLeft className="w-7 h-7 text-primary" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Warehouse Transfer')}</h1>
         </div>
-        <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2" data-testid="button-history">
-              <ListOrdered className="w-4 h-4" />
-              {t('Transfer History')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t('Transfer History')}</DialogTitle>
-            </DialogHeader>
-            {transfersLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : !transfers?.length ? (
-              <div className="text-center py-8 text-muted-foreground">{t('No records found')}</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Transfer No')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('From Warehouse')}</TableHead>
-                    <TableHead>{t('To Warehouse')}</TableHead>
-                    <TableHead>{t('Note')}</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transfers.map((tr, i) => (
-                    <TableRow key={tr.id} data-testid={`row-transfer-${tr.id}`}>
-                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm font-medium">{tr.transferNumber}</TableCell>
-                      <TableCell className="font-mono text-sm">{tr.date} {tr.time}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{tr.fromWarehouseName}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{tr.toWarehouseName}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm max-w-[150px] truncate text-muted-foreground">{tr.note || "-"}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDetailTransferId(detailTransferId === tr.id ? null : tr.id)}
-                          data-testid={`button-detail-${tr.id}`}
-                        >
-                          {t('Details')}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {detailTransferId && detailItems && detailItems.length > 0 && (
-              <div className="mt-4 border rounded-lg p-4 bg-muted/30">
-                <h4 className="font-semibold mb-2">{t('Transfer Items')}</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Product Code')}</TableHead>
-                      <TableHead>{t('Product Name')}</TableHead>
-                      <TableHead>{t('Quantity')}</TableHead>
-                      <TableHead>{t('Unit')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {detailItems.map((item, i) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
-                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
-                        <TableCell className="font-mono">{item.quantity}</TableCell>
-                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -343,7 +289,7 @@ export default function WarehouseTransferPage() {
                   <SelectValue placeholder={t('Select Warehouse')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {warehouses.map(wh => (
+                  {whList.map(wh => (
                     <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -361,7 +307,7 @@ export default function WarehouseTransferPage() {
                   <SelectValue placeholder={t('Select Warehouse')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {warehouses.map(wh => (
+                  {whList.map(wh => (
                     <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -414,7 +360,7 @@ export default function WarehouseTransferPage() {
                             <SelectValue placeholder={t('Select')} />
                           </SelectTrigger>
                           <SelectContent>
-                            {products.map(p => (
+                            {prodList.map(p => (
                               <SelectItem key={p.id} value={p.barcode}>{p.barcode}</SelectItem>
                             ))}
                           </SelectContent>
@@ -429,7 +375,7 @@ export default function WarehouseTransferPage() {
                             <SelectValue placeholder={t('Select')} />
                           </SelectTrigger>
                           <SelectContent>
-                            {products.map(p => (
+                            {prodList.map(p => (
                               <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
                             ))}
                           </SelectContent>
@@ -482,6 +428,194 @@ export default function WarehouseTransferPage() {
               {t('Reset')}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-primary" />
+              {t('Transfer History')}
+              <Badge variant="secondary" className="ml-2">{filteredTransfers.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-transfer-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-transfer-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-transfer-history" className="h-9">
+                    <SelectValue placeholder={t('All Warehouses')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Warehouses')}</SelectItem>
+                    {whList.map(wh => (
+                      <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {transfersLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Transfer No')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('From Warehouse')}</TableHead>
+                    <TableHead>{t('To Warehouse')}</TableHead>
+                    <TableHead>{t('Note')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedTransfers.map((tr: WarehouseTransfer, i: number) => (
+                    <TableRow key={tr.id} data-testid={`row-transfer-${tr.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{tr.transferNumber}</TableCell>
+                      <TableCell className="font-mono text-sm">{tr.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{tr.time || "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{tr.fromWarehouseName}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{tr.toWarehouseName}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm max-w-[150px] truncate text-muted-foreground">{tr.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => setDetailTransferId(detailTransferId === tr.id ? null : tr.id)}
+                            data-testid={`button-detail-${tr.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-transfer-${tr.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this transfer and all its items.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(tr.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedTransfers.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        {t('No records found')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {detailTransferId && detailItems && detailItems.length > 0 && (
+              <div className="mt-4 border rounded-lg p-4 bg-muted/30">
+                <h4 className="font-semibold mb-2">{t('Transfer Items')}</h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>{t('Product Code')}</TableHead>
+                      <TableHead>{t('Product Name')}</TableHead>
+                      <TableHead>{t('Quantity')}</TableHead>
+                      <TableHead>{t('Unit')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {detailItems.map((item, i) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
+                        <TableCell>{getProductNameByLang(item.productName)}</TableCell>
+                        <TableCell className="font-mono">{item.quantity}</TableCell>
+                        <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredTransfers.length)} {t('of')} {filteredTransfers.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-transfer-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                    <Button
+                      key={pg}
+                      variant={pg === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pg)}
+                      data-testid={`button-transfer-page-${pg}`}
+                    >
+                      {pg}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-transfer-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
