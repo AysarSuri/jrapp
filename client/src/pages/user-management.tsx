@@ -689,7 +689,7 @@ export default function UserManagementPage() {
             <Button
               onClick={handleUpdate}
               disabled={updateMutation.isPending}
-              className="gap-2 bg-purple-600 hover:bg-purple-700"
+              className="gap-2 bg-purple-600 hover:bg-purple-700 text-[#ffffff]"
               data-testid="button-update-user"
             >
               {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
