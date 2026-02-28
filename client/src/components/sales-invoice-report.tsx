@@ -406,60 +406,27 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </tbody>
             </table>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginTop: 10, position: "relative", zIndex: 1 }}>
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8 }}>
-                <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                  {t("Invoice Summary")}
-                </h3>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                  <span>{t("Products")}:</span>
-                  <span style={{ fontWeight: 500 }}>{invoice.totalItems}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                  <span>{t("Total Quantity")}:</span>
-                  <span style={{ fontWeight: 500 }}>{invoice.totalQuantity}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                  <span>{t("Invoice Total")}:</span>
-                  <span style={{ fontWeight: 600 }}>{currencyPrefix}{fmt(invoice.subtotal)}{currencySuffix}</span>
-                </div>
-                {parseFloat(invoice.discount || "0") > 0 && (
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
-                    <span>{t("Discount")}:</span>
-                    <span style={{ fontWeight: 500 }}>-{currencyPrefix}{fmt(invoice.discount)}{currencySuffix}</span>
-                  </div>
-                )}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
-                  <span>{t("Amount Paid")}:</span>
-                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.amountPaid)}{currencySuffix}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: `2px solid ${fieldColor}`, marginTop: 5, color: fieldColor }}>
-                  <span>{t("Remaining")}:</span>
-                  <span>{currencyPrefix}{fmt(invoice.remaining)}{currencySuffix}</span>
-                </div>
-              </div>
-
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 10, position: "relative", zIndex: 1 }}>
               <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden" }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                   {t("Delivery Info")}
                 </h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "12pt" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "11pt" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     {t("Driver Name")}:
                   </span>
                   <span style={{ fontWeight: 500 }}>{invoice.driverName || "-"}</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "12pt" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "11pt" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     {t("Driver Mobile")}:
                   </span>
                   <span style={{ fontWeight: 500, fontFamily: "monospace" }}>{invoice.driverMobile || "-"}</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "12pt" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "11pt" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                     {t("Vehicle Number")}:
@@ -467,24 +434,57 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <span style={{ fontWeight: 500, fontFamily: "monospace" }}>{invoice.vehicleNumber || "-"}</span>
                 </div>
               </div>
-            </div>
 
-            <div style={{ marginTop: 10, border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8, position: "relative", zIndex: 1 }}>
-              <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                {t("Customer Balance")}
-              </h3>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Opening Balance")}:</span>
-                <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8 }}>
+                <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  {t("Invoice Summary")}
+                </h3>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Products")}:</span>
+                  <span style={{ fontWeight: 500 }}>{invoice.totalItems}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Total Quantity")}:</span>
+                  <span style={{ fontWeight: 500 }}>{invoice.totalQuantity}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Invoice Total")}:</span>
+                  <span style={{ fontWeight: 600 }}>{currencyPrefix}{fmt(invoice.subtotal)}{currencySuffix}</span>
+                </div>
+                {parseFloat(invoice.discount || "0") > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt", color: "#16a34a" }}>
+                    <span>{t("Discount")}:</span>
+                    <span style={{ fontWeight: 500 }}>-{currencyPrefix}{fmt(invoice.discount)}{currencySuffix}</span>
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt", color: "#16a34a" }}>
+                  <span>{t("Amount Paid")}:</span>
+                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoice.amountPaid)}{currencySuffix}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, borderTop: `2px solid ${fieldColor}`, marginTop: 5, color: fieldColor }}>
+                  <span>{t("Remaining")}:</span>
+                  <span>{currencyPrefix}{fmt(invoice.remaining)}{currencySuffix}</span>
+                </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Invoice Remaining")}:</span>
-                <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, color: fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
-                <span>{t("Total Balance")}:</span>
-                <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
+
+              <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8 }}>
+                <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  {t("Customer Balance")}
+                </h3>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Opening Balance")}:</span>
+                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Invoice Remaining")}:</span>
+                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
+                  <span>{t("Total Balance")}:</span>
+                  <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
+                </div>
               </div>
             </div>
 
