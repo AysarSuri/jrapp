@@ -58,3 +58,17 @@ export function useApproveSalesInvoice() {
     },
   });
 }
+
+export function useDeleteSalesInvoice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/sales-invoices/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices/next-number"] });
+    },
+  });
+}

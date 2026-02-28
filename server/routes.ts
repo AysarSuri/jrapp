@@ -1919,6 +1919,24 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/sales-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admin can delete invoices" });
+      }
+      await db.delete(salesInvoiceItems).where(eq(salesInvoiceItems.invoiceId, id));
+      await db.delete(salesInvoices).where(eq(salesInvoices.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Error deleting sales invoice:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Sales Returns
   app.get('/api/sales-returns/next-number', requireAuth, async (_req, res) => {
     const number = await storage.getNextSalesReturnNumber();

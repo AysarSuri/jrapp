@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNextSalesInvoiceNumber, useCreateSalesInvoice, useSalesInvoices, useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
+import { useNextSalesInvoiceNumber, useCreateSalesInvoice, useSalesInvoices, useApproveSalesInvoice, useDeleteSalesInvoice } from "@/hooks/use-sales-invoices";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock,
+  ListOrdered, CheckCircle, Clock, Pencil,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
@@ -58,6 +62,7 @@ export default function SalesInvoiceUsdPage() {
   const { data: nextNumber } = useNextSalesInvoiceNumber();
   const { mutate: createInvoice, isPending: isSaving } = useCreateSalesInvoice();
   const { mutate: approveInvoice, isPending: isApproving } = useApproveSalesInvoice();
+  const { mutate: deleteInvoice } = useDeleteSalesInvoice();
   const { data: invoicesList } = useSalesInvoices();
 
   const { data: units } = useUnits();
@@ -277,6 +282,22 @@ export default function SalesInvoiceUsdPage() {
     });
   };
 
+  const handleDeleteInvoice = (invoiceId: number) => {
+    deleteInvoice(invoiceId, {
+      onSuccess: () => {
+        toast({ title: t("Invoice deleted successfully") });
+      },
+      onError: (err) => {
+        toast({ title: t("Failed to delete invoice"), description: err.message, variant: "destructive" });
+      },
+    });
+  };
+
+  const handleEditInvoice = (inv: SalesInvoice) => {
+    setReportInvoiceId(inv.id);
+    setReportOpen(true);
+  };
+
   const userRole = user?.role || 'user';
 
   return (
@@ -355,6 +376,37 @@ export default function SalesInvoiceUsdPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => handleEditInvoice(inv)}
+                            data-testid={`button-edit-sales-invoice-${inv.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-sales-invoice-${inv.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this invoice and all its items.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteInvoice(inv.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                           {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
                             <Button
                               size="sm"
