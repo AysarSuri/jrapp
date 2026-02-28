@@ -67,6 +67,7 @@ export default function AgentGpsPage() {
   });
 
   const [agentFilter, setAgentFilter] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<AgentLocation | null>(null);
   const [trackingActive, setTrackingActive] = useState(false);
   const [watchId, setWatchId] = useState<number | null>(null);
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
@@ -288,6 +289,58 @@ export default function AgentGpsPage() {
         </Card>
       </div>
 
+      {selectedLocation && (
+        <Card className="border-green-200 dark:border-green-900 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-green-600" />
+                {t('Location on Map')} — {selectedLocation.agentName}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => openInMaps(selectedLocation.latitude, selectedLocation.longitude)}
+                  data-testid="button-open-google-maps"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {t('Open in Google Maps')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedLocation(null)}
+                  data-testid="button-close-map"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg overflow-hidden border" style={{ height: 400 }}>
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://maps.google.com/maps?q=${selectedLocation.latitude},${selectedLocation.longitude}&z=15&output=embed`}
+                title="Agent Location Map"
+                data-testid="iframe-google-map"
+              />
+            </div>
+            <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
+              <span>{t('Latitude')}: <span className="font-mono font-medium text-foreground">{parseFloat(selectedLocation.latitude).toFixed(6)}</span></span>
+              <span>{t('Longitude')}: <span className="font-mono font-medium text-foreground">{parseFloat(selectedLocation.longitude).toFixed(6)}</span></span>
+              {selectedLocation.accuracy && <span>{t('Accuracy')}: <span className="font-mono font-medium text-foreground">{parseFloat(selectedLocation.accuracy).toFixed(0)}m</span></span>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -355,9 +408,20 @@ export default function AgentGpsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                              onClick={() => setSelectedLocation(loc)}
+                              data-testid={`button-map-agent-location-${loc.id}`}
+                              title={t('View on Map')}
+                            >
+                              <MapPin className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                               onClick={() => openInMaps(loc.latitude, loc.longitude)}
-                              data-testid={`button-map-agent-location-${loc.id}`}
+                              data-testid={`button-external-map-agent-location-${loc.id}`}
+                              title={t('Open in Google Maps')}
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Button>
