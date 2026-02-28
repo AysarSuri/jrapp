@@ -2460,17 +2460,18 @@ export async function registerRoutes(
       if (!agentUserId || !agentName || latitude == null || longitude == null) {
         return res.status(400).json({ message: "agentUserId, agentName, latitude, longitude are required" });
       }
-      const existing = await db.select().from(agentLocations).where(eq(agentLocations.agentUserId, agentUserId));
+      const dt = deviceType || "unknown";
+      const existing = await db.select().from(agentLocations).where(and(eq(agentLocations.agentUserId, agentUserId), eq(agentLocations.deviceType, dt)));
       if (existing.length > 0) {
         const [updated] = await db.update(agentLocations)
-          .set({ agentName, latitude: String(latitude), longitude: String(longitude), accuracy: accuracy ? String(accuracy) : null, deviceType: deviceType || "unknown", updatedAt: new Date() })
-          .where(eq(agentLocations.agentUserId, agentUserId))
+          .set({ agentName, latitude: String(latitude), longitude: String(longitude), accuracy: accuracy ? String(accuracy) : null, updatedAt: new Date() })
+          .where(and(eq(agentLocations.agentUserId, agentUserId), eq(agentLocations.deviceType, dt)))
           .returning();
         return res.json(updated);
       }
       const [created] = await db.insert(agentLocations).values({
         agentUserId, agentName, latitude: String(latitude), longitude: String(longitude),
-        accuracy: accuracy ? String(accuracy) : null, deviceType: deviceType || "unknown",
+        accuracy: accuracy ? String(accuracy) : null, deviceType: dt,
       }).returning();
       res.json(created);
     } catch { res.status(500).json({ message: "Internal server error" }); }

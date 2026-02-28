@@ -71,13 +71,14 @@ export default function AgentGpsPage() {
   const [watchId, setWatchId] = useState<number | null>(null);
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
 
-  const agents = (agentsList || []).filter(u => u.role === "sales_rep" || u.role === "admin" || u.role === "user");
+  const agents = (agentsList || []).filter(u => u.role === "sales_rep");
   const allLocations = locations || [];
   const filteredLocations = agentFilter && agentFilter !== "all"
     ? allLocations.filter(l => l.agentUserId === agentFilter)
     : allLocations;
 
   const isAgent = user?.role === "sales_rep";
+  const uniqueAgents = [...new Set(allLocations.map(l => l.agentUserId))];
 
   const sendLocation = useCallback((position: GeolocationPosition) => {
     if (!user) return;
@@ -263,7 +264,11 @@ export default function AgentGpsPage() {
           <CardContent className="space-y-3">
             <div className="rounded-lg border p-3 text-center">
               <p className="text-xs text-muted-foreground mb-1">{t('Total Tracked Agents')}</p>
-              <p className="font-bold text-2xl text-blue-600" data-testid="text-total-tracked">{allLocations.length}</p>
+              <p className="font-bold text-2xl text-blue-600" data-testid="text-total-tracked">{uniqueAgents.length}</p>
+            </div>
+            <div className="rounded-lg border p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">{t('Total Devices')}</p>
+              <p className="font-bold text-2xl text-blue-600" data-testid="text-total-devices">{allLocations.length}</p>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
