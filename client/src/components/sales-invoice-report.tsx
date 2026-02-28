@@ -279,13 +279,18 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : invoice ? (
-          <div ref={printRef}>
+          <div ref={printRef} style={{ position: "relative" }}>
+            {companyProfile?.logo && (
+              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
+                <img src={companyProfile.logo} alt="" style={{ width: 300, height: 300, objectFit: "contain", opacity: 0.08 }} />
+              </div>
+            )}
             {companyProfile?.cliche && (
-              <div style={{ textAlign: "center", marginBottom: 10 }}>
+              <div style={{ textAlign: "center", marginBottom: 10, position: "relative", zIndex: 1 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
               </div>
             )}
-            <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10 }}>
+            <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1 }}>
               <h1 style={{ fontSize: "16pt", marginBottom: 6 }}>
                 {currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}
               </h1>
@@ -305,7 +310,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: 12, fontSize: "12pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: 12, fontSize: "12pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden", position: "relative", zIndex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Customer Name")}:</span>
@@ -374,7 +379,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               )}
             </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: "12pt" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: "12pt", position: "relative", zIndex: 1 }}>
               <thead>
                 <tr>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>#</th>
@@ -401,7 +406,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </tbody>
             </table>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginTop: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginTop: 10, position: "relative", zIndex: 1 }}>
               <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8 }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -464,7 +469,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </div>
             </div>
 
-            <div style={{ marginTop: 10, border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8 }}>
+            <div style={{ marginTop: 10, border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8, position: "relative", zIndex: 1 }}>
               <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 {t("Customer Balance")}
