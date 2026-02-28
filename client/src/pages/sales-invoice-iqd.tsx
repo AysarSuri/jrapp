@@ -333,6 +333,7 @@ export default function SalesInvoiceIqdPage() {
                     <TableHead>#</TableHead>
                     <TableHead>{t('Invoice #')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Customer')}</TableHead>
                     <TableHead>{t('Representative')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
@@ -350,6 +351,7 @@ export default function SalesInvoiceIqdPage() {
                       <TableCell>{inv.id}</TableCell>
                       <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
                       <TableCell>{formatDate(inv.date)}</TableCell>
+                      <TableCell className="font-mono text-sm">{inv.time || '-'}</TableCell>
                       <TableCell>{inv.customerName}</TableCell>
                       <TableCell>{inv.representativeName || '-'}</TableCell>
                       <TableCell>
