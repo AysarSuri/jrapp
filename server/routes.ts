@@ -1676,6 +1676,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/expenses/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { expenseTypeId, expenseTypeName, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(expenses).set({
+        expenseTypeId, expenseTypeName, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(expenses.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Expense not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(expenses).where(eq(expenses.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Sales Invoices
   app.get('/api/sales-invoices/next-number', requireAuth, async (_req, res) => {
     const number = await storage.getNextSalesInvoiceNumber();
@@ -2474,6 +2498,30 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/external-debt-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { debtId, debtName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(externalDebtTransactions).set({
+        debtId, debtName, type, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(externalDebtTransactions.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Transaction not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/external-debt-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(externalDebtTransactions).where(eq(externalDebtTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -20,3 +20,29 @@ export function useCreateExternalDebtTransaction() {
     },
   });
 }
+
+export function useUpdateExternalDebtTransaction() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertExternalDebtTransaction> }) => {
+      const res = await apiRequest("PATCH", `/api/external-debt-transactions/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/external-debt-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/external-debts"] });
+    },
+  });
+}
+
+export function useDeleteExternalDebtTransaction() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/external-debt-transactions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/external-debt-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/external-debts"] });
+    },
+  });
+}

@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useExternalDebtTransactions, useCreateExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
+import { useExternalDebtTransactions, useCreateExternalDebtTransaction, useUpdateExternalDebtTransaction, useDeleteExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
 import { useQuery } from "@tanstack/react-query";
-import type { ExternalDebt } from "@shared/schema";
+import type { ExternalDebt, ExternalDebtTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
+  Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
@@ -30,6 +35,8 @@ export default function ExternalDebtReceiptsPage() {
   const { toast } = useToast();
   const { data: allTxns, isLoading: txnsLoading } = useExternalDebtTransactions();
   const { mutate: createTxn, isPending: isSaving } = useCreateExternalDebtTransaction();
+  const { mutate: updateTxn, isPending: isUpdating } = useUpdateExternalDebtTransaction();
+  const { mutate: deleteTxn } = useDeleteExternalDebtTransaction();
 
   const { data: debtsList } = useQuery<ExternalDebt[]>({
     queryKey: ["/api/external-debts"],
@@ -43,7 +50,20 @@ export default function ExternalDebtReceiptsPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const [editReceipt, setEditReceipt] = useState<ExternalDebtTransaction | null>(null);
+  const [editDebtId, setEditDebtId] = useState("");
+  const [editDebtName, setEditDebtName] = useState("");
+  const [editAmountUsd, setEditAmountUsd] = useState("");
+  const [editAmountIqd, setEditAmountIqd] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
 
   const debts = debtsList || [];
 
@@ -99,7 +119,73 @@ export default function ExternalDebtReceiptsPage() {
     });
   };
 
+  const openEdit = (r: ExternalDebtTransaction) => {
+    setEditReceipt(r);
+    setEditDebtId(String(r.debtId));
+    setEditDebtName(r.debtName);
+    setEditAmountUsd(r.amountUsd);
+    setEditAmountIqd(r.amountIqd);
+    setEditDescription(r.description || "");
+    setEditReference(r.reference || "");
+    setEditDate(r.date);
+    setEditTime(r.time || "00:00");
+  };
+
+  const handleUpdate = () => {
+    if (!editReceipt) return;
+    if (!editDebtId) {
+      toast({ title: t("Please select an external debt"), variant: "destructive" });
+      return;
+    }
+    const usdVal = parseFloat(editAmountUsd || "0");
+    const iqdVal = parseFloat(editAmountIqd || "0");
+    if (usdVal <= 0 && iqdVal <= 0) {
+      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
+      return;
+    }
+
+    updateTxn({ id: editReceipt.id, data: {
+      debtId: parseInt(editDebtId),
+      debtName: editDebtName,
+      type: "receipt",
+      amountUsd: editAmountUsd || "0",
+      amountIqd: editAmountIqd || "0",
+      description: editDescription || null,
+      reference: editReference || null,
+      date: editDate,
+      time: editTime,
+    }}, {
+      onSuccess: () => {
+        toast({ title: t("Receipt updated successfully") });
+        setEditReceipt(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update receipt"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteTxn(id, {
+      onSuccess: () => {
+        toast({ title: t("Receipt deleted successfully") });
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete receipt"), variant: "destructive" });
+      },
+    });
+  };
+
   const receipts = allTxns?.filter(t => t.type === "receipt") || [];
+  const filteredReceipts = receipts.filter(r => {
+    if (historyFilter && historyFilter !== "all" && String(r.debtId) !== historyFilter) return false;
+    if (historyFromDate && r.date < historyFromDate) return false;
+    if (historyToDate && r.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
@@ -115,62 +201,6 @@ export default function ExternalDebtReceiptsPage() {
           <p className="text-muted-foreground mt-1">{t('Record amounts received for external debts')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2" data-testid="button-external-debt-receipt-history">
-                <ListOrdered className="h-4 w-4" />
-                {t('Receipt History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('External Debt Receipt History')}</DialogTitle>
-              </DialogHeader>
-              {txnsLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('External Debt')}</TableHead>
-                      <TableHead>{t('USD Amount')}</TableHead>
-                      <TableHead>{t('IQD Amount')}</TableHead>
-                      <TableHead>{t('Description')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {receipts.map((r, i) => (
-                      <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.date}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
-                        <TableCell className="font-medium">{r.debtName}</TableCell>
-                        <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.description || "-"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {receipts.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          {t('No receipts yet')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-external-debt-receipt">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -323,6 +353,242 @@ export default function ExternalDebtReceiptsPage() {
           </Card>
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-green-600" />
+              {t('Receipt History')}
+              <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-ext-debt-receipt-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-ext-debt-receipt-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-ext-debt-receipt-history" className="h-9">
+                    <SelectValue placeholder={t('All External Debts')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All External Debts')}</SelectItem>
+                    {debts.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {txnsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('External Debt')}</TableHead>
+                    <TableHead>{t('USD Amount')}</TableHead>
+                    <TableHead>{t('IQD Amount')}</TableHead>
+                    <TableHead>{t('Description')}</TableHead>
+                    <TableHead>{t('Reference')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedReceipts.map((r, i) => (
+                    <TableRow key={r.id} data-testid={`row-ext-debt-receipt-${r.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
+                      <TableCell className="font-medium">{r.debtName}</TableCell>
+                      <TableCell className="font-mono text-sm text-green-600">
+                        {parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-green-600">
+                        {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.description || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => openEdit(r)}
+                            data-testid={`button-edit-ext-debt-receipt-${r.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-ext-debt-receipt-${r.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this receipt.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(r.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedReceipts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                        {t('No receipts yet')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredReceipts.length)} {t('of')} {filteredReceipts.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    data-testid="button-ext-debt-receipt-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <Button
+                      key={page}
+                      variant={page === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(page)}
+                      data-testid={`button-ext-debt-receipt-page-${page}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    data-testid="button-ext-debt-receipt-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!editReceipt} onOpenChange={(open) => { if (!open) setEditReceipt(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-orange-600" />
+              {t('Edit Receipt')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('External Debt')}</Label>
+                <Select value={editDebtId} onValueChange={(v) => {
+                  setEditDebtId(v);
+                  const d = debts.find(b => b.id === parseInt(v));
+                  if (d) setEditDebtName(d.name);
+                }}>
+                  <SelectTrigger data-testid="select-edit-ext-debt-receipt">
+                    <SelectValue placeholder={t('Select external debt...')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {debts.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-ext-debt-receipt-date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Time')}</Label>
+              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-ext-debt-receipt-time" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-blue-600">{t('USD Amount')}</Label>
+                <Input
+                  type="number" step="0.01" min="0" placeholder="0.00"
+                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-ext-debt-receipt-usd"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-orange-600">{t('IQD Amount')}</Label>
+                <Input
+                  type="number" step="250" min="0" placeholder="0"
+                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-ext-debt-receipt-iqd"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-ext-debt-receipt-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Description')}</Label>
+              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-ext-debt-receipt-description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditReceipt(null)}>{t('No')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-ext-debt-receipt">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {t('Update')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

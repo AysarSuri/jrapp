@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type InsertExpense } from "@shared/routes";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useExpenses() {
   return useQuery({
@@ -25,6 +26,32 @@ export function useCreateExpense() {
         const err = await res.json();
         throw new Error(err.message || "Failed to create expense");
       }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.expenses.list.path] });
+    },
+  });
+}
+
+export function useUpdateExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertExpense> }) => {
+      const res = await apiRequest("PATCH", `/api/expenses/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.expenses.list.path] });
+    },
+  });
+}
+
+export function useDeleteExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/expenses/${id}`);
       return res.json();
     },
     onSuccess: () => {
