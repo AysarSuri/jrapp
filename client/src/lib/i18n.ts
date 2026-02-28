@@ -1180,7 +1180,7 @@ const resources = {
       "Incoming Vehicles": "السيارات الواردة",
       "Incoming vehicles and manifests for this clearance": "السيارات الواردة والمنافيست لهذا التخليص",
       "Invoice Amount": "مبلغ الفاتورة",
-      "Amount Paid": "المبلغ المدفوع",
+      "Amount Paid": "المبلغ الواصل",
       "Remaining": "المتبقي",
       "Clearance account statement in Iraqi Dinars": "كشف حساب التخليص بالدينار العراقي",
       "USD Statement": "كشف الدولار",
