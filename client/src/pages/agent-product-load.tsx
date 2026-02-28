@@ -57,8 +57,8 @@ export default function AgentProductLoadPage() {
   const { data: productsList } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
-  const { data: representativesList } = useQuery<{ id: number; name: string; mobile: string | null }[]>({
-    queryKey: ["/api/representatives"],
+  const { data: agentsList } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["/api/agents"],
   });
 
   const [loadNumber, setLoadNumber] = useState("");
@@ -85,9 +85,9 @@ export default function AgentProductLoadPage() {
 
   const selectAgent = useCallback((id: string) => {
     setAgentId(id);
-    const agent = representativesList?.find(r => r.id === parseInt(id));
+    const agent = agentsList?.find(r => r.id === id);
     if (agent) setAgentName(agent.name);
-  }, [representativesList]);
+  }, [agentsList]);
 
   const updateItem = useCallback((index: number, field: keyof LoadItem, value: string) => {
     setItems(prev => {
@@ -165,7 +165,7 @@ export default function AgentProductLoadPage() {
     createLoad({
       load: {
         loadNumber,
-        agentId: parseInt(agentId),
+        agentId: 0,
         agentName,
         note: note || null,
         date,
@@ -205,12 +205,12 @@ export default function AgentProductLoadPage() {
 
   const { data: unitsData } = useUnits();
   const unitsList = unitsData || [];
-  const agents = representativesList || [];
+  const agents = agentsList || [];
   const prodList = productsList || [];
 
   const allLoads = loads || [];
   const filteredLoads = allLoads.filter((ld: AgentProductLoad) => {
-    if (historyFilter && historyFilter !== "all" && String(ld.agentId) !== historyFilter) return false;
+    if (historyFilter && historyFilter !== "all" && ld.agentName !== historyFilter) return false;
     if (historyFromDate && ld.date < historyFromDate) return false;
     if (historyToDate && ld.date > historyToDate) return false;
     return true;
@@ -424,7 +424,7 @@ export default function AgentProductLoadPage() {
                   <SelectContent>
                     <SelectItem value="all">{t('All Agents')}</SelectItem>
                     {agents.map(a => (
-                      <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                      <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

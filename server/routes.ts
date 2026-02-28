@@ -122,6 +122,14 @@ export async function registerRoutes(
     next();
   };
 
+  app.get('/api/agents', requireAuth, async (_req, res) => {
+    try {
+      const salesRepUsers = await db.select({ id: users.id, fullName: users.fullName, username: users.username }).from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
+      const agents = salesRepUsers.map(u => ({ id: u.id, name: u.fullName || u.username }));
+      res.json(agents);
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
   app.get('/api/users', requireAuth, async (req, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId!);
