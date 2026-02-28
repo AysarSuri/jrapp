@@ -39,6 +39,8 @@ import {
   insertWarehouseTransferItemSchema, warehouseTransferItems,
   insertProductDamageSchema, productDamages,
   insertProductDamageItemSchema, productDamageItems,
+  insertAgentProductLoadSchema, agentProductLoads,
+  insertAgentProductLoadItemSchema, agentProductLoadItems,
   notifications,
   insertCompanyProfileSchema, companyProfile,
   insertUserSchema, loginSchema, users 
@@ -858,6 +860,32 @@ export const api = {
       path: '/api/company-profile' as const,
       input: insertCompanyProfileSchema,
       responses: { 200: z.custom<typeof companyProfile.$inferSelect>() }
+    }
+  },
+  agentProductLoads: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/agent-product-loads' as const,
+      responses: { 200: z.array(z.custom<typeof agentProductLoads.$inferSelect>()) }
+    },
+    items: {
+      method: 'GET' as const,
+      path: '/api/agent-product-loads/:id/items' as const,
+      responses: { 200: z.array(z.custom<typeof agentProductLoadItems.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/agent-product-loads' as const,
+      input: z.object({
+        load: insertAgentProductLoadSchema,
+        items: z.array(insertAgentProductLoadItemSchema.omit({ loadId: true })),
+      }),
+      responses: { 201: z.custom<typeof agentProductLoads.$inferSelect>() }
+    },
+    nextNumber: {
+      method: 'GET' as const,
+      path: '/api/agent-product-loads/next-number' as const,
+      responses: { 200: z.object({ number: z.string() }) }
     }
   }
 };

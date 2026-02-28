@@ -662,6 +662,36 @@ export const insertExportLogSchema = createInsertSchema(exportLogs).omit({ id: t
 export type ExportLog = typeof exportLogs.$inferSelect;
 export type InsertExportLog = z.infer<typeof insertExportLogSchema>;
 
+export const agentProductLoads = pgTable("agent_product_loads", {
+  id: serial("id").primaryKey(),
+  loadNumber: text("load_number").notNull(),
+  agentId: integer("agent_id").notNull(),
+  agentName: text("agent_name").notNull(),
+  note: text("note"),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  totalItems: integer("total_items").notNull().default(0),
+  totalQuantity: numeric("total_quantity").notNull().default("0"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const agentProductLoadItems = pgTable("agent_product_load_items", {
+  id: serial("id").primaryKey(),
+  loadId: integer("load_id").notNull(),
+  productId: integer("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  productCode: text("product_code").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  unit: text("unit").notNull(),
+});
+
+export const insertAgentProductLoadSchema = createInsertSchema(agentProductLoads).omit({ id: true, createdAt: true });
+export const insertAgentProductLoadItemSchema = createInsertSchema(agentProductLoadItems).omit({ id: true });
+export type AgentProductLoad = typeof agentProductLoads.$inferSelect;
+export type InsertAgentProductLoad = z.infer<typeof insertAgentProductLoadSchema>;
+export type AgentProductLoadItem = typeof agentProductLoadItems.$inferSelect;
+export type InsertAgentProductLoadItem = z.infer<typeof insertAgentProductLoadItemSchema>;
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

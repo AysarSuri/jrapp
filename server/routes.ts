@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -2308,6 +2308,68 @@ export async function registerRoutes(
       await db.transaction(async (tx) => {
         await tx.delete(warehouseTransferItems).where(eq(warehouseTransferItems.transferId, id));
         await tx.delete(warehouseTransfers).where(eq(warehouseTransfers.id, id));
+      });
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Agent Product Loads
+  app.get('/api/agent-product-loads/next-number', requireAuth, async (_req, res) => {
+    const [result] = await db.select({ count: sql<number>`COUNT(*)` }).from(agentProductLoads);
+    const num = (result?.count || 0) + 1;
+    res.json({ number: `APL-${String(num).padStart(6, '0')}` });
+  });
+
+  app.get(api.agentProductLoads.list.path, requireAuth, async (_req, res) => {
+    const data = await db.select().from(agentProductLoads).orderBy(sql`${agentProductLoads.createdAt} DESC`);
+    res.json(data);
+  });
+
+  app.get('/api/agent-product-loads/:id/items', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const items = await db.select().from(agentProductLoadItems).where(eq(agentProductLoadItems.loadId, id));
+    res.json(items);
+  });
+
+  app.post(api.agentProductLoads.create.path, requireAuth, async (req, res) => {
+    try {
+      const parsed = api.agentProductLoads.create.input.parse(req.body);
+      const { load: loadData, items: itemsData } = parsed;
+
+      if (!itemsData || itemsData.length === 0) {
+        return res.status(400).json({ message: "At least one item is required" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [load] = await tx.insert(agentProductLoads).values(loadData).returning();
+
+        for (const item of itemsData) {
+          await tx.insert(agentProductLoadItems).values({
+            ...item,
+            loadId: load.id,
+          });
+        }
+
+        return load;
+      });
+
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/agent-product-loads/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.transaction(async (tx) => {
+        await tx.delete(agentProductLoadItems).where(eq(agentProductLoadItems.loadId, id));
+        await tx.delete(agentProductLoads).where(eq(agentProductLoads.id, id));
       });
       res.json({ success: true });
     } catch (err) {
