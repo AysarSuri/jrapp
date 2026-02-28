@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Users, Plus, Pencil, Trash2, Loader2, Save, Shield, User, Truck,
   Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw,
-  CheckCircle, XCircle,
+  CheckCircle, XCircle, Phone,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -31,6 +31,7 @@ type SafeUser = {
   id: string;
   username: string;
   fullName: string;
+  mobile: string;
   role: string;
   isActive: number;
   createdAt: string;
@@ -45,7 +46,7 @@ export default function UserManagementPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { username: string; password: string; fullName: string; role: string }) => {
+    mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string }) => {
       const res = await apiRequest("POST", "/api/users", data);
       return res.json();
     },
@@ -91,6 +92,7 @@ export default function UserManagementPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
   const [role, setRole] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -98,6 +100,7 @@ export default function UserManagementPage() {
   const [editUsername, setEditUsername] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editFullName, setEditFullName] = useState("");
+  const [editMobile, setEditMobile] = useState("");
   const [editRole, setEditRole] = useState("");
   const [editIsActive, setEditIsActive] = useState(1);
   const [editShowPassword, setEditShowPassword] = useState(false);
@@ -111,6 +114,7 @@ export default function UserManagementPage() {
     setUsername("");
     setPassword("");
     setFullName("");
+    setMobile("");
     setRole("");
     setShowPassword(false);
   };
@@ -128,7 +132,7 @@ export default function UserManagementPage() {
       toast({ title: t("Please select a role"), variant: "destructive" });
       return;
     }
-    createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), role });
+    createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role });
   };
 
   const openEdit = (u: SafeUser) => {
@@ -136,6 +140,7 @@ export default function UserManagementPage() {
     setEditUsername(u.username);
     setEditPassword("");
     setEditFullName(u.fullName);
+    setEditMobile(u.mobile || "");
     setEditRole(u.role);
     setEditIsActive(u.isActive);
     setEditShowPassword(false);
@@ -154,6 +159,7 @@ export default function UserManagementPage() {
     const data: any = {
       username: editUsername.trim(),
       fullName: editFullName.trim(),
+      mobile: editMobile.trim(),
       role: editRole,
       isActive: editIsActive,
     };
@@ -237,6 +243,19 @@ export default function UserManagementPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-semibold">{t('Mobile')}</Label>
+                <div className="relative">
+                  <Phone className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    placeholder={t('Enter mobile number...')}
+                    className="h-11 ps-9"
+                    data-testid="input-user-mobile"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label className="font-semibold">{t('Password')}</Label>
                 <div className="relative">
@@ -412,6 +431,7 @@ export default function UserManagementPage() {
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>{t('Full Name')}</TableHead>
                     <TableHead>{t('Username')}</TableHead>
+                    <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Role')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
                     <TableHead>{t('Created')}</TableHead>
@@ -427,6 +447,7 @@ export default function UserManagementPage() {
                         <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                         <TableCell className="font-semibold">{u.fullName || "-"}</TableCell>
                         <TableCell className="font-mono text-sm">{u.username}</TableCell>
+                        <TableCell className="font-mono text-sm">{u.mobile || "-"}</TableCell>
                         <TableCell>
                           <Badge className={rc.color}>
                             <RoleIcon className="h-3 w-3 me-1" />
@@ -494,7 +515,7 @@ export default function UserManagementPage() {
                   })}
                   {paginatedUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         {t('No users yet')}
                       </TableCell>
                     </TableRow>
@@ -574,6 +595,19 @@ export default function UserManagementPage() {
                 placeholder={t('Enter username...')}
                 data-testid="input-edit-user-username"
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="font-semibold">{t('Mobile')}</Label>
+              <div className="relative">
+                <Phone className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={editMobile}
+                  onChange={(e) => setEditMobile(e.target.value)}
+                  placeholder={t('Enter mobile number...')}
+                  className="ps-9"
+                  data-testid="input-edit-user-mobile"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="font-semibold">{t('New Password')}</Label>

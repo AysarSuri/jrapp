@@ -150,7 +150,7 @@ export async function registerRoutes(
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can manage users" });
       }
-      const { username, password, fullName, role } = req.body;
+      const { username, password, fullName, role, mobile } = req.body;
       if (!username || !password || !role) {
         return res.status(400).json({ message: "Username, password, and role are required" });
       }
@@ -163,7 +163,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username already exists" });
       }
       const hashed = await bcrypt.hash(password, 12);
-      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", role });
+      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role });
       if (role === 'sales_rep') {
         const repName = fullName || username;
         await db.insert(representatives).values({ name: repName }).onConflictDoNothing();
@@ -182,10 +182,11 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Only admins can manage users" });
       }
       const { id } = req.params;
-      const { username, password, fullName, role, isActive } = req.body;
+      const { username, password, fullName, role, isActive, mobile } = req.body;
       const updateData: any = {};
       if (username !== undefined) updateData.username = username;
       if (fullName !== undefined) updateData.fullName = fullName;
+      if (mobile !== undefined) updateData.mobile = mobile;
       if (role !== undefined) {
         const allowedRoles = ["admin", "user", "sales_rep"];
         if (!allowedRoles.includes(role)) {
