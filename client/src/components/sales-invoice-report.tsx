@@ -321,7 +321,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               )}
               {invoice.representativeName && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Representative")}:</span>
                   <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{invoice.representativeName}</span>
                 </div>
@@ -426,7 +426,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
 
               <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden" }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                   {t("Delivery Info")}
                 </h3>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "space-between", padding: "3px 0", fontSize: "12pt" }}>
