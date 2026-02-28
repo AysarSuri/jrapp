@@ -323,7 +323,7 @@ export default function SalesInvoiceIqdPage() {
                 {t('Invoice History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-7xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Sales Invoice History')}</DialogTitle>
               </DialogHeader>
