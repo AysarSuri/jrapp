@@ -173,6 +173,12 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/owner-statement",
   ];
 
+  const agentSubRoutes = [
+    "/agent-management",
+    "/agent-clients",
+    "/agent-product-load",
+  ];
+
   const salesSubRoutes = [
     "/sales-management",
     "/customers",
@@ -195,6 +201,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isExpenseSection = expenseSubRoutes.includes(location);
   const isExternalDebtSection = externalDebtSubRoutes.includes(location);
   const isOwnerSection = ownerSubRoutes.includes(location);
+  const isAgentSection = agentSubRoutes.includes(location);
   const isSalesSection = salesSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
   const [bankOpen, setBankOpen] = useState(isBankSection);
@@ -203,6 +210,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [expenseOpen, setExpenseOpen] = useState(isExpenseSection);
   const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
   const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
+  const [agentOpen, setAgentOpen] = useState(isAgentSection);
   const [salesOpen, setSalesOpen] = useState(isSalesSection);
 
   useEffect(() => {
@@ -232,6 +240,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isOwnerSection) setOwnerOpen(true);
   }, [isOwnerSection]);
+
+  useEffect(() => {
+    if (isAgentSection) setAgentOpen(true);
+  }, [isAgentSection]);
 
   useEffect(() => {
     if (isSalesSection) setSalesOpen(true);
@@ -378,6 +390,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Expense Management": { isOpen: expenseOpen, setOpen: setExpenseOpen, isActive: isExpenseSection },
               "External Debt Management": { isOpen: externalDebtOpen, setOpen: setExternalDebtOpen, isActive: isExternalDebtSection },
               "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
+              "Agent Management": { isOpen: agentOpen, setOpen: setAgentOpen, isActive: isAgentSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
             const isOpen = group.isOpen;
@@ -392,6 +405,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Expense Management": "/expense-management",
               "External Debt Management": "/external-debt-management",
               "Owner Management": "/owner-management",
+              "Agent Management": "/agent-clients",
             };
             const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
             const isLandingActive = location === landingRoute;
