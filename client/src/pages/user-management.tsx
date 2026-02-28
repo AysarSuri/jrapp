@@ -312,7 +312,7 @@ export default function UserManagementPage() {
               <Button
                 onClick={handleCreate}
                 disabled={createMutation.isPending}
-                className="gap-2 bg-purple-600 hover:bg-purple-700"
+                className="gap-2 bg-purple-600 hover:bg-purple-700 text-[#ffffff]"
                 data-testid="button-create-user"
               >
                 {createMutation.isPending ? (
