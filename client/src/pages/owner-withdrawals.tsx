@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOwnerTransactions, useCreateOwnerTransaction } from "@/hooks/use-owner-transactions";
+import { useOwnerTransactions, useCreateOwnerTransaction, useUpdateOwnerTransaction, useDeleteOwnerTransaction } from "@/hooks/use-owner-transactions";
 import { useOwners } from "@/hooks/use-owners";
 import type { OwnerTransaction, Owner } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,19 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowUpFromLine,
+  Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd } from "@/lib/format-utils";
@@ -30,6 +36,8 @@ export default function OwnerWithdrawalsPage() {
   const { data: allTxns, isLoading: txnsLoading } = useOwnerTransactions();
   const { data: ownersList } = useOwners();
   const { mutate: createTxn, isPending: isSaving } = useCreateOwnerTransaction();
+  const { mutate: updateTxn, isPending: isUpdating } = useUpdateOwnerTransaction();
+  const { mutate: deleteTxn } = useDeleteOwnerTransaction();
 
   const [selectedOwnerId, setSelectedOwnerId] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
@@ -38,7 +46,22 @@ export default function OwnerWithdrawalsPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const [editWithdrawal, setEditWithdrawal] = useState<OwnerTransaction | null>(null);
+  const [editOwnerId, setEditOwnerId] = useState("");
+  const [editOwnerName, setEditOwnerName] = useState("");
+  const [editAmountUsd, setEditAmountUsd] = useState("");
+  const [editAmountIqd, setEditAmountIqd] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  const owners: Owner[] = ownersList || [];
 
   const resetForm = () => {
     setSelectedOwnerId("");
@@ -50,7 +73,7 @@ export default function OwnerWithdrawalsPage() {
     setTime(new Date().toTimeString().slice(0, 5));
   };
 
-  const selectedOwner = ownersList?.find((o: Owner) => o.id.toString() === selectedOwnerId);
+  const selectedOwner = owners.find((o: Owner) => o.id.toString() === selectedOwnerId);
 
   const handleSave = () => {
     if (!selectedOwner) {
@@ -85,7 +108,73 @@ export default function OwnerWithdrawalsPage() {
     });
   };
 
+  const openEdit = (w: OwnerTransaction) => {
+    setEditWithdrawal(w);
+    setEditOwnerId(String(w.ownerId));
+    setEditOwnerName(w.ownerName);
+    setEditAmountUsd(w.amountUsd);
+    setEditAmountIqd(w.amountIqd);
+    setEditDescription(w.description || "");
+    setEditReference(w.reference || "");
+    setEditDate(w.date);
+    setEditTime(w.time || "00:00");
+  };
+
+  const handleUpdate = () => {
+    if (!editWithdrawal) return;
+    if (!editOwnerId) {
+      toast({ title: t("Please select an owner"), variant: "destructive" });
+      return;
+    }
+    const usdVal = parseFloat(editAmountUsd || "0");
+    const iqdVal = parseFloat(editAmountIqd || "0");
+    if (usdVal <= 0 && iqdVal <= 0) {
+      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
+      return;
+    }
+
+    updateTxn({ id: editWithdrawal.id, data: {
+      ownerId: parseInt(editOwnerId),
+      ownerName: editOwnerName,
+      type: "withdrawal",
+      amountUsd: editAmountUsd || "0",
+      amountIqd: editAmountIqd || "0",
+      description: editDescription || null,
+      reference: editReference || null,
+      date: editDate,
+      time: editTime,
+    }}, {
+      onSuccess: () => {
+        toast({ title: t("Withdrawal updated successfully") });
+        setEditWithdrawal(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update withdrawal"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteTxn(id, {
+      onSuccess: () => {
+        toast({ title: t("Withdrawal deleted successfully") });
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete withdrawal"), variant: "destructive" });
+      },
+    });
+  };
+
   const withdrawals = allTxns?.filter((t: OwnerTransaction) => t.type === "withdrawal") || [];
+  const filteredWithdrawals = withdrawals.filter((w: OwnerTransaction) => {
+    if (historyFilter && historyFilter !== "all" && String(w.ownerId) !== historyFilter) return false;
+    if (historyFromDate && w.date < historyFromDate) return false;
+    if (historyToDate && w.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredWithdrawals.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedWithdrawals = filteredWithdrawals.slice((safePage - 1) * pageSize, safePage * pageSize);
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   const totalUsd = withdrawals.reduce((sum: number, t: OwnerTransaction) => sum + parseFloat(t.amountUsd || "0"), 0);
@@ -104,62 +193,6 @@ export default function OwnerWithdrawalsPage() {
           <p className="text-muted-foreground mt-1">{t('Record owner withdrawals from the business')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2" data-testid="button-withdrawal-history">
-                <ListOrdered className="h-4 w-4" />
-                {t('Withdrawal History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Withdrawal History')}</DialogTitle>
-              </DialogHeader>
-              {txnsLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Owner Name')}</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('USD Amount')}</TableHead>
-                      <TableHead>{t('IQD Amount')}</TableHead>
-                      <TableHead>{t('Description')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {withdrawals.map((r: OwnerTransaction, i: number) => (
-                      <TableRow key={r.id} data-testid={`row-withdrawal-${r.id}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="text-sm font-medium">{r.ownerName}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.date}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {parseFloat(r.amountIqd) > 0 ? formatIQD(parseFloat(r.amountIqd)) : "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.description || "-"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {withdrawals.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          {t('No withdrawals yet')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-withdrawal">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -201,7 +234,7 @@ export default function OwnerWithdrawalsPage() {
                   <SelectValue placeholder={t('Please select an owner')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ownersList?.map((o: Owner) => (
+                  {owners.map((o: Owner) => (
                     <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -311,6 +344,242 @@ export default function OwnerWithdrawalsPage() {
           </Card>
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-red-600" />
+              {t('Withdrawal History')}
+              <Badge variant="secondary" className="ml-2">{filteredWithdrawals.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-withdrawal-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-withdrawal-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-withdrawal-history" className="h-9">
+                    <SelectValue placeholder={t('All Owners')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Owners')}</SelectItem>
+                    {owners.map((o: Owner) => (
+                      <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {txnsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Owner Name')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('USD Amount')}</TableHead>
+                    <TableHead>{t('IQD Amount')}</TableHead>
+                    <TableHead>{t('Description')}</TableHead>
+                    <TableHead>{t('Reference')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedWithdrawals.map((w: OwnerTransaction, i: number) => (
+                    <TableRow key={w.id} data-testid={`row-withdrawal-${w.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="text-sm font-medium">{w.ownerName}</TableCell>
+                      <TableCell className="font-mono text-sm">{w.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{w.time || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(w.amountUsd) > 0 ? usd(w.amountUsd) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {parseFloat(w.amountIqd) > 0 ? formatIQD(parseFloat(w.amountIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{w.description || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{w.reference || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => openEdit(w)}
+                            data-testid={`button-edit-withdrawal-${w.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                data-testid={`button-delete-withdrawal-${w.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this withdrawal.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(w.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedWithdrawals.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                        {t('No withdrawals yet')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredWithdrawals.length)} {t('of')} {filteredWithdrawals.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    data-testid="button-withdrawal-prev-page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <Button
+                      key={page}
+                      variant={page === safePage ? "default" : "outline"}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(page)}
+                      data-testid={`button-withdrawal-page-${page}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    data-testid="button-withdrawal-next-page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!editWithdrawal} onOpenChange={(open) => { if (!open) setEditWithdrawal(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-orange-600" />
+              {t('Edit Withdrawal')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Select Owner')}</Label>
+                <Select value={editOwnerId} onValueChange={(v) => {
+                  setEditOwnerId(v);
+                  const o = owners.find(ow => ow.id === parseInt(v));
+                  if (o) setEditOwnerName(o.name);
+                }}>
+                  <SelectTrigger data-testid="select-edit-withdrawal-owner">
+                    <SelectValue placeholder={t('Please select an owner')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {owners.map((o: Owner) => (
+                      <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-withdrawal-date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Time')}</Label>
+              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-withdrawal-time" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-blue-600">{t('USD Amount')}</Label>
+                <Input
+                  type="number" step="0.01" min="0" placeholder="0.00"
+                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-withdrawal-usd"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-orange-600">{t('IQD Amount')}</Label>
+                <Input
+                  type="number" step="250" min="0" placeholder="0"
+                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
+                  className="font-mono"
+                  data-testid="input-edit-withdrawal-iqd"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-withdrawal-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Description')}</Label>
+              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-withdrawal-description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditWithdrawal(null)}>{t('No')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-withdrawal">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {t('Update')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

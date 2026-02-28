@@ -2599,6 +2599,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/owner-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { ownerId, ownerName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(ownerTransactions).set({
+        ownerId, ownerName, type, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(ownerTransactions.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Transaction not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/owner-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(ownerTransactions).where(eq(ownerTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // External Debt Statement
   app.get('/api/external-debt-statement/:id', requireAuth, async (req, res) => {
     try {
