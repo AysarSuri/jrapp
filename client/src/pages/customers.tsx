@@ -213,7 +213,7 @@ export default function CustomersPage() {
                               onClick={() => {
                                 field.onChange(addr);
                                 setAddressSearch("");
-                                setAddressOpen(false);
+                                requestAnimationFrame(() => setAddressOpen(false));
                               }}
                             >
                               <Check className={cn("h-4 w-4", field.value === addr ? "opacity-100" : "opacity-0")} />
