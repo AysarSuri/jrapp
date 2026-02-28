@@ -178,7 +178,7 @@ export async function registerRoutes(
       const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role });
       if (role === 'sales_rep') {
         const repName = fullName || username;
-        await db.insert(representatives).values({ name: repName }).onConflictDoNothing();
+        await db.insert(representatives).values({ name: repName, mobile: mobile || null }).onConflictDoNothing();
       }
       const { password: _, ...safeUser } = user;
       res.status(201).json(safeUser);
@@ -218,14 +218,19 @@ export async function registerRoutes(
       }
       const oldUser = await storage.getUser(id);
       const user = await storage.updateUser(id, updateData);
-      if (oldUser && user.role === 'sales_rep' && oldUser.role === 'sales_rep' && fullName && fullName !== oldUser.fullName) {
+      if (oldUser && user.role === 'sales_rep' && oldUser.role === 'sales_rep') {
         const oldName = oldUser.fullName || oldUser.username;
-        const newName = fullName || user.username;
-        await db.update(representatives).set({ name: newName }).where(eq(representatives.name, oldName));
+        const newName = fullName || user.fullName || user.username;
+        const updateFields: any = {};
+        if (fullName && fullName !== oldUser.fullName) updateFields.name = newName;
+        if (mobile !== undefined) updateFields.mobile = mobile || null;
+        if (Object.keys(updateFields).length > 0) {
+          await db.update(representatives).set(updateFields).where(eq(representatives.name, oldName));
+        }
       }
       if (user.role === 'sales_rep' && oldUser?.role !== 'sales_rep') {
         const repName = user.fullName || user.username;
-        await db.insert(representatives).values({ name: repName }).onConflictDoNothing();
+        await db.insert(representatives).values({ name: repName, mobile: user.mobile || null }).onConflictDoNothing();
       }
       const { password: _, ...safeUser } = user;
       res.json(safeUser);
@@ -544,11 +549,14 @@ export async function registerRoutes(
   async function syncRepresentativesFromUsers() {
     const salesRepUsers = await db.select().from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
     const existingReps = await db.select().from(representatives);
-    const existingNames = new Set(existingReps.map(r => r.name));
+    const existingByName = new Map(existingReps.map(r => [r.name, r]));
     for (const user of salesRepUsers) {
       const name = user.fullName || user.username;
-      if (!existingNames.has(name)) {
-        await db.insert(representatives).values({ name }).onConflictDoNothing();
+      const existing = existingByName.get(name);
+      if (!existing) {
+        await db.insert(representatives).values({ name, mobile: user.mobile || null }).onConflictDoNothing();
+      } else if (user.mobile && existing.mobile !== user.mobile) {
+        await db.update(representatives).set({ mobile: user.mobile }).where(eq(representatives.name, name));
       }
     }
   }
