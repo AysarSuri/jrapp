@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer,
+  Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getModernPrintStyles } from "@/lib/print-styles";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 type AgentClientWithDetails = AgentClient & {
   clientAddress?: string | null;
@@ -54,6 +56,7 @@ export default function AgentClientsPage() {
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const agents = agentsList || [];
   const customers = (customersList || []).filter(c => c.type === "customer");
@@ -151,13 +154,8 @@ export default function AgentClientsPage() {
 
   const assignedToAgent = agentAssignments || [];
 
-  const handlePrintReport = () => {
+  const buildReportHtml = () => {
     const dataToUse = filteredAssignments;
-    if (dataToUse.length === 0) {
-      toast({ title: t("No assignments to print"), variant: "destructive" });
-      return;
-    }
-
     const grouped: Record<string, AgentClientWithDetails[]> = {};
     dataToUse.forEach(a => {
       if (!grouped[a.agentName]) grouped[a.agentName] = [];
@@ -172,9 +170,9 @@ export default function AgentClientsPage() {
     const agentNames = Object.keys(grouped).sort();
 
     agentNames.forEach(agentName => {
-      const clients = grouped[agentName];
-      tableRows += `<tr><td colspan="5" style="background:#7c3aed; color:white; font-weight:700; padding:10px 12px; font-size:13pt; border:none;">${agentName} (${clients.length})</td></tr>`;
-      clients.forEach(c => {
+      const cls = grouped[agentName];
+      tableRows += `<tr><td colspan="5" style="background:#7c3aed; color:white; font-weight:700; padding:10px 12px; font-size:13pt; border:none;">${agentName} (${cls.length})</td></tr>`;
+      cls.forEach(c => {
         tableRows += `<tr>
           <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-family:monospace; font-size:10pt; text-align:center; width:40px;">${globalIndex}</td>
           <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-weight:600; font-size:11pt;">${c.clientName}</td>
@@ -194,7 +192,7 @@ export default function AgentClientsPage() {
       ? agents.find(a => a.id === historyFilter)?.name || t("All Agents")
       : t("All Agents");
 
-    const html = `<!DOCTYPE html>
+    return { html: `<!DOCTYPE html>
 <html dir="${dir}" lang="${i18n.language}">
 <head>
 <meta charset="UTF-8" />
@@ -224,13 +222,74 @@ ${clicheHtml}
   </tbody>
 </table>
 </body>
-</html>`;
+</html>`, today, filterLabel, count: dataToUse.length };
+  };
 
+  const handlePrintReport = () => {
+    if (filteredAssignments.length === 0) {
+      toast({ title: t("No assignments to print"), variant: "destructive" });
+      return;
+    }
+    const { html } = buildReportHtml();
     const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
     printWindow.document.write(html);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 400);
+  };
+
+  const handleWhatsAppReport = async () => {
+    if (filteredAssignments.length === 0) {
+      toast({ title: t("No assignments to print"), variant: "destructive" });
+      return;
+    }
+    setSendingWhatsApp(true);
+    try {
+      const { html, today, filterLabel, count } = buildReportHtml();
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "794px";
+      container.innerHTML = html.replace(/<!DOCTYPE.*?<body>/s, "").replace(/<\/body>.*<\/html>/s, "");
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      document.body.removeChild(container);
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF("p", "mm", "a4");
+      if (imgHeight > 297) {
+        let yOffset = 0;
+        while (yOffset < imgHeight) {
+          if (yOffset > 0) pdf.addPage();
+          pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, -yOffset, imgWidth, imgHeight);
+          yOffset += 297;
+        }
+      } else {
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+      }
+
+      const pdfBlob = pdf.output("blob");
+      const fileName = `${t("Agent Client Assignments Report")}_${today}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: fileName, files: [file] });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url; a.download = fileName; a.click();
+        URL.revokeObjectURL(url);
+        const text = encodeURIComponent(`${t("Agent Client Assignments Report")}\n${t("Date")}: ${today}\n${t("Filter")}: ${filterLabel}\n${t("Total")}: ${count}`);
+        window.open(`https://wa.me/?text=${text}`, "_blank");
+      }
+    } catch {
+      toast({ title: t("Failed to generate PDF"), variant: "destructive" });
+    } finally {
+      setSendingWhatsApp(false);
+    }
   };
 
   return (
@@ -424,6 +483,16 @@ ${clicheHtml}
               <Button variant="outline" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-assignments">
                 <Printer className="h-4 w-4" />
                 {t('Print')}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleWhatsAppReport}
+                disabled={sendingWhatsApp}
+                className="gap-2 h-9 bg-green-600 hover:bg-green-700 text-white border-green-600"
+                data-testid="button-whatsapp-assignments"
+              >
+                {sendingWhatsApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                {sendingWhatsApp ? t('Preparing PDF...') : t('WhatsApp')}
               </Button>
             </div>
           </div>
