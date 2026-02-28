@@ -332,6 +332,8 @@ export default function SalesInvoiceUsdPage() {
                     <TableHead>{t('Representative')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Total')}</TableHead>
+                    <TableHead>{t('Amount Paid')}</TableHead>
+                    <TableHead>{t('Discount')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
@@ -351,6 +353,8 @@ export default function SalesInvoiceUsdPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono">${inv.subtotal}</TableCell>
+                      <TableCell className="font-mono text-green-600">${inv.amountPaid || '0'}</TableCell>
+                      <TableCell className="font-mono text-orange-600">${inv.discount || '0'}</TableCell>
                       <TableCell className="font-mono text-red-600">${inv.remaining}</TableCell>
                       <TableCell>
                         {inv.status === 'approved' ? (

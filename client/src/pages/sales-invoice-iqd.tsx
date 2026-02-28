@@ -337,6 +337,8 @@ export default function SalesInvoiceIqdPage() {
                     <TableHead>{t('Representative')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Total')}</TableHead>
+                    <TableHead>{t('Amount Paid')}</TableHead>
+                    <TableHead>{t('Discount')}</TableHead>
                     <TableHead>{t('Remaining')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
@@ -356,6 +358,8 @@ export default function SalesInvoiceIqdPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono">{formatIQD(inv.subtotal)}</TableCell>
+                      <TableCell className="font-mono text-green-600">{formatIQD(inv.amountPaid || '0')}</TableCell>
+                      <TableCell className="font-mono text-orange-600">{formatIQD(inv.discount || '0')}</TableCell>
                       <TableCell className="font-mono text-red-600">{formatIQD(inv.remaining)}</TableCell>
                       <TableCell>
                         {inv.status === 'approved' ? (
