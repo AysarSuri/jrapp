@@ -7,8 +7,8 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
-import { eq, sql } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems } from "@shared/schema";
+import { eq, and, sql } from "drizzle-orm";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -156,6 +156,10 @@ export async function registerRoutes(
       }
       const hashed = await bcrypt.hash(password, 12);
       const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", role });
+      if (role === 'sales_rep') {
+        const repName = fullName || username;
+        await db.insert(representatives).values({ name: repName }).onConflictDoNothing();
+      }
       const { password: _, ...safeUser } = user;
       res.status(201).json(safeUser);
     } catch (err) {
@@ -191,7 +195,17 @@ export async function registerRoutes(
           return res.status(400).json({ message: "Username already exists" });
         }
       }
+      const oldUser = await storage.getUser(id);
       const user = await storage.updateUser(id, updateData);
+      if (oldUser && user.role === 'sales_rep' && oldUser.role === 'sales_rep' && fullName && fullName !== oldUser.fullName) {
+        const oldName = oldUser.fullName || oldUser.username;
+        const newName = fullName || user.username;
+        await db.update(representatives).set({ name: newName }).where(eq(representatives.name, oldName));
+      }
+      if (user.role === 'sales_rep' && oldUser?.role !== 'sales_rep') {
+        const repName = user.fullName || user.username;
+        await db.insert(representatives).values({ name: repName }).onConflictDoNothing();
+      }
       const { password: _, ...safeUser } = user;
       res.json(safeUser);
     } catch (err) {
@@ -506,40 +520,27 @@ export async function registerRoutes(
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
 
-  // Representatives CRUD
+  async function syncRepresentativesFromUsers() {
+    const salesRepUsers = await db.select().from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
+    const existingReps = await db.select().from(representatives);
+    const existingNames = new Set(existingReps.map(r => r.name));
+    for (const user of salesRepUsers) {
+      const name = user.fullName || user.username;
+      if (!existingNames.has(name)) {
+        await db.insert(representatives).values({ name }).onConflictDoNothing();
+      }
+    }
+  }
+
   app.get(api.representatives.list.path, requireAuth, async (_req, res) => {
-    const data = await storage.getRepresentatives();
-    res.json(data);
-  });
-  app.post(api.representatives.create.path, requireAuth, async (req, res) => {
     try {
-      const input = api.representatives.create.input.parse(req.body);
-      const data = await storage.createRepresentative(input);
-      res.status(201).json(data);
-    } catch (err: any) {
-      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
-      if (err?.code === '23505') return res.status(400).json({ message: "Representative already exists" });
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-  app.patch(api.representatives.update.path, requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string, 10);
-      const input = api.representatives.update.input.parse(req.body);
-      const data = await storage.updateRepresentative(id, input);
+      await syncRepresentativesFromUsers();
+      const data = await storage.getRepresentatives();
       res.json(data);
-    } catch (err: any) {
-      if (err instanceof z.ZodError) return res.status(400).json({ message: err.errors[0].message });
-      if (err?.code === '23505') return res.status(400).json({ message: "Representative already exists" });
-      res.status(500).json({ message: "Internal server error" });
+    } catch {
+      const data = await storage.getRepresentatives();
+      res.json(data);
     }
-  });
-  app.delete(api.representatives.delete.path, requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string, 10);
-      await storage.deleteRepresentative(id);
-      res.json({ message: "Deleted" });
-    } catch { res.status(500).json({ message: "Internal server error" }); }
   });
 
   app.get(api.products.list.path, requireAuth, async (_req, res) => {
