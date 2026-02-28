@@ -281,7 +281,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
         ) : invoice ? (
           <div ref={printRef} style={{ position: "relative" }}>
             {companyProfile?.logo && (
-              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
+              <div style={{ position: "absolute", top: "58%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
                 <img src={companyProfile.logo} alt="" style={{ width: 300, height: 300, objectFit: "contain", opacity: 0.08 }} />
               </div>
             )}
