@@ -295,6 +295,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/owner-statement", icon: FileText, label: "Owner Statement" },
   ];
 
+  const agentManagementNavItems: NavItem[] = [
+    { href: "/representatives", icon: UserCheck, label: "Representatives" },
+    { href: "/agent-product-load", icon: Truck, label: "Agent Product Load" },
+  ];
+
   const salesNavItems: NavItem[] = [
     { href: "/customers", icon: Users, label: "Customers" },
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
@@ -324,8 +329,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "Owner Management", icon: UserCog, children: ownerNavItems },
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
-    { href: "/representatives", icon: UserCheck, label: "Representatives" },
-    { href: "/agent-product-load", icon: Truck, label: "Agent Product Load" },
+    { type: 'group', label: "Agent Management", icon: UserCheck, children: agentManagementNavItems },
     { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
