@@ -20,3 +20,29 @@ export function useCreateOfficeTransaction() {
     },
   });
 }
+
+export function useUpdateOfficeTransaction() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertTransferOfficeTransaction> }) => {
+      const res = await apiRequest("PATCH", `/api/office-transactions/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/office-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transfer-offices"] });
+    },
+  });
+}
+
+export function useDeleteOfficeTransaction() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/office-transactions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/office-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transfer-offices"] });
+    },
+  });
+}

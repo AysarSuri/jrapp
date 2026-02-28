@@ -1546,6 +1546,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/office-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { officeId, officeName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const [updated] = await db.update(transferOfficeTransactions).set({
+        officeId, officeName, type, amountUsd, amountIqd, description, reference, date, time,
+      }).where(eq(transferOfficeTransactions.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Transaction not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/office-transactions/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(transferOfficeTransactions).where(eq(transferOfficeTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/office-statement/:id', requireAuth, async (req, res) => {
     try {
       const officeId = parseInt(req.params.id as string);
