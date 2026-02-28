@@ -393,14 +393,14 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </thead>
               <tbody>
                 {items?.map((item, idx) => (
-                  <tr key={item.id} style={{ background: idx % 2 === 0 ? "white" : "#f9f9f9" }}>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{idx + 1}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{item.productCode}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left" }}>{resolveProductName(item)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{resolveUnitName(item.unit, unitsList)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 600 }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
+                  <tr key={item.id} style={{ background: "transparent" }}>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700, color: "#000" }}>{idx + 1}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{item.productCode}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left", fontWeight: 700, color: "#000" }}>{resolveProductName(item)}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700, color: "#000" }}>{item.quantity}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700, color: "#000" }}>{resolveUnitName(item.unit, unitsList)}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
                   </tr>
                 ))}
               </tbody>
