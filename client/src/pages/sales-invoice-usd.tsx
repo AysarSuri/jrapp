@@ -657,6 +657,10 @@ export default function SalesInvoiceUsdPage() {
                         products={products || []}
                         value={item.productId}
                         onSelect={(val) => selectProduct(index, val)}
+                        onAfterSelect={() => {
+                          const el = document.querySelector(`[data-testid="input-sales-quantity-${index}"]`) as HTMLInputElement;
+                          if (el) el.focus();
+                        }}
                         data-testid={`select-sales-product-${index}`}
                       />
                     </TableCell>

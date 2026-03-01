@@ -10,6 +10,7 @@ interface ProductSearchSelectProps {
   products: Product[];
   value: number | null;
   onSelect: (productId: string) => void;
+  onAfterSelect?: () => void;
   placeholder?: string;
   "data-testid"?: string;
 }
@@ -18,6 +19,7 @@ export default function ProductSearchSelect({
   products,
   value,
   onSelect,
+  onAfterSelect,
   placeholder,
   "data-testid": testId,
 }: ProductSearchSelectProps) {
@@ -126,6 +128,7 @@ export default function ProductSearchSelect({
                   onSelect(String(p.id));
                   setSearch("");
                   setOpen(false);
+                  if (onAfterSelect) requestAnimationFrame(onAfterSelect);
                 }}
                 data-testid={`option-product-${p.id}`}
               >
