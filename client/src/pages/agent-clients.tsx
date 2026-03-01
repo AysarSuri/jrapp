@@ -76,8 +76,12 @@ export default function AgentClientsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/agent-clients/by-agent", selectedAgentId] });
       toast({ title: t("Clients assigned successfully") });
     },
-    onError: () => {
-      toast({ title: t("Failed to assign clients"), variant: "destructive" });
+    onError: async (error: any) => {
+      let msg = t("Failed to assign clients");
+      try {
+        if (error?.message) msg = error.message;
+      } catch {}
+      toast({ title: msg, variant: "destructive" });
     },
   });
 
@@ -112,14 +116,22 @@ export default function AgentClientsPage() {
     }
   });
 
+  const otherAgentAssignments = new Map<number, string>();
+  assignments.forEach(a => {
+    if (a.agentUserId !== selectedAgentId) {
+      otherAgentAssignments.set(a.clientId, a.agentName);
+    }
+  });
+
   const toggleClient = (clientId: number) => {
+    if (otherAgentAssignments.has(clientId)) return;
     setSelectedClientIds(prev =>
       prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]
     );
   };
 
   const selectAllClients = () => {
-    setSelectedClientIds(customers.map(c => c.id));
+    setSelectedClientIds(customers.filter(c => !otherAgentAssignments.has(c.id)).map(c => c.id));
   };
 
   const deselectAllClients = () => {
@@ -359,10 +371,13 @@ ${clicheHtml}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {customers.map((c, i) => (
+                      {customers.map((c, i) => {
+                        const assignedTo = otherAgentAssignments.get(c.id);
+                        const isDisabled = !!assignedTo;
+                        return (
                         <TableRow
                           key={c.id}
-                          className="cursor-pointer hover:bg-muted/50"
+                          className={isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-muted/50"}
                           onClick={() => toggleClient(c.id)}
                           data-testid={`row-client-${c.id}`}
                         >
@@ -370,13 +385,22 @@ ${clicheHtml}
                             <Checkbox
                               checked={selectedClientIds.includes(c.id)}
                               onCheckedChange={() => toggleClient(c.id)}
+                              disabled={isDisabled}
                               data-testid={`checkbox-client-${c.id}`}
                             />
                           </TableCell>
                           <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                          <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell>
+                            <span className="font-medium">{c.name}</span>
+                            {isDisabled && (
+                              <Badge variant="outline" className="ml-2 text-xs text-red-600 border-red-300">
+                                {t('Assigned to')}: {assignedTo}
+                              </Badge>
+                            )}
+                          </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                       {customers.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={3} className="text-center text-muted-foreground py-8">

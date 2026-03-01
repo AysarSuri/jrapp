@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations } from "@shared/schema";
 
 declare module "express-session" {
@@ -2482,6 +2482,17 @@ export async function registerRoutes(
       const { agentUserId, agentName, clientIds } = req.body;
       if (!agentUserId || !agentName || !Array.isArray(clientIds)) {
         return res.status(400).json({ message: "agentUserId, agentName, and clientIds are required" });
+      }
+      if (clientIds.length > 0) {
+        const existingOther = await db.select().from(agentClients)
+          .where(and(
+            inArray(agentClients.clientId, clientIds),
+            sql`${agentClients.agentUserId} != ${agentUserId}`
+          ));
+        if (existingOther.length > 0) {
+          const names = existingOther.map(e => `${e.clientName} (${e.agentName})`).join(", ");
+          return res.status(400).json({ message: `These clients are already assigned to other agents: ${names}` });
+        }
       }
       await db.delete(agentClients).where(eq(agentClients.agentUserId, agentUserId));
       if (clientIds.length > 0) {
