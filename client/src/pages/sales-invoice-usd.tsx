@@ -30,6 +30,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import ProductSearchSelect from "@/components/product-search-select";
 import { usd, formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
@@ -652,21 +653,12 @@ export default function SalesInvoiceUsdPage() {
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-sales-item-${index}`}>
                     <TableCell className="text-center font-mono text-xs text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
-                      <Select
-                        value={item.productId ? String(item.productId) : ""}
-                        onValueChange={(val) => selectProduct(index, val)}
-                      >
-                        <SelectTrigger className="h-9 text-sm" data-testid={`select-sales-product-${index}`}>
-                          <SelectValue placeholder={t('Select product...')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products?.map(p => (
-                            <SelectItem key={p.id} value={String(p.id)}>
-                              {getProductName(p)} ({p.barcode})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ProductSearchSelect
+                        products={products || []}
+                        value={item.productId}
+                        onSelect={(val) => selectProduct(index, val)}
+                        data-testid={`select-sales-product-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Input
