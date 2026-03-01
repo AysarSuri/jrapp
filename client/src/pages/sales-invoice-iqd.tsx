@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Banknote, Pencil,
+  ListOrdered, CheckCircle, Clock, Banknote, Pencil, ScanBarcode,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -174,6 +174,45 @@ export default function SalesInvoiceIqdPage() {
     });
   }, [products]);
 
+  const [barcodeInput, setBarcodeInput] = useState("");
+
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    if (!barcode.trim()) return;
+    const product = products?.find(p => p.barcode === barcode.trim());
+    if (!product) {
+      toast({ title: t("Product not found for barcode") + ": " + barcode, variant: "destructive" });
+      setBarcodeInput("");
+      return;
+    }
+    setItems(prev => {
+      const updated = [...prev];
+      let emptyIndex = updated.findIndex(row => row.productId === null);
+      if (emptyIndex === -1) {
+        updated.push(emptyItem());
+        emptyIndex = updated.length - 1;
+      }
+      const qty = 1;
+      const unitWeight = parseFloat(product.weight || "0");
+      updated[emptyIndex] = {
+        ...updated[emptyIndex],
+        productId: product.id,
+        productCode: product.barcode,
+        productName: getProductName(product),
+        quantity: String(qty),
+        unit: product.bigUnit,
+        price: product.bigUnitPriceIqd,
+        weight: (qty * unitWeight).toFixed(2),
+        amount: (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2),
+      };
+      const lastRow = updated[updated.length - 1];
+      if (lastRow.productId !== null) {
+        updated.push(emptyItem());
+      }
+      return updated;
+    });
+    setBarcodeInput("");
+  }, [products, t, toast]);
+
   const addRow = () => {
     setItems(prev => [...prev, emptyItem()]);
   };
@@ -199,6 +238,7 @@ export default function SalesInvoiceIqdPage() {
     setDiscount("");
     setAmountPaid("");
     setItems([emptyItem()]);
+    setBarcodeInput("");
     setFormKey(k => k + 1);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
@@ -570,11 +610,31 @@ export default function SalesInvoiceIqdPage() {
       </Card>
 
       <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-4 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">{t('Products')}</CardTitle>
-          <Button variant="outline" size="sm" onClick={addRow} data-testid="button-sales-iqd-add-row">
-            <Plus className="w-4 h-4" />
-          </Button>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg">{t('Products')}</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <ScanBarcode className="absolute start-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={barcodeInput}
+                  onChange={(e) => setBarcodeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleBarcodeScan(barcodeInput);
+                    }
+                  }}
+                  placeholder={t('Scan barcode...')}
+                  className="h-9 w-48 ps-9 text-sm font-mono"
+                  data-testid="input-sales-iqd-barcode"
+                />
+              </div>
+              <Button variant="outline" size="sm" onClick={addRow} data-testid="button-sales-iqd-add-row">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
