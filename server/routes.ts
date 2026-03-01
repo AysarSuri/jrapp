@@ -2197,6 +2197,30 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/customer-receipts/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { customerId, customerName, paymentSource, paymentSourceName, amount, discount, currency, note, reference, date, time } = req.body;
+      const [updated] = await db.update(customerReceipts).set({
+        customerId, customerName, paymentSource, paymentSourceName, amount, discount, currency, note, reference, date, time,
+      }).where(eq(customerReceipts.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Receipt not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/customer-receipts/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(customerReceipts).where(eq(customerReceipts.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Agent Payments
   app.get(api.agentPayments.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getAgentPayments();

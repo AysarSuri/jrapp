@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useCustomerReceipts, useCreateCustomerReceipt } from "@/hooks/use-customer-receipts";
+import { useCustomerReceipts, useCreateCustomerReceipt, useUpdateCustomerReceipt, useDeleteCustomerReceipt } from "@/hooks/use-customer-receipts";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, Bank, TransferOffice } from "@shared/schema";
+import type { Client, Bank, TransferOffice, CustomerReceipt } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -19,10 +19,15 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, RotateCcw, ListOrdered, Building, Landmark, Percent,
+  Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd } from "@/lib/format-utils";
 
@@ -31,6 +36,8 @@ export default function CustomerReceiptUsdPage() {
   const { toast } = useToast();
   const { data: receipts, isLoading: receiptsLoading } = useCustomerReceipts();
   const { mutate: createReceipt, isPending: isSaving } = useCreateCustomerReceipt();
+  const { mutate: updateReceipt, isPending: isUpdating } = useUpdateCustomerReceipt();
+  const { mutate: deleteReceipt } = useDeleteCustomerReceipt();
 
   const { data: customers } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -55,12 +62,39 @@ export default function CustomerReceiptUsdPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState("");
+  const [historyToDate, setHistoryToDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const [editReceipt, setEditReceipt] = useState<CustomerReceipt | null>(null);
+  const [editCustomerId, setEditCustomerId] = useState("");
+  const [editCustomerName, setEditCustomerName] = useState("");
+  const [editPaymentSource, setEditPaymentSource] = useState("");
+  const [editPaymentSourceName, setEditPaymentSourceName] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editDiscount, setEditDiscount] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
 
   const banks = banksList || [];
   const transferOffices = transferOfficesList || [];
 
   const usdReceipts = receipts?.filter(r => r.currency === "USD") || [];
+
+  const filteredReceipts = usdReceipts.filter(r => {
+    if (historyFilter && historyFilter !== "all" && String(r.customerId) !== historyFilter) return false;
+    if (historyFromDate && r.date < historyFromDate) return false;
+    if (historyToDate && r.date > historyToDate) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const selectCustomer = useCallback((id: string) => {
     setCustomerId(id);
@@ -136,6 +170,71 @@ export default function CustomerReceiptUsdPage() {
     });
   };
 
+  const openEdit = (r: CustomerReceipt) => {
+    setEditReceipt(r);
+    setEditCustomerId(String(r.customerId));
+    setEditCustomerName(r.customerName);
+    setEditPaymentSource(r.paymentSource);
+    setEditPaymentSourceName(r.paymentSourceName);
+    setEditAmount(r.amount);
+    setEditDiscount(r.discount);
+    setEditNote(r.note || "");
+    setEditReference(r.reference || "");
+    setEditDate(r.date);
+    setEditTime(r.time || "00:00");
+  };
+
+  const handleUpdate = () => {
+    if (!editReceipt) return;
+    if (!editCustomerId) {
+      toast({ title: t("Please select a customer"), variant: "destructive" });
+      return;
+    }
+    if (!editPaymentSource) {
+      toast({ title: t("Please select a payment source"), variant: "destructive" });
+      return;
+    }
+    const amountVal = parseFloat(editAmount || "0");
+    const discountVal = parseFloat(editDiscount || "0");
+    if (amountVal <= 0 && discountVal <= 0) {
+      toast({ title: t("Please enter an amount or discount"), variant: "destructive" });
+      return;
+    }
+
+    updateReceipt({ id: editReceipt.id, data: {
+      customerId: parseInt(editCustomerId),
+      customerName: editCustomerName,
+      paymentSource: editPaymentSource.split(":")[0],
+      paymentSourceName: editPaymentSourceName,
+      amount: editAmount || "0",
+      discount: editDiscount || "0",
+      currency: "USD",
+      note: editNote || null,
+      reference: editReference || null,
+      date: editDate,
+      time: editTime,
+    }}, {
+      onSuccess: () => {
+        toast({ title: t("Receipt updated successfully") });
+        setEditReceipt(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update receipt"), variant: "destructive" });
+      },
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteReceipt(id, {
+      onSuccess: () => {
+        toast({ title: t("Receipt deleted successfully") });
+      },
+      onError: () => {
+        toast({ title: t("Failed to delete receipt"), variant: "destructive" });
+      },
+    });
+  };
+
   const totalDeducted = parseFloat(amount || "0") + parseFloat(discount || "0");
 
   return (
@@ -151,74 +250,6 @@ export default function CustomerReceiptUsdPage() {
           <p className="text-muted-foreground mt-1">{t('Receive payments from customers in USD')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2" data-testid="button-receipt-history">
-                <ListOrdered className="h-4 w-4" />
-                {t('Receipt History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Receipt History')} - USD</DialogTitle>
-              </DialogHeader>
-              {receiptsLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('Customer')}</TableHead>
-                      <TableHead>{t('Source')}</TableHead>
-                      <TableHead>{t('Amount')}</TableHead>
-                      <TableHead>{t('Discount')}</TableHead>
-                      <TableHead>{t('Opening Balance')}</TableHead>
-                      <TableHead>{t('Remaining')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
-                      <TableHead>{t('Notes')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {usdReceipts.map((r, i) => (
-                      <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.date}</TableCell>
-                        <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
-                        <TableCell className="font-medium">{r.customerName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">{r.paymentSourceName}</Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-blue-600">
-                          {parseFloat(r.amount) > 0 ? usd(r.amount) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-green-600">
-                          {parseFloat(r.discount) > 0 ? usd(r.discount) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {usd(r.oldDebt)}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-emerald-600">
-                          {usd(r.remaining)}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.note || "-"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {usdReceipts.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
-                          {t('No receipts yet')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-receipt">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -473,6 +504,278 @@ export default function CustomerReceiptUsdPage() {
           )}
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-green-600" />
+              {t('Receipt History')}
+              <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-to-date" />
+              </div>
+              <div className="w-48">
+                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-receipt-history" className="h-9">
+                    <SelectValue placeholder={t('All Customers')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Customers')}</SelectItem>
+                    {customers?.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {receiptsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('Customer')}</TableHead>
+                    <TableHead>{t('Source')}</TableHead>
+                    <TableHead>{t('Amount')}</TableHead>
+                    <TableHead>{t('Discount')}</TableHead>
+                    <TableHead>{t('Opening Balance')}</TableHead>
+                    <TableHead>{t('Remaining')}</TableHead>
+                    <TableHead>{t('Reference')}</TableHead>
+                    <TableHead>{t('Notes')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedReceipts.map((r, i) => (
+                    <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
+                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
+                      <TableCell className="font-medium">{r.customerName}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">{r.paymentSourceName}</Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-blue-600">
+                        {parseFloat(r.amount) > 0 ? usd(r.amount) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-green-600">
+                        {parseFloat(r.discount) > 0 ? usd(r.discount) : "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {usd(r.oldDebt)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-emerald-600">
+                        {usd(r.remaining)}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-orange-600"
+                            onClick={() => openEdit(r)}
+                            data-testid={`button-edit-receipt-${r.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-600"
+                                data-testid={`button-delete-receipt-${r.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('This will permanently delete this receipt.')}</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(r.id)}>{t('Yes')}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedReceipts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                        {t('No receipts yet')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredReceipts.length)} {t('of')} {filteredReceipts.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    disabled={safePage <= 1}
+                    onClick={() => setCurrentPage(safePage - 1)}
+                    data-testid="button-receipt-history-prev"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <Button
+                      key={p}
+                      variant={p === safePage ? "default" : "outline"}
+                      size="icon"
+                      onClick={() => setCurrentPage(p)}
+                      data-testid={`button-receipt-history-page-${p}`}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setCurrentPage(safePage + 1)}
+                    data-testid="button-receipt-history-next"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!editReceipt} onOpenChange={(open) => { if (!open) setEditReceipt(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('Edit Receipt')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('Customer')}</Label>
+              <Select value={editCustomerId} onValueChange={(v) => {
+                setEditCustomerId(v);
+                const c = customers?.find(c => c.id === parseInt(v));
+                if (c) setEditCustomerName(c.name);
+              }}>
+                <SelectTrigger data-testid="select-edit-receipt-customer">
+                  <SelectValue placeholder={t('Select customer...')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers?.map(c => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-receipt-date" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-receipt-time" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Payment Source')}</Label>
+              <Select value={editPaymentSource} onValueChange={(v) => {
+                setEditPaymentSource(v);
+                const [type, id] = v.split(":");
+                if (type === "bank") {
+                  const bank = banksList?.find(b => b.id === parseInt(id));
+                  if (bank) setEditPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+                } else {
+                  const office = transferOfficesList?.find(o => o.id === parseInt(id));
+                  if (office) setEditPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
+                }
+              }}>
+                <SelectTrigger data-testid="select-edit-receipt-source">
+                  <SelectValue placeholder={t('Select payment source...')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {banks.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Landmark className="h-3 w-3" /> {t('Banks')}
+                      </div>
+                      {banks.map(b => (
+                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>{b.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {transferOffices.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
+                      </div>
+                      {transferOffices.map(o => (
+                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>{o.name}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Amount')}</Label>
+                <Input type="number" step="0.01" min="0" placeholder="0.00" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} data-testid="input-edit-receipt-amount" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Discount')}</Label>
+                <Input type="number" step="0.01" min="0" placeholder="0.00" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} data-testid="input-edit-receipt-discount" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Reference')}</Label>
+              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-receipt-reference" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Notes')}</Label>
+              <Textarea placeholder={t('Notes...')} value={editNote} onChange={(e) => setEditNote(e.target.value)} className="resize-none" data-testid="input-edit-receipt-note" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditReceipt(null)} data-testid="button-cancel-edit-receipt">{t('Cancel')}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-blue-600 hover:bg-blue-700" data-testid="button-save-edit-receipt">
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {t('Save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

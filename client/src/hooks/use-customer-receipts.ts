@@ -20,3 +20,29 @@ export function useCreateCustomerReceipt() {
     },
   });
 }
+
+export function useUpdateCustomerReceipt() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertCustomerReceipt> }) => {
+      const res = await apiRequest("PATCH", `/api/customer-receipts/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    },
+  });
+}
+
+export function useDeleteCustomerReceipt() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/customer-receipts/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    },
+  });
+}
