@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import type { Product } from "@shared/schema";
@@ -24,7 +25,8 @@ export default function ProductSearchSelect({
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
   const selectedProduct = value ? products.find(p => p.id === value) : null;
   const displayText = selectedProduct ? `${getProductName(selectedProduct)} (${selectedProduct.barcode})` : "";
@@ -42,9 +44,32 @@ export default function ProductSearchSelect({
       })
     : products;
 
+  const updatePosition = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      updatePosition();
+    }
+  }, [open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = () => updatePosition();
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [open, updatePosition]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -52,18 +77,11 @@ export default function ProductSearchSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!open && !search) {
-      setSearch("");
-    }
-  }, [open]);
-
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
         <Search className="absolute start-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         <Input
-          ref={inputRef}
           value={open ? search : displayText}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -79,8 +97,18 @@ export default function ProductSearchSelect({
           data-testid={testId}
         />
       </div>
-      {open && (
-        <div className="absolute z-50 top-full mt-1 w-full bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: "fixed",
+            top: pos.top,
+            left: pos.left,
+            width: pos.width,
+            zIndex: 9999,
+          }}
+          className="bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto"
+        >
           {filtered.length === 0 ? (
             <div className="px-3 py-2 text-sm text-muted-foreground text-center">
               {t("No products found")}
@@ -105,7 +133,8 @@ export default function ProductSearchSelect({
               </button>
             ))
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
