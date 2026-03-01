@@ -2237,13 +2237,13 @@ export async function registerRoutes(
       }
 
       const result = await db.transaction(async (tx) => {
-        const [agent] = await tx.select().from(representatives).where(eq(representatives.id, input.agentId));
+        const [customer] = await tx.select().from(clients).where(eq(clients.id, input.agentId));
 
         let currentDebt = 0;
         if (input.currency === "USD") {
-          currentDebt = parseFloat(agent?.debtUsd || "0");
+          currentDebt = parseFloat(customer?.oldDebtUsd || "0");
         } else {
-          currentDebt = parseFloat(agent?.debtIqd || "0");
+          currentDebt = parseFloat(customer?.oldDebtIqd || "0");
         }
 
         const remaining = currentDebt - amount;
@@ -2255,17 +2255,17 @@ export async function registerRoutes(
         }).returning();
 
         if (input.currency === "USD") {
-          await tx.update(representatives)
+          await tx.update(clients)
             .set({
-              debtUsd: sql`CAST(${representatives.debtUsd} AS NUMERIC) - ${amount}`,
+              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${amount}`,
             })
-            .where(eq(representatives.id, input.agentId));
+            .where(eq(clients.id, input.agentId));
         } else {
-          await tx.update(representatives)
+          await tx.update(clients)
             .set({
-              debtIqd: sql`CAST(${representatives.debtIqd} AS NUMERIC) - ${amount}`,
+              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${amount}`,
             })
-            .where(eq(representatives.id, input.agentId));
+            .where(eq(clients.id, input.agentId));
         }
 
         return payment;

@@ -74,7 +74,7 @@ export default function SalesManagementPage() {
     {
       href: "/agent-payment-usd",
       icon: DollarSign,
-      label: "Agent Payment USD",
+      label: "Customer Payment USD",
       color: "from-teal-500 to-teal-600",
       bgColor: "bg-teal-50 dark:bg-teal-950/30",
       iconColor: "text-teal-600 dark:text-teal-400",
@@ -82,7 +82,7 @@ export default function SalesManagementPage() {
     {
       href: "/agent-payment-iqd",
       icon: Banknote,
-      label: "Agent Payment IQD",
+      label: "Customer Payment IQD",
       color: "from-indigo-500 to-indigo-600",
       bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
       iconColor: "text-indigo-600 dark:text-indigo-400",

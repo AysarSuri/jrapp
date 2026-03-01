@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAgentPayments, useCreateAgentPayment } from "@/hooks/use-agent-payments";
 import { useQuery } from "@tanstack/react-query";
-import type { Representative, Bank, TransferOffice } from "@shared/schema";
+import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -32,9 +32,10 @@ export default function AgentPaymentUsdPage() {
   const { data: payments, isLoading: paymentsLoading } = useAgentPayments();
   const { mutate: createPayment, isPending: isSaving } = useCreateAgentPayment();
 
-  const { data: agents } = useQuery<Representative[]>({
-    queryKey: ["/api/representatives"],
+  const { data: allClients } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
   });
+  const customers = allClients?.filter(c => c.type === "customer") || [];
 
   const { data: banksList } = useQuery<Bank[]>({
     queryKey: ["/api/banks"],
@@ -62,11 +63,11 @@ export default function AgentPaymentUsdPage() {
 
   const selectAgent = useCallback((id: string) => {
     setAgentId(id);
-    const agent = agents?.find(a => a.id === parseInt(id));
-    if (agent) {
-      setAgentName(agent.name);
+    const customer = customers?.find(c => c.id === parseInt(id));
+    if (customer) {
+      setAgentName(customer.name);
     }
-  }, [agents]);
+  }, [customers]);
 
   const selectPaymentSource = useCallback((val: string) => {
     setPaymentSource(val);
@@ -80,7 +81,7 @@ export default function AgentPaymentUsdPage() {
     }
   }, [banksList, transferOfficesList, t]);
 
-  const selectedAgent = agents?.find(a => a.id === parseInt(agentId));
+  const selectedAgent = customers?.find(c => c.id === parseInt(agentId));
 
   const resetForm = () => {
     setAgentId("");
@@ -96,7 +97,7 @@ export default function AgentPaymentUsdPage() {
 
   const handleSave = () => {
     if (!agentId) {
-      toast({ title: t("Please select an agent"), variant: "destructive" });
+      toast({ title: t("Please select a customer"), variant: "destructive" });
       return;
     }
     if (!paymentSource) {
@@ -141,9 +142,9 @@ export default function AgentPaymentUsdPage() {
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
               <DollarSign className="h-7 w-7 text-blue-600 dark:text-blue-400" />
             </div>
-            {t('Agent Payment USD')}
+            {t('Customer Payment USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Pay agents in USD')}</p>
+          <p className="text-muted-foreground mt-1">{t('Pay customers in USD')}</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
@@ -166,7 +167,7 @@ export default function AgentPaymentUsdPage() {
                       <TableHead>#</TableHead>
                       <TableHead>{t('Date')}</TableHead>
                       <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('Agent')}</TableHead>
+                      <TableHead>{t('Customer')}</TableHead>
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
                       <TableHead>{t('Opening Balance')}</TableHead>
@@ -225,14 +226,14 @@ export default function AgentPaymentUsdPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>{t('Agent')}</Label>
+                <Label>{t('Customer')}</Label>
                 <Select value={agentId} onValueChange={selectAgent}>
-                  <SelectTrigger data-testid="select-agent">
-                    <SelectValue placeholder={t('Select agent...')} />
+                  <SelectTrigger data-testid="select-customer">
+                    <SelectValue placeholder={t('Select customer...')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents?.map(a => (
-                      <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                    {customers?.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -263,12 +264,12 @@ export default function AgentPaymentUsdPage() {
                 <CardContent className="pt-4 pb-4">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Agent')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
                       <p className="font-bold">{selectedAgent.name}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
-                      <p className="font-mono font-bold text-red-600">{usd(selectedAgent.debtUsd)}</p>
+                      <p className="font-mono font-bold text-red-600">{usd(selectedAgent.oldDebtUsd)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -364,7 +365,7 @@ export default function AgentPaymentUsdPage() {
               {selectedAgent && (
                 <>
                   <div className="rounded-lg border p-3 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{t('Agent')}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
                     <p className="font-bold text-lg">{selectedAgent.name}</p>
                   </div>
                   <Separator />
@@ -412,13 +413,13 @@ export default function AgentPaymentUsdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt USD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    {usd(selectedAgent.debtUsd)}
+                    {usd(selectedAgent.oldDebtUsd)}
                   </p>
                   {amountVal > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {usd((parseFloat(selectedAgent.debtUsd) - amountVal))}
+                        {usd((parseFloat(selectedAgent.oldDebtUsd) - amountVal))}
                       </p>
                     </>
                   )}
