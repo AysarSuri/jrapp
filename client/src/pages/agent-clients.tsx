@@ -58,6 +58,7 @@ export default function AgentClientsPage() {
   const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
   const [addressFilter, setAddressFilter] = useState<string>("");
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyAddressFilter, setHistoryAddressFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
@@ -166,6 +167,7 @@ export default function AgentClientsPage() {
 
   const filteredAssignments = assignments.filter(a => {
     if (historyFilter && historyFilter !== "all" && a.agentUserId !== historyFilter) return false;
+    if (historyAddressFilter && historyAddressFilter !== "all" && a.clientAddress !== historyAddressFilter) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredAssignments.length / pageSize));
@@ -521,6 +523,19 @@ ${clicheHtml}
                     <SelectItem value="all">{t('All Agents')}</SelectItem>
                     {agents.map(a => (
                       <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-48">
+                <Select value={historyAddressFilter} onValueChange={(v) => { setHistoryAddressFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-assignments-address" className="h-9">
+                    <SelectValue placeholder={t('All Addresses')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Addresses')}</SelectItem>
+                    {addresses.map(addr => (
+                      <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
