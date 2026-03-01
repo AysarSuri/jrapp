@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -110,11 +110,11 @@ export default function AgentClientsPage() {
     }
   }, [agentAssignments]);
 
-  useState(() => {
+  useEffect(() => {
     if (agentAssignments) {
       setSelectedClientIds(agentAssignments.map(a => a.clientId));
     }
-  });
+  }, [agentAssignments]);
 
   const otherAgentAssignments = new Map<number, string>();
   assignments.forEach(a => {
