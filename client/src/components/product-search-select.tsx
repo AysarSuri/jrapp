@@ -29,7 +29,7 @@ export default function ProductSearchSelect({
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
   const selectedProduct = value ? products.find(p => p.id === value) : null;
-  const displayText = selectedProduct ? `${getProductName(selectedProduct)} (${selectedProduct.barcode})` : "";
+  const displayText = selectedProduct ? getProductName(selectedProduct) : "";
 
   const filtered = search.trim()
     ? products.filter(p => {
