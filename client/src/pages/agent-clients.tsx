@@ -43,8 +43,11 @@ export default function AgentClientsPage() {
   const { data: agentsList } = useQuery<{ id: string; name: string }[]>({
     queryKey: ["/api/agents"],
   });
-  const { data: customersList } = useQuery<{ id: number; name: string; type: string }[]>({
+  const { data: customersList } = useQuery<{ id: number; name: string; type: string; address: string | null }[]>({
     queryKey: ["/api/clients"],
+  });
+  const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/addresses"],
   });
   const { data: allAssignments, isLoading } = useQuery<AgentClientWithDetails[]>({
     queryKey: ["/api/agent-clients"],
@@ -53,13 +56,18 @@ export default function AgentClientsPage() {
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [selectedAgentName, setSelectedAgentName] = useState("");
   const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
+  const [addressFilter, setAddressFilter] = useState<string>("");
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const agents = agentsList || [];
-  const customers = (customersList || []).filter(c => c.type === "customer");
+  const addresses = addressesList || [];
+  const allCustomers = (customersList || []).filter(c => c.type === "customer");
+  const customers = addressFilter && addressFilter !== "all"
+    ? allCustomers.filter(c => c.address === addressFilter)
+    : allCustomers;
   const assignments = allAssignments || [];
 
   const { data: agentAssignments } = useQuery<AgentClient[]>({
@@ -346,9 +354,22 @@ ${clicheHtml}
 
             {selectedAgentId && (
               <>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <Label className="text-base font-semibold">{t('Clients')}</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    <div className="w-44">
+                      <Select value={addressFilter} onValueChange={setAddressFilter}>
+                        <SelectTrigger data-testid="select-address-filter" className="h-8">
+                          <SelectValue placeholder={t('All Addresses')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('All Addresses')}</SelectItem>
+                          {addresses.map(addr => (
+                            <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button variant="outline" size="sm" onClick={loadExistingAssignments} data-testid="button-load-existing">
                       {t('Load Existing')}
                     </Button>
