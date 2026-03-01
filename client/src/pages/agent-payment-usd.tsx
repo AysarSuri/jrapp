@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Save, Loader2, DollarSign, RotateCcw, ListOrdered, Building, Landmark, UserCheck,
+  Save, Loader2, DollarSign, RotateCcw, ListOrdered, Building, Landmark, UserCheck, HandCoins,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -71,13 +71,17 @@ export default function AgentPaymentUsdPage() {
 
   const selectPaymentSource = useCallback((val: string) => {
     setPaymentSource(val);
-    const [type, id] = val.split(":");
-    if (type === "bank") {
-      const bank = banksList?.find(b => b.id === parseInt(id));
-      if (bank) setPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+    if (val === "hand:0") {
+      setPaymentSourceName(t("By Hand"));
     } else {
-      const office = transferOfficesList?.find(o => o.id === parseInt(id));
-      if (office) setPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
+      const [type, id] = val.split(":");
+      if (type === "bank") {
+        const bank = banksList?.find(b => b.id === parseInt(id));
+        if (bank) setPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+      } else {
+        const office = transferOfficesList?.find(o => o.id === parseInt(id));
+        if (office) setPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
+      }
     }
   }, [banksList, transferOfficesList, t]);
 
@@ -285,6 +289,10 @@ export default function AgentPaymentUsdPage() {
                   <SelectValue placeholder={t('Select bank or transfer office...')} />
                 </SelectTrigger>
                 <SelectContent>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <HandCoins className="h-3 w-3" /> {t('By Hand')}
+                  </div>
+                  <SelectItem value="hand:0">{t('By Hand')}</SelectItem>
                   {banks.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
