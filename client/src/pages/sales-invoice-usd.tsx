@@ -692,6 +692,13 @@ export default function SalesInvoiceUsdPage() {
                           min="0"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const el = document.querySelector(`[data-testid="input-sales-price-${index}"]`) as HTMLInputElement;
+                              if (el) el.focus();
+                            }
+                          }}
                           className="h-9 text-sm text-center w-14"
                           data-testid={`input-sales-quantity-${index}`}
                         />
@@ -750,6 +757,14 @@ export default function SalesInvoiceUsdPage() {
                         min="0"
                         value={item.price}
                         onChange={(e) => updateItem(index, "price", e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const nextIndex = index + 1;
+                            const el = document.querySelector(`[data-testid="select-sales-product-${nextIndex}"]`) as HTMLInputElement;
+                            if (el) el.focus();
+                          }
+                        }}
                         className="h-9 text-sm text-center font-mono"
                         data-testid={`input-sales-price-${index}`}
                       />
