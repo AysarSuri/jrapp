@@ -2512,6 +2512,28 @@ export async function registerRoutes(
     }
   });
 
+  app.post('/api/agent-clients/single', requireAuth, async (req, res) => {
+    try {
+      const { agentUserId, agentName, clientId, clientName } = req.body;
+      if (!agentUserId || !agentName || !clientId || !clientName) {
+        return res.status(400).json({ message: "agentUserId, agentName, clientId, and clientName are required" });
+      }
+      await db.delete(agentClients).where(eq(agentClients.clientId, clientId));
+      const [row] = await db.insert(agentClients).values({ agentUserId, agentName, clientId, clientName }).returning();
+      res.status(201).json(row);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/agent-clients/by-client/:clientId', requireAuth, async (req, res) => {
+    try {
+      const clientId = parseInt(req.params.clientId as string, 10);
+      await db.delete(agentClients).where(eq(agentClients.clientId, clientId));
+      res.json({ message: "Deleted" });
+    } catch { res.status(500).json({ message: "Internal server error" }); }
+  });
+
   app.delete('/api/agent-clients/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);

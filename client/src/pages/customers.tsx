@@ -6,8 +6,10 @@ import { insertClientSchema, type Client } from "@shared/routes";
 import { z } from "zod";
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
 import { useAddresses } from "@/hooks/use-addresses";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -24,7 +26,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Users, Loader2, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Users, Loader2, MapPin, Pencil, Trash2, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +38,7 @@ const customerSchema = insertClientSchema.extend({
 
 export default function CustomersPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const { data: allClients, isLoading } = useClients();
   const { data: dbAddresses } = useAddresses();
   const { mutate: createClient, isPending: isCreating } = useCreateClient();
@@ -45,6 +48,16 @@ export default function CustomersPage() {
   const [open, setOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  const { data: agentsList } = useQuery<{ id: string; name: string; mobile: string }[]>({
+    queryKey: ["/api/agents"],
+  });
+
+  const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
+    queryKey: ["/api/agent-clients"],
+  });
 
   const form = useForm<z.infer<typeof customerSchema>>({
     resolver: zodResolver(customerSchema),
@@ -53,12 +66,15 @@ export default function CustomersPage() {
 
   const openCreateDialog = () => {
     setEditingClient(null);
+    setSelectedAgentId("");
     form.reset({ name: "", type: "customer", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" });
     setOpen(true);
   };
 
   const openEditDialog = (client: Client) => {
     setEditingClient(client);
+    const assignment = agentClientsList?.find(ac => ac.clientId === client.id);
+    setSelectedAgentId(assignment?.agentUserId || "");
     form.reset({
       name: client.name,
       type: "customer",
@@ -70,12 +86,48 @@ export default function CustomersPage() {
     setOpen(true);
   };
 
-  const onSubmit = (values: z.infer<typeof customerSchema>) => {
+  const handleAgentAssignment = async (clientId: number, clientName: string) => {
+    if (selectedAgentId === "none" || selectedAgentId === "") {
+      try {
+        await fetch(`/api/agent-clients/by-client/${clientId}`, { method: "DELETE" });
+        queryClient.invalidateQueries({ queryKey: ["/api/agent-clients"] });
+      } catch {}
+      return;
+    }
+    const agent = agentsList?.find(a => a.id === selectedAgentId);
+    if (!agent) return;
+    try {
+      const res = await fetch("/api/agent-clients/single", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentUserId: agent.id,
+          agentName: agent.name,
+          clientId,
+          clientName,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ title: t("Failed to assign to agent"), description: err.message, variant: "destructive" });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["/api/agent-clients"] });
+      }
+    } catch {
+      toast({ title: t("Failed to assign to agent"), variant: "destructive" });
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof customerSchema>) => {
     if (editingClient) {
       updateClient({ id: editingClient.id, data: { ...values, type: "customer" } }, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          setIsAssigning(true);
+          await handleAgentAssignment(editingClient.id, values.name);
+          setIsAssigning(false);
           setOpen(false);
           setEditingClient(null);
+          setSelectedAgentId("");
           form.reset();
           toast({ title: t("Customer updated successfully") });
         },
@@ -85,8 +137,14 @@ export default function CustomersPage() {
       });
     } else {
       createClient({ ...values, type: "customer" }, {
-        onSuccess: () => {
+        onSuccess: async (createdClient) => {
+          if (selectedAgentId && selectedAgentId !== "none") {
+            setIsAssigning(true);
+            await handleAgentAssignment(createdClient.id, values.name);
+            setIsAssigning(false);
+          }
           setOpen(false);
+          setSelectedAgentId("");
           form.reset();
           toast({ title: t("Customer created successfully") });
         },
@@ -119,8 +177,14 @@ export default function CustomersPage() {
   const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
 
   const addresses = dbAddresses || [];
+  const agents = agentsList || [];
 
-  const isSaving = isCreating || isUpdating;
+  const getAgentForClient = (clientId: number) => {
+    const assignment = agentClientsList?.find(ac => ac.clientId === clientId);
+    return assignment?.agentName || null;
+  };
+
+  const isSaving = isCreating || isUpdating || isAssigning;
 
   return (
     <div className="space-y-8">
@@ -129,7 +193,7 @@ export default function CustomersPage() {
           <h1 className="text-3xl font-bold tracking-tight">{t('Customers')}</h1>
           <p className="text-muted-foreground mt-1">{t('Manage your customers')}</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null); }}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingClient(null); setSelectedAgentId(""); } }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-customer" onClick={openCreateDialog}>
               <Plus className="w-4 h-4 mr-2" />
@@ -180,6 +244,23 @@ export default function CustomersPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-1.5">
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {t('Agent')}
+                  </Label>
+                  <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
+                    <SelectTrigger data-testid="select-customer-agent">
+                      <SelectValue placeholder={t('Select agent (optional)...')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('No Agent')}</SelectItem>
+                      {agents.map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
                     <FormItem>
@@ -197,7 +278,7 @@ export default function CustomersPage() {
                   )} />
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingClient(null); }}>{t('Cancel')}</Button>
+                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingClient(null); setSelectedAgentId(""); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-customer">
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {t('Save')}
@@ -262,6 +343,7 @@ export default function CustomersPage() {
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Address')}</TableHead>
                     <TableHead>{t('Contact')}</TableHead>
+                    <TableHead>{t('Agent')}</TableHead>
                     <TableHead className="text-right">{t('Opening Balance (USD)')}</TableHead>
                     <TableHead className="text-right">{t('Opening Balance (IQD)')}</TableHead>
                     <TableHead className="text-right">{t('Balance')}</TableHead>
@@ -282,6 +364,14 @@ export default function CustomersPage() {
                         ) : '-'}
                       </TableCell>
                       <TableCell>{client.contact || '-'}</TableCell>
+                      <TableCell>
+                        {getAgentForClient(client.id) ? (
+                          <Badge variant="secondary" className="gap-1 text-xs">
+                            <UserCheck className="h-3 w-3" />
+                            {getAgentForClient(client.id)}
+                          </Badge>
+                        ) : '-'}
+                      </TableCell>
                       <TableCell className="text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell className="text-right font-mono">{Number(client.balance).toLocaleString()}</TableCell>
