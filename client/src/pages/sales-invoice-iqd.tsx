@@ -41,6 +41,7 @@ interface InvoiceItem {
   productName: string;
   quantity: string;
   unit: string;
+  weight: string;
   price: string;
   amount: string;
 }
@@ -51,6 +52,7 @@ const emptyItem = (): InvoiceItem => ({
   productName: "",
   quantity: "",
   unit: "",
+  weight: "",
   price: "",
   amount: "0",
 });
@@ -115,6 +117,7 @@ export default function SalesInvoiceIqdPage() {
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
+  const totalWeight = items.reduce((sum, i) => sum + parseFloat(i.weight || "0"), 0);
   const discountVal = parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - discountVal - amountPaidVal;
@@ -567,6 +570,7 @@ export default function SalesInvoiceIqdPage() {
                   <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[90px]">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
@@ -665,6 +669,18 @@ export default function SalesInvoiceIqdPage() {
                         type="number"
                         step="0.01"
                         min="0"
+                        value={item.weight}
+                        onChange={(e) => updateItem(index, "weight", e.target.value)}
+                        className="h-9 text-sm text-center font-mono"
+                        placeholder="0"
+                        data-testid={`input-sales-iqd-weight-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
                         value={item.price}
                         onChange={(e) => updateItem(index, "price", e.target.value)}
                         className="h-9 text-sm text-center font-mono"
@@ -699,7 +715,7 @@ export default function SalesInvoiceIqdPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-border/50 shadow-sm">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Products')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-sales-iqd-total-items">{totalItems}</p>
@@ -707,6 +723,10 @@ export default function SalesInvoiceIqdPage() {
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Quantity')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-sales-iqd-total-quantity">{totalQuantity}</p>
+              </div>
+              <div className="rounded-lg border p-4 text-center">
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
+                <p className="text-3xl font-bold text-primary" data-testid="text-sales-iqd-total-weight">{totalWeight}</p>
               </div>
             </div>
           </CardContent>
