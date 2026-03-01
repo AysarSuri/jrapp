@@ -91,7 +91,6 @@ export default function SalesReturnIqdPage() {
   const [driverMobile, setDriverMobile] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [returnType, setReturnType] = useState("cash");
-  const [discount, setDiscount] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -105,9 +104,8 @@ export default function SalesReturnIqdPage() {
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
-  const discountVal = parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
-  const remaining = subtotal - discountVal - amountPaidVal;
+  const remaining = subtotal - amountPaidVal;
 
   const formatIQD = (val: number) => val.toLocaleString("en-US");
 
@@ -169,7 +167,6 @@ export default function SalesReturnIqdPage() {
     setDriverMobile("");
     setVehicleNumber("");
     setReturnType("cash");
-    setDiscount("");
     setAmountPaid("");
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
@@ -207,7 +204,7 @@ export default function SalesReturnIqdPage() {
       vehicleNumber: vehicleNumber || null,
       returnType,
       subtotal: subtotal.toFixed(2),
-      discount: discount || "0",
+      discount: "0",
       amountPaid: amountPaid || "0",
       remaining: remaining.toFixed(2),
       totalItems,
@@ -646,7 +643,7 @@ export default function SalesReturnIqdPage() {
             </div>
             <Separator />
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Amount Paid')}</span>
+              <span className="text-sm font-medium">{t('Paid Amount')}</span>
               <Input
                 type="number"
                 step="0.01"
@@ -655,18 +652,6 @@ export default function SalesReturnIqdPage() {
                 className="w-32 text-right font-mono"
                 placeholder="0"
                 data-testid="input-return-iqd-amount-paid"
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Discount')}</span>
-              <Input
-                type="number"
-                step="0.01"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                className="w-32 text-right font-mono"
-                placeholder="0"
-                data-testid="input-return-iqd-discount"
               />
             </div>
             <Separator />
