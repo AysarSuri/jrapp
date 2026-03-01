@@ -160,6 +160,8 @@ export const purchaseInvoices = pgTable("purchase_invoices", {
   totalQuantity: numeric("total_quantity").notNull().default("0"),
   currency: text("currency").notNull().default("USD"),
   status: text("status").notNull().default("draft"),
+  warehouseId: integer("warehouse_id"),
+  warehouseName: text("warehouse_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
