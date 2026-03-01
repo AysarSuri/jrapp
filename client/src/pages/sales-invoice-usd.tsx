@@ -538,20 +538,11 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Name')}</Label>
-              <Select key={`rep-${formKey}`} onValueChange={selectRepresentative}>
-                <SelectTrigger data-testid="select-representative">
-                  <SelectValue placeholder={t('Select Representative')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {representativesList?.map(r => (
-                    <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input value={representativeName} onChange={(e) => setRepresentativeName(e.target.value)} placeholder={t('Representative name...')} readOnly className="bg-muted/50" data-testid="input-sales-rep-name" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
-              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} data-testid="input-sales-rep-mobile" />
+              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} readOnly className="bg-muted/50" data-testid="input-sales-rep-mobile" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Name')}</Label>
