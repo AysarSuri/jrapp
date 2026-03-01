@@ -720,18 +720,18 @@ export default function SalesInvoiceUsdPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-border/50 shadow-sm">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-lg border p-4 text-center">
-                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Products')}</p>
-                <p className="text-3xl font-bold text-primary" data-testid="text-sales-total-items">{totalItems}</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg border p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Products')}</p>
+                <p className="text-xl font-bold text-primary" data-testid="text-sales-total-items">{totalItems}</p>
               </div>
-              <div className="rounded-lg border p-4 text-center">
-                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Quantity')}</p>
-                <p className="text-3xl font-bold text-primary" data-testid="text-sales-total-quantity">{totalQuantity}</p>
+              <div className="rounded-lg border p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Quantity')}</p>
+                <p className="text-xl font-bold text-primary" data-testid="text-sales-total-quantity">{totalQuantity}</p>
               </div>
-              <div className="rounded-lg border p-4 text-center">
-                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
-                <p className="text-3xl font-bold text-primary" data-testid="text-sales-total-weight">{totalWeight}</p>
+              <div className="rounded-lg border p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Weight')}</p>
+                <p className="text-xl font-bold text-primary" data-testid="text-sales-total-weight">{totalWeight}</p>
               </div>
             </div>
           </CardContent>
