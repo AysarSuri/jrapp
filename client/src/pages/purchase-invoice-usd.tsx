@@ -156,6 +156,8 @@ export default function PurchaseInvoiceUsdPage() {
         setDriverName(inv.driverName || "");
         setDriverMobile(inv.driverMobile || "");
         setInvoiceType(inv.invoiceType || "cash");
+        setWarehouseId(inv.warehouseId || null);
+        setWarehouseName(inv.warehouseName || "");
         setCarExpense(inv.carExpense || "");
         setCustomsExpense(inv.customsExpense || "");
         setOtherExpenses(inv.otherExpenses || "");

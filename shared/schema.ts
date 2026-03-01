@@ -488,6 +488,8 @@ export const purchaseReturns = pgTable("purchase_returns", {
   status: text("status").notNull().default("approved"),
   originalInvoiceId: integer("original_invoice_id"),
   originalInvoiceNumber: text("original_invoice_number"),
+  warehouseId: integer("warehouse_id"),
+  warehouseName: text("warehouse_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

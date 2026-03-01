@@ -73,6 +73,9 @@ export default function PurchaseReturnIqdPage() {
   const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/addresses"],
   });
+  const { data: warehousesList } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/warehouses"],
+  });
 
   const suppliersList = clients?.filter(c => c.type === "supplier") || [];
 
@@ -84,6 +87,8 @@ export default function PurchaseReturnIqdPage() {
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
   const [returnType, setReturnType] = useState("cash");
+  const [warehouseId, setWarehouseId] = useState<number | null>(null);
+  const [warehouseName, setWarehouseName] = useState("");
   const [discount, setDiscount] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
@@ -124,6 +129,8 @@ export default function PurchaseReturnIqdPage() {
         setAddress(returnData.address || "");
         setNote(returnData.note || "");
         setDiscount(returnData.discount || "");
+        setWarehouseId(returnData.warehouseId || null);
+        setWarehouseName(returnData.warehouseName || "");
 
         const mappedItems: ReturnItem[] = (itemsData || []).map((item: any) => ({
           productId: item.productId,
@@ -206,6 +213,8 @@ export default function PurchaseReturnIqdPage() {
     setAddress("");
     setNote("");
     setReturnType("cash");
+    setWarehouseId(null);
+    setWarehouseName("");
     setAmountPaid("");
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
@@ -249,6 +258,8 @@ export default function PurchaseReturnIqdPage() {
       address: address || null,
       note: note || null,
       returnType,
+      warehouseId,
+      warehouseName: warehouseName || null,
       subtotal: subtotal.toFixed(2),
       discount: "0",
       amountPaid: amountPaid || "0",
@@ -400,6 +411,22 @@ export default function PurchaseReturnIqdPage() {
                 <SelectContent>
                   {suppliersList.map(c => (
                     <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
+              <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
+                const wh = warehousesList?.find(w => w.id === parseInt(v));
+                if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
+              }}>
+                <SelectTrigger data-testid="select-purchase-return-iqd-warehouse">
+                  <SelectValue placeholder={t('Select Warehouse')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehousesList?.map(w => (
+                    <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
