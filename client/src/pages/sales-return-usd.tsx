@@ -73,6 +73,9 @@ export default function SalesReturnUsdPage() {
   const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/addresses"],
   });
+  const { data: warehousesList } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/warehouses"],
+  });
 
   const customersList = clients?.filter(c => c.type === "customer") || [];
 
@@ -91,6 +94,8 @@ export default function SalesReturnUsdPage() {
   const [driverMobile, setDriverMobile] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [returnType, setReturnType] = useState("cash");
+  const [warehouseId, setWarehouseId] = useState<number | null>(null);
+  const [warehouseName, setWarehouseName] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -165,6 +170,8 @@ export default function SalesReturnUsdPage() {
     setDriverMobile("");
     setVehicleNumber("");
     setReturnType("cash");
+    setWarehouseId(null);
+    setWarehouseName("");
     setAmountPaid("");
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
@@ -201,6 +208,8 @@ export default function SalesReturnUsdPage() {
       driverMobile: driverMobile || null,
       vehicleNumber: vehicleNumber || null,
       returnType,
+      warehouseId,
+      warehouseName: warehouseName || null,
       subtotal: subtotal.toFixed(2),
       discount: "0",
       amountPaid: amountPaid || "0",
@@ -400,6 +409,23 @@ export default function SalesReturnUsdPage() {
                 <SelectContent>
                   <SelectItem value="cash">{t('Cash')}</SelectItem>
                   <SelectItem value="credit">{t('Credit')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
+              <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
+                const wh = warehousesList?.find(w => w.id === parseInt(v));
+                if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
+              }}>
+                <SelectTrigger data-testid="select-return-warehouse">
+                  <SelectValue placeholder={t('Select Warehouse')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehousesList?.map(w => (
+                    <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

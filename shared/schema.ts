@@ -388,6 +388,8 @@ export const salesReturns = pgTable("sales_returns", {
   vehicleNumber: text("vehicle_number"),
   originalInvoiceId: integer("original_invoice_id"),
   originalInvoiceNumber: text("original_invoice_number"),
+  warehouseId: integer("warehouse_id"),
+  warehouseName: text("warehouse_name"),
   createdBy: text("created_by"),
   createdByRole: text("created_by_role"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
