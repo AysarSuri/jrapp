@@ -580,7 +580,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
         {/* Page Content */}
         <div className="flex-1 p-6 lg:p-10 overflow-auto">
-          <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </div>
