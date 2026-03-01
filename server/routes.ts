@@ -136,8 +136,8 @@ export async function registerRoutes(
 
   app.get('/api/agents', requireAuth, async (_req, res) => {
     try {
-      const salesRepUsers = await db.select({ id: users.id, fullName: users.fullName, username: users.username }).from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
-      const agents = salesRepUsers.map(u => ({ id: u.id, name: u.fullName || u.username }));
+      const salesRepUsers = await db.select({ id: users.id, fullName: users.fullName, username: users.username, mobile: users.mobile }).from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
+      const agents = salesRepUsers.map(u => ({ id: u.id, name: u.fullName || u.username, mobile: u.mobile || "" }));
       res.json(agents);
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
