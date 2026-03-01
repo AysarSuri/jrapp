@@ -55,6 +55,7 @@ type ProductData = {
   id: number;
   name: string;
   nameEn: string;
+  weight: string;
 };
 
 type ClientData = {
@@ -387,6 +388,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Name")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Quantity")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Unit")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Weight")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Price")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Amount")}</th>
                 </tr>
@@ -399,6 +401,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left", fontWeight: 700, color: "#000" }}>{resolveProductName(item)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700, color: "#000" }}>{item.quantity}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700, color: "#000" }}>{resolveUnitName(item.unit, unitsList)}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{(() => { const prod = item.productId && allProducts ? allProducts.find(p => p.id === item.productId) : null; return prod ? fmt(parseFloat(item.quantity || "0") * parseFloat(prod.weight || "0")) : "-"; })()}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#000" }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
                   </tr>
@@ -447,6 +450,10 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
                   <span>{t("Total Quantity")}:</span>
                   <span style={{ fontWeight: 500 }}>{invoice.totalQuantity}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
+                  <span>{t("Total Weight")}:</span>
+                  <span style={{ fontWeight: 500 }}>{(() => { if (!items || !allProducts) return "0"; return fmt(items.reduce((sum, item) => { const prod = item.productId ? allProducts.find(p => p.id === item.productId) : null; return sum + parseFloat(item.quantity || "0") * parseFloat(prod?.weight || "0"); }, 0)); })()}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
                   <span>{t("Invoice Total")}:</span>
