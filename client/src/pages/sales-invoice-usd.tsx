@@ -131,15 +131,25 @@ export default function SalesInvoiceUsdPage() {
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
         updated[index].amount = (qty * prc).toFixed(2);
       }
+      if (field === "quantity" && updated[index].productId) {
+        const prod = products?.find(p => p.id === updated[index].productId);
+        if (prod) {
+          const qty = parseFloat(value || "0");
+          const unitWeight = parseFloat(prod.weight || "0");
+          updated[index].weight = (qty * unitWeight).toFixed(2);
+        }
+      }
       return updated;
     });
-  }, []);
+  }, [products]);
 
   const selectProduct = useCallback((index: number, productId: string) => {
     const product = products?.find(p => p.id === parseInt(productId));
     if (!product) return;
     setItems(prev => {
       const updated = [...prev];
+      const qty = parseFloat(updated[index].quantity || "0");
+      const unitWeight = parseFloat(product.weight || "0");
       updated[index] = {
         ...updated[index],
         productId: product.id,
@@ -147,8 +157,8 @@ export default function SalesInvoiceUsdPage() {
         productName: getProductName(product),
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
+        weight: (qty * unitWeight).toFixed(2),
       };
-      const qty = parseFloat(updated[index].quantity || "0");
       updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
       const lastRow = updated[updated.length - 1];
       if (lastRow.productId !== null) {
@@ -665,8 +675,8 @@ export default function SalesInvoiceUsdPage() {
                         step="0.01"
                         min="0"
                         value={item.weight}
-                        onChange={(e) => updateItem(index, "weight", e.target.value)}
-                        className="h-9 text-sm text-center font-mono"
+                        readOnly
+                        className="h-9 text-sm text-center font-mono bg-muted/50"
                         placeholder="0"
                         data-testid={`input-sales-weight-${index}`}
                       />
