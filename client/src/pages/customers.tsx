@@ -50,6 +50,7 @@ export default function CustomersPage() {
   const [open, setOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [addressFilter, setAddressFilter] = useState<string>("");
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
   const [isAssigning, setIsAssigning] = useState(false);
 
@@ -169,11 +170,16 @@ export default function CustomersPage() {
   };
 
   const customers = allClients?.filter(c => c.type === "customer") || [];
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = customers.filter((c) => {
+    if (addressFilter && addressFilter !== "all" && c.address !== addressFilter) return false;
+    if (searchTerm) {
+      const s = searchTerm.toLowerCase();
+      return c.name.toLowerCase().includes(s) ||
+        c.contact?.toLowerCase().includes(s) ||
+        c.address?.toLowerCase().includes(s);
+    }
+    return true;
+  });
 
   const totalOldDebtUsd = customers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
   const totalOldDebtIqd = customers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
@@ -322,9 +328,24 @@ export default function CustomersPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search customers...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customers" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input placeholder={t('Search customers...')} className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customers" />
+            </div>
+            <div className="w-48">
+              <Select value={addressFilter} onValueChange={setAddressFilter}>
+                <SelectTrigger data-testid="select-address-filter" className="h-10">
+                  <SelectValue placeholder={t('All Addresses')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('All Addresses')}</SelectItem>
+                  {addresses.map(addr => (
+                    <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
