@@ -34,6 +34,8 @@ import { usd } from "@/lib/format-utils";
 
 const customerSchema = insertClientSchema.extend({
   type: z.literal("customer").default("customer"),
+  contact: z.string().min(1, "Contact is required"),
+  address: z.string().min(1, "Address is required"),
 });
 
 export default function CustomersPage() {
