@@ -32,6 +32,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -411,17 +412,15 @@ export default function PurchaseInvoiceIqdPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier')}</Label>
-                  <Select value={historySupplierFilter} onValueChange={setHistorySupplierFilter}>
-                    <SelectTrigger data-testid="select-history-iqd-supplier-filter">
-                      <SelectValue placeholder={t('All Suppliers')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('All Suppliers')}</SelectItem>
-                      {suppliersList.map(c => (
-                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SupplierSearchSelect
+                    suppliers={suppliersList}
+                    value={historySupplierFilter}
+                    onValueChange={setHistorySupplierFilter}
+                    placeholder={t('All Suppliers')}
+                    data-testid="select-history-iqd-supplier-filter"
+                    showAllOption
+                    allOptionLabel={t('All Suppliers')}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-muted-foreground">{t('From Date')}</Label>
@@ -539,16 +538,13 @@ export default function PurchaseInvoiceIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select key={`supplier-iqd-${formKey}`} value={supplierId ? String(supplierId) : undefined} onValueChange={selectSupplier}>
-                <SelectTrigger data-testid="select-supplier-iqd">
-                  <SelectValue placeholder={t('Select Supplier')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliersList.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SupplierSearchSelect
+                suppliers={suppliersList}
+                value={supplierId ? String(supplierId) : ""}
+                onValueChange={selectSupplier}
+                placeholder={t('Select Supplier')}
+                data-testid="select-supplier-iqd"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>

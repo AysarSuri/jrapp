@@ -19,6 +19,7 @@ import { usd, formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import { logExport } from "@/lib/export-log";
@@ -586,18 +587,13 @@ export default function SupplierStatementUsdPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Label className="mb-2 block">{t("Select Supplier")}</Label>
-              <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
-                <SelectTrigger data-testid="select-supplier-statement-usd" className="w-full">
-                  <SelectValue placeholder={t("Select supplier...")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)} data-testid={`select-supplier-usd-${s.id}`}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SupplierSearchSelect
+                suppliers={suppliers}
+                value={selectedSupplierId}
+                onValueChange={setSelectedSupplierId}
+                placeholder={t("Select supplier...")}
+                data-testid="select-supplier-statement-usd"
+              />
             </div>
             <div className="flex-1">
               <Label className="mb-2 block">{t("From Date")}</Label>

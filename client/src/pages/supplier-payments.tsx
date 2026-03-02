@@ -28,6 +28,7 @@ import { formatDate, usd } from "@/lib/format-utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { playDeleteSound } from "@/lib/sounds";
 import SupplierPaymentReport from "@/components/supplier-payment-report";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
 export default function SupplierPaymentsPage() {
   const { t } = useTranslation();
@@ -259,16 +260,13 @@ export default function SupplierPaymentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Supplier')}</Label>
-                <Select value={supplierId} onValueChange={selectSupplier}>
-                  <SelectTrigger data-testid="select-payment-supplier">
-                    <SelectValue placeholder={t('Select supplier...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers?.map(s => (
-                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SupplierSearchSelect
+                  suppliers={suppliers || []}
+                  value={supplierId}
+                  onValueChange={selectSupplier}
+                  placeholder={t('Select supplier...')}
+                  data-testid="select-payment-supplier"
+                />
               </div>
 
               <div className="space-y-2">

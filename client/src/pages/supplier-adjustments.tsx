@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
 import { playDeleteSound } from "@/lib/sounds";
 import SupplierAdjustmentReport from "@/components/supplier-adjustment-report";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
@@ -250,18 +251,13 @@ export default function SupplierAdjustmentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("Supplier")}</Label>
-                <Select value={supplierId} onValueChange={selectSupplier}>
-                  <SelectTrigger data-testid="select-supplier">
-                    <SelectValue placeholder={t("Select supplier...")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers?.map(s => (
-                      <SelectItem key={s.id} value={String(s.id)}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SupplierSearchSelect
+                  suppliers={suppliers || []}
+                  value={supplierId}
+                  onValueChange={selectSupplier}
+                  placeholder={t("Select supplier...")}
+                  data-testid="select-supplier"
+                />
               </div>
 
               <div className="space-y-2">

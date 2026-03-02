@@ -28,6 +28,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { playDeleteSound } from "@/lib/sounds";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { useUnits } from "@/hooks/use-units";
 import PurchaseReturnReport from "@/components/purchase-return-report";
 
@@ -410,16 +411,13 @@ export default function PurchaseReturnIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
-              <Select key={`supplier-return-iqd-${formKey}`} value={supplierId ? String(supplierId) : undefined} onValueChange={selectSupplier}>
-                <SelectTrigger data-testid="select-purchase-return-iqd-supplier">
-                  <SelectValue placeholder={t('Select Supplier')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliersList.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SupplierSearchSelect
+                suppliers={suppliersList}
+                value={supplierId ? String(supplierId) : ""}
+                onValueChange={selectSupplier}
+                placeholder={t('Select Supplier')}
+                data-testid="select-purchase-return-iqd-supplier"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>

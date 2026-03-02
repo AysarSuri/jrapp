@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usd } from "@/lib/format-utils";
+import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
 type Client = {
   id: number;
@@ -114,18 +115,14 @@ export default function SupplierStatementPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
-            <SelectTrigger data-testid="select-supplier-statement" className="max-w-md">
-              <SelectValue placeholder={t("Select supplier...")} />
-            </SelectTrigger>
-            <SelectContent>
-              {suppliers.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)} data-testid={`select-supplier-${s.id}`}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SupplierSearchSelect
+            suppliers={suppliers}
+            value={selectedSupplierId}
+            onValueChange={setSelectedSupplierId}
+            placeholder={t("Select supplier...")}
+            data-testid="select-supplier-statement"
+            className="max-w-md"
+          />
         </CardContent>
       </Card>
 
