@@ -137,7 +137,7 @@ export default function SalesManagementPage() {
                 <section.icon className={`w-6 h-6 ${section.iconColor}`} />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-center leading-tight line-clamp-2">{t(section.label)}</span>
+                <span className="text-sm font-bold text-center leading-tight line-clamp-2">{t(section.label)}</span>
                 <ArrowIcon className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </div>
               <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-200 group-hover:w-8`} />
