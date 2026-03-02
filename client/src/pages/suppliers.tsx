@@ -154,36 +154,37 @@ export default function SuppliersPage() {
               {t('Add Supplier')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
-              <DialogTitle>{editingClient ? t('Edit Supplier') : t('Add New Supplier')}</DialogTitle>
-              <DialogDescription>{t('Fill in the supplier details below.')}</DialogDescription>
+              <DialogTitle className="text-xl font-bold">{editingClient ? t('Edit Supplier') : t('Add New Supplier')}</DialogTitle>
+              <DialogDescription className="text-sm">{t('Fill in the supplier details below.')}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-name" placeholder={t('Supplier Name')} {...field} /></FormControl>
+                    <FormLabel className="text-base font-bold">{t('Name')}</FormLabel>
+                    <FormControl><Input data-testid="input-supplier-name" placeholder={t('Supplier Name')} className="h-11 text-base font-semibold" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="contact" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('Contact')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-contact" placeholder="0770-000-0000" {...field} value={field.value ?? ""} /></FormControl>
+                    <FormLabel className="text-base font-bold">{t('Contact')}</FormLabel>
+                    <FormControl><Input data-testid="input-supplier-contact" placeholder="0770-000-0000" className="h-11 text-base font-semibold" {...field} value={field.value ?? ""} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('Address')}</FormLabel>
+                    <FormLabel className="text-base font-bold">{t('Address')}</FormLabel>
                     <AddressSearchSelect
                       addresses={addresses}
                       value={field.value || ""}
                       onValueChange={field.onChange}
                       placeholder={t('Select address...')}
                       data-testid="select-supplier-address"
+                      inputClassName="h-11 text-base font-semibold"
                     />
                     <FormMessage />
                   </FormItem>
@@ -191,22 +192,22 @@ export default function SuppliersPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Opening Balance (USD)')}</FormLabel>
-                      <FormControl><Input data-testid="input-supplier-old-debt-usd" type="number" step="0.01" placeholder="0.00" {...field} /></FormControl>
+                      <FormLabel className="text-base font-bold">{t('Opening Balance (USD)')}</FormLabel>
+                      <FormControl><Input data-testid="input-supplier-old-debt-usd" type="number" step="0.01" placeholder="0.00" className="h-11 text-base font-semibold" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('Opening Balance (IQD)')}</FormLabel>
-                      <FormControl><Input data-testid="input-supplier-old-debt-iqd" type="number" step="1" placeholder="0" {...field} /></FormControl>
+                      <FormLabel className="text-base font-bold">{t('Opening Balance (IQD)')}</FormLabel>
+                      <FormControl><Input data-testid="input-supplier-old-debt-iqd" type="number" step="1" placeholder="0" className="h-11 text-base font-semibold" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                 </div>
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingClient(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-supplier">
+                <DialogFooter className="pt-5">
+                  <Button variant="outline" type="button" size="lg" className="text-base font-bold" onClick={() => { setOpen(false); setEditingClient(null); }}>{t('Cancel')}</Button>
+                  <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold" data-testid="button-save-supplier">
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
