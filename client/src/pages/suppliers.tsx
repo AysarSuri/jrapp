@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -43,6 +43,18 @@ export default function SuppliersPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const form = useForm<z.infer<typeof supplierSchema>>({
     resolver: zodResolver(supplierSchema),
@@ -248,9 +260,41 @@ export default function SuppliersPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input placeholder={t('Search suppliers...')} className="pl-9" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} data-testid="input-search-suppliers" />
+              <Input
+                placeholder={t('Search suppliers...')}
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
+                onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
+                data-testid="input-search-suppliers"
+              />
+              {searchOpen && searchTerm.trim() && filtered.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filtered.slice(0, 10).map((client) => (
+                    <button
+                      key={client.id}
+                      type="button"
+                      className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
+                      data-testid={`search-result-supplier-${client.id}`}
+                      onClick={() => {
+                        setSearchTerm(client.name);
+                        setSearchOpen(false);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <span>{client.name}</span>
+                      {client.address && (
+                        <Badge variant="outline" className="gap-1 text-xs font-semibold shrink-0">
+                          <MapPin className="h-3 w-3" />
+                          {client.address}
+                        </Badge>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="text-sm text-muted-foreground font-medium">
               {filtered.length} {t('Total Suppliers')}
