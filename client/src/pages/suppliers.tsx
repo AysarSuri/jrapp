@@ -272,33 +272,33 @@ export default function SuppliersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Name')}</TableHead>
-                      <TableHead>{t('Address')}</TableHead>
-                      <TableHead>{t('Contact')}</TableHead>
-                      <TableHead className="text-right">{t('Opening Balance (USD)')}</TableHead>
-                      <TableHead className="text-right">{t('Opening Balance (IQD)')}</TableHead>
-                      <TableHead className="text-right">{t('Balance')}</TableHead>
-                      <TableHead className="text-right">{t('Actions')}</TableHead>
+                      <TableHead className="font-bold text-sm">#</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Name')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Address')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Contact')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Opening Balance (USD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Opening Balance (IQD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Balance')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedData.map((client) => (
                       <TableRow key={client.id} data-testid={`row-supplier-${client.id}`} className={editingClient?.id === client.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
-                        <TableCell className="font-mono text-xs">{client.id}</TableCell>
-                        <TableCell className="font-bold">{client.name}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-bold font-mono text-sm">{client.id}</TableCell>
+                        <TableCell className="font-bold text-sm">{client.name}</TableCell>
+                        <TableCell className="font-bold text-sm">
                           {client.address ? (
-                            <Badge variant="outline" className="gap-1">
+                            <Badge variant="outline" className="gap-1 font-bold">
                               <MapPin className="h-3 w-3" />
                               {client.address}
                             </Badge>
                           ) : '-'}
                         </TableCell>
-                        <TableCell>{client.contact || '-'}</TableCell>
-                        <TableCell className="text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>
-                        <TableCell className="text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-mono">{Number(client.balance).toLocaleString()}</TableCell>
+                        <TableCell className="font-bold text-sm">{client.contact || '-'}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{usd(client.oldDebtUsd || 0)}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{Number(client.balance).toLocaleString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>
