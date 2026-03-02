@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import {
   Truck,
   Receipt,
+  Undo2,
   Banknote,
   ArrowDownToLine,
   FileSearch,
@@ -51,6 +52,24 @@ export default function SupplierManagementPage() {
       bg: "bg-purple-50 dark:bg-purple-900/20",
       iconColor: "text-purple-600 dark:text-purple-400",
       hoverBorder: "hover:border-purple-300 dark:hover:border-purple-700",
+    },
+    {
+      href: "/purchase-return-usd",
+      icon: Undo2,
+      label: "Purchase Return USD",
+      gradient: "from-pink-500 to-pink-600",
+      bg: "bg-pink-50 dark:bg-pink-900/20",
+      iconColor: "text-pink-600 dark:text-pink-400",
+      hoverBorder: "hover:border-pink-300 dark:hover:border-pink-700",
+    },
+    {
+      href: "/purchase-return-iqd",
+      icon: Undo2,
+      label: "Purchase Return IQD",
+      gradient: "from-fuchsia-500 to-fuchsia-600",
+      bg: "bg-fuchsia-50 dark:bg-fuchsia-900/20",
+      iconColor: "text-fuchsia-600 dark:text-fuchsia-400",
+      hoverBorder: "hover:border-fuchsia-300 dark:hover:border-fuchsia-700",
     },
     {
       href: "/supplier-adjustments",
