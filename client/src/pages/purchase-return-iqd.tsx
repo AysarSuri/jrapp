@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useNextPurchaseReturnNumber, useCreatePurchaseReturn, usePurchaseReturns, useApprovePurchaseReturn } from "@/hooks/use-purchase-returns";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, PurchaseReturn } from "@shared/schema";
@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
-  Plus, Trash2, Save, Loader2, FileText, RotateCcw,
+  Plus, Trash2, Save, Loader2, FileText, RotateCcw, ArrowLeft,
   ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -341,6 +341,12 @@ export default function PurchaseReturnIqdPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/supplier-management">
+        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Supplier Management")}
+        </Button>
+      </Link>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-purchase-return-iqd-title">
