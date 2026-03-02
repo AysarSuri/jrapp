@@ -80,6 +80,43 @@ export function LayoutShell({ children }: LayoutShellProps) {
     document.documentElement.lang = lng;
   }, []);
 
+  useEffect(() => {
+    const handleEnterAsTab = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+
+      const target = e.target as HTMLElement;
+      const tag = target.tagName.toLowerCase();
+
+      if (tag === "textarea") return;
+
+      if (tag === "button" || tag === "a" || target.getAttribute("role") === "button" || target.getAttribute("role") === "menuitem" || target.getAttribute("role") === "option") {
+        e.preventDefault();
+        return;
+      }
+
+      if (tag === "input" || tag === "select") {
+        e.preventDefault();
+
+        const form = target.closest("form, [data-form-container], .space-y-1, .space-y-1\\.5, .space-y-2, .space-y-3, .space-y-4, .grid, [class*='grid']");
+        const container = form || document.body;
+
+        const focusable = Array.from(
+          container.querySelectorAll<HTMLElement>(
+            'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"])'
+          )
+        ).filter(el => el.offsetParent !== null);
+
+        const currentIndex = focusable.indexOf(target);
+        if (currentIndex >= 0 && currentIndex < focusable.length - 1) {
+          focusable[currentIndex + 1].focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleEnterAsTab, true);
+    return () => window.removeEventListener("keydown", handleEnterAsTab, true);
+  }, []);
+
   const toggleTheme = () => {
     if (theme === 'light') {
       setTheme('dark');

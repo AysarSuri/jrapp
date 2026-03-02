@@ -83,6 +83,13 @@ export function AddressSearchSelect({
             setIsOpen(true);
             setSearchText("");
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && isOpen && filtered.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSelect(filtered[0].name);
+            }
+          }}
           className={`pl-8 pr-8 ${inputClassName}`}
         />
         {(value && value !== "") && (

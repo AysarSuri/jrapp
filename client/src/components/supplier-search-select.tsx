@@ -85,6 +85,13 @@ export function SupplierSearchSelect({
             setIsOpen(true);
             setSearchText("");
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && isOpen && filtered.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSelect(String(filtered[0].id));
+            }
+          }}
           className="pl-8 pr-8"
         />
         {(value && value !== "") && (

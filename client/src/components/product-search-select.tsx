@@ -93,6 +93,15 @@ export default function ProductSearchSelect({
             setOpen(true);
             setSearch("");
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && open && filtered.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(String(filtered[0].id));
+              setSearch("");
+              setOpen(false);
+            }
+          }}
           placeholder={placeholder || t("Select product...")}
           className="h-9 text-sm ps-7 truncate"
           autoComplete="off"
