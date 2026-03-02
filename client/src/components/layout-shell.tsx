@@ -96,12 +96,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
       if (tag === "input" || tag === "select") {
         e.preventDefault();
-
-        const form = target.closest("form, [data-form-container], .space-y-1, .space-y-1\\.5, .space-y-2, .space-y-3, .space-y-4, .grid, [class*='grid']");
-        const container = form || document.body;
+        e.stopPropagation();
 
         const focusable = Array.from(
-          container.querySelectorAll<HTMLElement>(
+          document.querySelectorAll<HTMLElement>(
             'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"])'
           )
         ).filter(el => el.offsetParent !== null);
