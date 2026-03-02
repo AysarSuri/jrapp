@@ -1,13 +1,113 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "wouter";
+import {
+  Truck,
+  Receipt,
+  Banknote,
+  ArrowDownToLine,
+  FileSearch,
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function SupplierManagementPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
+
+  const sections = [
+    {
+      href: "/suppliers",
+      icon: Truck,
+      label: "Suppliers",
+      gradient: "from-blue-500 to-blue-600",
+      bg: "bg-blue-50 dark:bg-blue-900/20",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      hoverBorder: "hover:border-blue-300 dark:hover:border-blue-700",
+    },
+    {
+      href: "/purchase-invoice-usd",
+      icon: Receipt,
+      label: "Purchase Invoice USD",
+      gradient: "from-emerald-500 to-emerald-600",
+      bg: "bg-emerald-50 dark:bg-emerald-900/20",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      hoverBorder: "hover:border-emerald-300 dark:hover:border-emerald-700",
+    },
+    {
+      href: "/purchase-invoice-iqd",
+      icon: Receipt,
+      label: "Purchase Invoice IQD",
+      gradient: "from-orange-500 to-orange-600",
+      bg: "bg-orange-50 dark:bg-orange-900/20",
+      iconColor: "text-orange-600 dark:text-orange-400",
+      hoverBorder: "hover:border-orange-300 dark:hover:border-orange-700",
+    },
+    {
+      href: "/supplier-payments",
+      icon: Banknote,
+      label: "Supplier Payments",
+      gradient: "from-purple-500 to-purple-600",
+      bg: "bg-purple-50 dark:bg-purple-900/20",
+      iconColor: "text-purple-600 dark:text-purple-400",
+      hoverBorder: "hover:border-purple-300 dark:hover:border-purple-700",
+    },
+    {
+      href: "/supplier-adjustments",
+      icon: ArrowDownToLine,
+      label: "Supplier Adjustments",
+      gradient: "from-rose-500 to-rose-600",
+      bg: "bg-rose-50 dark:bg-rose-900/20",
+      iconColor: "text-rose-600 dark:text-rose-400",
+      hoverBorder: "hover:border-rose-300 dark:hover:border-rose-700",
+    },
+    {
+      href: "/supplier-statement",
+      icon: FileSearch,
+      label: "Supplier Account Statement",
+      gradient: "from-cyan-500 to-cyan-600",
+      bg: "bg-cyan-50 dark:bg-cyan-900/20",
+      iconColor: "text-cyan-600 dark:text-cyan-400",
+      hoverBorder: "hover:border-cyan-300 dark:hover:border-cyan-700",
+    },
+    {
+      href: "/supplier-debts",
+      icon: ClipboardList,
+      label: "Supplier Debts List",
+      gradient: "from-red-500 to-red-600",
+      bg: "bg-red-50 dark:bg-red-900/20",
+      iconColor: "text-red-600 dark:text-red-400",
+      hoverBorder: "hover:border-red-300 dark:hover:border-red-700",
+    },
+  ];
+
+  const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Supplier Management")}</h1>
-        <p className="text-muted-foreground mt-1">{t("Manage all supplier operations from one place")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Supplier Management")}</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">{t("Manage all supplier operations from one place")}</p>
+      </div>
+
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+        {sections.map((section) => (
+          <Link key={section.href} href={section.href}>
+            <div
+              data-testid={`card-supplier-${section.href.replace(/\//g, '')}`}
+              className={`group relative flex flex-col items-center gap-2.5 rounded-xl border bg-card p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${section.hoverBorder}`}
+            >
+              <div className={`w-12 h-12 rounded-xl ${section.bg} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
+                <section.icon className={`w-6 h-6 ${section.iconColor}`} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-center leading-tight line-clamp-2">{t(section.label)}</span>
+                <ArrowIcon className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+              </div>
+              <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-200 group-hover:w-8`} />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
