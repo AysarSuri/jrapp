@@ -424,7 +424,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Expense Management": "/expense-management",
               "External Debt Management": "/external-debt-management",
               "Owner Management": "/owner-management",
-              "Agent Management": "/agent-clients",
+              "Agent Management": "/agent-management",
               "Warehouse Management": "/warehouses",
             };
             const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
