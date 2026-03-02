@@ -73,6 +73,16 @@ export default function SuppliersPage() {
   };
 
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
+    const existingSuppliers = allClients?.filter(c => c.type === "supplier") || [];
+    const isDuplicate = existingSuppliers.some(
+      s => s.name.trim().toLowerCase() === values.name.trim().toLowerCase() &&
+        (!editingClient || s.id !== editingClient.id)
+    );
+    if (isDuplicate) {
+      toast({ title: t("Supplier name already exists"), description: t("Please use a different name"), variant: "destructive" });
+      return;
+    }
+
     if (editingClient) {
       updateClient({ id: editingClient.id, data: { ...values, type: "supplier" } }, {
         onSuccess: () => {
