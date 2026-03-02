@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usd } from "@/lib/format-utils";
+import { AddressSearchSelect } from "@/components/address-search-select";
 
 const customerSchema = insertClientSchema.extend({
   type: z.literal("customer").default("customer"),
@@ -232,23 +233,13 @@ export default function CustomersPage() {
                 <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('Address')}</FormLabel>
-                    <Select value={field.value || ""} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-customer-address">
-                          <SelectValue placeholder={t('Select address...')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {addresses.map((addr) => (
-                          <SelectItem key={addr.id} value={addr.name}>
-                            <span className="flex items-center gap-2">
-                              <MapPin className="h-3 w-3" />
-                              {addr.name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AddressSearchSelect
+                      addresses={addresses}
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                      placeholder={t('Select address...')}
+                      data-testid="select-customer-address"
+                    />
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -334,17 +325,16 @@ export default function CustomersPage() {
               <Input placeholder={t('Search customers...')} className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customers" />
             </div>
             <div className="w-48">
-              <Select value={addressFilter} onValueChange={setAddressFilter}>
-                <SelectTrigger data-testid="select-address-filter" className="h-10">
-                  <SelectValue placeholder={t('All Addresses')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('All Addresses')}</SelectItem>
-                  {addresses.map(addr => (
-                    <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AddressSearchSelect
+                addresses={addresses}
+                value={addressFilter}
+                onValueChange={setAddressFilter}
+                placeholder={t('All Addresses')}
+                data-testid="select-address-filter"
+                showAllOption
+                allOptionLabel={t('All Addresses')}
+                inputClassName="h-10"
+              />
             </div>
           </div>
         </CardHeader>

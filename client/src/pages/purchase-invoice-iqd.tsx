@@ -33,6 +33,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
+import { AddressSearchSelect } from "@/components/address-search-select";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -564,16 +565,13 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
-              <Select value={address} onValueChange={setAddress}>
-                <SelectTrigger data-testid="select-purchase-iqd-address">
-                  <SelectValue placeholder={t('Select Address')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {addressesList?.map(a => (
-                    <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AddressSearchSelect
+                addresses={addressesList || []}
+                value={address}
+                onValueChange={setAddress}
+                placeholder={t('Select Address')}
+                data-testid="select-purchase-iqd-address"
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>

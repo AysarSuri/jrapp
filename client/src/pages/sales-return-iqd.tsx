@@ -28,6 +28,7 @@ import {
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
+import { AddressSearchSelect } from "@/components/address-search-select";
 
 interface ReturnItem {
   productId: number | null;
@@ -447,16 +448,13 @@ export default function SalesReturnIqdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
-              <Select value={address} onValueChange={setAddress}>
-                <SelectTrigger data-testid="select-return-iqd-address">
-                  <SelectValue placeholder={t('Select Address')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {addressesList?.map(a => (
-                    <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AddressSearchSelect
+                addresses={addressesList || []}
+                value={address}
+                onValueChange={setAddress}
+                placeholder={t('Select Address')}
+                data-testid="select-return-iqd-address"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Mobile')}</Label>

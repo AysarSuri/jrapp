@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { AddressSearchSelect } from "@/components/address-search-select";
 
 type AgentClientWithDetails = AgentClient & {
   clientAddress?: string | null;
@@ -360,17 +361,16 @@ ${clicheHtml}
                   <Label className="text-base font-semibold">{t('Clients')}</Label>
                   <div className="flex gap-2 flex-wrap">
                     <div className="w-44">
-                      <Select value={addressFilter} onValueChange={setAddressFilter}>
-                        <SelectTrigger data-testid="select-address-filter" className="h-8">
-                          <SelectValue placeholder={t('All Addresses')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t('All Addresses')}</SelectItem>
-                          {addresses.map(addr => (
-                            <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <AddressSearchSelect
+                        addresses={addresses}
+                        value={addressFilter}
+                        onValueChange={setAddressFilter}
+                        placeholder={t('All Addresses')}
+                        data-testid="select-address-filter"
+                        showAllOption
+                        allOptionLabel={t('All Addresses')}
+                        inputClassName="h-8"
+                      />
                     </div>
                     <Button variant="outline" size="sm" onClick={loadExistingAssignments} data-testid="button-load-existing">
                       {t('Load Existing')}
@@ -528,17 +528,16 @@ ${clicheHtml}
                 </Select>
               </div>
               <div className="w-48">
-                <Select value={historyAddressFilter} onValueChange={(v) => { setHistoryAddressFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-assignments-address" className="h-9">
-                    <SelectValue placeholder={t('All Addresses')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Addresses')}</SelectItem>
-                    {addresses.map(addr => (
-                      <SelectItem key={addr.id} value={addr.name}>{addr.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <AddressSearchSelect
+                  addresses={addresses}
+                  value={historyAddressFilter}
+                  onValueChange={(v) => { setHistoryAddressFilter(v); setCurrentPage(1); }}
+                  placeholder={t('All Addresses')}
+                  data-testid="select-filter-assignments-address"
+                  showAllOption
+                  allOptionLabel={t('All Addresses')}
+                  inputClassName="h-9"
+                />
               </div>
               <Button variant="outline" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-assignments">
                 <Printer className="h-4 w-4" />

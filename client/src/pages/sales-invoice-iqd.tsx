@@ -34,6 +34,7 @@ import ProductSearchSelect from "@/components/product-search-select";
 import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
+import { AddressSearchSelect } from "@/components/address-search-select";
 import { Eye } from "lucide-react";
 
 interface InvoiceItem {
@@ -593,16 +594,13 @@ export default function SalesInvoiceIqdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
-              <Select value={address} onValueChange={setAddress}>
-                <SelectTrigger data-testid="select-sales-iqd-address">
-                  <SelectValue placeholder={t('Select Address')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {addressesList?.map(a => (
-                    <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AddressSearchSelect
+                addresses={addressesList || []}
+                value={address}
+                onValueChange={setAddress}
+                placeholder={t('Select Address')}
+                data-testid="select-sales-iqd-address"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Mobile')}</Label>

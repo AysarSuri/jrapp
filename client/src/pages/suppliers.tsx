@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usd } from "@/lib/format-utils";
+import { AddressSearchSelect } from "@/components/address-search-select";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
@@ -167,23 +168,13 @@ export default function SuppliersPage() {
                 <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('Address')}</FormLabel>
-                    <Select value={field.value || ""} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-supplier-address">
-                          <SelectValue placeholder={t('Select address...')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {addresses.map((addr) => (
-                          <SelectItem key={addr.id} value={addr.name}>
-                            <span className="flex items-center gap-2">
-                              <MapPin className="h-3 w-3" />
-                              {addr.name}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AddressSearchSelect
+                      addresses={addresses}
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                      placeholder={t('Select address...')}
+                      data-testid="select-supplier-address"
+                    />
                     <FormMessage />
                   </FormItem>
                 )} />
