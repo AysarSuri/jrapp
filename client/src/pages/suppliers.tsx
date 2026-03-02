@@ -235,11 +235,9 @@ export default function SuppliersPage() {
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {editingClient ? t('Update') : t('Save')}
                   </Button>
-                  {editingClient && (
-                    <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-cancel-edit">
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </form>
