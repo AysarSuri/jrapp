@@ -5,8 +5,6 @@ import {
   Ruler,
   FolderOpen,
   ClipboardList,
-  FileText,
-  DollarSign,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -42,24 +40,6 @@ export default function MaterialManagementPage() {
       bg: "bg-amber-50 dark:bg-amber-900/20",
       iconColor: "text-amber-600 dark:text-amber-400",
       hoverBorder: "hover:border-amber-300 dark:hover:border-amber-700",
-    },
-    {
-      href: "/material-report",
-      icon: FileText,
-      label: "Material Report",
-      gradient: "from-rose-500 to-rose-600",
-      bg: "bg-rose-50 dark:bg-rose-900/20",
-      iconColor: "text-rose-600 dark:text-rose-400",
-      hoverBorder: "hover:border-rose-300 dark:hover:border-rose-700",
-    },
-    {
-      href: "/price-list",
-      icon: DollarSign,
-      label: "Price List",
-      gradient: "from-teal-500 to-teal-600",
-      bg: "bg-teal-50 dark:bg-teal-900/20",
-      iconColor: "text-teal-600 dark:text-teal-400",
-      hoverBorder: "hover:border-teal-300 dark:hover:border-teal-700",
     },
     {
       href: "/inventory-report",

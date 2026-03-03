@@ -24,7 +24,8 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
@@ -69,6 +70,8 @@ const defaultValues: FormValues = {
 
 const ITEMS_PER_PAGE = 10;
 
+type TabType = "products" | "report" | "prices";
+
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { data: productsList, isLoading } = useProducts();
@@ -79,6 +82,7 @@ export default function ProductsPage() {
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<TabType>("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -184,50 +188,115 @@ export default function ProductsPage() {
 
   const isSaving = isCreating || isUpdating;
 
-  return (
-    <div className="space-y-6">
-      <Link href="/material-management" data-testid="link-back-material">
-        <Button variant="outline" size="sm" className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          {t("Material Management")}
-        </Button>
-      </Link>
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
+    setSearchTerm("");
+    setCategoryFilter("");
+    setCurrentPage(1);
+    setSearchOpen(false);
+  };
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Products')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage your inventory items')}</p>
+  const renderSearchAndFilter = () => (
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t('Search products...')}
+            className="pl-9"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
+            onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
+            data-testid="input-search-products"
+          />
+          {searchOpen && searchTerm.trim() && filtered.length > 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              {filtered.slice(0, 10).map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
+                  data-testid={`search-result-product-${product.id}`}
+                  onClick={() => {
+                    setSearchTerm(product.name);
+                    setSearchOpen(false);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <span>{getProductName(product)}</span>
+                  <Badge variant="outline" className="text-xs font-semibold shrink-0">{product.category}</Badge>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="relative min-w-[180px] max-w-[220px]">
+          <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val === "__all__" ? "" : val); setCurrentPage(1); }}>
+            <SelectTrigger className="h-10 text-sm font-semibold" data-testid="select-filter-category">
+              <Filter className="h-4 w-4 text-muted-foreground shrink-0 mr-1" />
+              <SelectValue placeholder={t('All Categories')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__" data-testid="option-filter-all">{t('All Categories')}</SelectItem>
+              {categoriesList?.map((cat) => (
+                <SelectItem key={cat.id} value={cat.name} data-testid={`option-filter-category-${cat.id}`}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {categoryFilter && (
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setCategoryFilter(""); setCurrentPage(1); }} data-testid="button-clear-category-filter">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        {activeTab !== "products" && (
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => window.print()} data-testid="button-print">
+            <Printer className="h-4 w-4" />
+            {t('Print')}
+          </Button>
+        )}
+        <div className="text-sm text-muted-foreground font-medium">
+          {filtered.length} {t('Total Products')}
         </div>
       </div>
+    </div>
+  );
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Products')}</CardTitle>
-            <PackageOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-total-products">{allProducts.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Categories Used')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{new Set(allProducts.map(p => p.category)).size}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Low Stock')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">0</div>
-          </CardContent>
-        </Card>
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex items-center justify-between pt-4">
+        <div className="text-sm text-muted-foreground">
+          {t('Page')} {safePage} / {totalPages}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)} data-testid="button-prev-page">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <Button
+              key={page}
+              variant={page === safePage ? "default" : "outline"}
+              size="sm"
+              className="min-w-[36px]"
+              onClick={() => setCurrentPage(page)}
+              data-testid={`button-page-${page}`}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)} data-testid="button-next-page">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+    );
+  };
 
+  const renderProductsTab = () => (
+    <>
       <Card className="border-primary/20 shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -435,65 +504,7 @@ export default function ProductsPage() {
       </Card>
 
       <Card className="border-border/50 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('Search products...')}
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
-                  onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
-                  data-testid="input-search-products"
-                />
-                {searchOpen && searchTerm.trim() && filtered.length > 0 && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {filtered.slice(0, 10).map((product) => (
-                      <button
-                        key={product.id}
-                        type="button"
-                        className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
-                        data-testid={`search-result-product-${product.id}`}
-                        onClick={() => {
-                          setSearchTerm(product.name);
-                          setSearchOpen(false);
-                          setCurrentPage(1);
-                        }}
-                      >
-                        <span>{getProductName(product)}</span>
-                        <Badge variant="outline" className="text-xs font-semibold shrink-0">{product.category}</Badge>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="relative min-w-[180px] max-w-[220px]">
-                <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val === "__all__" ? "" : val); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-10 text-sm font-semibold" data-testid="select-filter-category">
-                    <Filter className="h-4 w-4 text-muted-foreground shrink-0 mr-1" />
-                    <SelectValue placeholder={t('All Categories')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__" data-testid="option-filter-all">{t('All Categories')}</SelectItem>
-                    {categoriesList?.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name} data-testid={`option-filter-category-${cat.id}`}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {categoryFilter && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setCategoryFilter(""); setCurrentPage(1); }} data-testid="button-clear-category-filter">
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <div className="text-sm text-muted-foreground font-medium">
-              {filtered.length} {t('Total Products')}
-            </div>
-          </div>
-        </CardHeader>
+        <CardHeader>{renderSearchAndFilter()}</CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
@@ -574,38 +585,194 @@ export default function ProductsPage() {
                   </TableBody>
                 </Table>
               </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-sm text-muted-foreground">
-                    {t('Page')} {safePage} / {totalPages}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)} data-testid="button-prev-page">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <Button
-                        key={page}
-                        variant={page === safePage ? "default" : "outline"}
-                        size="sm"
-                        className="min-w-[36px]"
-                        onClick={() => setCurrentPage(page)}
-                        data-testid={`button-page-${page}`}
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                    <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)} data-testid="button-next-page">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              {renderPagination()}
             </>
           )}
         </CardContent>
       </Card>
+    </>
+  );
+
+  const renderReportTab = () => (
+    <Card className="border-border/50 shadow-sm">
+      <CardHeader>{renderSearchAndFilter()}</CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+            <div className="bg-muted/50 p-4 rounded-full mb-4"><PackageOpen className="w-10 h-10" /></div>
+            <h3 className="font-semibold text-lg">{t('No products found')}</h3>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-bold text-sm">#</TableHead>
+                    <TableHead className="font-bold text-sm">{t('Barcode')}</TableHead>
+                    <TableHead className="font-bold text-sm">{t('Name')}</TableHead>
+                    <TableHead className="font-bold text-sm">{t('Category')}</TableHead>
+                    <TableHead className="text-center font-bold text-sm">{t('Units')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Weight (KG)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Min Stock Alert')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedData.map((product, idx) => (
+                    <TableRow key={product.id} data-testid={`row-report-${product.id}`}>
+                      <TableCell className="font-bold font-mono text-sm">{(safePage - 1) * ITEMS_PER_PAGE + idx + 1}</TableCell>
+                      <TableCell className="font-bold font-mono text-sm">{product.barcode}</TableCell>
+                      <TableCell className="font-bold text-sm">{getProductName(product)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-bold">{product.category}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center text-sm font-bold">
+                        1 {resolveUnitName(product.bigUnit, unitsList)} = {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{product.weight} kg</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{product.minStock}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {renderPagination()}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderPriceListTab = () => (
+    <Card className="border-border/50 shadow-sm">
+      <CardHeader>{renderSearchAndFilter()}</CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+            <div className="bg-muted/50 p-4 rounded-full mb-4"><DollarSign className="w-10 h-10" /></div>
+            <h3 className="font-semibold text-lg">{t('No products found')}</h3>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-bold text-sm">#</TableHead>
+                    <TableHead className="font-bold text-sm">{t('Barcode')}</TableHead>
+                    <TableHead className="font-bold text-sm">{t('Product Name')}</TableHead>
+                    <TableHead className="text-center font-bold text-sm">{t('Big Unit')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-center font-bold text-sm">{t('Small Unit')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedData.map((product, idx) => (
+                    <TableRow key={product.id} data-testid={`row-price-${product.id}`}>
+                      <TableCell className="font-bold font-mono text-sm">{(safePage - 1) * ITEMS_PER_PAGE + idx + 1}</TableCell>
+                      <TableCell className="font-bold font-mono text-sm">{product.barcode}</TableCell>
+                      <TableCell className="font-bold text-sm">{getProductName(product)}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.bigUnit, unitsList)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-green-600">${product.bigUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-blue-600">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.smallUnit, unitsList)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-green-600">${product.smallUnitPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-blue-600">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {renderPagination()}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6">
+      <Link href="/material-management" data-testid="link-back-material">
+        <Button variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          {t("Material Management")}
+        </Button>
+      </Link>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Products')}</h1>
+          <p className="text-muted-foreground mt-1">{t('Manage your inventory items')}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Total Products')}</CardTitle>
+            <PackageOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-products">{allProducts.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Categories Used')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{new Set(allProducts.map(p => p.category)).size}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Low Stock')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">0</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
+            <PackageOpen className="h-4 w-4" />
+            {t('Products')}
+          </TabsTrigger>
+          <TabsTrigger value="report" className="gap-2 font-bold" data-testid="tab-report">
+            <FileText className="h-4 w-4" />
+            {t('Material Report')}
+          </TabsTrigger>
+          <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
+            <DollarSign className="h-4 w-4" />
+            {t('Price List')}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {activeTab === "products" && renderProductsTab()}
+      {activeTab === "report" && renderReportTab()}
+      {activeTab === "prices" && renderPriceListTab()}
     </div>
   );
 }
