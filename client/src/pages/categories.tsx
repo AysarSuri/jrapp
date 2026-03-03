@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCategorySchema, type Category } from "@shared/routes";
+import { insertCategorySchema } from "@shared/schema";
+import { categories } from "@shared/schema";
+type Category = typeof categories.$inferSelect;
 import { z } from "zod";
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 10;
-const defaultVals = { name: "" };
+const defaultVals = { name: "", nameEn: "", nameKu: "", nameTr: "" };
 
 export default function CategoriesPage() {
   const { t } = useTranslation();
@@ -56,7 +58,7 @@ export default function CategoriesPage() {
 
   const startEdit = (cat: Category) => {
     setEditingCategory(cat);
-    form.reset({ name: cat.name });
+    form.reset({ name: cat.name, nameEn: cat.nameEn || "", nameKu: cat.nameKu || "", nameTr: cat.nameTr || "" });
   };
 
   const cancelEdit = () => {
@@ -95,9 +97,13 @@ export default function CategoriesPage() {
   };
 
   const allCategories = categoriesList || [];
-  const filtered = allCategories.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = allCategories.filter((c) => {
+    const term = searchTerm.toLowerCase();
+    return c.name.toLowerCase().includes(term) ||
+      (c.nameEn || "").toLowerCase().includes(term) ||
+      (c.nameKu || "").toLowerCase().includes(term) ||
+      (c.nameTr || "").toLowerCase().includes(term);
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -151,6 +157,27 @@ export default function CategoriesPage() {
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name')}</FormLabel>
                     <FormControl><Input className="h-11 text-base font-semibold" placeholder={t('e.g. Electronics, Food')} {...field} data-testid="input-category-name" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameEn" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Category Name (English)')}</FormLabel>
+                    <FormControl><Input className="h-11 text-base font-semibold" placeholder="e.g. Electronics, Food" {...field} value={field.value ?? ""} data-testid="input-category-name-en" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameKu" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Category Name (Kurdish)')}</FormLabel>
+                    <FormControl><Input className="h-11 text-base font-semibold" placeholder="ئەلیکترۆنیات، خواردن" {...field} value={field.value ?? ""} data-testid="input-category-name-ku" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nameTr" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Category Name (Turkish)')}</FormLabel>
+                    <FormControl><Input className="h-11 text-base font-semibold" placeholder="Elektronik, Gıda" {...field} value={field.value ?? ""} data-testid="input-category-name-tr" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -225,6 +252,9 @@ export default function CategoriesPage() {
                     <TableRow className="bg-muted/50">
                       <TableHead className="font-bold text-sm">#</TableHead>
                       <TableHead className="font-bold text-sm">{t('Category Name')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('English')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Kurdish')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Turkish')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -238,6 +268,9 @@ export default function CategoriesPage() {
                             {cat.name}
                           </Badge>
                         </TableCell>
+                        <TableCell className="font-bold text-sm">{cat.nameEn || "-"}</TableCell>
+                        <TableCell className="font-bold text-sm">{cat.nameKu || "-"}</TableCell>
+                        <TableCell className="font-bold text-sm">{cat.nameTr || "-"}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(cat)} data-testid={`button-edit-category-${cat.id}`}>

@@ -19,7 +19,12 @@ export const units = pgTable("units", {
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  nameEn: text("name_en"),
+  nameKu: text("name_ku"),
+  nameTr: text("name_tr"),
 });
+
+export type Category = typeof categories.$inferSelect;
 
 export const transferOffices = pgTable("transfer_offices", {
   id: serial("id").primaryKey(),
@@ -442,6 +447,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export const insertTransferOfficeSchema = createInsertSchema(transferOffices).omit({ id: true });
 export const insertBankSchema = createInsertSchema(banks).omit({ id: true });
 export const insertCustomsClearanceSchema = createInsertSchema(customsClearances).omit({ id: true });
