@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema } from "@shared/routes";
 import { products } from "@shared/schema";
@@ -9,6 +10,7 @@ import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
 import { useCategories } from "@/hooks/use-categories";
+import { getModernPrintStyles } from "@/lib/print-styles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,6 +83,7 @@ export default function ProductsPage() {
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
+  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; secondaryColor: string; address: string; mobile1: string; mobile2: string; businessType: string }>({ queryKey: ["/api/company-profile"] });
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -199,7 +202,64 @@ export default function ProductsPage() {
   const handlePrint = () => {
     const isReport = activeTab === "report";
     const title = isReport ? t('Material Report') : t('Price List');
-    const dir = document.documentElement.dir || "ltr";
+    const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
+    const accent = companyProfile?.primaryColor || "#1e293b";
+    const companyName = companyProfile?.name || "";
+    const companyLogo = companyProfile?.logo || "";
+    const companyAddress = companyProfile?.address || "";
+    const companyMobile = companyProfile?.mobile1 || "";
+    const today = new Date().toLocaleDateString("en-GB");
+
+    const styles = getModernPrintStyles({
+      direction: dir,
+      accentColor: accent,
+      accentTextColor: "#ffffff",
+      pageSize: "A4 landscape",
+    });
+
+    const logoHtml = companyLogo
+      ? `<img src="${companyLogo}" alt="logo" />`
+      : "";
+
+    const headerHtml = `
+      <div class="company-header">
+        ${logoHtml}
+        <div class="company-name">${companyName}</div>
+      </div>
+      <div class="report-banner">
+        <div class="banner-right">
+          <h1>${title}</h1>
+          <div class="date-range">${today}${categoryFilter ? ` — ${t('Category')}: ${categoryFilter}` : ""}</div>
+        </div>
+        <div class="banner-left">
+          ${companyAddress ? `<span style="font-size:9pt;color:#64748b;">${companyAddress}</span>` : ""}
+          ${companyMobile ? `<span style="font-size:9pt;color:#64748b;">📞 ${companyMobile}</span>` : ""}
+        </div>
+      </div>
+    `;
+
+    const categoryCounts = new Map<string, number>();
+    filtered.forEach(p => categoryCounts.set(p.category, (categoryCounts.get(p.category) || 0) + 1));
+    const uniqueCategories = categoryCounts.size;
+
+    const summaryHtml = `
+      <div class="summary-cards">
+        <div class="summary-card accent-blue">
+          <div class="label">${t('Total Products')}</div>
+          <div class="value blue">${filtered.length}</div>
+        </div>
+        <div class="summary-card accent-green">
+          <div class="label">${t('Categories Used')}</div>
+          <div class="value green">${uniqueCategories}</div>
+        </div>
+        ${isReport ? `
+        <div class="summary-card accent-orange">
+          <div class="label">${t('Low Stock')}</div>
+          <div class="value orange">${filtered.filter(p => p.minStock > 0).length}</div>
+        </div>
+        ` : ""}
+      </div>
+    `;
 
     let tableHeaders = "";
     let tableRows = "";
@@ -221,16 +281,16 @@ export default function ProductsPage() {
       tableRows = filtered.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td class="mono">${p.barcode}</td>
-          <td>${getProductName(p)}</td>
-          <td>${p.category}</td>
+          <td style="font-family:monospace;">${p.barcode}</td>
+          <td style="font-weight:600;">${getProductName(p)}</td>
+          <td><span style="background:${accent}15;color:${accent};padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${p.category}</span></td>
           <td>1 ${resolveUnitName(p.bigUnit, unitsList)} = ${p.conversionFactor} ${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td class="num">${p.weight} kg</td>
-          <td class="num">$${p.bigUnitPriceUsd}</td>
-          <td class="num">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
-          <td class="num">$${p.smallUnitPriceUsd}</td>
-          <td class="num">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
-          <td class="num">${p.minStock}</td>
+          <td style="font-family:monospace;">${p.weight} kg</td>
+          <td class="credit" style="font-family:monospace;">$${p.bigUnitPriceUsd}</td>
+          <td class="amount" style="font-family:monospace;">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
+          <td class="credit" style="font-family:monospace;">$${p.smallUnitPriceUsd}</td>
+          <td class="amount" style="font-family:monospace;">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
+          <td style="font-family:monospace;font-weight:600;">${p.minStock}</td>
         </tr>
       `).join("");
     } else {
@@ -248,48 +308,50 @@ export default function ProductsPage() {
       tableRows = filtered.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td class="mono">${p.barcode}</td>
-          <td>${getProductName(p)}</td>
-          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
-          <td class="num usd">$${p.bigUnitPriceUsd}</td>
-          <td class="num iqd">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
-          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td class="num usd">$${p.smallUnitPriceUsd}</td>
-          <td class="num iqd">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
+          <td style="font-family:monospace;">${p.barcode}</td>
+          <td style="font-weight:600;">${getProductName(p)}</td>
+          <td><span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${resolveUnitName(p.bigUnit, unitsList)}</span></td>
+          <td class="credit" style="font-family:monospace;font-weight:700;">$${p.bigUnitPriceUsd}</td>
+          <td class="amount" style="font-family:monospace;font-weight:700;">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
+          <td><span style="background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${resolveUnitName(p.smallUnit, unitsList)}</span></td>
+          <td class="credit" style="font-family:monospace;font-weight:700;">$${p.smallUnitPriceUsd}</td>
+          <td class="amount" style="font-family:monospace;font-weight:700;">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
         </tr>
       `).join("");
     }
+
+    const footerHtml = `
+      <div class="summary-footer">
+        <div>${t('Total Products')}: <span>${filtered.length}</span></div>
+        <div>${t('Categories Used')}: <span>${uniqueCategories}</span></div>
+        <div>${t('Date')}: <span>${today}</span></div>
+      </div>
+      <div class="footer">
+        <div class="signature-box">
+          <div class="signature-line">${t('Signature')}</div>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line">${t('Stamp')}</div>
+        </div>
+      </div>
+      <div class="watermark">${companyName} — ${title} — ${today}</div>
+    `;
 
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
 <head>
   <meta charset="utf-8">
-  <title>${title}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; direction: ${dir}; }
-    h1 { text-align: center; margin-bottom: 4px; font-size: 22px; }
-    .sub { text-align: center; color: #666; margin-bottom: 16px; font-size: 13px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: start; }
-    th { background: #f3f4f6; font-weight: 700; }
-    tr:nth-child(even) { background: #fafafa; }
-    .mono { font-family: monospace; }
-    .num { text-align: end; font-family: monospace; }
-    .usd { color: #16a34a; }
-    .iqd { color: #2563eb; }
-    .footer { text-align: center; margin-top: 12px; color: #999; font-size: 11px; }
-    @media print { body { padding: 0; } }
-  </style>
+  <title>${title} — ${companyName}</title>
+  <style>${styles}</style>
 </head>
 <body>
-  <h1>${title}</h1>
-  <div class="sub">${filtered.length} ${t('Total Products')}${categoryFilter ? ' — ' + categoryFilter : ''}</div>
+  ${headerHtml}
+  ${summaryHtml}
   <table>
     <thead><tr>${tableHeaders}</tr></thead>
     <tbody>${tableRows}</tbody>
   </table>
-  <div class="footer">${new Date().toLocaleDateString()}</div>
+  ${footerHtml}
   <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`;
