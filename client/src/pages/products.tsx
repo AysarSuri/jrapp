@@ -24,7 +24,7 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
@@ -81,6 +81,7 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -168,11 +169,14 @@ export default function ProductsPage() {
   };
 
   const allProducts = productsList || [];
-  const filtered = allProducts.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = allProducts.filter((p) => {
+    const matchesSearch = searchTerm.trim() === "" ||
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.barcode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "" || p.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -433,35 +437,56 @@ export default function ProductsPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t('Search products...')}
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
-                onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
-                data-testid="input-search-products"
-              />
-              {searchOpen && searchTerm.trim() && filtered.length > 0 && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filtered.slice(0, 10).map((product) => (
-                    <button
-                      key={product.id}
-                      type="button"
-                      className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
-                      data-testid={`search-result-product-${product.id}`}
-                      onClick={() => {
-                        setSearchTerm(product.name);
-                        setSearchOpen(false);
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <span>{getProductName(product)}</span>
-                      <Badge variant="outline" className="text-xs font-semibold shrink-0">{product.category}</Badge>
-                    </button>
-                  ))}
-                </div>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t('Search products...')}
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
+                  onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
+                  data-testid="input-search-products"
+                />
+                {searchOpen && searchTerm.trim() && filtered.length > 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filtered.slice(0, 10).map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
+                        data-testid={`search-result-product-${product.id}`}
+                        onClick={() => {
+                          setSearchTerm(product.name);
+                          setSearchOpen(false);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <span>{getProductName(product)}</span>
+                        <Badge variant="outline" className="text-xs font-semibold shrink-0">{product.category}</Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="relative min-w-[180px] max-w-[220px]">
+                <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val === "__all__" ? "" : val); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-10 text-sm font-semibold" data-testid="select-filter-category">
+                    <Filter className="h-4 w-4 text-muted-foreground shrink-0 mr-1" />
+                    <SelectValue placeholder={t('All Categories')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__" data-testid="option-filter-all">{t('All Categories')}</SelectItem>
+                    {categoriesList?.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name} data-testid={`option-filter-category-${cat.id}`}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {categoryFilter && (
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setCategoryFilter(""); setCurrentPage(1); }} data-testid="button-clear-category-filter">
+                  <X className="h-4 w-4" />
+                </Button>
               )}
             </div>
             <div className="text-sm text-muted-foreground font-medium">
