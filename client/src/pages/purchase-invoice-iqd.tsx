@@ -506,21 +506,21 @@ export default function PurchaseInvoiceIqdPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Invoice #')}</Label>
-              <Input value={invoiceNumber} readOnly className="font-mono bg-muted/30 cursor-not-allowed" data-testid="input-purchase-iqd-invoice-number" />
+              <Label className="text-sm font-bold">{t('Invoice #')}</Label>
+              <Input value={invoiceNumber} readOnly className="font-mono font-bold text-base h-11 bg-muted/30 cursor-not-allowed" data-testid="input-purchase-iqd-invoice-number" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
-              <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-purchase-iqd-date" />
+              <Label className="text-sm font-bold">{t('Date')}</Label>
+              <DateInput value={date} onChange={(e) => setDate(e.target.value)} className="font-bold text-base h-11" data-testid="input-purchase-iqd-date" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-purchase-iqd-time" />
+              <Label className="text-sm font-bold">{t('Time')}</Label>
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="font-bold text-base h-11" data-testid="input-purchase-iqd-time" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Invoice Type')}</Label>
+              <Label className="text-sm font-bold">{t('Invoice Type')}</Label>
               <Select value={invoiceType} onValueChange={setInvoiceType}>
-                <SelectTrigger data-testid="select-purchase-iqd-invoice-type">
+                <SelectTrigger className="font-bold text-base h-11" data-testid="select-purchase-iqd-invoice-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -531,39 +531,41 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Created By')}</Label>
-              <div className="flex items-center h-10 px-3 rounded-md border bg-muted/30 text-sm font-medium" data-testid="text-created-by-iqd">
+              <Label className="text-sm font-bold">{t('Created By')}</Label>
+              <div className="flex items-center h-11 px-3 rounded-md border bg-muted/30 text-base font-bold" data-testid="text-created-by-iqd">
                 {user?.username || "-"}
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier Name')}</Label>
+              <Label className="text-sm font-bold">{t('Supplier Name')}</Label>
               <SupplierSearchSelect
                 suppliers={suppliersList}
                 value={supplierId ? String(supplierId) : ""}
                 onValueChange={selectSupplier}
                 placeholder={t('Select Supplier')}
                 data-testid="select-supplier-iqd"
+                inputClassName="font-bold text-base h-11"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
+              <Label className="text-sm font-bold">{t('Address')}</Label>
               <AddressSearchSelect
                 addresses={addressesList || []}
                 value={address}
                 onValueChange={setAddress}
                 placeholder={t('Select Address')}
                 data-testid="select-purchase-iqd-address"
+                inputClassName="font-bold text-base h-11"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
+              <Label className="text-sm font-bold">{t('Warehouse')}</Label>
               <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
                 const wh = warehousesList?.find(w => w.id === parseInt(v));
                 if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
               }}>
-                <SelectTrigger data-testid="select-purchase-iqd-warehouse">
+                <SelectTrigger className="font-bold text-base h-11" data-testid="select-purchase-iqd-warehouse">
                   <SelectValue placeholder={t('Select Warehouse')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -574,14 +576,14 @@ export default function PurchaseInvoiceIqdPage() {
               </Select>
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
-              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} data-testid="input-purchase-iqd-note" />
+              <Label className="text-sm font-bold">{t('Note')}</Label>
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-note" />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Customs Clearance')}</Label>
+              <Label className="text-sm font-bold">{t('Customs Clearance')}</Label>
               <Select value={customsClearance} onValueChange={setCustomsClearance}>
-                <SelectTrigger data-testid="select-purchase-iqd-customs-clearance">
+                <SelectTrigger className="font-bold text-base h-11" data-testid="select-purchase-iqd-customs-clearance">
                   <SelectValue placeholder={t('Select Clearance')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -592,20 +594,20 @@ export default function PurchaseInvoiceIqdPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Car Number')}</Label>
-              <Input value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Vehicle #')} data-testid="input-purchase-iqd-car-number" />
+              <Label className="text-sm font-bold">{t('Car Number')}</Label>
+              <Input value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Vehicle #')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-number" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Manifest')}</Label>
-              <Input value={manifest} onChange={(e) => setManifest(e.target.value)} placeholder={t('Manifest #')} data-testid="input-purchase-iqd-manifest" />
+              <Label className="text-sm font-bold">{t('Manifest')}</Label>
+              <Input value={manifest} onChange={(e) => setManifest(e.target.value)} placeholder={t('Manifest #')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-manifest" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Name')}</Label>
-              <Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder={t('Driver Name')} data-testid="input-purchase-iqd-driver-name" />
+              <Label className="text-sm font-bold">{t('Driver Name')}</Label>
+              <Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder={t('Driver Name')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-driver-name" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Mobile')}</Label>
-              <Input value={driverMobile} onChange={(e) => setDriverMobile(e.target.value)} placeholder={t('Driver Mobile')} data-testid="input-purchase-iqd-driver-mobile" />
+              <Label className="text-sm font-bold">{t('Driver Mobile')}</Label>
+              <Input value={driverMobile} onChange={(e) => setDriverMobile(e.target.value)} placeholder={t('Driver Mobile')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-driver-mobile" />
             </div>
           </div>
         </CardContent>
@@ -618,20 +620,20 @@ export default function PurchaseInvoiceIqdPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Car Expense')}</Label>
-              <Input type="number" step="250" value={carExpense} onChange={(e) => setCarExpense(e.target.value)} placeholder="0" data-testid="input-purchase-iqd-car-expense" />
+              <Label className="text-sm font-bold">{t('Car Expense')}</Label>
+              <Input type="number" step="250" value={carExpense} onChange={(e) => setCarExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-expense" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Customs Expense')}</Label>
-              <Input type="number" step="250" value={customsExpense} onChange={(e) => setCustomsExpense(e.target.value)} placeholder="0" data-testid="input-purchase-iqd-customs-expense" />
+              <Label className="text-sm font-bold">{t('Customs Expense')}</Label>
+              <Input type="number" step="250" value={customsExpense} onChange={(e) => setCustomsExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-customs-expense" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Other Expenses')}</Label>
-              <Input type="number" step="250" value={otherExpenses} onChange={(e) => setOtherExpenses(e.target.value)} placeholder="0" data-testid="input-purchase-iqd-other-expenses" />
+              <Label className="text-sm font-bold">{t('Other Expenses')}</Label>
+              <Input type="number" step="250" value={otherExpenses} onChange={(e) => setOtherExpenses(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-other-expenses" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Total Expenses')}</Label>
-              <div className="flex items-center h-10 px-3 rounded-md border bg-amber-50 dark:bg-amber-950/30 font-mono font-bold text-amber-700 dark:text-amber-400">
+              <Label className="text-sm font-bold">{t('Total Expenses')}</Label>
+              <div className="flex items-center h-11 px-3 rounded-md border bg-amber-50 dark:bg-amber-950/30 font-mono font-bold text-base text-amber-700 dark:text-amber-400">
                 {formatIQD(totalExpenses)}
               </div>
             </div>

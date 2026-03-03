@@ -15,6 +15,7 @@ interface SupplierSearchSelectProps {
   placeholder?: string;
   "data-testid"?: string;
   className?: string;
+  inputClassName?: string;
   showAllOption?: boolean;
   allOptionLabel?: string;
 }
@@ -26,6 +27,7 @@ export function SupplierSearchSelect({
   placeholder,
   "data-testid": testId,
   className = "",
+  inputClassName = "",
   showAllOption = false,
   allOptionLabel,
 }: SupplierSearchSelectProps) {
@@ -92,7 +94,7 @@ export function SupplierSearchSelect({
               handleSelect(String(filtered[0].id));
             }
           }}
-          className="pl-8 pr-8"
+          className={`pl-8 pr-8 ${inputClassName}`}
         />
         {(value && value !== "") && (
           <button
