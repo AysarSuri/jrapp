@@ -619,7 +619,7 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Car Number')}</Label>
-              <Input value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Vehicle #')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-number" />
+              <Input dir="ltr" value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Vehicle #')} className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-number" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Manifest')}</Label>
