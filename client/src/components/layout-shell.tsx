@@ -216,6 +216,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-gps",
   ];
 
+  const materialSubRoutes = [
+    "/material-management",
+    "/products",
+    "/units",
+    "/categories",
+    "/inventory-report",
+  ];
+
   const warehouseSubRoutes = [
     "/warehouse-management",
     "/warehouses",
@@ -245,6 +253,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isExternalDebtSection = externalDebtSubRoutes.includes(location);
   const isOwnerSection = ownerSubRoutes.includes(location);
   const isAgentSection = agentSubRoutes.includes(location);
+  const isMaterialSection = materialSubRoutes.includes(location);
   const isWarehouseSection = warehouseSubRoutes.includes(location);
   const isSalesSection = salesSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
@@ -255,6 +264,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
   const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
   const [agentOpen, setAgentOpen] = useState(isAgentSection);
+  const [materialOpen, setMaterialOpen] = useState(isMaterialSection);
   const [warehouseOpen, setWarehouseOpen] = useState(isWarehouseSection);
   const [salesOpen, setSalesOpen] = useState(isSalesSection);
 
@@ -289,6 +299,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isAgentSection) setAgentOpen(true);
   }, [isAgentSection]);
+
+  useEffect(() => {
+    if (isMaterialSection) setMaterialOpen(true);
+  }, [isMaterialSection]);
 
   useEffect(() => {
     if (isWarehouseSection) setWarehouseOpen(true);
@@ -362,6 +376,13 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-gps", icon: MapPin, label: "Agent GPS" },
   ];
 
+  const materialNavItems: NavItem[] = [
+    { href: "/products", icon: Package, label: "Products" },
+    { href: "/units", icon: Ruler, label: "Units" },
+    { href: "/categories", icon: FolderOpen, label: "Categories" },
+    { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
+  ];
+
   const warehouseNavItems: NavItem[] = [
     { href: "/warehouses", icon: Warehouse, label: "Warehouses" },
     { href: "/warehouse-transfer", icon: ArrowRightLeft, label: "Warehouse Transfer" },
@@ -383,13 +404,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/products", icon: Package, label: "Products" },
-    { href: "/units", icon: Ruler, label: "Units" },
-    { href: "/categories", icon: FolderOpen, label: "Categories" },
     { type: 'group', label: "Sales Management", icon: ShoppingCart, children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { type: 'group', label: "Agent Management", icon: UserCheck, children: agentManagementNavItems },
-    { href: "/material-management", icon: Boxes, label: "Material Management" },
+    { type: 'group', label: "Material Management", icon: Boxes, children: materialNavItems },
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
     { type: 'group', label: "Clearance Management", icon: ShieldCheck, children: clearanceNavItems },
     { type: 'group', label: "Office Management", icon: Building, children: officeNavItems },
@@ -399,7 +417,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/addresses", icon: MapPin, label: "Addresses" },
     { type: 'group', label: "Warehouse Management", icon: Warehouse, children: warehouseNavItems },
     { href: "/product-damage", icon: AlertTriangle, label: "Product Damage" },
-    { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
     { href: "/barcode-print", icon: QrCode, label: "Barcode Print" },
     { href: "/company-profile", icon: Building2, label: "Company Profile" },
     { href: "/currency-exchange", icon: ArrowRightLeft, label: "Currency Exchange" },
@@ -446,6 +463,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "External Debt Management": { isOpen: externalDebtOpen, setOpen: setExternalDebtOpen, isActive: isExternalDebtSection },
               "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
               "Agent Management": { isOpen: agentOpen, setOpen: setAgentOpen, isActive: isAgentSection },
+              "Material Management": { isOpen: materialOpen, setOpen: setMaterialOpen, isActive: isMaterialSection },
               "Warehouse Management": { isOpen: warehouseOpen, setOpen: setWarehouseOpen, isActive: isWarehouseSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
@@ -462,6 +480,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "External Debt Management": "/external-debt-management",
               "Owner Management": "/owner-management",
               "Agent Management": "/agent-management",
+              "Material Management": "/material-management",
               "Warehouse Management": "/warehouses",
             };
             const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
