@@ -755,17 +755,17 @@ export default function ProductsPage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
-            <PackageOpen className="h-4 w-4" />
-            {t('Products')}
+          <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
+            <DollarSign className="h-4 w-4" />
+            {t('Price List')}
           </TabsTrigger>
           <TabsTrigger value="report" className="gap-2 font-bold" data-testid="tab-report">
             <FileText className="h-4 w-4" />
             {t('Material Report')}
           </TabsTrigger>
-          <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
-            <DollarSign className="h-4 w-4" />
-            {t('Price List')}
+          <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
+            <PackageOpen className="h-4 w-4" />
+            {t('Products')}
           </TabsTrigger>
         </TabsList>
       </Tabs>
