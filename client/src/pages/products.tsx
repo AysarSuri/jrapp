@@ -780,6 +780,22 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="hidden" render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-8">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-product-hidden"
+                        className="h-5 w-5"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      {t('Hide')}
+                    </FormLabel>
+                  </FormItem>
+                )} />
               </div>
 
               <div className="mt-4 space-y-2">
@@ -834,23 +850,7 @@ export default function ProductsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 mt-4">
-                <FormField control={form.control} name="hidden" render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-product-hidden"
-                        className="h-5 w-5"
-                      />
-                    </FormControl>
-                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      {t('Hide')}
-                    </FormLabel>
-                  </FormItem>
-                )} />
+              <div className="flex items-center gap-2 mt-4">
                 <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11" data-testid="button-save-product">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   {editingProduct ? t('Update') : t('Save')}
