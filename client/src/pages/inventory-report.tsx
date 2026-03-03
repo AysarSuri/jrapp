@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ClipboardList, Search } from "lucide-react";
+import { Loader2, ClipboardList, Search, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { useUnits } from "@/hooks/use-units";
 import { getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 
@@ -81,6 +82,11 @@ export default function InventoryReportPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
+        <Link href="/material-management" data-testid="link-back-material">
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
         <ClipboardList className="w-7 h-7 text-primary" />
         <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Inventory Report')}</h1>
       </div>

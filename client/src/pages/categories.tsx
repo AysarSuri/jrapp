@@ -20,7 +20,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, FolderOpen, Loader2, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, FolderOpen, Loader2, Trash2, Pencil, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,9 +101,16 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Categories')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage product categories')}</p>
+        <div className="flex items-center gap-3">
+          <Link href="/material-management" data-testid="link-back-material">
+            <Button variant="outline" size="icon" className="h-9 w-9">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t('Categories')}</h1>
+            <p className="text-muted-foreground mt-1">{t('Manage product categories')}</p>
+          </div>
         </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingCategory(null); }}>
           <DialogTrigger asChild>

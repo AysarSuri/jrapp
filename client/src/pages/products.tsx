@@ -31,7 +31,8 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -459,9 +460,16 @@ export default function ProductsPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Products')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage your inventory items')}</p>
+        <div className="flex items-center gap-3">
+          <Link href="/material-management" data-testid="link-back-material">
+            <Button variant="outline" size="icon" className="h-9 w-9">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t('Products')}</h1>
+            <p className="text-muted-foreground mt-1">{t('Manage your inventory items')}</p>
+          </div>
         </div>
 
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
