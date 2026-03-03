@@ -342,6 +342,7 @@ export default function SuppliersPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Opening Balance (USD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Opening Balance (IQD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Balance')}</TableHead>
+                      <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -362,6 +363,16 @@ export default function SuppliersPage() {
                         <TableCell className="text-right font-bold font-mono text-sm">{usd(client.oldDebtUsd || 0)}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(client.balance).toLocaleString()}</TableCell>
+                        <TableCell className="text-center">
+                          {client.hidden ? (
+                            <Badge variant="destructive" className="gap-1 text-xs font-bold">
+                              <EyeOff className="h-3 w-3" />
+                              {t('Hide')}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>
