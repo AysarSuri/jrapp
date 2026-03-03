@@ -94,7 +94,7 @@ export default function PurchaseInvoiceUsdPage() {
     queryKey: ["/api/warehouses"],
   });
 
-  const suppliersList = clients?.filter(c => c.type === "supplier") || [];
+  const suppliersList = clients?.filter(c => c.type === "supplier" && !c.hidden) || [];
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
