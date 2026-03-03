@@ -10,7 +10,6 @@ import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
 import { useCategories } from "@/hooks/use-categories";
-import { getModernPrintStyles } from "@/lib/print-styles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -203,63 +202,16 @@ export default function ProductsPage() {
     const isReport = activeTab === "report";
     const title = isReport ? t('Material Report') : t('Price List');
     const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
-    const accent = companyProfile?.primaryColor || "#1e293b";
+    const accent = companyProfile?.primaryColor || "#6b8e23";
     const companyName = companyProfile?.name || "";
     const companyLogo = companyProfile?.logo || "";
     const companyAddress = companyProfile?.address || "";
     const companyMobile = companyProfile?.mobile1 || "";
     const today = new Date().toLocaleDateString("en-GB");
 
-    const styles = getModernPrintStyles({
-      direction: dir,
-      accentColor: accent,
-      accentTextColor: "#ffffff",
-      pageSize: "A4 landscape",
-    });
-
-    const logoHtml = companyLogo
-      ? `<img src="${companyLogo}" alt="logo" />`
-      : "";
-
-    const headerHtml = `
-      <div class="company-header">
-        ${logoHtml}
-        <div class="company-name">${companyName}</div>
-      </div>
-      <div class="report-banner">
-        <div class="banner-right">
-          <h1>${title}</h1>
-          <div class="date-range">${today}${categoryFilter ? ` — ${t('Category')}: ${categoryFilter}` : ""}</div>
-        </div>
-        <div class="banner-left">
-          ${companyAddress ? `<span style="font-size:9pt;color:#64748b;">${companyAddress}</span>` : ""}
-          ${companyMobile ? `<span style="font-size:9pt;color:#64748b;">📞 ${companyMobile}</span>` : ""}
-        </div>
-      </div>
-    `;
-
     const categoryCounts = new Map<string, number>();
     filtered.forEach(p => categoryCounts.set(p.category, (categoryCounts.get(p.category) || 0) + 1));
     const uniqueCategories = categoryCounts.size;
-
-    const summaryHtml = `
-      <div class="summary-cards">
-        <div class="summary-card accent-blue">
-          <div class="label">${t('Total Products')}</div>
-          <div class="value blue">${filtered.length}</div>
-        </div>
-        <div class="summary-card accent-green">
-          <div class="label">${t('Categories Used')}</div>
-          <div class="value green">${uniqueCategories}</div>
-        </div>
-        ${isReport ? `
-        <div class="summary-card accent-orange">
-          <div class="label">${t('Low Stock')}</div>
-          <div class="value orange">${filtered.filter(p => p.minStock > 0).length}</div>
-        </div>
-        ` : ""}
-      </div>
-    `;
 
     let tableHeaders = "";
     let tableRows = "";
@@ -280,24 +232,24 @@ export default function ProductsPage() {
       `;
       tableRows = filtered.map((p, i) => `
         <tr>
-          <td>${i + 1}</td>
-          <td style="font-family:monospace;">${p.barcode}</td>
-          <td style="font-weight:600;">${getProductName(p)}</td>
-          <td><span style="background:${accent}15;color:${accent};padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${p.category}</span></td>
+          <td class="num">${i + 1}</td>
+          <td class="mono">${p.barcode}</td>
+          <td class="name-cell">${getProductName(p)}</td>
+          <td>${p.category}</td>
           <td>1 ${resolveUnitName(p.bigUnit, unitsList)} = ${p.conversionFactor} ${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td style="font-family:monospace;">${p.weight} kg</td>
-          <td class="credit" style="font-family:monospace;">$${p.bigUnitPriceUsd}</td>
-          <td class="amount" style="font-family:monospace;">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
-          <td class="credit" style="font-family:monospace;">$${p.smallUnitPriceUsd}</td>
-          <td class="amount" style="font-family:monospace;">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
-          <td style="font-family:monospace;font-weight:600;">${p.minStock}</td>
+          <td class="mono">${p.weight} kg</td>
+          <td class="mono price-usd">$${p.bigUnitPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.bigUnitPriceIqd).toLocaleString()}</td>
+          <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
+          <td class="mono">${p.minStock}</td>
         </tr>
       `).join("");
     } else {
       tableHeaders = `
         <th>#</th>
-        <th>${t('Barcode')}</th>
         <th>${t('Product Name')}</th>
+        <th>${t('Barcode')}</th>
         <th>${t('Big Unit')}</th>
         <th>${t('Big Unit Price (USD)')}</th>
         <th>${t('Big Unit Price (IQD)')}</th>
@@ -307,51 +259,274 @@ export default function ProductsPage() {
       `;
       tableRows = filtered.map((p, i) => `
         <tr>
-          <td>${i + 1}</td>
-          <td style="font-family:monospace;">${p.barcode}</td>
-          <td style="font-weight:600;">${getProductName(p)}</td>
-          <td><span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${resolveUnitName(p.bigUnit, unitsList)}</span></td>
-          <td class="credit" style="font-family:monospace;font-weight:700;">$${p.bigUnitPriceUsd}</td>
-          <td class="amount" style="font-family:monospace;font-weight:700;">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
-          <td><span style="background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:4px;font-size:8pt;font-weight:600;">${resolveUnitName(p.smallUnit, unitsList)}</span></td>
-          <td class="credit" style="font-family:monospace;font-weight:700;">$${p.smallUnitPriceUsd}</td>
-          <td class="amount" style="font-family:monospace;font-weight:700;">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
+          <td class="num">${i + 1}</td>
+          <td class="name-cell">${getProductName(p)}</td>
+          <td class="mono">${p.barcode}</td>
+          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
+          <td class="mono price-usd">$${p.bigUnitPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.bigUnitPriceIqd).toLocaleString()}</td>
+          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
+          <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
         </tr>
       `).join("");
     }
-
-    const footerHtml = `
-      <div class="summary-footer">
-        <div>${t('Total Products')}: <span>${filtered.length}</span></div>
-        <div>${t('Categories Used')}: <span>${uniqueCategories}</span></div>
-        <div>${t('Date')}: <span>${today}</span></div>
-      </div>
-      <div class="footer">
-        <div class="signature-box">
-          <div class="signature-line">${t('Signature')}</div>
-        </div>
-        <div class="signature-box">
-          <div class="signature-line">${t('Stamp')}</div>
-        </div>
-      </div>
-      <div class="watermark">${companyName} — ${title} — ${today}</div>
-    `;
 
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
 <head>
   <meta charset="utf-8">
   <title>${title} — ${companyName}</title>
-  <style>${styles}</style>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
+      padding: 18px 24px;
+      font-size: 10pt;
+      direction: ${dir};
+      color: #1a1a2e;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ===== HEADER ===== */
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      margin-bottom: 14px;
+      border: 2px solid ${accent}30;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fafbfc, ${accent}08);
+    }
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+    }
+    .header-center img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    .header-center .company-name {
+      font-size: 18pt;
+      font-weight: 800;
+      color: ${accent};
+      letter-spacing: -0.3px;
+    }
+    .header-right {
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      min-width: 180px;
+    }
+    .header-right .report-title {
+      font-size: 16pt;
+      font-weight: 800;
+      color: ${accent};
+      margin-bottom: 2px;
+    }
+    .header-right .report-date {
+      font-size: 9pt;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .header-left {
+      text-align: ${dir === "rtl" ? "left" : "right"};
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+    .header-left .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"};
+    }
+
+    /* ===== SUMMARY CARDS ===== */
+    .summary-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.08;
+      border-radius: 10px;
+    }
+    .stat-card.blue {
+      border: 2px solid #3b82f6;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+    .stat-card.green {
+      border: 2px solid #22c55e;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    }
+    .stat-card .stat-label {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #475569;
+    }
+    .stat-card .stat-value {
+      font-size: 18pt;
+      font-weight: 800;
+    }
+    .stat-card.blue .stat-value { color: #2563eb; }
+    .stat-card.green .stat-value { color: #16a34a; }
+
+    /* ===== TABLE ===== */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 9pt;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #d4d4d8;
+    }
+    th {
+      background: linear-gradient(145deg, ${accent}, ${accent}dd);
+      color: #fff;
+      padding: 8px 7px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 8.5pt;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 6px 7px;
+      text-align: center;
+      font-size: 9pt;
+      color: #334155;
+      font-weight: 500;
+    }
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    tr:hover {
+      background: #f1f5f9;
+    }
+    .mono {
+      font-family: 'Inter', monospace;
+      letter-spacing: 0.3px;
+    }
+    .num {
+      font-weight: 700;
+      color: #64748b;
+      width: 36px;
+    }
+    .name-cell {
+      font-weight: 700;
+      color: #1e293b;
+      text-align: ${dir === "rtl" ? "right" : "left"};
+    }
+    .price-usd {
+      color: #16a34a;
+      font-weight: 700;
+    }
+    .price-iqd {
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    /* ===== FOOTER ===== */
+    .report-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      font-size: 9pt;
+      color: #475569;
+      font-weight: 600;
+    }
+    .report-footer .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .report-footer .footer-value {
+      font-weight: 800;
+      color: ${accent};
+      font-size: 10pt;
+    }
+
+    @media print {
+      body { padding: 6mm 8mm; }
+      @page { margin: 5mm; size: A4 landscape; }
+      .stat-card, th, .report-footer {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
 </head>
 <body>
-  ${headerHtml}
-  ${summaryHtml}
+  <div class="header-row">
+    <div class="header-right">
+      <div class="report-title">${title}</div>
+      <div class="report-date">${today}${categoryFilter ? ` — ${categoryFilter}` : ""}</div>
+    </div>
+    <div class="header-center">
+      ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
+      <span class="company-name">${companyName}</span>
+    </div>
+    <div class="header-left">
+      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
+      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="stat-card blue">
+      <span class="stat-label">${t('Total Products')}</span>
+      <span class="stat-value">${filtered.length}</span>
+    </div>
+    <div class="stat-card green">
+      <span class="stat-label">${t('Categories Used')}</span>
+      <span class="stat-value">${uniqueCategories}</span>
+    </div>
+  </div>
+
   <table>
     <thead><tr>${tableHeaders}</tr></thead>
     <tbody>${tableRows}</tbody>
   </table>
-  ${footerHtml}
+
+  <div class="report-footer">
+    <div class="footer-item">${t('Total Products')}: <span class="footer-value">${filtered.length}</span></div>
+    <div class="footer-item">${t('Categories Used')}: <span class="footer-value">${uniqueCategories}</span></div>
+    <div class="footer-item">${t('Date')}: <span class="footer-value">${today}</span></div>
+  </div>
+
   <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`;
