@@ -656,30 +656,30 @@ export default function PurchaseInvoiceUsdPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
-                  <TableHead className="text-primary-foreground text-center w-12">#</TableHead>
-                  <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[110px]">{t('Price')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[80px]">{t('Weight')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[120px]">{t('Expense Cost')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[130px]">{t('Production Date')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[130px]">{t('Expiry Date')}</TableHead>
+                  <TableHead className="text-primary-foreground text-center w-12 font-bold">#</TableHead>
+                  <TableHead className="text-primary-foreground min-w-[280px] font-bold">{t('Product')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Product Code')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px] font-bold">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Unit')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Price')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Amount')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Weight')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Expense Cost')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Production Date')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Expiry Date')}</TableHead>
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item, index) => (
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-purchase-item-${index}`}>
-                    <TableCell className="text-center font-mono text-xs text-muted-foreground">{index + 1}</TableCell>
+                    <TableCell className="text-center font-mono text-sm font-bold text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
                       <Select
                         value={item.productId ? String(item.productId) : ""}
                         onValueChange={(val) => selectProduct(index, val)}
                       >
-                        <SelectTrigger className="h-9 text-sm" data-testid={`select-purchase-product-${index}`}>
+                        <SelectTrigger className="h-11 text-base font-bold" data-testid={`select-purchase-product-${index}`}>
                           <SelectValue placeholder={t('Select product...')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -695,7 +695,7 @@ export default function PurchaseInvoiceUsdPage() {
                       <Input
                         value={item.productCode}
                         onChange={(e) => updateItem(index, "productCode", e.target.value)}
-                        className="h-9 text-sm font-mono"
+                        className="h-11 text-base font-bold font-mono"
                         data-testid={`input-purchase-product-code-${index}`}
                       />
                     </TableCell>
@@ -706,7 +706,7 @@ export default function PurchaseInvoiceUsdPage() {
                         min="0"
                         value={item.quantity}
                         onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                        className="h-9 text-sm text-center"
+                        className="h-11 text-base font-bold text-center"
                         data-testid={`input-purchase-quantity-${index}`}
                       />
                     </TableCell>
@@ -729,7 +729,7 @@ export default function PurchaseInvoiceUsdPage() {
                           }
                         }}
                       >
-                        <SelectTrigger className="h-9 text-sm" data-testid={`select-purchase-unit-${index}`}>
+                        <SelectTrigger className="h-11 text-base font-bold" data-testid={`select-purchase-unit-${index}`}>
                           <SelectValue placeholder={t('Unit')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -753,22 +753,22 @@ export default function PurchaseInvoiceUsdPage() {
                         min="0"
                         value={item.price}
                         onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-9 text-sm text-center font-mono"
+                        className="h-11 text-base font-bold text-center font-mono"
                         data-testid={`input-purchase-price-${index}`}
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <div className="flex items-center justify-center h-9 px-2 rounded bg-green-50 dark:bg-green-950/30 font-mono text-sm font-bold text-green-700 dark:text-green-400">
+                      <div className="flex items-center justify-center h-11 px-2 rounded bg-green-50 dark:bg-green-950/30 font-mono text-base font-bold text-green-700 dark:text-green-400">
                         ${item.amount || "0.00"}
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
-                      <div className="flex items-center justify-center h-9 px-2 rounded bg-muted/50 font-mono text-sm text-muted-foreground">
+                      <div className="flex items-center justify-center h-11 px-2 rounded bg-muted/50 font-mono text-base font-bold text-muted-foreground">
                         {(parseFloat(item.weight || "0") * parseFloat(item.quantity || "0")).toFixed(2)} kg
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
-                      <div className="flex items-center justify-center h-9 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-sm font-bold text-amber-700 dark:text-amber-400">
+                      <div className="flex items-center justify-center h-11 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-base font-bold text-amber-700 dark:text-amber-400">
                         {usd(getExpenseCost(item))}
                       </div>
                     </TableCell>
@@ -776,7 +776,7 @@ export default function PurchaseInvoiceUsdPage() {
                       <DateInput
                         value={item.productionDate}
                         onChange={(e) => updateItem(index, "productionDate", e.target.value)}
-                        className="h-9 text-sm"
+                        className="h-11 text-base font-bold"
                         data-testid={`input-purchase-production-date-${index}`}
                       />
                     </TableCell>
@@ -784,7 +784,7 @@ export default function PurchaseInvoiceUsdPage() {
                       <DateInput
                         value={item.expiryDate}
                         onChange={(e) => updateItem(index, "expiryDate", e.target.value)}
-                        className="h-9 text-sm"
+                        className="h-11 text-base font-bold"
                         data-testid={`input-purchase-expiry-date-${index}`}
                       />
                     </TableCell>
