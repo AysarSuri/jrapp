@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +45,14 @@ const productFormSchema = insertProductSchema.extend({
   bigUnit: z.string().min(1, "Big Unit is required"),
   smallUnit: z.string().min(1, "Small Unit is required"),
   weight: z.string().min(1, "Weight is required").refine(v => v !== "" && v !== undefined, "Weight is required"),
+}).superRefine((data, ctx) => {
+  if (data.bigUnit && data.smallUnit && data.bigUnit === data.smallUnit && data.conversionFactor !== 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Conversion factor must be 1 when units are the same",
+      path: ["conversionFactor"],
+    });
+  }
 });
 
 type FormValues = z.infer<typeof productFormSchema>;
@@ -85,6 +93,15 @@ function ProductForm({
 }) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const bigUnit = form.watch("bigUnit");
+  const smallUnit = form.watch("smallUnit");
+  const sameUnits = bigUnit && smallUnit && bigUnit === smallUnit;
+
+  useEffect(() => {
+    if (sameUnits) {
+      form.setValue("conversionFactor", 1);
+    }
+  }, [bigUnit, smallUnit, sameUnits, form]);
 
   return (
     <Form {...form}>
@@ -212,7 +229,7 @@ function ProductForm({
               <FormItem>
                 <FormLabel>{t('Conversion Factor')}</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-conversion-factor" />
+                  <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
