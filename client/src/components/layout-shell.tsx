@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   QrCode,
   Building2,
+  Boxes,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -388,6 +389,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "Sales Management", icon: ShoppingCart, children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: ClipboardList, children: supplierNavItems },
     { type: 'group', label: "Agent Management", icon: UserCheck, children: agentManagementNavItems },
+    { href: "/material-management", icon: Boxes, label: "Material Management" },
     { type: 'group', label: "Bank Management", icon: Landmark, children: bankNavItems },
     { type: 'group', label: "Clearance Management", icon: ShieldCheck, children: clearanceNavItems },
     { type: 'group', label: "Office Management", icon: Building, children: officeNavItems },

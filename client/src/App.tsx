@@ -74,6 +74,7 @@ import AgentProductLoadPage from "@/pages/agent-product-load";
 import AgentClientsPage from "@/pages/agent-clients";
 import AgentGpsPage from "@/pages/agent-gps";
 import AgentManagementPage from "@/pages/agent-management";
+import MaterialManagementPage from "@/pages/material-management";
 import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
 import BarcodePrintPage from "@/pages/barcode-print";
@@ -298,6 +299,9 @@ function Router() {
       </Route>
       <Route path="/agent-management">
         <ProtectedRoute component={AgentManagementPage} />
+      </Route>
+      <Route path="/material-management">
+        <ProtectedRoute component={MaterialManagementPage} />
       </Route>
       <Route path="/agent-product-load">
         <ProtectedRoute component={AgentProductLoadPage} />
