@@ -19,7 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Truck, Loader2, MapPin, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Plus, Search, Truck, Loader2, MapPin, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +60,7 @@ export default function SuppliersPage() {
 
   const form = useForm<z.infer<typeof supplierSchema>>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: { name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" },
+    defaultValues: { name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false },
   });
 
   const startEdit = (client: Client) => {
@@ -71,12 +72,13 @@ export default function SuppliersPage() {
       address: client.address || "",
       oldDebtUsd: client.oldDebtUsd || "0",
       oldDebtIqd: client.oldDebtIqd || "0",
+      hidden: client.hidden ?? false,
     });
   };
 
   const cancelEdit = () => {
     setEditingClient(null);
-    form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" });
+    form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
   };
 
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
@@ -94,7 +96,7 @@ export default function SuppliersPage() {
       updateClient({ id: editingClient.id, data: { ...values, type: "supplier" } }, {
         onSuccess: () => {
           setEditingClient(null);
-          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" });
+          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
           toast({ title: t("Supplier updated successfully") });
         },
         onError: (err) => {
@@ -104,7 +106,7 @@ export default function SuppliersPage() {
     } else {
       createClient({ ...values, type: "supplier" }, {
         onSuccess: () => {
-          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" });
+          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
           toast({ title: t("Supplier created successfully") });
         },
         onError: (err) => {
@@ -241,6 +243,22 @@ export default function SuppliersPage() {
                     <FormLabel className="text-base font-bold">{t('Opening Balance (IQD)')}</FormLabel>
                     <FormControl><Input data-testid="input-supplier-old-debt-iqd" type="number" step="1" placeholder="0" className="h-11 text-base font-semibold" {...field} /></FormControl>
                     <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="hidden" render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-6">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-supplier-hidden"
+                        className="h-5 w-5"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      {t('Hide')}
+                    </FormLabel>
                   </FormItem>
                 )} />
                 <div className="flex items-end gap-2">

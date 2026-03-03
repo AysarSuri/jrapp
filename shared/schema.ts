@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, serial, integer, timestamp, numeric, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric, varchar, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -107,6 +107,7 @@ export const clients = pgTable("clients", {
   balance: numeric("balance").notNull().default('0'),
   oldDebtUsd: numeric("old_debt_usd").notNull().default('0'),
   oldDebtIqd: numeric("old_debt_iqd").notNull().default('0'),
+  hidden: boolean("hidden").notNull().default(false),
 });
 
 export const accounts = pgTable("accounts", {
