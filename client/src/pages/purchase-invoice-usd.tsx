@@ -509,7 +509,7 @@ export default function PurchaseInvoiceUsdPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Invoice #')}</Label>
-              <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} className="font-mono bg-muted/30" data-testid="input-purchase-invoice-number" />
+              <Input value={invoiceNumber} readOnly className="font-mono bg-muted/30 cursor-not-allowed" data-testid="input-purchase-invoice-number" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
@@ -550,6 +550,16 @@ export default function PurchaseInvoiceUsdPage() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
+              <AddressSearchSelect
+                addresses={addressesList || []}
+                value={address}
+                onValueChange={setAddress}
+                placeholder={t('Select Address')}
+                data-testid="select-purchase-address"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
               <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
                 const wh = warehousesList?.find(w => w.id === parseInt(v));
@@ -564,16 +574,6 @@ export default function PurchaseInvoiceUsdPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
-              <AddressSearchSelect
-                addresses={addressesList || []}
-                value={address}
-                onValueChange={setAddress}
-                placeholder={t('Select Address')}
-                data-testid="select-purchase-address"
-              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
