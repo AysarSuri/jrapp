@@ -1876,7 +1876,7 @@ const resources = {
       "Vehicle #": "رقم المركبة",
       "Manifest #": "رقم المنافست",
       "Expenses": "المصاريف",
-      "Car Expense": "سيارة",
+      "Car Expense": "اجرة",
       "Customs Expense": "جمرك",
       "Other Expenses": "مصاريف أخرى",
       "Quantity": "الكمية",
