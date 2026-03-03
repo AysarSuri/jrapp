@@ -38,7 +38,16 @@ import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-type FormValues = z.infer<typeof insertProductSchema>;
+const productFormSchema = insertProductSchema.extend({
+  barcode: z.string().min(1, "Barcode is required"),
+  name: z.string().min(1, "Name is required"),
+  category: z.string().min(1, "Category is required"),
+  bigUnit: z.string().min(1, "Big Unit is required"),
+  smallUnit: z.string().min(1, "Small Unit is required"),
+  weight: z.string().min(1, "Weight is required").refine(v => v !== "" && v !== undefined, "Weight is required"),
+});
+
+type FormValues = z.infer<typeof productFormSchema>;
 
 const defaultValues: FormValues = {
   name: "",
@@ -391,12 +400,12 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const addForm = useForm<FormValues>({
-    resolver: zodResolver(insertProductSchema),
+    resolver: zodResolver(productFormSchema),
     defaultValues,
   });
 
   const editForm = useForm<FormValues>({
-    resolver: zodResolver(insertProductSchema),
+    resolver: zodResolver(productFormSchema),
     defaultValues,
   });
 
