@@ -806,7 +806,7 @@ export default function ProductsPage() {
                       <img
                         src={form.watch("image")!}
                         alt={t('Product Image')}
-                        className="max-h-11 object-contain rounded-lg border bg-white p-1"
+                        className="max-h-24 object-contain rounded-lg border bg-white p-2"
                         data-testid="img-product-image"
                       />
                       <Button
