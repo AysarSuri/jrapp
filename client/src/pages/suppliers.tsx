@@ -28,6 +28,7 @@ import { AddressSearchSelect } from "@/components/address-search-select";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
+  name: z.string().min(1, "Supplier name is required"),
 });
 
 const ITEMS_PER_PAGE = 10;
