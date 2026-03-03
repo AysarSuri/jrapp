@@ -196,6 +196,111 @@ export default function ProductsPage() {
     setSearchOpen(false);
   };
 
+  const handlePrint = () => {
+    const isReport = activeTab === "report";
+    const title = isReport ? t('Material Report') : t('Price List');
+    const dir = document.documentElement.dir || "ltr";
+
+    let tableHeaders = "";
+    let tableRows = "";
+
+    if (isReport) {
+      tableHeaders = `
+        <th>#</th>
+        <th>${t('Barcode')}</th>
+        <th>${t('Name')}</th>
+        <th>${t('Category')}</th>
+        <th>${t('Units')}</th>
+        <th>${t('Weight (KG)')}</th>
+        <th>${t('Big Unit Price (USD)')}</th>
+        <th>${t('Big Unit Price (IQD)')}</th>
+        <th>${t('Small Unit Price (USD)')}</th>
+        <th>${t('Small Unit Price (IQD)')}</th>
+        <th>${t('Min Stock Alert')}</th>
+      `;
+      tableRows = filtered.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td class="mono">${p.barcode}</td>
+          <td>${getProductName(p)}</td>
+          <td>${p.category}</td>
+          <td>1 ${resolveUnitName(p.bigUnit, unitsList)} = ${p.conversionFactor} ${resolveUnitName(p.smallUnit, unitsList)}</td>
+          <td class="num">${p.weight} kg</td>
+          <td class="num">$${p.bigUnitPriceUsd}</td>
+          <td class="num">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
+          <td class="num">$${p.smallUnitPriceUsd}</td>
+          <td class="num">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
+          <td class="num">${p.minStock}</td>
+        </tr>
+      `).join("");
+    } else {
+      tableHeaders = `
+        <th>#</th>
+        <th>${t('Barcode')}</th>
+        <th>${t('Product Name')}</th>
+        <th>${t('Big Unit')}</th>
+        <th>${t('Big Unit Price (USD)')}</th>
+        <th>${t('Big Unit Price (IQD)')}</th>
+        <th>${t('Small Unit')}</th>
+        <th>${t('Small Unit Price (USD)')}</th>
+        <th>${t('Small Unit Price (IQD)')}</th>
+      `;
+      tableRows = filtered.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td class="mono">${p.barcode}</td>
+          <td>${getProductName(p)}</td>
+          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
+          <td class="num usd">$${p.bigUnitPriceUsd}</td>
+          <td class="num iqd">${Number(p.bigUnitPriceIqd).toLocaleString()} IQD</td>
+          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
+          <td class="num usd">$${p.smallUnitPriceUsd}</td>
+          <td class="num iqd">${Number(p.smallUnitPriceIqd).toLocaleString()} IQD</td>
+        </tr>
+      `).join("");
+    }
+
+    const html = `<!DOCTYPE html>
+<html dir="${dir}">
+<head>
+  <meta charset="utf-8">
+  <title>${title}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; direction: ${dir}; }
+    h1 { text-align: center; margin-bottom: 4px; font-size: 22px; }
+    .sub { text-align: center; color: #666; margin-bottom: 16px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: start; }
+    th { background: #f3f4f6; font-weight: 700; }
+    tr:nth-child(even) { background: #fafafa; }
+    .mono { font-family: monospace; }
+    .num { text-align: end; font-family: monospace; }
+    .usd { color: #16a34a; }
+    .iqd { color: #2563eb; }
+    .footer { text-align: center; margin-top: 12px; color: #999; font-size: 11px; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <div class="sub">${filtered.length} ${t('Total Products')}${categoryFilter ? ' — ' + categoryFilter : ''}</div>
+  <table>
+    <thead><tr>${tableHeaders}</tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+  <div class="footer">${new Date().toLocaleDateString()}</div>
+  <script>window.onload = function() { window.print(); }</script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+  };
+
   const renderSearchAndFilter = () => (
     <div className="flex items-center justify-between gap-4 flex-wrap">
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -252,7 +357,7 @@ export default function ProductsPage() {
       </div>
       <div className="flex items-center gap-3">
         {activeTab !== "products" && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => window.print()} data-testid="button-print">
+          <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint} data-testid="button-print">
             <Printer className="h-4 w-4" />
             {t('Print')}
           </Button>
