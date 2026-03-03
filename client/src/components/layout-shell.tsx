@@ -221,6 +221,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/products",
     "/units",
     "/categories",
+    "/material-report",
+    "/price-list",
     "/inventory-report",
   ];
 
@@ -380,6 +382,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/products", icon: Package, label: "Products" },
     { href: "/units", icon: Ruler, label: "Units" },
     { href: "/categories", icon: FolderOpen, label: "Categories" },
+    { href: "/material-report", icon: FileText, label: "Material Report" },
+    { href: "/price-list", icon: DollarSign, label: "Price List" },
     { href: "/inventory-report", icon: ClipboardList, label: "Inventory Report" },
   ];
 
