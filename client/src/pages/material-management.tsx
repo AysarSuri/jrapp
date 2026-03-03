@@ -52,31 +52,30 @@ export default function MaterialManagementPage() {
     },
   ];
 
-  const Arrow = isRtl ? ChevronLeft : ChevronRight;
+  const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('Material Management')}</h1>
-        <p className="text-muted-foreground mt-1">{t('Material Management')}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('Material Management')}</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">{t('Material Management')}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
         {sections.map((section) => (
-          <Link key={section.href} href={section.href} data-testid={`link-material-${section.href.replace(/\//g, '')}`}>
-            <div className={`group relative overflow-hidden rounded-xl border bg-card p-6 transition-all duration-300 hover:shadow-lg ${section.hoverBorder} cursor-pointer`}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              <div className="relative space-y-4">
-                <div className={`w-12 h-12 rounded-lg ${section.bg} flex items-center justify-center`}>
-                  <section.icon className={`w-6 h-6 ${section.iconColor}`} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{t(section.label)}</h3>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                  <Arrow className="w-4 h-4" />
-                </div>
+          <Link key={section.href} href={section.href}>
+            <div
+              data-testid={`card-material-${section.href.replace(/\//g, '')}`}
+              className={`group relative flex flex-col items-center gap-2.5 rounded-xl border bg-card p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${section.hoverBorder}`}
+            >
+              <div className={`w-12 h-12 rounded-xl ${section.bg} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
+                <section.icon className={`w-6 h-6 ${section.iconColor}`} />
               </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-center leading-tight line-clamp-2">{t(section.label)}</span>
+                <ArrowIcon className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+              </div>
+              <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 rounded-full bg-gradient-to-r ${section.gradient} transition-all duration-200 group-hover:w-8`} />
             </div>
           </Link>
         ))}
