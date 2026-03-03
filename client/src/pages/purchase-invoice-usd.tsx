@@ -434,57 +434,80 @@ export default function PurchaseInvoiceUsdPage() {
                   <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} data-testid="input-history-end-date" />
                 </div>
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Invoice #')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Supplier')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Total')}</TableHead>
-                    <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(invoicesList as PurchaseInvoice[] || []).filter(i => {
-                    if (i.currency !== 'USD') return false;
-                    if (historySupplierFilter !== 'all' && i.supplierId !== parseInt(historySupplierFilter)) return false;
-                    const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
-                    if (historyStartDate && invDate < historyStartDate) return false;
-                    if (historyEndDate && invDate > historyEndDate) return false;
-                    return true;
-                  }).map((inv: PurchaseInvoice) => (
-                    <TableRow key={inv.id}>
-                      <TableCell>{inv.id}</TableCell>
-                      <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{formatDate(inv.date)}</TableCell>
-                      <TableCell>{inv.supplierName}</TableCell>
-                      <TableCell>
-                        <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>
-                          {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">${inv.subtotal}</TableCell>
-                      <TableCell className="font-mono text-red-600">${inv.remaining}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-invoice-${inv.id}`}>
-                            <Eye className="h-3.5 w-3.5 text-blue-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-usd?edit=${inv.id}`); }} data-testid={`btn-edit-invoice-${inv.id}`}>
-                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-invoice-${inv.id}`}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {(() => {
+                const filteredInvoices = (invoicesList as PurchaseInvoice[] || []).filter(i => {
+                  if (i.currency !== 'USD') return false;
+                  if (historySupplierFilter !== 'all' && i.supplierId !== parseInt(historySupplierFilter)) return false;
+                  const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
+                  if (historyStartDate && invDate < historyStartDate) return false;
+                  if (historyEndDate && invDate > historyEndDate) return false;
+                  return true;
+                });
+                const totSubtotal = filteredInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);
+                const totDiscount = filteredInvoices.reduce((s, i) => s + Number(i.discount || 0), 0);
+                const totAmountPaid = filteredInvoices.reduce((s, i) => s + Number(i.amountPaid || 0), 0);
+                const totRemaining = filteredInvoices.reduce((s, i) => s + Number(i.remaining || 0), 0);
+                return (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>{t('Invoice #')}</TableHead>
+                        <TableHead>{t('Date')}</TableHead>
+                        <TableHead>{t('Supplier')}</TableHead>
+                        <TableHead>{t('Type')}</TableHead>
+                        <TableHead className="text-right">{t('Total')}</TableHead>
+                        <TableHead className="text-right">{t('Amount Paid')}</TableHead>
+                        <TableHead className="text-right">{t('Discount')}</TableHead>
+                        <TableHead className="text-right">{t('Remaining')}</TableHead>
+                        <TableHead>{t('Actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInvoices.map((inv: PurchaseInvoice) => (
+                        <TableRow key={inv.id}>
+                          <TableCell>{inv.id}</TableCell>
+                          <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
+                          <TableCell>{formatDate(inv.date)}</TableCell>
+                          <TableCell>{inv.supplierName}</TableCell>
+                          <TableCell>
+                            <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>
+                              {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold">{usd(inv.subtotal)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-green-600">{usd(inv.amountPaid)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-orange-600">{usd(inv.discount)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-red-600">{usd(inv.remaining)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-invoice-${inv.id}`}>
+                                <Eye className="h-3.5 w-3.5 text-blue-600" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-usd?edit=${inv.id}`); }} data-testid={`btn-edit-invoice-${inv.id}`}>
+                                <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-invoice-${inv.id}`}>
+                                <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {filteredInvoices.length > 0 && (
+                        <TableRow className="bg-muted/50 font-bold border-t-2">
+                          <TableCell colSpan={5} className="text-right font-bold text-base">{t('Total')}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-base">{usd(totSubtotal)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-base text-green-600">{usd(totAmountPaid)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-base text-orange-600">{usd(totDiscount)}</TableCell>
+                          <TableCell className="text-right font-mono font-bold text-base text-red-600">{usd(totRemaining)}</TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                );
+              })()}
             </DialogContent>
           </Dialog>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-form">
