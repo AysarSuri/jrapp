@@ -26,7 +26,8 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer } from "lucide-react";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
@@ -67,6 +68,7 @@ const defaultValues: FormValues = {
   smallUnitPriceIqd: "0",
   minStock: 0,
   image: null,
+  hidden: false,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -134,6 +136,7 @@ export default function ProductsPage() {
       smallUnitPriceIqd: product.smallUnitPriceIqd,
       minStock: product.minStock,
       image: product.image || null,
+      hidden: product.hidden ?? false,
     });
   };
 
@@ -831,7 +834,23 @@ export default function ProductsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 mt-4">
+              <div className="flex items-center gap-4 mt-4">
+                <FormField control={form.control} name="hidden" render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-product-hidden"
+                        className="h-5 w-5"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      {t('Hide')}
+                    </FormLabel>
+                  </FormItem>
+                )} />
                 <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11" data-testid="button-save-product">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   {editingProduct ? t('Update') : t('Save')}
@@ -871,6 +890,7 @@ export default function ProductsPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                      <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -890,6 +910,14 @@ export default function ProductsPage() {
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                        <TableCell className="text-center">
+                          {product.hidden ? (
+                            <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 font-bold" data-testid={`badge-product-hidden-${product.id}`}>
+                              <EyeOff className="h-3 w-3 mr-1" />
+                              {t('Hide')}
+                            </Badge>
+                          ) : null}
+                        </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(product)} data-testid={`button-edit-product-${product.id}`}>

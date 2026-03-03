@@ -90,6 +90,7 @@ export const products = pgTable("products", {
   smallUnit: text("small_unit").notNull(), // e.g. Piece
   conversionFactor: integer("conversion_factor").notNull(), // e.g. 24
   image: text("image"),
+  hidden: boolean("hidden").notNull().default(false),
 });
 
 export const inventory = pgTable("inventory", {
