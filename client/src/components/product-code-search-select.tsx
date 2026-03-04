@@ -81,6 +81,17 @@ export default function ProductCodeSearchSelect({
           setOpen(true);
           setSearch("");
         }}
+        onBlur={() => {
+          if (open && search.trim()) {
+            const exact = products.find(p => p.barcode === search.trim());
+            if (exact) {
+              onSelect(String(exact.id));
+              setSearch("");
+              setOpen(false);
+              return;
+            }
+          }
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && open && filtered.length > 0) {
             e.preventDefault();
