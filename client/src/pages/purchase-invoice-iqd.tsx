@@ -118,6 +118,7 @@ export default function PurchaseInvoiceIqdPage() {
   const [discountPercent, setDiscountPercent] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
+  const [showDates, setShowDates] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -698,10 +699,22 @@ export default function PurchaseInvoiceIqdPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">{t('Products')}</CardTitle>
-          <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-iqd-add-row">
-            <Plus className="w-4 h-4 mr-1" />
-            {t('Add Row')}
-          </Button>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1.5 cursor-pointer select-none" data-testid="label-toggle-iqd-dates">
+              <input
+                type="checkbox"
+                checked={showDates}
+                onChange={(e) => setShowDates(e.target.checked)}
+                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+                data-testid="checkbox-toggle-iqd-dates"
+              />
+              <span className="text-xs text-muted-foreground">{t('Production Date')} / {t('Expiry Date')}</span>
+            </label>
+            <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-iqd-add-row">
+              <Plus className="w-4 h-4 mr-1" />
+              {t('Add Row')}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -718,8 +731,8 @@ export default function PurchaseInvoiceIqdPage() {
                   <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Expense Cost')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Production Date')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Expiry Date')}</TableHead>
+                  {showDates && <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Production Date')}</TableHead>}
+                  {showDates && <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Expiry Date')}</TableHead>}
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -837,6 +850,7 @@ export default function PurchaseInvoiceIqdPage() {
                         {Number((getExpenseCost(item) + parseFloat(item.price || "0")).toFixed(0)).toLocaleString()} IQD
                       </div>
                     </TableCell>
+                    {showDates && (
                     <TableCell className="p-1">
                       <DateInput
                         value={item.productionDate}
@@ -845,6 +859,8 @@ export default function PurchaseInvoiceIqdPage() {
                         data-testid={`input-purchase-iqd-production-date-${index}`}
                       />
                     </TableCell>
+                    )}
+                    {showDates && (
                     <TableCell className="p-1">
                       <DateInput
                         value={item.expiryDate}
@@ -853,6 +869,7 @@ export default function PurchaseInvoiceIqdPage() {
                         data-testid={`input-purchase-iqd-expiry-date-${index}`}
                       />
                     </TableCell>
+                    )}
                     <TableCell className="p-1">
                       <Button
                         variant="ghost"
