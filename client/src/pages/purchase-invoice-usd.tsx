@@ -205,10 +205,22 @@ export default function PurchaseInvoiceUsdPage() {
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - discountVal - amountPaidVal;
 
+  const getItemUnitWeight = (item: InvoiceItem) => {
+    const product = products?.find(p => p.id === item.productId);
+    if (!product) return parseFloat(item.weight || "0");
+    const bigUnitWeight = parseFloat(product.weight || "0");
+    if (item.unit === product.smallUnit && product.bigUnit !== product.smallUnit) {
+      return bigUnitWeight / (product.conversionFactor || 1);
+    }
+    return bigUnitWeight;
+  };
+
+  const totalWeightCalc = items.reduce((sum, i) => sum + (getItemUnitWeight(i) * parseFloat(i.quantity || "0")), 0);
+
   const getExpenseCost = (item: InvoiceItem) => {
-    if (totalWeight === 0 || totalExpenses === 0) return 0;
-    const itemWeight = parseFloat(item.weight || "0") * parseFloat(item.quantity || "0");
-    return (itemWeight / totalWeight) * totalExpenses;
+    if (totalWeightCalc === 0 || totalExpenses === 0) return 0;
+    const unitWeight = getItemUnitWeight(item);
+    return (unitWeight / totalWeightCalc) * totalExpenses;
   };
 
   const updateItem = useCallback((index: number, field: keyof InvoiceItem, value: string) => {
@@ -796,7 +808,7 @@ export default function PurchaseInvoiceUsdPage() {
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-11 px-2 rounded bg-muted/50 font-mono text-base font-bold text-muted-foreground">
-                        {(parseFloat(item.weight || "0") * parseFloat(item.quantity || "0")).toFixed(2)} kg
+                        {(getItemUnitWeight(item) * parseFloat(item.quantity || "0")).toFixed(2)} kg
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
@@ -854,7 +866,7 @@ export default function PurchaseInvoiceUsdPage() {
               </div>
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
-                <p className="text-lg font-bold text-primary" data-testid="text-purchase-total-weight">{totalWeight.toFixed(2)} kg</p>
+                <p className="text-lg font-bold text-primary" data-testid="text-purchase-total-weight">{totalWeightCalc.toFixed(2)} kg</p>
               </div>
             </div>
           </CardContent>
