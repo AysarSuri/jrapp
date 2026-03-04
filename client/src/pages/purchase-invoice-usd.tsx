@@ -546,7 +546,7 @@ export default function PurchaseInvoiceUsdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-green-600 hover:bg-green-700" data-testid="button-save-purchase-invoice">
+          <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-purchase-invoice">
             {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {isEditMode ? t('Update Invoice') : t('Save Invoice')}
           </Button>
