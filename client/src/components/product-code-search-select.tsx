@@ -26,6 +26,13 @@ export default function ProductCodeSearchSelect({
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+  const searchRef = useRef("");
+  const openRef = useRef(false);
+  const productsRef = useRef(products);
+  const onSelectRef = useRef(onSelect);
+
+  productsRef.current = products;
+  onSelectRef.current = onSelect;
 
   const updatePosition = useCallback(() => {
     if (containerRef.current) {
@@ -56,18 +63,34 @@ export default function ProductCodeSearchSelect({
     return () => window.removeEventListener("scroll", handleScroll, true);
   }, [open, updatePosition]);
 
+  const tryAutoSelect = useCallback(() => {
+    const s = searchRef.current.trim();
+    if (s) {
+      const exact = productsRef.current.find(p => p.barcode === s);
+      if (exact) {
+        onSelectRef.current(String(exact.id));
+      }
+    }
+    searchRef.current = "";
+    setSearch("");
+    openRef.current = false;
+    setOpen(false);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
         containerRef.current && !containerRef.current.contains(e.target as Node) &&
-        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+        (!dropdownRef.current || !dropdownRef.current.contains(e.target as Node))
       ) {
-        setOpen(false);
+        if (openRef.current) {
+          tryAutoSelect();
+        }
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [tryAutoSelect]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -75,22 +98,17 @@ export default function ProductCodeSearchSelect({
         value={open ? search : value}
         onChange={(e) => {
           setSearch(e.target.value);
-          if (!open) setOpen(true);
+          searchRef.current = e.target.value;
+          if (!open) {
+            setOpen(true);
+            openRef.current = true;
+          }
         }}
         onFocus={() => {
           setOpen(true);
+          openRef.current = true;
           setSearch("");
-        }}
-        onBlur={() => {
-          if (open && search.trim()) {
-            const exact = products.find(p => p.barcode === search.trim());
-            if (exact) {
-              onSelect(String(exact.id));
-              setSearch("");
-              setOpen(false);
-              return;
-            }
-          }
+          searchRef.current = "";
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && open && filtered.length > 0) {
@@ -98,7 +116,9 @@ export default function ProductCodeSearchSelect({
             e.stopPropagation();
             onSelect(String(filtered[0].id));
             setSearch("");
+            searchRef.current = "";
             setOpen(false);
+            openRef.current = false;
           }
         }}
         placeholder={placeholder || t("Product Code")}
@@ -134,7 +154,9 @@ export default function ProductCodeSearchSelect({
                   e.preventDefault();
                   onSelect(String(p.id));
                   setSearch("");
+                  searchRef.current = "";
                   setOpen(false);
+                  openRef.current = false;
                 }}
                 data-testid={`option-product-code-${p.id}`}
               >
