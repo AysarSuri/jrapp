@@ -813,7 +813,7 @@ export default function PurchaseInvoiceUsdPage() {
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-11 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-base font-bold text-amber-700 dark:text-amber-400">
-                        {usd(getExpenseCost(item))}
+                        {usd(getExpenseCost(item) + parseFloat(item.price || "0"))}
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
