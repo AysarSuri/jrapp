@@ -42,6 +42,7 @@ interface InvoiceItem {
   productCode: string;
   productName: string;
   quantity: string;
+  gift: string;
   unit: string;
   price: string;
   amount: string;
@@ -55,6 +56,7 @@ const emptyItem = (): InvoiceItem => ({
   productCode: "",
   productName: "",
   quantity: "",
+  gift: "",
   unit: "",
   price: "",
   amount: "0",
@@ -180,6 +182,7 @@ export default function PurchaseInvoiceUsdPage() {
             productCode: item.productCode || "",
             productName: item.productName || "",
             quantity: item.quantity || "",
+            gift: item.gift || "",
             unit: item.unit || "",
             price: item.price || "",
             amount: item.amount || "0",
@@ -215,7 +218,10 @@ export default function PurchaseInvoiceUsdPage() {
     return bigUnitWeight;
   };
 
-  const totalWeightCalc = items.reduce((sum, i) => sum + (getItemUnitWeight(i) * parseFloat(i.quantity || "0")), 0);
+  const totalWeightCalc = items.reduce((sum, i) => {
+    const totalQty = parseFloat(i.quantity || "0") + parseFloat(i.gift || "0");
+    return sum + (getItemUnitWeight(i) * totalQty);
+  }, 0);
 
   const getExpenseCost = (item: InvoiceItem) => {
     if (totalWeightCalc === 0 || totalExpenses === 0) return 0;
@@ -359,6 +365,7 @@ export default function PurchaseInvoiceUsdPage() {
       productCode: item.productCode,
       productName: item.productName,
       quantity: item.quantity,
+      gift: item.gift || "0",
       unit: item.unit,
       price: item.price,
       amount: item.amount,
@@ -704,6 +711,7 @@ export default function PurchaseInvoiceUsdPage() {
                   <TableHead className="text-primary-foreground min-w-[280px] font-bold">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px] font-bold">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[90px] font-bold">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Amount')}</TableHead>
@@ -744,6 +752,18 @@ export default function PurchaseInvoiceUsdPage() {
                         onChange={(e) => updateItem(index, "quantity", e.target.value)}
                         className="h-11 text-base font-bold text-center"
                         data-testid={`input-purchase-quantity-${index}`}
+                      />
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={item.gift}
+                        onChange={(e) => updateItem(index, "gift", e.target.value)}
+                        className="h-11 text-base font-bold text-center text-green-600"
+                        placeholder="0"
+                        data-testid={`input-purchase-gift-${index}`}
                       />
                     </TableCell>
                     <TableCell className="p-1">
