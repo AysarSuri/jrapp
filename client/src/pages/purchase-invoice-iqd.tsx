@@ -545,7 +545,7 @@ export default function PurchaseInvoiceIqdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700" data-testid="button-save-purchase-iqd-invoice">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-purchase-iqd-invoice">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {t('Save Invoice')}
           </Button>
