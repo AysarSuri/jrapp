@@ -32,6 +32,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
+import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { formatDate } from "@/lib/format-utils";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
@@ -750,10 +751,10 @@ export default function PurchaseInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
+                      <ProductCodeSearchSelect
+                        products={visibleProducts}
                         value={item.productCode}
-                        onChange={(e) => updateItem(index, "productCode", e.target.value)}
-                        className="h-11 text-base font-bold font-mono"
+                        onSelect={(val) => selectProduct(index, val)}
                         data-testid={`input-purchase-iqd-product-code-${index}`}
                       />
                     </TableCell>
