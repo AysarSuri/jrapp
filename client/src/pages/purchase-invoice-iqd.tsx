@@ -115,6 +115,7 @@ export default function PurchaseInvoiceIqdPage() {
   const [customsExpense, setCustomsExpense] = useState("");
   const [otherExpenses, setOtherExpenses] = useState("");
   const [discount, setDiscount] = useState("");
+  const [discountType, setDiscountType] = useState<"amount" | "percentage">("amount");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -204,7 +205,9 @@ export default function PurchaseInvoiceIqdPage() {
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
   const totalWeight = items.reduce((sum, i) => sum + (parseFloat(i.weight || "0") * parseFloat(i.quantity || "0")), 0);
-  const discountVal = parseFloat(discount || "0");
+  const discountVal = discountType === "percentage"
+    ? (subtotal * parseFloat(discount || "0")) / 100
+    : parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - discountVal - amountPaidVal;
 
@@ -296,6 +299,7 @@ export default function PurchaseInvoiceIqdPage() {
     setCustomsExpense("");
     setOtherExpenses("");
     setDiscount("");
+    setDiscountType("amount");
     setAmountPaid("");
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
@@ -351,7 +355,7 @@ export default function PurchaseInvoiceIqdPage() {
       otherExpenses: otherExpenses || "0",
       totalExpenses: totalExpenses.toFixed(2),
       subtotal: subtotal.toFixed(2),
-      discount: discount || "0",
+      discount: discountVal.toFixed(0),
       amountPaid: amountPaid || "0",
       remaining: remaining.toFixed(2),
       totalItems,
@@ -912,16 +916,40 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Discount')}</span>
-              <Input
-                type="number"
-                step="250"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                className="w-32 text-right font-mono"
-                placeholder="0"
-                data-testid="input-purchase-iqd-discount"
-              />
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant={discountType === "percentage" ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0 text-xs font-bold"
+                  onClick={() => {
+                    setDiscountType(discountType === "percentage" ? "amount" : "percentage");
+                    setDiscount("");
+                  }}
+                  data-testid="button-toggle-iqd-discount-type"
+                >
+                  {discountType === "percentage" ? "%" : "د.ع"}
+                </Button>
+                <Input
+                  type="number"
+                  step={discountType === "percentage" ? "0.5" : "250"}
+                  min="0"
+                  max={discountType === "percentage" ? "100" : undefined}
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="w-28 text-right font-mono"
+                  placeholder={discountType === "percentage" ? "0 %" : "0"}
+                  data-testid="input-purchase-iqd-discount"
+                />
+              </div>
             </div>
+            {discountType === "percentage" && discount && (
+              <div className="flex justify-end">
+                <span className="text-xs text-muted-foreground font-mono" data-testid="text-iqd-discount-amount">
+                  = {formatIQD(discountVal)}
+                </span>
+              </div>
+            )}
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
