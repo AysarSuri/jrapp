@@ -221,12 +221,16 @@ export default function PurchaseInvoiceUsdPage() {
     return bigUnitWeight;
   };
 
+  const isExcludedFromExpense = (item: InvoiceItem) => item.productCode === "1" || item.productCode === "2";
+
   const totalWeightCalc = items.reduce((sum, i) => {
+    if (isExcludedFromExpense(i)) return sum;
     const totalQty = parseFloat(i.quantity || "0") + parseFloat(i.gift || "0");
     return sum + (getItemUnitWeight(i) * totalQty);
   }, 0);
 
   const getExpenseCost = (item: InvoiceItem) => {
+    if (isExcludedFromExpense(item)) return 0;
     if (totalWeightCalc === 0 || totalExpenses === 0) return 0;
     const unitWeight = getItemUnitWeight(item);
     return (unitWeight / totalWeightCalc) * totalExpenses;
