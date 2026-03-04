@@ -771,14 +771,23 @@ export default function PurchaseInvoiceIqdPage() {
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-purchase-iqd-item-${index}`}>
                     <TableCell className="text-center font-mono text-sm font-bold text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
-                      <ProductSearchSelect
-                        products={visibleProducts}
-                        value={item.productId}
-                        onSelect={(val) => selectProduct(index, val)}
-                        placeholder={t('Select product...')}
-                        disabled={item.productCode === "1" || item.productCode === "2"}
-                        data-testid={`select-purchase-iqd-product-${index}`}
-                      />
+                      {item.productCode === "1" || item.productCode === "2" ? (
+                        <Input
+                          value={item.productName}
+                          onChange={(e) => updateItem(index, "productName", e.target.value)}
+                          className="h-9 text-sm"
+                          placeholder={t('Product name')}
+                          data-testid={`input-purchase-iqd-product-name-${index}`}
+                        />
+                      ) : (
+                        <ProductSearchSelect
+                          products={visibleProducts}
+                          value={item.productId}
+                          onSelect={(val) => selectProduct(index, val)}
+                          placeholder={t('Select product...')}
+                          data-testid={`select-purchase-iqd-product-${index}`}
+                        />
+                      )}
                     </TableCell>
                     <TableCell className="p-1">
                       <ProductCodeSearchSelect
