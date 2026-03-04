@@ -19,7 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Truck, Loader2, MapPin, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff } from "lucide-react";
+import { Plus, Search, Truck, Loader2, MapPin, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -144,6 +145,295 @@ export default function SuppliersPage() {
 
   const addresses = dbAddresses || [];
   const isSaving = isCreating || isUpdating;
+
+  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; address: string; mobile1: string }>({ queryKey: ["/api/company-profile"] });
+
+  const handlePrint = () => {
+    const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
+    const accent = companyProfile?.primaryColor || "#6b8e23";
+    const companyName = companyProfile?.name || "";
+    const companyLogo = companyProfile?.logo || "";
+    const companyAddress = companyProfile?.address || "";
+    const companyMobile = companyProfile?.mobile1 || "";
+    const today = new Date().toLocaleDateString("en-GB");
+    const title = t('Suppliers');
+
+    const visibleSuppliers = filtered.filter(s => !s.hidden);
+
+    const tableRows = visibleSuppliers.map((s, i) => `
+      <tr>
+        <td class="num">${i + 1}</td>
+        <td class="name-cell">${s.name}</td>
+        <td>${s.address || '-'}</td>
+        <td class="mono">${s.contact || '-'}</td>
+        <td class="mono price-usd">$${Number(s.oldDebtUsd || 0).toFixed(2)}</td>
+        <td class="mono price-iqd">${Number(s.oldDebtIqd || 0).toLocaleString()} IQD</td>
+      </tr>
+    `).join("");
+
+    const totalUsd = visibleSuppliers.reduce((sum, s) => sum + Number(s.oldDebtUsd || 0), 0);
+    const totalIqd = visibleSuppliers.reduce((sum, s) => sum + Number(s.oldDebtIqd || 0), 0);
+
+    const html = `<!DOCTYPE html>
+<html dir="${dir}">
+<head>
+  <meta charset="utf-8">
+  <title>${title} — ${companyName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
+      padding: 18px 24px;
+      font-size: 10pt;
+      direction: ${dir};
+      color: #1a1a2e;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      margin-bottom: 14px;
+      border: 2px solid ${accent}30;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fafbfc, ${accent}08);
+    }
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+    }
+    .header-center img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    .header-center .company-name {
+      font-size: 18pt;
+      font-weight: 800;
+      color: ${accent};
+      letter-spacing: -0.3px;
+    }
+    .header-right {
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      min-width: 180px;
+    }
+    .header-right .report-title {
+      font-size: 16pt;
+      font-weight: 800;
+      color: ${accent};
+      margin-bottom: 2px;
+    }
+    .header-right .report-date {
+      font-size: 9pt;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .header-left {
+      text-align: ${dir === "rtl" ? "left" : "right"};
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+    .header-left .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"};
+    }
+
+    .summary-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card.blue {
+      border: 2px solid #3b82f6;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+    .stat-card.green {
+      border: 2px solid #22c55e;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    }
+    .stat-card.orange {
+      border: 2px solid #f59e0b;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+    .stat-card .stat-label {
+      font-size: 9pt;
+      font-weight: 600;
+      color: #475569;
+    }
+    .stat-card .stat-value {
+      font-size: 16pt;
+      font-weight: 800;
+    }
+    .stat-card.blue .stat-value { color: #2563eb; }
+    .stat-card.green .stat-value { color: #16a34a; }
+    .stat-card.orange .stat-value { color: #d97706; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 9pt;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #d4d4d8;
+    }
+    th {
+      background: linear-gradient(145deg, ${accent}, ${accent}dd);
+      color: #fff;
+      padding: 8px 7px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 8.5pt;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 6px 7px;
+      text-align: center;
+      font-size: 9pt;
+      color: #334155;
+      font-weight: 500;
+    }
+    tr:nth-child(even) { background: #f8fafc; }
+    tr:hover { background: #f1f5f9; }
+    .mono { font-family: 'Inter', monospace; letter-spacing: 0.3px; }
+    .num { font-weight: 700; color: #64748b; width: 36px; }
+    .name-cell { font-weight: 700; color: #1e293b; text-align: ${dir === "rtl" ? "right" : "left"}; }
+    .price-usd { color: #16a34a; font-weight: 700; }
+    .price-iqd { color: #2563eb; font-weight: 700; }
+
+    .total-row { background: linear-gradient(145deg, #f0f4ff, #e8ecf4) !important; }
+    .total-row td { font-weight: 800; font-size: 9.5pt; color: #1e293b; border-top: 2px solid ${accent}; }
+
+    .report-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      font-size: 9pt;
+      color: #475569;
+      font-weight: 600;
+    }
+    .report-footer .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .report-footer .footer-value {
+      font-weight: 800;
+      color: ${accent};
+      font-size: 10pt;
+    }
+
+    @media print {
+      body { padding: 6mm 8mm; }
+      @page { margin: 5mm; size: A4; }
+      .stat-card, th, .report-footer, .total-row {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-row">
+    <div class="header-right">
+      <div class="report-title">${title}</div>
+      <div class="report-date">${today}</div>
+    </div>
+    <div class="header-center">
+      ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
+      <span class="company-name">${companyName}</span>
+    </div>
+    <div class="header-left">
+      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
+      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="stat-card blue">
+      <span class="stat-label">${t('Total Suppliers')}</span>
+      <span class="stat-value">${visibleSuppliers.length}</span>
+    </div>
+    <div class="stat-card green">
+      <span class="stat-label">${t('Total Opening Balances (USD)')}</span>
+      <span class="stat-value">$${totalUsd.toFixed(2)}</span>
+    </div>
+    <div class="stat-card orange">
+      <span class="stat-label">${t('Total Opening Balances (IQD)')}</span>
+      <span class="stat-value">${totalIqd.toLocaleString()} IQD</span>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>${t('Name')}</th>
+        <th>${t('Address')}</th>
+        <th>${t('Contact')}</th>
+        <th>${t('Opening Balance (USD)')}</th>
+        <th>${t('Opening Balance (IQD)')}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+      <tr class="total-row">
+        <td colspan="4" class="name-cell">${t('Total')}</td>
+        <td class="mono price-usd">$${totalUsd.toFixed(2)}</td>
+        <td class="mono price-iqd">${totalIqd.toLocaleString()} IQD</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="report-footer">
+    <div class="footer-item">${t('Total Suppliers')}: <span class="footer-value">${visibleSuppliers.length}</span></div>
+    <div class="footer-item">${t('Date')}: <span class="footer-value">${today}</span></div>
+  </div>
+
+  <script>window.onload = function() { window.print(); }</script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -315,8 +605,14 @@ export default function SuppliersPage() {
                 </div>
               )}
             </div>
-            <div className="text-sm text-muted-foreground font-medium">
-              {filtered.length} {t('Total Suppliers')}
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-muted-foreground font-medium">
+                {filtered.length} {t('Total Suppliers')}
+              </div>
+              <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5" data-testid="button-print-suppliers">
+                <Printer className="h-4 w-4" />
+                {t('Print')}
+              </Button>
             </div>
           </div>
         </CardHeader>
