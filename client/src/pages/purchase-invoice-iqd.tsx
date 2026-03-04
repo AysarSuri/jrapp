@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import ProductSearchSelect from "@/components/product-search-select";
 import { formatDate } from "@/lib/format-utils";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
@@ -91,6 +92,7 @@ export default function PurchaseInvoiceIqdPage() {
   });
 
   const suppliersList = clients?.filter(c => c.type === "supplier" && !c.hidden) || [];
+  const visibleProducts = products?.filter(p => !p.hidden) || [];
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -704,21 +706,13 @@ export default function PurchaseInvoiceIqdPage() {
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-purchase-iqd-item-${index}`}>
                     <TableCell className="text-center font-mono text-sm font-bold text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
-                      <Select
-                        value={item.productId ? String(item.productId) : ""}
-                        onValueChange={(val) => selectProduct(index, val)}
-                      >
-                        <SelectTrigger className="h-11 text-base font-bold" data-testid={`select-purchase-iqd-product-${index}`}>
-                          <SelectValue placeholder={t('Select product...')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products?.map(p => (
-                            <SelectItem key={p.id} value={String(p.id)}>
-                              {getProductName(p)} ({p.barcode})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ProductSearchSelect
+                        products={visibleProducts}
+                        value={item.productId}
+                        onSelect={(val) => selectProduct(index, val)}
+                        placeholder={t('Select product...')}
+                        data-testid={`select-purchase-iqd-product-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Input

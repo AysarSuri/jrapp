@@ -40,8 +40,7 @@ export default function ProductSearchSelect({
           getProductName(p).toLowerCase().includes(q) ||
           p.barcode.toLowerCase().includes(q) ||
           (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
-          (p.nameAr && p.nameAr.toLowerCase().includes(q)) ||
-          (p.nameKu && p.nameKu.toLowerCase().includes(q))
+          p.name.toLowerCase().includes(q)
         );
       })
     : products;
