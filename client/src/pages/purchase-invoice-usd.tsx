@@ -221,16 +221,12 @@ export default function PurchaseInvoiceUsdPage() {
     return bigUnitWeight;
   };
 
-  const isExcludedFromExpense = (item: InvoiceItem) => item.productCode === "1" || item.productCode === "2";
-
   const totalWeightCalc = items.reduce((sum, i) => {
-    if (isExcludedFromExpense(i)) return sum;
     const totalQty = parseFloat(i.quantity || "0") + parseFloat(i.gift || "0");
     return sum + (getItemUnitWeight(i) * totalQty);
   }, 0);
 
   const getExpenseCost = (item: InvoiceItem) => {
-    if (isExcludedFromExpense(item)) return 0;
     if (totalWeightCalc === 0 || totalExpenses === 0) return 0;
     const unitWeight = getItemUnitWeight(item);
     return (unitWeight / totalWeightCalc) * totalExpenses;
@@ -241,14 +237,9 @@ export default function PurchaseInvoiceUsdPage() {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
       if (field === "quantity" || field === "price") {
-        const code = updated[index].productCode;
+        const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
-        if (code === "1") {
-          updated[index].amount = prc.toFixed(2);
-        } else {
-          const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
-          updated[index].amount = (qty * prc).toFixed(2);
-        }
+        updated[index].amount = (qty * prc).toFixed(2);
       }
       return updated;
     });
@@ -257,53 +248,19 @@ export default function PurchaseInvoiceUsdPage() {
   const selectProduct = useCallback((index: number, productId: string) => {
     const product = products?.find(p => p.id === parseInt(productId));
     if (!product) return;
-    const isCode1 = product.barcode === "1";
-    const isCode2 = product.barcode === "2";
     setItems(prev => {
       const updated = [...prev];
-      if (isCode1) {
-        updated[index] = {
-          ...updated[index],
-          productId: product.id,
-          productCode: product.barcode,
-          productName: "",
-          unit: "",
-          price: "",
-          weight: "0",
-          quantity: "",
-          gift: "",
-          amount: "0",
-          productionDate: "",
-          expiryDate: "",
-        };
-      } else if (isCode2) {
-        updated[index] = {
-          ...updated[index],
-          productId: product.id,
-          productCode: product.barcode,
-          productName: "",
-          unit: "",
-          price: "",
-          weight: "0",
-          quantity: "",
-          gift: "",
-          amount: "0",
-          productionDate: "",
-          expiryDate: "",
-        };
-      } else {
-        updated[index] = {
-          ...updated[index],
-          productId: product.id,
-          productCode: product.barcode,
-          productName: getProductName(product),
-          unit: product.bigUnit,
-          price: product.bigUnitPriceUsd,
-          weight: product.weight || "0",
-        };
-        const qty = parseFloat(updated[index].quantity || "0");
-        updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
-      }
+      updated[index] = {
+        ...updated[index],
+        productId: product.id,
+        productCode: product.barcode,
+        productName: getProductName(product),
+        unit: product.bigUnit,
+        price: product.bigUnitPriceUsd,
+        weight: product.weight || "0",
+      };
+      const qty = parseFloat(updated[index].quantity || "0");
+      updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
       const lastRow = updated[updated.length - 1];
       if (lastRow.productId !== null) {
         updated.push(emptyItem());
@@ -311,8 +268,7 @@ export default function PurchaseInvoiceUsdPage() {
       return updated;
     });
     setTimeout(() => {
-      const focusField = isCode1 ? "input-purchase-price" : isCode2 ? "input-purchase-quantity" : "input-purchase-quantity";
-      const el = document.querySelector(`[data-testid="${focusField}-${index}"]`) as HTMLInputElement;
+      const el = document.querySelector(`[data-testid="input-purchase-quantity-${index}"]`) as HTMLInputElement;
       if (el) { el.focus(); el.select(); }
     }, 50);
   }, [products]);
@@ -787,23 +743,13 @@ export default function PurchaseInvoiceUsdPage() {
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-purchase-item-${index}`}>
                     <TableCell className="text-center font-mono text-sm font-bold text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
-                      {item.productCode === "1" || item.productCode === "2" ? (
-                        <Input
-                          value={item.productName}
-                          onChange={(e) => updateItem(index, "productName", e.target.value)}
-                          className="h-9 text-sm"
-                          placeholder={t('Product name')}
-                          data-testid={`input-purchase-product-name-${index}`}
-                        />
-                      ) : (
-                        <ProductSearchSelect
-                          products={visibleProducts}
-                          value={item.productId}
-                          onSelect={(val) => selectProduct(index, val)}
-                          placeholder={t('Select product...')}
-                          data-testid={`select-purchase-product-${index}`}
-                        />
-                      )}
+                      <ProductSearchSelect
+                        products={visibleProducts}
+                        value={item.productId}
+                        onSelect={(val) => selectProduct(index, val)}
+                        placeholder={t('Select product...')}
+                        data-testid={`select-purchase-product-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <ProductCodeSearchSelect
@@ -821,7 +767,6 @@ export default function PurchaseInvoiceUsdPage() {
                         value={item.quantity}
                         onChange={(e) => updateItem(index, "quantity", e.target.value)}
                         className="h-11 text-base font-bold text-center"
-                        disabled={item.productCode === "1"}
                         data-testid={`input-purchase-quantity-${index}`}
                       />
                     </TableCell>
@@ -834,14 +779,12 @@ export default function PurchaseInvoiceUsdPage() {
                         onChange={(e) => updateItem(index, "gift", e.target.value)}
                         className="h-11 text-base font-bold text-center text-green-600"
                         placeholder="0"
-                        disabled={item.productCode === "1" || item.productCode === "2"}
                         data-testid={`input-purchase-gift-${index}`}
                       />
                     </TableCell>
                     <TableCell className="p-1">
                       <Select
                         value={item.unit}
-                        disabled={item.productCode === "1" || item.productCode === "2"}
                         onValueChange={(val) => {
                           const product = products?.find(p => p.id === item.productId);
                           if (product) {
@@ -915,7 +858,6 @@ export default function PurchaseInvoiceUsdPage() {
                         value={item.productionDate}
                         onChange={(e) => updateItem(index, "productionDate", e.target.value)}
                         className="h-11 text-base font-bold"
-                        disabled={item.productCode === "1" || item.productCode === "2"}
                         data-testid={`input-purchase-production-date-${index}`}
                       />
                     </TableCell>
@@ -926,7 +868,6 @@ export default function PurchaseInvoiceUsdPage() {
                         value={item.expiryDate}
                         onChange={(e) => updateItem(index, "expiryDate", e.target.value)}
                         className="h-11 text-base font-bold"
-                        disabled={item.productCode === "1" || item.productCode === "2"}
                         data-testid={`input-purchase-expiry-date-${index}`}
                       />
                     </TableCell>

@@ -26,7 +26,6 @@ export default function ProductCodeSearchSelect({
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
-  const selectedViaDropdown = useRef(false);
 
   const updatePosition = useCallback(() => {
     if (containerRef.current) {
@@ -57,6 +56,19 @@ export default function ProductCodeSearchSelect({
     return () => window.removeEventListener("scroll", handleScroll, true);
   }, [open, updatePosition]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div ref={containerRef} className="relative">
       <Input
@@ -68,25 +80,6 @@ export default function ProductCodeSearchSelect({
         onFocus={() => {
           setOpen(true);
           setSearch("");
-          selectedViaDropdown.current = false;
-        }}
-        onBlur={() => {
-          setTimeout(() => {
-            if (selectedViaDropdown.current) {
-              selectedViaDropdown.current = false;
-              setOpen(false);
-              return;
-            }
-            const s = search.trim();
-            if (s) {
-              const exact = products.find(p => p.barcode === s);
-              if (exact) {
-                onSelect(String(exact.id));
-              }
-            }
-            setSearch("");
-            setOpen(false);
-          }, 150);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && open && filtered.length > 0) {
@@ -95,7 +88,6 @@ export default function ProductCodeSearchSelect({
             onSelect(String(filtered[0].id));
             setSearch("");
             setOpen(false);
-            selectedViaDropdown.current = true;
           }
         }}
         placeholder={placeholder || t("Product Code")}
@@ -129,7 +121,6 @@ export default function ProductCodeSearchSelect({
                 }`}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  selectedViaDropdown.current = true;
                   onSelect(String(p.id));
                   setSearch("");
                   setOpen(false);
