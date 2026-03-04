@@ -12,6 +12,7 @@ interface ProductSearchSelectProps {
   onSelect: (productId: string) => void;
   onAfterSelect?: () => void;
   placeholder?: string;
+  disabled?: boolean;
   "data-testid"?: string;
 }
 
@@ -21,6 +22,7 @@ export default function ProductSearchSelect({
   onSelect,
   onAfterSelect,
   placeholder,
+  disabled,
   "data-testid": testId,
 }: ProductSearchSelectProps) {
   const { t } = useTranslation();
@@ -85,10 +87,12 @@ export default function ProductSearchSelect({
         <Input
           value={open ? search : displayText}
           onChange={(e) => {
+            if (disabled) return;
             setSearch(e.target.value);
             if (!open) setOpen(true);
           }}
           onFocus={() => {
+            if (disabled) return;
             setOpen(true);
             setSearch("");
           }}
@@ -104,6 +108,7 @@ export default function ProductSearchSelect({
           placeholder={placeholder || t("Select product...")}
           className="h-9 text-sm ps-7 truncate"
           autoComplete="off"
+          disabled={disabled}
           data-testid={testId}
         />
       </div>
