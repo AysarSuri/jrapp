@@ -134,6 +134,13 @@ export default function PurchaseInvoiceUsdPage() {
   }, [nextNumber, editId]);
 
   useEffect(() => {
+    if (warehousesList?.length && !warehouseId && !editId) {
+      setWarehouseId(warehousesList[0].id);
+      setWarehouseName(warehousesList[0].name);
+    }
+  }, [warehousesList, warehouseId, editId]);
+
+  useEffect(() => {
     if (!editId) return;
     setIsEditMode(true);
     const fetchEditData = async () => {
