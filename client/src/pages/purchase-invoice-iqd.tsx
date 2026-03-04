@@ -756,16 +756,24 @@ export default function PurchaseInvoiceIqdPage() {
                           <SelectValue placeholder={t('Unit')} />
                         </SelectTrigger>
                         <SelectContent>
-                          {item.productId && products?.find(p => p.id === item.productId) ? (
-                            <>
-                              <SelectItem value={products.find(p => p.id === item.productId)!.bigUnit}>
-                                {resolveUnitName(products.find(p => p.id === item.productId)!.bigUnit, unitsList)}
+                          {item.productId && products?.find(p => p.id === item.productId) ? (() => {
+                            const prod = products.find(p => p.id === item.productId)!;
+                            const sameUnit = prod.bigUnit === prod.smallUnit;
+                            return sameUnit ? (
+                              <SelectItem value={prod.bigUnit}>
+                                {resolveUnitName(prod.bigUnit, unitsList)}
                               </SelectItem>
-                              <SelectItem value={products.find(p => p.id === item.productId)!.smallUnit}>
-                                {resolveUnitName(products.find(p => p.id === item.productId)!.smallUnit, unitsList)}
-                              </SelectItem>
-                            </>
-                          ) : null}
+                            ) : (
+                              <>
+                                <SelectItem value={prod.bigUnit}>
+                                  {resolveUnitName(prod.bigUnit, unitsList)}
+                                </SelectItem>
+                                <SelectItem value={prod.smallUnit}>
+                                  {resolveUnitName(prod.smallUnit, unitsList)}
+                                </SelectItem>
+                              </>
+                            );
+                          })() : null}
                         </SelectContent>
                       </Select>
                     </TableCell>
