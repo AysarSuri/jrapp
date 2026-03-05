@@ -115,6 +115,13 @@ export default function PurchaseReturnUsdPage() {
   }, [nextNumber, editId]);
 
   useEffect(() => {
+    if (!editId && warehousesList && warehousesList.length > 0 && !warehouseId) {
+      setWarehouseId(warehousesList[0].id);
+      setWarehouseName(warehousesList[0].name);
+    }
+  }, [warehousesList, editId, warehouseId]);
+
+  useEffect(() => {
     if (!editId) return;
     const fetchEditData = async () => {
       try {
