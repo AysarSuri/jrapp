@@ -1,29 +1,23 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertExpenseTypeSchema, type ExpenseType } from "@shared/routes";
-import { z } from "zod";
 import { useExpenseTypes, useCreateExpenseType, useUpdateExpenseType, useDeleteExpenseType } from "@/hooks/use-expense-types";
+import { expenseTypes } from "@shared/schema";
+
+type ExpenseType = typeof expenseTypes.$inferSelect;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Loader2, Trash2, Pencil, Tags } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Tags, Save, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { playDeleteSound } from "@/lib/sounds";
 
 export default function ExpenseTypesPage() {
   const { t } = useTranslation();
@@ -32,61 +26,63 @@ export default function ExpenseTypesPage() {
   const { mutate: updateType, isPending: isUpdating } = useUpdateExpenseType();
   const { mutate: deleteType } = useDeleteExpenseType();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<ExpenseType | null>(null);
+
+  const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteItem, setDeleteItem] = useState<ExpenseType | null>(null);
 
-  const form = useForm<z.infer<typeof insertExpenseTypeSchema>>({
-    resolver: zodResolver(insertExpenseTypeSchema),
-    defaultValues: { name: "" },
-  });
+  const isSaving = isCreating || isUpdating;
 
-  const openCreateDialog = () => {
-    setEditing(null);
-    form.reset({ name: "" });
-    setOpen(true);
+  const resetForm = () => {
+    setName("");
+    setEditingId(null);
   };
 
-  const openEditDialog = (item: ExpenseType) => {
-    setEditing(item);
-    form.reset({ name: item.name });
-    setOpen(true);
+  const startEdit = (item: ExpenseType) => {
+    setEditingId(item.id);
+    setName(item.name);
   };
 
-  const onSubmit = (values: z.infer<typeof insertExpenseTypeSchema>) => {
-    if (editing) {
-      updateType({ id: editing.id, data: values }, {
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({ title: t("Please enter the expense type name"), variant: "destructive" });
+      return;
+    }
+
+    if (editingId) {
+      updateType({ id: editingId, data: { name: name.trim() } }, {
         onSuccess: () => {
-          setOpen(false);
-          setEditing(null);
-          form.reset();
           toast({ title: t("Expense type updated successfully") });
+          resetForm();
         },
         onError: (err) => {
-          toast({ title: t("Failed to update expense type"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to update expense type"), description: err.message, variant: "destructive" });
         },
       });
     } else {
-      createType(values, {
+      createType({ name: name.trim() }, {
         onSuccess: () => {
-          setOpen(false);
-          form.reset();
           toast({ title: t("Expense type added successfully") });
+          resetForm();
         },
         onError: (err) => {
-          toast({ title: t("Failed to add expense type"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to add expense type"), description: err.message, variant: "destructive" });
         },
       });
     }
   };
 
-  const handleDelete = (id: number) => {
-    deleteType(id, {
+  const handleDelete = () => {
+    if (!deleteItem) return;
+    deleteType(deleteItem.id, {
       onSuccess: () => {
+        playDeleteSound();
         toast({ title: t("Expense type deleted successfully") });
+        setDeleteItem(null);
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete expense type"), description: t(err.message), variant: "destructive" });
+        toast({ title: t("Failed to delete expense type"), description: err.message, variant: "destructive" });
       },
     });
   };
@@ -95,66 +91,70 @@ export default function ExpenseTypesPage() {
     a.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const isSaving = isCreating || isUpdating;
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Expense Types')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <Tags className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+            </div>
+            {t('Expense Types')}
+          </h1>
           <p className="text-muted-foreground mt-1">{t('Manage expense categories and types')}</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-expense-type" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('Add Expense Type')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{editing ? t('Edit Expense Type') : t('Add New Expense Type')}</DialogTitle>
-              <DialogDescription>{t('Enter the expense type name')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Expense Type Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-expense-type-name" placeholder={t('e.g. Office Supplies')} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-expense-type">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Expense Types')}</CardTitle>
-            <Tags className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{typesList?.length || 0}</div>
-          </CardContent>
-        </Card>
       </div>
 
       <Card className="border-border/50 shadow-sm">
-        <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search expense types...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-expense-types" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">{editingId ? t('Edit Expense Type') : t('Add New Expense Type')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-end gap-4">
+            <div className="flex-1 space-y-1.5 w-full">
+              <span className="text-xs font-semibold text-muted-foreground">{t('Expense Type Name')}</span>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('e.g. Office Supplies')}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+                data-testid="input-expense-type-name"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSave} disabled={isSaving} className="gap-2" data-testid="button-save-expense-type">
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editingId ? t('Update') : t('Add')}
+              </Button>
+              {editingId && (
+                <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-cancel-edit-expense-type">
+                  <RotateCcw className="w-4 h-4" />
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Tags className="h-5 w-5 text-purple-600" />
+              {t('Expense Types')}
+              <Badge variant="secondary" className="ml-2">{filtered.length}</Badge>
+            </CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('Search expense types...')}
+                className="pl-9 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                data-testid="input-search-expense-types"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -171,47 +171,41 @@ export default function ExpenseTypesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>#</TableHead>
+                    <TableHead className="w-16">#</TableHead>
                     <TableHead>{t('Expense Type Name')}</TableHead>
-                    <TableHead className="text-right">{t('Actions')}</TableHead>
+                    <TableHead className="text-center w-32">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item: ExpenseType) => (
+                  {filtered.map((item: ExpenseType, index: number) => (
                     <TableRow key={item.id} data-testid={`row-expense-type-${item.id}`}>
-                      <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="gap-1">
-                          <Tags className="h-3 w-3" />
+                      <TableCell className="font-mono text-sm font-bold">{index + 1}</TableCell>
+                      <TableCell className="text-sm font-bold">
+                        <Badge variant="outline" className="gap-1 text-sm">
+                          <Tags className="h-3.5 w-3.5" />
                           {item.name}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-expense-type-${item.id}`}>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => startEdit(item)}
+                            data-testid={`button-edit-expense-type-${item.id}`}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-expense-type-${item.id}`}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>{t('Delete Expense Type')}</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {t('Are you sure you want to delete this expense type?')} ({item.name})
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(item.id)} data-testid={`button-confirm-delete-expense-type-${item.id}`}>
-                                  {t('Delete')}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setDeleteItem(item)}
+                            data-testid={`button-delete-expense-type-${item.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -222,6 +216,23 @@ export default function ExpenseTypesPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteItem} onOpenChange={(open) => { if (!open) setDeleteItem(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Delete Expense Type')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('Are you sure you want to delete this expense type?')} ({deleteItem?.name})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="button-confirm-delete-expense-type">
+              {t('Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
