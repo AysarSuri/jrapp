@@ -302,7 +302,7 @@ export default function ExpensesPage() {
               <Button
                 onClick={handleSave}
                 disabled={isSaving || !expenseTypeId}
-                className="w-full h-12 text-base gap-2 bg-red-600 hover:bg-red-700"
+                className="w-full h-12 text-base gap-2 bg-red-600 hover:bg-red-700 text-[#ffffff]"
                 data-testid="button-save-expense"
               >
                 {isSaving ? (
