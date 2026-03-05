@@ -440,12 +440,12 @@ export default function PurchaseInvoiceUsdPage() {
                 {t('Invoice History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Purchase Invoice History')}</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="space-y-1.5 md:col-span-2">
                   <Label className="text-xs font-semibold text-muted-foreground">{t('Supplier')}</Label>
                   <SupplierSearchSelect
                     suppliers={suppliersList}
