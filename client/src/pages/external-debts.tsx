@@ -1,30 +1,24 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertExternalDebtSchema, type ExternalDebt } from "@shared/routes";
-import { z } from "zod";
 import { useExternalDebts, useCreateExternalDebt, useUpdateExternalDebt, useDeleteExternalDebt } from "@/hooks/use-external-debts";
+import { externalDebts } from "@shared/schema";
+
+type ExternalDebt = typeof externalDebts.$inferSelect;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, HandCoins, Loader2, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, HandCoins, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usd } from "@/lib/format-utils";
+import { playDeleteSound } from "@/lib/sounds";
 
 export default function ExternalDebtsPage() {
   const { t } = useTranslation();
@@ -33,61 +27,75 @@ export default function ExternalDebtsPage() {
   const { mutate: updateDebt, isPending: isUpdating } = useUpdateExternalDebt();
   const { mutate: deleteDebt } = useDeleteExternalDebt();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<ExternalDebt | null>(null);
+
+  const [name, setName] = useState("");
+  const [oldDebtUsd, setOldDebtUsd] = useState("0");
+  const [oldDebtIqd, setOldDebtIqd] = useState("0");
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteItem, setDeleteItem] = useState<ExternalDebt | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  const form = useForm<z.infer<typeof insertExternalDebtSchema>>({
-    resolver: zodResolver(insertExternalDebtSchema),
-    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
-  });
+  const isSaving = isCreating || isUpdating;
 
-  const openCreateDialog = () => {
-    setEditing(null);
-    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
-    setOpen(true);
+  const resetForm = () => {
+    setName("");
+    setOldDebtUsd("0");
+    setOldDebtIqd("0");
+    setEditingId(null);
   };
 
-  const openEditDialog = (item: ExternalDebt) => {
-    setEditing(item);
-    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
-    setOpen(true);
+  const startEdit = (item: ExternalDebt) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setOldDebtUsd(item.oldDebtUsd || "0");
+    setOldDebtIqd(item.oldDebtIqd || "0");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const onSubmit = (values: z.infer<typeof insertExternalDebtSchema>) => {
-    if (editing) {
-      updateDebt({ id: editing.id, data: values }, {
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({ title: t("Please enter the external debt name"), variant: "destructive" });
+      return;
+    }
+
+    const data = { name: name.trim(), oldDebtUsd, oldDebtIqd };
+
+    if (editingId) {
+      updateDebt({ id: editingId, data }, {
         onSuccess: () => {
-          setOpen(false);
-          setEditing(null);
-          form.reset();
           toast({ title: t("External debt updated successfully") });
+          resetForm();
         },
         onError: (err) => {
-          toast({ title: t("Failed to update external debt"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to update external debt"), description: err.message, variant: "destructive" });
         },
       });
     } else {
-      createDebt(values, {
+      createDebt(data, {
         onSuccess: () => {
-          setOpen(false);
-          form.reset();
           toast({ title: t("External debt added successfully") });
+          resetForm();
         },
         onError: (err) => {
-          toast({ title: t("Failed to add external debt"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to add external debt"), description: err.message, variant: "destructive" });
         },
       });
     }
   };
 
-  const handleDelete = (id: number) => {
-    deleteDebt(id, {
+  const handleDelete = () => {
+    if (!deleteItem) return;
+    deleteDebt(deleteItem.id, {
       onSuccess: () => {
         toast({ title: t("External debt deleted successfully") });
+        playDeleteSound();
+        setDeleteItem(null);
+        if (editingId === deleteItem.id) resetForm();
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete external debt"), description: t(err.message), variant: "destructive" });
+        toast({ title: t("Failed to delete external debt"), description: err.message, variant: "destructive" });
+        setDeleteItem(null);
       },
     });
   };
@@ -96,70 +104,80 @@ export default function ExternalDebtsPage() {
     a.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const isSaving = isCreating || isUpdating;
-
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('External Debts')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <HandCoins className="h-6 w-6 text-purple-600" />
+            </div>
+            {t('External Debts')}
+          </h1>
           <p className="text-muted-foreground mt-1">{t('Manage external debts')}</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-external-debt" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('Add External Debt')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{editing ? t('Edit External Debt') : t('Add New External Debt')}</DialogTitle>
-              <DialogDescription>{t('Enter the external debt name')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('External Debt Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-external-debt-name" placeholder={t('e.g. Company ABC')} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance USD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" min="0" placeholder="0.00" data-testid="input-external-debt-old-debt-usd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance IQD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="250" min="0" placeholder="0" data-testid="input-external-debt-old-debt-iqd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-external-debt">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      <Card className={`border-border/50 shadow-sm ${editingId ? "ring-2 ring-orange-400 dark:ring-orange-600" : ""}`} ref={formRef}>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            {editingId ? <Pencil className="h-5 w-5 text-orange-500" /> : <Plus className="h-5 w-5 text-primary" />}
+            {editingId ? t('Edit External Debt') : t('Add External Debt')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-3 items-end">
+            <div className="flex-1 min-w-0">
+              <label className="text-sm font-medium mb-1 block">{t('External Debt Name')}</label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('e.g. Company ABC')}
+                data-testid="input-external-debt-name"
+                onKeyDown={(e) => e.key === "Enter" && handleSave()}
+              />
+            </div>
+            <div className="w-full md:w-44">
+              <label className="text-sm font-medium mb-1 block">{t('Opening Balance USD')}</label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={oldDebtUsd}
+                onChange={(e) => setOldDebtUsd(e.target.value)}
+                placeholder="0.00"
+                data-testid="input-external-debt-old-debt-usd"
+              />
+            </div>
+            <div className="w-full md:w-44">
+              <label className="text-sm font-medium mb-1 block">{t('Opening Balance IQD')}</label>
+              <Input
+                type="number"
+                step="250"
+                min="0"
+                value={oldDebtIqd}
+                onChange={(e) => setOldDebtIqd(e.target.value)}
+                placeholder="0"
+                data-testid="input-external-debt-old-debt-iqd"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSave} disabled={isSaving} data-testid="button-save-external-debt" className="gap-2">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {editingId ? t('Update') : t('Save')}
+              </Button>
+              {editingId && (
+                <Button variant="outline" onClick={resetForm} data-testid="button-cancel-edit-external-debt" className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -198,51 +216,49 @@ export default function ExternalDebtsPage() {
                     <TableHead>{t('External Debt Name')}</TableHead>
                     <TableHead>{t('Opening Balance USD')}</TableHead>
                     <TableHead>{t('Opening Balance IQD')}</TableHead>
-                    <TableHead className="text-right">{t('Actions')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item: ExternalDebt) => (
-                    <TableRow key={item.id} data-testid={`row-external-debt-${item.id}`}>
-                      <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                  {filtered.map((item: ExternalDebt, idx: number) => (
+                    <TableRow
+                      key={item.id}
+                      data-testid={`row-external-debt-${item.id}`}
+                      className={editingId === item.id ? "bg-orange-50 dark:bg-orange-900/10" : ""}
+                    >
+                      <TableCell className="font-mono text-xs">{idx + 1}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
                           <HandCoins className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
+                      <TableCell className="font-mono text-sm font-bold text-red-600">
                         {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : "-"}
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
+                      <TableCell className="font-mono text-sm font-bold text-red-600">
                         {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-external-debt-${item.id}`}>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                            onClick={() => startEdit(item)}
+                            data-testid={`button-edit-external-debt-${item.id}`}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-external-debt-${item.id}`}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>{t('Delete External Debt')}</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {t('Are you sure you want to delete this external debt?')} ({item.name})
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(item.id)} data-testid={`button-confirm-delete-external-debt-${item.id}`}>
-                                  {t('Delete')}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setDeleteItem(item)}
+                            data-testid={`button-delete-external-debt-${item.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -253,6 +269,23 @@ export default function ExternalDebtsPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteItem} onOpenChange={(v) => !v && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Delete External Debt')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('Are you sure you want to delete this external debt?')} ({deleteItem?.name})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} data-testid="button-confirm-delete-external-debt">
+              {t('Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
