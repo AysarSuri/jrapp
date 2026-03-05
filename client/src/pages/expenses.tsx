@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Receipt,
-  Pencil, Trash2, ChevronLeft, ChevronRight, Printer,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -252,6 +252,154 @@ export default function ExpensesPage() {
             </tr>
           </tbody>
         </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+  };
+
+  const handlePrintReceipt = (e: Expense) => {
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Expense Voucher")} #${e.id}</title>
+        <style>
+          ${printStyles}
+          .voucher-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+          }
+          .voucher-details .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .voucher-details .detail-label {
+            font-size: 8pt;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          .voucher-details .detail-value {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #1a1a2e;
+          }
+          .amount-section {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0;
+          }
+          .amount-box {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+          }
+          .amount-box.usd { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; }
+          .amount-box.iqd { background: linear-gradient(135deg, #fff7ed, #fed7aa); border: 2px solid #f97316; }
+          .amount-box .amount-label { font-size: 9pt; color: #666; font-weight: 600; margin-bottom: 6px; }
+          .amount-box .amount-value { font-size: 18pt; font-weight: 800; }
+          .amount-box.usd .amount-value { color: #2563eb; }
+          .amount-box.iqd .amount-value { color: #ea580c; }
+          .description-box {
+            margin: 16px 0;
+            padding: 14px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+          }
+          .description-box .desc-label { font-size: 8pt; color: #888; font-weight: 600; margin-bottom: 4px; }
+          .description-box .desc-value { font-size: 10pt; color: #333; }
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+          }
+          .signature-box {
+            text-align: center;
+            width: 200px;
+          }
+          .signature-box .sig-line { border-top: 1px solid #999; margin-bottom: 6px; }
+          .signature-box .sig-label { font-size: 9pt; color: #666; font-weight: 600; }
+        </style>
+      </head>
+      <body>
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("Expense Voucher")}</h1>
+            <div class="supplier-name">${e.expenseTypeName}</div>
+            <div class="date-range">${t("Voucher")} #${e.id}</div>
+          </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            ${companyProfile?.name ? `<div style="font-size:11pt;font-weight:700;color:${fieldColor};">${companyProfile.name}</div>` : ""}
+          </div>
+        </div>
+
+        <div class="voucher-details">
+          <div class="detail-item">
+            <span class="detail-label">${t("Date")}</span>
+            <span class="detail-value">${formatDate(e.date)}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">${t("Time")}</span>
+            <span class="detail-value">${e.time || "-"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">${t("Expense Type")}</span>
+            <span class="detail-value">${e.expenseTypeName}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">${t("Reference")}</span>
+            <span class="detail-value">${e.reference || "-"}</span>
+          </div>
+        </div>
+
+        <div class="amount-section">
+          <div class="amount-box usd">
+            <div class="amount-label">${t("USD Amount")}</div>
+            <div class="amount-value">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</div>
+          </div>
+          <div class="amount-box iqd">
+            <div class="amount-label">${t("IQD Amount")}</div>
+            <div class="amount-value">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</div>
+          </div>
+        </div>
+
+        ${e.description ? `
+          <div class="description-box">
+            <div class="desc-label">${t("Description")}</div>
+            <div class="desc-value">${e.description}</div>
+          </div>
+        ` : ""}
+
+        <div class="signature-section">
+          <div class="signature-box">
+            <div class="sig-line"></div>
+            <div class="sig-label">${t("Received By")}</div>
+          </div>
+          <div class="signature-box">
+            <div class="sig-line"></div>
+            <div class="sig-label">${t("Approved By")}</div>
+          </div>
+        </div>
       </body>
       </html>
     `);
@@ -524,6 +672,15 @@ export default function ExpensesPage() {
                       <TableCell className="text-sm text-muted-foreground">{e.reference || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => handlePrintReceipt(e)}
+                            data-testid={`button-receipt-expense-${e.id}`}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
