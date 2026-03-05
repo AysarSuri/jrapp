@@ -362,7 +362,7 @@ export default function PurchaseReturnIqdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-red-600 hover:bg-red-700" data-testid="button-save-purchase-return-iqd">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-red-600 hover:bg-red-700 text-[#ffffff]" data-testid="button-save-purchase-return-iqd">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {t('Save Return')}
           </Button>
