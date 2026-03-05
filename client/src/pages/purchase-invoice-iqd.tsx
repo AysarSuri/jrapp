@@ -438,7 +438,7 @@ export default function PurchaseInvoiceIqdPage() {
                 {t('Invoice History')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] xl:max-w-7xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('Purchase Invoice History')}</DialogTitle>
               </DialogHeader>
