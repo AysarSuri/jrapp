@@ -35,6 +35,7 @@ export default function ExternalDebtsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteItem, setDeleteItem] = useState<ExternalDebt | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +48,14 @@ export default function ExternalDebtsPage() {
       d.name.toLowerCase().includes(q) && d.id !== editingId
     ).slice(0, 8);
   }, [name, debtsList, editingId]);
+
+  const searchSuggestions = useMemo(() => {
+    if (!searchTerm.trim() || !debtsList?.length) return [];
+    const q = searchTerm.toLowerCase();
+    return debtsList.filter((d: ExternalDebt) =>
+      d.name.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [searchTerm, debtsList]);
 
   const selectSuggestion = (item: ExternalDebt) => {
     startEdit(item);
@@ -238,9 +247,41 @@ export default function ExternalDebtsPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
-          <div className="relative">
+          <div className="relative max-w-sm">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search external debts...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-external-debts" />
+            <Input
+              placeholder={t('Search external debts...')}
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setShowSearchSuggestions(true); }}
+              onFocus={() => setShowSearchSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+              data-testid="input-search-external-debts"
+              autoComplete="off"
+            />
+            {showSearchSuggestions && searchSuggestions.length > 0 && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {searchSuggestions.map((item: ExternalDebt) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                    onMouseDown={(e) => { e.preventDefault(); setSearchTerm(item.name); setShowSearchSuggestions(false); }}
+                    data-testid={`search-suggestion-external-debt-${item.id}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <HandCoins className="h-3.5 w-3.5 text-purple-500" />
+                      <span className="font-medium">{item.name}</span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                      {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                      {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
