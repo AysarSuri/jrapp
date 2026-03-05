@@ -212,22 +212,16 @@ export default function ExpensesPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        ${companyProfile?.logo || companyProfile?.name ? `
-          <div class="company-header">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}
-            <span class="company-name">${companyProfile?.name || ""}</span>
-          </div>
-        ` : ""}
+        ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
         <div class="report-banner">
           <div class="banner-right">
             <h1>${t("Expense Report")}</h1>
             <div class="supplier-name">${filterTypeName}</div>
             <div class="date-range">${dateRangeText}</div>
           </div>
-          <div class="banner-left">
-            <div style="text-align:center;">
-              <div style="font-size:11pt;font-weight:700;color:${fieldColor};">${t("Total Records")}: ${filteredExpenses.length}</div>
-            </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            <div style="font-size:11pt;font-weight:700;color:${fieldColor};">${t("Total Records")}: ${filteredExpenses.length}</div>
           </div>
         </div>
         <div class="summary-cards">
@@ -258,7 +252,6 @@ export default function ExpensesPage() {
             </tr>
           </tbody>
         </table>
-        ${companyProfile?.cliche ? `<div class="stamp-section"><img src="${companyProfile.cliche}" class="stamp-img" /></div>` : ""}
       </body>
       </html>
     `);
