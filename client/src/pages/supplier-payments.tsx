@@ -58,6 +58,12 @@ export default function SupplierPaymentsPage() {
   const [amountIqd, setAmountIqd] = useState("");
   const [commissionUsd, setCommissionUsd] = useState("");
   const [commissionIqd, setCommissionIqd] = useState("");
+  const [usdExchangeType, setUsdExchangeType] = useState("usd");
+  const [iqdExchangeType, setIqdExchangeType] = useState("iqd");
+  const [usdEquivalentAmount, setUsdEquivalentAmount] = useState("");
+  const [usdEquivalentCommission, setUsdEquivalentCommission] = useState("");
+  const [iqdEquivalentAmount, setIqdEquivalentAmount] = useState("");
+  const [iqdEquivalentCommission, setIqdEquivalentCommission] = useState("");
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -86,6 +92,12 @@ export default function SupplierPaymentsPage() {
           setAmountIqd(data.amountIqd || "0");
           setCommissionUsd(data.commissionUsd || "0");
           setCommissionIqd(data.commissionIqd || "0");
+          setUsdExchangeType(data.usdExchangeType || "usd");
+          setIqdExchangeType(data.iqdExchangeType || "iqd");
+          setUsdEquivalentAmount(data.usdEquivalentAmount || "0");
+          setUsdEquivalentCommission(data.usdEquivalentCommission || "0");
+          setIqdEquivalentAmount(data.iqdEquivalentAmount || "0");
+          setIqdEquivalentCommission(data.iqdEquivalentCommission || "0");
           setNote(data.note || "");
           setReference(data.reference || "");
           setDate(data.date || new Date().toISOString().split('T')[0]);
@@ -125,6 +137,7 @@ export default function SupplierPaymentsPage() {
   }, [banksList, transferOfficesList, t]);
 
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
+  const isBank = paymentSource.startsWith("bank:");
 
   const handleDeletePayment = async () => {
     if (!deletePayment) return;
@@ -151,6 +164,12 @@ export default function SupplierPaymentsPage() {
     setAmountIqd("");
     setCommissionUsd("");
     setCommissionIqd("");
+    setUsdExchangeType("usd");
+    setIqdExchangeType("iqd");
+    setUsdEquivalentAmount("");
+    setUsdEquivalentCommission("");
+    setIqdEquivalentAmount("");
+    setIqdEquivalentCommission("");
     setNote("");
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
@@ -182,6 +201,12 @@ export default function SupplierPaymentsPage() {
       amountIqd: amountIqd || "0",
       commissionUsd: commissionUsd || "0",
       commissionIqd: commissionIqd || "0",
+      usdExchangeType: isBank ? usdExchangeType : "usd",
+      iqdExchangeType: isBank ? iqdExchangeType : "iqd",
+      usdEquivalentAmount: (isBank && usdExchangeType === "iqd") ? (usdEquivalentAmount || "0") : "0",
+      usdEquivalentCommission: (isBank && usdExchangeType === "iqd") ? (usdEquivalentCommission || "0") : "0",
+      iqdEquivalentAmount: (isBank && iqdExchangeType === "usd") ? (iqdEquivalentAmount || "0") : "0",
+      iqdEquivalentCommission: (isBank && iqdExchangeType === "usd") ? (iqdEquivalentCommission || "0") : "0",
       note: note || null,
       reference: reference || null,
       date,
@@ -357,87 +382,165 @@ export default function SupplierPaymentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-600" />
-                    {t('USD Payment')}
+                  <CardTitle className="text-base flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                    <DollarSign className="h-5 w-5" />
+                    {t('USD Account')}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={amountUsd}
-                    onChange={(e) => setAmountUsd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-payment-usd"
-                  />
+                <CardContent className="space-y-4">
+                  {isBank && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">{t('Exchange Type')}</Label>
+                      <Select value={usdExchangeType} onValueChange={(v) => { setUsdExchangeType(v); if (v === "usd") { setUsdEquivalentAmount(""); setUsdEquivalentCommission(""); } }}>
+                        <SelectTrigger data-testid="select-usd-exchange-type" className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="usd">{t('Against USD')}</SelectItem>
+                          <SelectItem value="iqd">{t('Against IQD')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t('USD Payment')}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={amountUsd}
+                      onChange={(e) => setAmountUsd(e.target.value)}
+                      className="text-lg font-mono text-center h-12"
+                      data-testid="input-payment-usd"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t('Commission USD')}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={commissionUsd}
+                      onChange={(e) => setCommissionUsd(e.target.value)}
+                      className="text-sm font-mono text-center h-10 bg-blue-50/30 dark:bg-blue-950/20"
+                      data-testid="input-commission-usd"
+                    />
+                  </div>
+                  {isBank && usdExchangeType === "iqd" && (
+                    <>
+                      <Separator />
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-orange-600 font-semibold">{t('IQD Equivalent')}</Label>
+                        <Input
+                          type="number"
+                          step="250"
+                          min="0"
+                          placeholder="0"
+                          value={usdEquivalentAmount}
+                          onChange={(e) => setUsdEquivalentAmount(e.target.value)}
+                          className="text-lg font-mono text-center h-12 border-orange-300 dark:border-orange-800"
+                          data-testid="input-usd-equivalent-iqd"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-orange-600 font-semibold">{t('IQD Commission')}</Label>
+                        <Input
+                          type="number"
+                          step="250"
+                          min="0"
+                          placeholder="0"
+                          value={usdEquivalentCommission}
+                          onChange={(e) => setUsdEquivalentCommission(e.target.value)}
+                          className="text-sm font-mono text-center h-10 border-orange-300 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/20"
+                          data-testid="input-usd-equivalent-commission-iqd"
+                        />
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Banknote className="h-4 w-4 text-orange-600" />
-                    {t('IQD Payment')}
+                  <CardTitle className="text-base flex items-center gap-2 text-orange-700 dark:text-orange-400">
+                    <Banknote className="h-5 w-5" />
+                    {t('IQD Account')}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number"
-                    step="250"
-                    min="0"
-                    placeholder="0"
-                    value={amountIqd}
-                    onChange={(e) => setAmountIqd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-payment-iqd"
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-blue-100 dark:border-blue-950 bg-blue-50/30 dark:bg-blue-950/20">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-500" />
-                    {t('Commission USD')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={commissionUsd}
-                    onChange={(e) => setCommissionUsd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-commission-usd"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="border-orange-100 dark:border-orange-950 bg-orange-50/30 dark:bg-orange-950/20">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Banknote className="h-4 w-4 text-orange-500" />
-                    {t('Commission IQD')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number"
-                    step="250"
-                    min="0"
-                    placeholder="0"
-                    value={commissionIqd}
-                    onChange={(e) => setCommissionIqd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-commission-iqd"
-                  />
+                <CardContent className="space-y-4">
+                  {isBank && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">{t('Exchange Type')}</Label>
+                      <Select value={iqdExchangeType} onValueChange={(v) => { setIqdExchangeType(v); if (v === "iqd") { setIqdEquivalentAmount(""); setIqdEquivalentCommission(""); } }}>
+                        <SelectTrigger data-testid="select-iqd-exchange-type" className="h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="iqd">{t('Against IQD')}</SelectItem>
+                          <SelectItem value="usd">{t('Against USD')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t('IQD Payment')}</Label>
+                    <Input
+                      type="number"
+                      step="250"
+                      min="0"
+                      placeholder="0"
+                      value={amountIqd}
+                      onChange={(e) => setAmountIqd(e.target.value)}
+                      className="text-lg font-mono text-center h-12"
+                      data-testid="input-payment-iqd"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t('Commission IQD')}</Label>
+                    <Input
+                      type="number"
+                      step="250"
+                      min="0"
+                      placeholder="0"
+                      value={commissionIqd}
+                      onChange={(e) => setCommissionIqd(e.target.value)}
+                      className="text-sm font-mono text-center h-10 bg-orange-50/30 dark:bg-orange-950/20"
+                      data-testid="input-commission-iqd"
+                    />
+                  </div>
+                  {isBank && iqdExchangeType === "usd" && (
+                    <>
+                      <Separator />
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-blue-600 font-semibold">{t('USD Equivalent')}</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          value={iqdEquivalentAmount}
+                          onChange={(e) => setIqdEquivalentAmount(e.target.value)}
+                          className="text-lg font-mono text-center h-12 border-blue-300 dark:border-blue-800"
+                          data-testid="input-iqd-equivalent-usd"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs text-blue-600 font-semibold">{t('USD Commission')}</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          value={iqdEquivalentCommission}
+                          onChange={(e) => setIqdEquivalentCommission(e.target.value)}
+                          className="text-sm font-mono text-center h-10 border-blue-300 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/20"
+                          data-testid="input-iqd-equivalent-commission-usd"
+                        />
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>

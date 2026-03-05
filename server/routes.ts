@@ -914,10 +914,11 @@ export async function registerRoutes(
   app.patch('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { supplierId, supplierName, paymentSource, paymentSourceName, amountUsd, amountIqd, commissionUsd, commissionIqd, note, reference, date, time } = req.body;
+      const { supplierId, supplierName, paymentSource, paymentSourceName, amountUsd, amountIqd, commissionUsd, commissionIqd, usdExchangeType, iqdExchangeType, usdEquivalentAmount, usdEquivalentCommission, iqdEquivalentAmount, iqdEquivalentCommission, note, reference, date, time } = req.body;
       const [updated] = await db.update(supplierPayments).set({
         supplierId, supplierName, paymentSource, paymentSourceName,
         amountUsd, amountIqd, commissionUsd, commissionIqd,
+        usdExchangeType, iqdExchangeType, usdEquivalentAmount, usdEquivalentCommission, iqdEquivalentAmount, iqdEquivalentCommission,
         note, reference, date, time,
       }).where(eq(supplierPayments.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Payment not found" });
