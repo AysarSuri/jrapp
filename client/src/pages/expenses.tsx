@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useExpenseTypes } from "@/hooks/use-expense-types";
 import type { ExpenseType, Expense } from "@shared/schema";
@@ -15,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Receipt,
-  Pencil, Trash2, ChevronLeft, ChevronRight,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Printer,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -23,7 +24,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
+import i18n from "@/lib/i18n";
+
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  logo: string | null;
+  cliche: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+};
 
 export default function ExpensesPage() {
   const { t } = useTranslation();
@@ -33,6 +45,9 @@ export default function ExpensesPage() {
   const { mutate: updateExpense, isPending: isUpdating } = useUpdateExpense();
   const { mutate: deleteExpense } = useDeleteExpense();
   const { data: expenseTypesList } = useExpenseTypes();
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
+  });
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expenseTypeId, setExpenseTypeId] = useState<string>("");
@@ -149,9 +164,108 @@ export default function ExpensesPage() {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedExpenses = filteredExpenses.slice((safePage - 1) * pageSize, safePage * pageSize);
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
-
   const totalUsd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountUsd || "0"), 0);
   const totalIqd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountIqd || "0"), 0);
+
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const fieldColor = companyProfile?.primaryColor || "#dc2626";
+  const textColor = companyProfile?.secondaryColor || "#ffffff";
+
+  const handlePrintReport = () => {
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const filterTypeName = historyFilter && historyFilter !== "all"
+      ? types.find(et => String(et.id) === historyFilter)?.name || ""
+      : t("All Expense Types");
+
+    const filteredTotalUsd = filteredExpenses.reduce((s: number, e: Expense) => s + parseFloat(e.amountUsd || "0"), 0);
+    const filteredTotalIqd = filteredExpenses.reduce((s: number, e: Expense) => s + parseFloat(e.amountIqd || "0"), 0);
+
+    const rows = filteredExpenses.map((e: Expense, idx: number) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatDate(e.date)}</td>
+        <td>${e.time || "-"}</td>
+        <td><strong>${e.expenseTypeName}</strong></td>
+        <td class="debit">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</td>
+        <td class="credit">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
+        <td>${e.description || "-"}</td>
+        <td>${e.reference || "-"}</td>
+      </tr>
+    `).join("");
+
+    const dateRangeText = historyFromDate && historyToDate
+      ? `${formatDate(historyFromDate)} - ${formatDate(historyToDate)}`
+      : historyFromDate ? `${formatDate(historyFromDate)} - ${t("Now")}`
+      : historyToDate ? `${t("Beginning")} - ${formatDate(historyToDate)}`
+      : formatDate(new Date());
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Expense Report")}</title>
+        <style>${printStyles}</style>
+      </head>
+      <body>
+        ${companyProfile?.logo || companyProfile?.name ? `
+          <div class="company-header">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}
+            <span class="company-name">${companyProfile?.name || ""}</span>
+          </div>
+        ` : ""}
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("Expense Report")}</h1>
+            <div class="supplier-name">${filterTypeName}</div>
+            <div class="date-range">${dateRangeText}</div>
+          </div>
+          <div class="banner-left">
+            <div style="text-align:center;">
+              <div style="font-size:11pt;font-weight:700;color:${fieldColor};">${t("Total Records")}: ${filteredExpenses.length}</div>
+            </div>
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-blue"><div class="label">${t("Total USD")}</div><div class="value blue">${usd(filteredTotalUsd)}</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Total IQD")}</div><div class="value red">${filteredTotalIqd.toLocaleString()} IQD</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Total Records")}</div><div class="value green">${filteredExpenses.length}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("Date")}</th>
+              <th>${t("Time")}</th>
+              <th>${t("Expense Type")}</th>
+              <th>${t("USD Amount")}</th>
+              <th>${t("IQD Amount")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Reference")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="4"><strong>${t("Total")}</strong></td>
+              <td class="debit"><strong>${usd(filteredTotalUsd)}</strong></td>
+              <td class="credit"><strong>${filteredTotalIqd.toLocaleString()} IQD</strong></td>
+              <td colspan="2"></td>
+            </tr>
+          </tbody>
+        </table>
+        ${companyProfile?.cliche ? `<div class="stamp-section"><img src="${companyProfile.cliche}" class="stamp-img" /></div>` : ""}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+  };
 
   return (
     <div className="space-y-6">
@@ -369,6 +483,10 @@ export default function ExpensesPage() {
                   inputClassName="h-9"
                 />
               </div>
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-expense-report">
+                <Printer className="h-4 w-4" />
+                {t('Print Report')}
+              </Button>
             </div>
           </div>
         </CardHeader>
