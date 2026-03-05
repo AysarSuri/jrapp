@@ -511,15 +511,15 @@ export default function PurchaseInvoiceIqdPage() {
                           <TableCell className="text-right font-mono font-bold text-orange-600">{Number(inv.discount).toLocaleString()} IQD</TableCell>
                           <TableCell className="text-right font-mono font-bold text-red-600">{Number(inv.remaining).toLocaleString()} IQD</TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-iqd-invoice-${inv.id}`}>
-                                <Eye className="h-3.5 w-3.5 text-blue-600" />
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-iqd-invoice-${inv.id}`}>
+                                <Eye className="h-4 w-4 text-blue-600" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-iqd?edit=${inv.id}`); }} data-testid={`btn-edit-iqd-invoice-${inv.id}`}>
-                                <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-iqd?edit=${inv.id}`); }} data-testid={`btn-edit-iqd-invoice-${inv.id}`}>
+                                <Pencil className="h-4 w-4 text-orange-600" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-iqd-invoice-${inv.id}`}>
-                                <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-iqd-invoice-${inv.id}`}>
+                                <Trash2 className="h-4 w-4 text-red-600" />
                               </Button>
                             </div>
                           </TableCell>
