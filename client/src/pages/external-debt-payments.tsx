@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalDebtTransactions, useCreateExternalDebtTransaction, useUpdateExternalDebtTransaction, useDeleteExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
 import { useQuery } from "@tanstack/react-query";
@@ -6,9 +6,6 @@ import type { ExternalDebt, ExternalDebtTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -44,6 +41,8 @@ export default function ExternalDebtPaymentsPage() {
 
   const [debtId, setDebtId] = useState<string>("");
   const [debtName, setDebtName] = useState("");
+  const [debtSearch, setDebtSearch] = useState("");
+  const [showDebtSuggestions, setShowDebtSuggestions] = useState(false);
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
@@ -51,6 +50,8 @@ export default function ExternalDebtPaymentsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFilterSearch, setHistoryFilterSearch] = useState("");
+  const [showHistoryFilterSuggestions, setShowHistoryFilterSuggestions] = useState(false);
   const [historyFromDate, setHistoryFromDate] = useState("");
   const [historyToDate, setHistoryToDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +59,8 @@ export default function ExternalDebtPaymentsPage() {
   const [editPayment, setEditPayment] = useState<ExternalDebtTransaction | null>(null);
   const [editDebtId, setEditDebtId] = useState("");
   const [editDebtName, setEditDebtName] = useState("");
+  const [editDebtSearch, setEditDebtSearch] = useState("");
+  const [showEditDebtSuggestions, setShowEditDebtSuggestions] = useState(false);
   const [editAmountUsd, setEditAmountUsd] = useState("");
   const [editAmountIqd, setEditAmountIqd] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -66,11 +69,34 @@ export default function ExternalDebtPaymentsPage() {
   const [editTime, setEditTime] = useState("");
 
   const debts = debtsList || [];
+  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+
+  const debtSuggestions = useMemo(() => {
+    if (!debtSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = debtSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [debtSearch, debts]);
+
+  const editDebtSuggestions = useMemo(() => {
+    if (!editDebtSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = editDebtSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [editDebtSearch, debts]);
+
+  const historyFilterSuggestions = useMemo(() => {
+    if (!historyFilterSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = historyFilterSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [historyFilterSearch, debts]);
 
   const selectDebt = useCallback((id: string) => {
     setDebtId(id);
     const debt = debts.find(b => b.id === parseInt(id));
-    if (debt) setDebtName(debt.name);
+    if (debt) {
+      setDebtName(debt.name);
+      setDebtSearch(debt.name);
+    }
+    setShowDebtSuggestions(false);
   }, [debts]);
 
   const selectedDebt = debts.find(b => b.id === parseInt(debtId));
@@ -78,6 +104,8 @@ export default function ExternalDebtPaymentsPage() {
   const resetForm = () => {
     setDebtId("");
     setDebtName("");
+    setDebtSearch("");
+    setShowDebtSuggestions(false);
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -123,6 +151,7 @@ export default function ExternalDebtPaymentsPage() {
     setEditPayment(p);
     setEditDebtId(String(p.debtId));
     setEditDebtName(p.debtName);
+    setEditDebtSearch(p.debtName);
     setEditAmountUsd(p.amountUsd);
     setEditAmountIqd(p.amountIqd);
     setEditDescription(p.description || "");
@@ -186,7 +215,6 @@ export default function ExternalDebtPaymentsPage() {
   const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedPayments = filteredPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
     <div className="space-y-6">
@@ -215,18 +243,43 @@ export default function ExternalDebtPaymentsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
-                <Select value={debtId} onValueChange={selectDebt}>
-                  <SelectTrigger data-testid="select-external-debt-payment">
-                    <SelectValue placeholder={t('Select external debt...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    value={debtSearch}
+                    onChange={(e) => {
+                      setDebtSearch(e.target.value);
+                      setShowDebtSuggestions(true);
+                      if (!e.target.value.trim()) { setDebtId(""); setDebtName(""); }
+                    }}
+                    onFocus={() => setShowDebtSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowDebtSuggestions(false), 200)}
+                    placeholder={t('Select external debt...')}
+                    data-testid="select-external-debt-payment"
+                    autoComplete="off"
+                  />
+                  {showDebtSuggestions && debtSuggestions.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {debtSuggestions.map((item: ExternalDebt) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                          onMouseDown={(e) => { e.preventDefault(); selectDebt(String(item.id)); }}
+                          data-testid={`suggestion-payment-debt-${item.id}`}
+                        >
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                            {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                            {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -369,18 +422,56 @@ export default function ExternalDebtPaymentsPage() {
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-ext-debt-payment-history-to-date" />
               </div>
-              <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-ext-debt-payment-history" className="h-9">
-                    <SelectValue placeholder={t('All External Debts')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All External Debts')}</SelectItem>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+              <div className="w-48 relative">
+                <Input
+                  value={historyFilterSearch}
+                  onChange={(e) => {
+                    setHistoryFilterSearch(e.target.value);
+                    setShowHistoryFilterSuggestions(true);
+                    if (!e.target.value.trim()) { setHistoryFilter(""); setCurrentPage(1); }
+                  }}
+                  onFocus={() => setShowHistoryFilterSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowHistoryFilterSuggestions(false), 200)}
+                  placeholder={t('All External Debts')}
+                  className="h-9"
+                  data-testid="select-filter-ext-debt-payment-history"
+                  autoComplete="off"
+                />
+                {showHistoryFilterSuggestions && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <button
+                      type="button"
+                      className="w-full text-start px-3 py-2 hover:bg-muted/80 text-sm font-medium transition-colors"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setHistoryFilter("");
+                        setHistoryFilterSearch("");
+                        setShowHistoryFilterSuggestions(false);
+                        setCurrentPage(1);
+                      }}
+                      data-testid="suggestion-filter-payment-debt-all"
+                    >
+                      {t('All External Debts')}
+                    </button>
+                    {historyFilterSuggestions.map((item: ExternalDebt) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setHistoryFilter(String(item.id));
+                          setHistoryFilterSearch(item.name);
+                          setShowHistoryFilterSuggestions(false);
+                          setCurrentPage(1);
+                        }}
+                        data-testid={`suggestion-filter-payment-debt-${item.id}`}
+                      >
+                        <span className="font-medium">{item.name}</span>
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -523,22 +614,49 @@ export default function ExternalDebtPaymentsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
-                <Select value={editDebtId} onValueChange={(v) => {
-                  setEditDebtId(v);
-                  const d = debts.find(b => b.id === parseInt(v));
-                  if (d) setEditDebtName(d.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-ext-debt-payment">
-                    <SelectValue placeholder={t('Select external debt...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    value={editDebtSearch}
+                    onChange={(e) => {
+                      setEditDebtSearch(e.target.value);
+                      setShowEditDebtSuggestions(true);
+                      if (!e.target.value.trim()) { setEditDebtId(""); setEditDebtName(""); }
+                    }}
+                    onFocus={() => setShowEditDebtSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowEditDebtSuggestions(false), 200)}
+                    placeholder={t('Select external debt...')}
+                    data-testid="select-edit-ext-debt-payment"
+                    autoComplete="off"
+                  />
+                  {showEditDebtSuggestions && editDebtSuggestions.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {editDebtSuggestions.map((item: ExternalDebt) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setEditDebtId(String(item.id));
+                            setEditDebtName(item.name);
+                            setEditDebtSearch(item.name);
+                            setShowEditDebtSuggestions(false);
+                          }}
+                          data-testid={`suggestion-edit-payment-debt-${item.id}`}
+                        >
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                            {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                            {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
