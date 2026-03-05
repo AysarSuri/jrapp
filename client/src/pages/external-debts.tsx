@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalDebts, useCreateExternalDebt, useUpdateExternalDebt, useDeleteExternalDebt } from "@/hooks/use-external-debts";
 import { externalDebts } from "@shared/schema";
@@ -34,15 +34,31 @@ export default function ExternalDebtsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteItem, setDeleteItem] = useState<ExternalDebt | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const isSaving = isCreating || isUpdating;
+
+  const nameSuggestions = useMemo(() => {
+    if (!name.trim() || !debtsList?.length) return [];
+    const q = name.toLowerCase();
+    return debtsList.filter((d: ExternalDebt) =>
+      d.name.toLowerCase().includes(q) && d.id !== editingId
+    ).slice(0, 8);
+  }, [name, debtsList, editingId]);
+
+  const selectSuggestion = (item: ExternalDebt) => {
+    startEdit(item);
+    setShowSuggestions(false);
+  };
 
   const resetForm = () => {
     setName("");
     setOldDebtUsd("0");
     setOldDebtIqd("0");
     setEditingId(null);
+    setShowSuggestions(false);
   };
 
   const startEdit = (item: ExternalDebt) => {
@@ -129,15 +145,44 @@ export default function ExternalDebtsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-3 items-end">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative">
               <label className="text-sm font-medium mb-1 block">{t('External Debt Name')}</label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => { setName(e.target.value); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder={t('e.g. Company ABC')}
                 data-testid="input-external-debt-name"
                 onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                autoComplete="off"
               />
+              {showSuggestions && nameSuggestions.length > 0 && !editingId && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                >
+                  {nameSuggestions.map((item: ExternalDebt) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                      onMouseDown={(e) => { e.preventDefault(); selectSuggestion(item); }}
+                      data-testid={`suggestion-external-debt-${item.id}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <HandCoins className="h-3.5 w-3.5 text-purple-500" />
+                        <span className="font-medium">{item.name}</span>
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                        {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="w-full md:w-44">
               <label className="text-sm font-medium mb-1 block">{t('Opening Balance USD')}</label>
