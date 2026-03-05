@@ -18,11 +18,8 @@ import {
   Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
@@ -37,6 +34,7 @@ export default function ExpensesPage() {
   const { mutate: deleteExpense } = useDeleteExpense();
   const { data: expenseTypesList } = useExpenseTypes();
 
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [expenseTypeId, setExpenseTypeId] = useState<string>("");
   const [expenseTypeName, setExpenseTypeName] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
@@ -50,20 +48,13 @@ export default function ExpensesPage() {
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [editExpense, setEditExpense] = useState<Expense | null>(null);
-  const [editExpenseTypeId, setEditExpenseTypeId] = useState("");
-  const [editExpenseTypeName, setEditExpenseTypeName] = useState("");
-  const [editAmountUsd, setEditAmountUsd] = useState("");
-  const [editAmountIqd, setEditAmountIqd] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
+  const [deleteItem, setDeleteItem] = useState<Expense | null>(null);
 
   const types: ExpenseType[] = expenseTypesList || [];
-
+  const isBusy = isSaving || isUpdating;
 
   const resetForm = () => {
+    setEditingId(null);
     setExpenseTypeId("");
     setExpenseTypeName("");
     setAmountUsd("");
@@ -72,6 +63,19 @@ export default function ExpensesPage() {
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
+  };
+
+  const startEdit = (e: Expense) => {
+    setEditingId(e.id);
+    setExpenseTypeId(String(e.expenseTypeId));
+    setExpenseTypeName(e.expenseTypeName);
+    setAmountUsd(e.amountUsd);
+    setAmountIqd(e.amountIqd);
+    setDescription(e.description || "");
+    setReference(e.reference || "");
+    setDate(e.date);
+    setTime(e.time || "00:00");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSave = () => {
@@ -86,7 +90,7 @@ export default function ExpensesPage() {
       return;
     }
 
-    createExpense({
+    const payload = {
       expenseTypeId: parseInt(expenseTypeId),
       expenseTypeName,
       amountUsd: amountUsd || "0",
@@ -95,66 +99,38 @@ export default function ExpensesPage() {
       reference: reference || null,
       date,
       time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Expense saved successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Failed to save expense"), variant: "destructive" });
-      },
-    });
-  };
+    };
 
-  const openEdit = (e: Expense) => {
-    setEditExpense(e);
-    setEditExpenseTypeId(String(e.expenseTypeId));
-    setEditExpenseTypeName(e.expenseTypeName);
-    setEditAmountUsd(e.amountUsd);
-    setEditAmountIqd(e.amountIqd);
-    setEditDescription(e.description || "");
-    setEditReference(e.reference || "");
-    setEditDate(e.date);
-    setEditTime(e.time || "00:00");
-  };
-
-  const handleUpdate = () => {
-    if (!editExpense) return;
-    if (!editExpenseTypeId) {
-      toast({ title: t("Please select an expense type"), variant: "destructive" });
-      return;
+    if (editingId) {
+      updateExpense({ id: editingId, data: payload }, {
+        onSuccess: () => {
+          toast({ title: t("Expense updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to update expense"), variant: "destructive" });
+        },
+      });
+    } else {
+      createExpense(payload, {
+        onSuccess: () => {
+          toast({ title: t("Expense saved successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to save expense"), variant: "destructive" });
+        },
+      });
     }
-    const usdVal = parseFloat(editAmountUsd || "0");
-    const iqdVal = parseFloat(editAmountIqd || "0");
-    if (usdVal <= 0 && iqdVal <= 0) {
-      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
-      return;
-    }
-
-    updateExpense({ id: editExpense.id, data: {
-      expenseTypeId: parseInt(editExpenseTypeId),
-      expenseTypeName: editExpenseTypeName,
-      amountUsd: editAmountUsd || "0",
-      amountIqd: editAmountIqd || "0",
-      description: editDescription || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
-    }}, {
-      onSuccess: () => {
-        toast({ title: t("Expense updated successfully") });
-        setEditExpense(null);
-      },
-      onError: () => {
-        toast({ title: t("Failed to update expense"), variant: "destructive" });
-      },
-    });
   };
 
-  const handleDelete = (id: number) => {
-    deleteExpense(id, {
+  const handleDelete = () => {
+    if (!deleteItem) return;
+    deleteExpense(deleteItem.id, {
       onSuccess: () => {
         toast({ title: t("Expense deleted successfully") });
+        setDeleteItem(null);
+        if (editingId === deleteItem.id) resetForm();
       },
       onError: () => {
         toast({ title: t("Failed to delete expense"), variant: "destructive" });
@@ -198,9 +174,19 @@ export default function ExpensesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-border/50 shadow-sm">
+        <Card className={`lg:col-span-2 shadow-sm ${editingId ? 'border-orange-300 dark:border-orange-700' : 'border-border/50'}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Expense Details')}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {editingId ? (
+                <>
+                  <Pencil className="h-5 w-5 text-orange-600" />
+                  {t('Edit Expense')}
+                  <Badge variant="outline" className="ml-2 text-orange-600 border-orange-300">#{editingId}</Badge>
+                </>
+              ) : (
+                t('Expense Details')
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -273,9 +259,9 @@ export default function ExpensesPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-red-200 dark:border-red-900 shadow-sm">
+          <Card className={`shadow-sm ${editingId ? 'border-orange-200 dark:border-orange-900' : 'border-red-200 dark:border-red-900'}`}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('Expense Summary')}</CardTitle>
+              <CardTitle className="text-lg">{editingId ? t('Edit Expense') : t('Expense Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {expenseTypeName && (
@@ -299,19 +285,32 @@ export default function ExpensesPage() {
                 </div>
               </div>
 
-              <Button
-                onClick={handleSave}
-                disabled={isSaving || !expenseTypeId}
-                className="w-full h-12 text-base gap-2 bg-red-600 hover:bg-red-700 text-[#ffffff]"
-                data-testid="button-save-expense"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Save className="h-5 w-5" />
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSave}
+                  disabled={isBusy || !expenseTypeId}
+                  className={`flex-1 h-12 text-base gap-2 text-[#ffffff] ${editingId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}`}
+                  data-testid="button-save-expense"
+                >
+                  {isBusy ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Save className="h-5 w-5" />
+                  )}
+                  {editingId ? t('Update Expense') : t('Save Expense')}
+                </Button>
+                {editingId && (
+                  <Button
+                    variant="outline"
+                    onClick={resetForm}
+                    className="h-12 gap-2"
+                    data-testid="button-cancel-edit-expense"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    {t('Cancel')}
+                  </Button>
                 )}
-                {t('Save Expense')}
-              </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -395,7 +394,11 @@ export default function ExpensesPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedExpenses.map((e: Expense, i: number) => (
-                    <TableRow key={e.id} data-testid={`row-expense-${e.id}`}>
+                    <TableRow
+                      key={e.id}
+                      className={editingId === e.id ? "bg-orange-50 dark:bg-orange-900/10" : ""}
+                      data-testid={`row-expense-${e.id}`}
+                    >
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{e.date}</TableCell>
                       <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
@@ -409,38 +412,25 @@ export default function ExpensesPage() {
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{e.description || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.reference || "-"}</TableCell>
                       <TableCell>
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => openEdit(e)}
+                            onClick={() => startEdit(e)}
                             data-testid={`button-edit-expense-${e.id}`}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                data-testid={`button-delete-expense-${e.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
-                                <AlertDialogDescription>{t('This will permanently delete this expense.')}</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(e.id)}>{t('Yes')}</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setDeleteItem(e)}
+                            data-testid={`button-delete-expense-${e.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -501,73 +491,18 @@ export default function ExpensesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editExpense} onOpenChange={(open) => { if (!open) setEditExpense(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit Expense')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Expense Type')}</Label>
-                <ExpenseTypeSearchSelect
-                  items={types}
-                  value={editExpenseTypeId}
-                  onValueChange={(id, name) => { setEditExpenseTypeId(id); setEditExpenseTypeName(name); }}
-                  placeholder={t('Search expense type...')}
-                  data-testid="select-edit-expense-type"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-expense-date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Time')}</Label>
-              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-expense-time" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-expense-usd"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-expense-iqd"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-expense-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-expense-description" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditExpense(null)}>{t('No')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-expense">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {t('Update')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AlertDialog open={!!deleteItem} onOpenChange={(open) => { if (!open) setDeleteItem(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('This will permanently delete this expense.')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('Yes')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
