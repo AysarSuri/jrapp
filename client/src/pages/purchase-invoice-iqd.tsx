@@ -497,19 +497,19 @@ export default function PurchaseInvoiceIqdPage() {
                     <TableBody>
                       {filteredInvoices.map((inv: PurchaseInvoice) => (
                         <TableRow key={inv.id}>
-                          <TableCell>{inv.id}</TableCell>
-                          <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                          <TableCell>{formatDate(inv.date)}</TableCell>
-                          <TableCell>{inv.supplierName}</TableCell>
+                          <TableCell className="text-sm font-bold">{inv.id}</TableCell>
+                          <TableCell className="text-sm font-bold font-mono">{inv.invoiceNumber}</TableCell>
+                          <TableCell className="text-sm font-bold">{formatDate(inv.date)}</TableCell>
+                          <TableCell className="text-sm font-bold">{inv.supplierName}</TableCell>
                           <TableCell>
-                            <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>
+                            <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'} className="text-sm">
                               {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right font-mono font-bold">{Number(inv.subtotal).toLocaleString()} IQD</TableCell>
-                          <TableCell className="text-right font-mono font-bold text-green-600">{Number(inv.amountPaid).toLocaleString()} IQD</TableCell>
-                          <TableCell className="text-right font-mono font-bold text-orange-600">{Number(inv.discount).toLocaleString()} IQD</TableCell>
-                          <TableCell className="text-right font-mono font-bold text-red-600">{Number(inv.remaining).toLocaleString()} IQD</TableCell>
+                          <TableCell className="text-right text-sm font-mono font-bold">{Number(inv.subtotal).toLocaleString()} IQD</TableCell>
+                          <TableCell className="text-right text-sm font-mono font-bold text-green-600">{Number(inv.amountPaid).toLocaleString()} IQD</TableCell>
+                          <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{Number(inv.discount).toLocaleString()} IQD</TableCell>
+                          <TableCell className="text-right text-sm font-mono font-bold text-red-600">{Number(inv.remaining).toLocaleString()} IQD</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-iqd-invoice-${inv.id}`}>
