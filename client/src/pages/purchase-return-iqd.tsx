@@ -380,7 +380,7 @@ export default function PurchaseReturnIqdPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Return #')}</Label>
-              <Input value={returnNumber} onChange={(e) => setReturnNumber(e.target.value)} className="font-mono bg-muted/30" data-testid="input-purchase-return-iqd-number" />
+              <Input value={returnNumber} readOnly className="font-mono bg-muted/30" data-testid="input-purchase-return-iqd-number" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
