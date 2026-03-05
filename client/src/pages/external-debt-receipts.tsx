@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +50,8 @@ export default function ExternalDebtReceiptsPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFilterSearch, setHistoryFilterSearch] = useState("");
+  const [showHistoryFilterSuggestions, setShowHistoryFilterSuggestions] = useState(false);
   const [historyFromDate, setHistoryFromDate] = useState("");
   const [historyToDate, setHistoryToDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,6 +81,12 @@ export default function ExternalDebtReceiptsPage() {
     const q = editDebtSearch.toLowerCase();
     return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
   }, [editDebtSearch, debts]);
+
+  const historyFilterSuggestions = useMemo(() => {
+    if (!historyFilterSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = historyFilterSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [historyFilterSearch, debts]);
 
   const selectDebt = useCallback((id: string) => {
     setDebtId(id);
@@ -419,18 +424,56 @@ export default function ExternalDebtReceiptsPage() {
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-ext-debt-receipt-history-to-date" />
               </div>
-              <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-ext-debt-receipt-history" className="h-9">
-                    <SelectValue placeholder={t('All External Debts')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All External Debts')}</SelectItem>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+              <div className="w-48 relative">
+                <Input
+                  value={historyFilterSearch}
+                  onChange={(e) => {
+                    setHistoryFilterSearch(e.target.value);
+                    setShowHistoryFilterSuggestions(true);
+                    if (!e.target.value.trim()) { setHistoryFilter(""); setCurrentPage(1); }
+                  }}
+                  onFocus={() => setShowHistoryFilterSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowHistoryFilterSuggestions(false), 200)}
+                  placeholder={t('All External Debts')}
+                  className="h-9"
+                  data-testid="select-filter-ext-debt-receipt-history"
+                  autoComplete="off"
+                />
+                {showHistoryFilterSuggestions && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <button
+                      type="button"
+                      className="w-full text-start px-3 py-2 hover:bg-muted/80 text-sm font-medium transition-colors"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setHistoryFilter("");
+                        setHistoryFilterSearch("");
+                        setShowHistoryFilterSuggestions(false);
+                        setCurrentPage(1);
+                      }}
+                      data-testid="suggestion-filter-debt-all"
+                    >
+                      {t('All External Debts')}
+                    </button>
+                    {historyFilterSuggestions.map((item: ExternalDebt) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setHistoryFilter(String(item.id));
+                          setHistoryFilterSearch(item.name);
+                          setShowHistoryFilterSuggestions(false);
+                          setCurrentPage(1);
+                        }}
+                        data-testid={`suggestion-filter-debt-${item.id}`}
+                      >
+                        <span className="font-medium">{item.name}</span>
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
             </div>
           </div>
