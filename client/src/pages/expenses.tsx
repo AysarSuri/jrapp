@@ -212,7 +212,7 @@ export default function ExpensesPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        ${companyProfile?.cliche ? `<div class="cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+        
         <div class="report-banner">
           <div class="banner-right">
             <h1>${t("Expense Report")}</h1>
