@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalDebtTransactions, useCreateExternalDebtTransaction, useUpdateExternalDebtTransaction, useDeleteExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
 import { useQuery } from "@tanstack/react-query";
@@ -44,6 +44,8 @@ export default function ExternalDebtReceiptsPage() {
 
   const [debtId, setDebtId] = useState<string>("");
   const [debtName, setDebtName] = useState("");
+  const [debtSearch, setDebtSearch] = useState("");
+  const [showDebtSuggestions, setShowDebtSuggestions] = useState(false);
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +60,8 @@ export default function ExternalDebtReceiptsPage() {
   const [editReceipt, setEditReceipt] = useState<ExternalDebtTransaction | null>(null);
   const [editDebtId, setEditDebtId] = useState("");
   const [editDebtName, setEditDebtName] = useState("");
+  const [editDebtSearch, setEditDebtSearch] = useState("");
+  const [showEditDebtSuggestions, setShowEditDebtSuggestions] = useState(false);
   const [editAmountUsd, setEditAmountUsd] = useState("");
   const [editAmountIqd, setEditAmountIqd] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -67,10 +71,26 @@ export default function ExternalDebtReceiptsPage() {
 
   const debts = debtsList || [];
 
+  const debtSuggestions = useMemo(() => {
+    if (!debtSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = debtSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [debtSearch, debts]);
+
+  const editDebtSuggestions = useMemo(() => {
+    if (!editDebtSearch.trim() || !debts.length) return debts.slice(0, 8);
+    const q = editDebtSearch.toLowerCase();
+    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [editDebtSearch, debts]);
+
   const selectDebt = useCallback((id: string) => {
     setDebtId(id);
     const debt = debts.find(b => b.id === parseInt(id));
-    if (debt) setDebtName(debt.name);
+    if (debt) {
+      setDebtName(debt.name);
+      setDebtSearch(debt.name);
+    }
+    setShowDebtSuggestions(false);
   }, [debts]);
 
   const selectedDebt = debts.find(b => b.id === parseInt(debtId));
@@ -78,6 +98,8 @@ export default function ExternalDebtReceiptsPage() {
   const resetForm = () => {
     setDebtId("");
     setDebtName("");
+    setDebtSearch("");
+    setShowDebtSuggestions(false);
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -123,6 +145,7 @@ export default function ExternalDebtReceiptsPage() {
     setEditReceipt(r);
     setEditDebtId(String(r.debtId));
     setEditDebtName(r.debtName);
+    setEditDebtSearch(r.debtName);
     setEditAmountUsd(r.amountUsd);
     setEditAmountIqd(r.amountIqd);
     setEditDescription(r.description || "");
@@ -215,18 +238,43 @@ export default function ExternalDebtReceiptsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
-                <Select value={debtId} onValueChange={selectDebt}>
-                  <SelectTrigger data-testid="select-receipt-external-debt">
-                    <SelectValue placeholder={t('Select external debt...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    value={debtSearch}
+                    onChange={(e) => {
+                      setDebtSearch(e.target.value);
+                      setShowDebtSuggestions(true);
+                      if (!e.target.value.trim()) { setDebtId(""); setDebtName(""); }
+                    }}
+                    onFocus={() => setShowDebtSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowDebtSuggestions(false), 200)}
+                    placeholder={t('Select external debt...')}
+                    data-testid="select-receipt-external-debt"
+                    autoComplete="off"
+                  />
+                  {showDebtSuggestions && debtSuggestions.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {debtSuggestions.map((item: ExternalDebt) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                          onMouseDown={(e) => { e.preventDefault(); selectDebt(String(item.id)); }}
+                          data-testid={`suggestion-receipt-debt-${item.id}`}
+                        >
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                            {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                            {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -525,22 +573,49 @@ export default function ExternalDebtReceiptsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
-                <Select value={editDebtId} onValueChange={(v) => {
-                  setEditDebtId(v);
-                  const d = debts.find(b => b.id === parseInt(v));
-                  if (d) setEditDebtName(d.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-ext-debt-receipt">
-                    <SelectValue placeholder={t('Select external debt...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {debts.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Input
+                    value={editDebtSearch}
+                    onChange={(e) => {
+                      setEditDebtSearch(e.target.value);
+                      setShowEditDebtSuggestions(true);
+                      if (!e.target.value.trim()) { setEditDebtId(""); setEditDebtName(""); }
+                    }}
+                    onFocus={() => setShowEditDebtSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowEditDebtSuggestions(false), 200)}
+                    placeholder={t('Select external debt...')}
+                    data-testid="select-edit-ext-debt-receipt"
+                    autoComplete="off"
+                  />
+                  {showEditDebtSuggestions && editDebtSuggestions.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {editDebtSuggestions.map((item: ExternalDebt) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setEditDebtId(String(item.id));
+                            setEditDebtName(item.name);
+                            setEditDebtSearch(item.name);
+                            setShowEditDebtSuggestions(false);
+                          }}
+                          data-testid={`suggestion-edit-debt-${item.id}`}
+                        >
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
+                            {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
+                            {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
