@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useExpenseTypes } from "@/hooks/use-expense-types";
@@ -6,9 +6,7 @@ import type { ExpenseType, Expense } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { ExpenseTypeSearchSelect } from "@/components/expense-type-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -64,11 +62,6 @@ export default function ExpensesPage() {
 
   const types: ExpenseType[] = expenseTypesList || [];
 
-  const selectType = useCallback((id: string) => {
-    setExpenseTypeId(id);
-    const et = types.find(t => t.id === parseInt(id));
-    if (et) setExpenseTypeName(et.name);
-  }, [types]);
 
   const resetForm = () => {
     setExpenseTypeId("");
@@ -213,16 +206,13 @@ export default function ExpensesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Expense Type')}</Label>
-                <Select value={expenseTypeId} onValueChange={selectType}>
-                  <SelectTrigger data-testid="select-expense-type">
-                    <SelectValue placeholder={t('Select expense type...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {types.map(et => (
-                      <SelectItem key={et.id} value={String(et.id)}>{et.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ExpenseTypeSearchSelect
+                  items={types}
+                  value={expenseTypeId}
+                  onValueChange={(id, name) => { setExpenseTypeId(id); setExpenseTypeName(name); }}
+                  placeholder={t('Search expense type...')}
+                  data-testid="select-expense-type"
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -369,17 +359,16 @@ export default function ExpensesPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-expense-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-expense-history" className="h-9">
-                    <SelectValue placeholder={t('All Expense Types')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Expense Types')}</SelectItem>
-                    {types.map(et => (
-                      <SelectItem key={et.id} value={String(et.id)}>{et.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ExpenseTypeSearchSelect
+                  items={types}
+                  value={historyFilter}
+                  onValueChange={(id) => { setHistoryFilter(id); setCurrentPage(1); }}
+                  placeholder={t('All Expense Types')}
+                  showAllOption
+                  allOptionLabel={t('All Expense Types')}
+                  data-testid="select-filter-expense-history"
+                  inputClassName="h-9"
+                />
               </div>
             </div>
           </div>
@@ -524,20 +513,13 @@ export default function ExpensesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Expense Type')}</Label>
-                <Select value={editExpenseTypeId} onValueChange={(v) => {
-                  setEditExpenseTypeId(v);
-                  const et = types.find(t => t.id === parseInt(v));
-                  if (et) setEditExpenseTypeName(et.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-expense-type">
-                    <SelectValue placeholder={t('Select expense type...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {types.map(et => (
-                      <SelectItem key={et.id} value={String(et.id)}>{et.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ExpenseTypeSearchSelect
+                  items={types}
+                  value={editExpenseTypeId}
+                  onValueChange={(id, name) => { setEditExpenseTypeId(id); setEditExpenseTypeName(name); }}
+                  placeholder={t('Search expense type...')}
+                  data-testid="select-edit-expense-type"
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
