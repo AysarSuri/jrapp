@@ -60,6 +60,7 @@ export default function ExpensesPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [invoiceSearch, setInvoiceSearch] = useState("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -180,6 +181,7 @@ export default function ExpensesPage() {
     if (historyFilter && historyFilter !== "all" && String(e.expenseTypeId) !== historyFilter) return false;
     if (historyFromDate && e.date < historyFromDate) return false;
     if (historyToDate && e.date > historyToDate) return false;
+    if (invoiceSearch.trim() && !(e.invoiceNumber || "").toLowerCase().includes(invoiceSearch.trim().toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
@@ -649,6 +651,16 @@ export default function ExpensesPage() {
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-expense-history-to-date" />
+              </div>
+              <div className="w-40">
+                <Input
+                  value={invoiceSearch}
+                  onChange={(e) => { setInvoiceSearch(e.target.value); setCurrentPage(1); }}
+                  placeholder={t('Invoice Number')}
+                  className="h-9 font-mono"
+                  data-testid="input-search-expense-invoice"
+                  autoComplete="off"
+                />
               </div>
               <div className="w-48">
                 <ExpenseTypeSearchSelect
