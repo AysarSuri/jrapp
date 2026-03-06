@@ -287,6 +287,7 @@ export const externalDebtTransactions = pgTable("external_debt_transactions", {
   debtId: integer("debt_id").notNull(),
   debtName: text("debt_name").notNull(),
   type: text("type").notNull(), // 'receipt' | 'payment'
+  receiptNumber: text("receipt_number"),
   amountUsd: numeric("amount_usd").notNull().default("0"),
   amountIqd: numeric("amount_iqd").notNull().default("0"),
   description: text("description"),

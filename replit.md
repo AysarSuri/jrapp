@@ -48,7 +48,7 @@ Preferred communication style: Simple, everyday language.
 - **ORM**: Drizzle ORM with `drizzle-orm/node-postgres` driver
 - **Schema management**: `drizzle-kit push` for schema synchronization (no migration files needed for development)
 - **Connection**: `pg.Pool` in `server/db.ts`
-- **Tables**: `users`, `products`, `inventory`, `clients`, `accounts`, `invoices`, `transactions`
+- **Tables**: `users`, `products`, `inventory`, `clients`, `accounts`, `invoices`, `transactions`, `external_debts`, `external_debt_transactions` (with `receipt_number` column), `expenses` (with `invoice_number` column)
 - **Key design choices**: UUIDs for user IDs (via `gen_random_uuid()`), serial integers for other entities, `numeric` type for monetary values, text-based enums for roles/types/statuses
 
 ### Build System

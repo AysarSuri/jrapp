@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalDebtTransactions, useCreateExternalDebtTransaction, useUpdateExternalDebtTransaction, useDeleteExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
 import { useQuery } from "@tanstack/react-query";
@@ -39,6 +39,7 @@ export default function ExternalDebtReceiptsPage() {
     queryKey: ["/api/external-debts"],
   });
 
+  const [receiptNumber, setReceiptNumber] = useState("");
   const [debtId, setDebtId] = useState<string>("");
   const [debtName, setDebtName] = useState("");
   const [debtSearch, setDebtSearch] = useState("");
@@ -67,8 +68,40 @@ export default function ExternalDebtReceiptsPage() {
   const [editReference, setEditReference] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
+  const [editReceiptNumber, setEditReceiptNumber] = useState("");
 
   const debts = debtsList || [];
+
+  const allReceipts = useMemo(() => {
+    return (allTxns || []).filter((t: ExternalDebtTransaction) => t.type === "receipt");
+  }, [allTxns]);
+
+  const nextReceiptNumber = useMemo(() => {
+    let maxNum = 0;
+    allReceipts.forEach((r: ExternalDebtTransaction) => {
+      if (r.receiptNumber) {
+        const num = parseInt(r.receiptNumber.replace(/\D/g, ""), 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+    return `EDR-${String(maxNum + 1).padStart(4, "0")}`;
+  }, [allReceipts]);
+
+  useEffect(() => {
+    if (!editReceipt && !receiptNumber) {
+      setReceiptNumber(nextReceiptNumber);
+    }
+  }, [nextReceiptNumber, editReceipt]);
+
+  const incrementReceiptNumber = (current: string) => {
+    const match = current.match(/^(.*?)(\d+)$/);
+    if (match) {
+      const prefix = match[1];
+      const num = parseInt(match[2], 10) + 1;
+      return `${prefix}${String(num).padStart(match[2].length, "0")}`;
+    }
+    return nextReceiptNumber;
+  };
 
   const debtSuggestions = useMemo(() => {
     if (!debtSearch.trim() || !debts.length) return debts.slice(0, 8);
@@ -100,7 +133,9 @@ export default function ExternalDebtReceiptsPage() {
 
   const selectedDebt = debts.find(b => b.id === parseInt(debtId));
 
-  const resetForm = () => {
+  const resetForm = (autoIncrement?: boolean) => {
+    const nextNum = autoIncrement ? incrementReceiptNumber(receiptNumber) : nextReceiptNumber;
+    setReceiptNumber(nextNum);
     setDebtId("");
     setDebtName("");
     setDebtSearch("");
@@ -124,11 +159,21 @@ export default function ExternalDebtReceiptsPage() {
       toast({ title: t("Please enter at least one amount"), variant: "destructive" });
       return;
     }
+    if (receiptNumber && receiptNumber.trim()) {
+      const duplicate = allReceipts.find(
+        (r: ExternalDebtTransaction) => r.receiptNumber === receiptNumber.trim()
+      );
+      if (duplicate) {
+        toast({ title: t("This receipt number already exists"), variant: "destructive" });
+        return;
+      }
+    }
 
     createTxn({
       debtId: parseInt(debtId),
       debtName,
       type: "receipt",
+      receiptNumber: receiptNumber || null,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
       description: description || null,
@@ -138,7 +183,7 @@ export default function ExternalDebtReceiptsPage() {
     }, {
       onSuccess: () => {
         toast({ title: t("Receipt saved successfully") });
-        resetForm();
+        resetForm(true);
       },
       onError: () => {
         toast({ title: t("Failed to save receipt"), variant: "destructive" });
@@ -148,6 +193,7 @@ export default function ExternalDebtReceiptsPage() {
 
   const openEdit = (r: ExternalDebtTransaction) => {
     setEditReceipt(r);
+    setEditReceiptNumber(r.receiptNumber || "");
     setEditDebtId(String(r.debtId));
     setEditDebtName(r.debtName);
     setEditDebtSearch(r.debtName);
@@ -171,11 +217,21 @@ export default function ExternalDebtReceiptsPage() {
       toast({ title: t("Please enter at least one amount"), variant: "destructive" });
       return;
     }
+    if (editReceiptNumber && editReceiptNumber.trim()) {
+      const duplicate = allReceipts.find(
+        (r: ExternalDebtTransaction) => r.receiptNumber === editReceiptNumber.trim() && r.id !== editReceipt.id
+      );
+      if (duplicate) {
+        toast({ title: t("This receipt number already exists"), variant: "destructive" });
+        return;
+      }
+    }
 
     updateTxn({ id: editReceipt.id, data: {
       debtId: parseInt(editDebtId),
       debtName: editDebtName,
       type: "receipt",
+      receiptNumber: editReceiptNumber || null,
       amountUsd: editAmountUsd || "0",
       amountIqd: editAmountIqd || "0",
       description: editDescription || null,
@@ -242,7 +298,11 @@ export default function ExternalDebtReceiptsPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Receipt Number')}</Label>
+                <Input value={receiptNumber} onChange={(e) => setReceiptNumber(e.target.value)} placeholder={t('Receipt number...')} className="font-mono" data-testid="input-receipt-number" />
+              </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
                 <div className="relative">
@@ -366,6 +426,12 @@ export default function ExternalDebtReceiptsPage() {
               <CardTitle className="text-lg">{t('Receipt Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {receiptNumber && (
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{t('Receipt Number')}</p>
+                  <p className="font-bold text-lg font-mono">{receiptNumber}</p>
+                </div>
+              )}
               {selectedDebt && (
                 <>
                   <div className="rounded-lg border p-3 text-center">
@@ -488,6 +554,7 @@ export default function ExternalDebtReceiptsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Receipt Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('External Debt')}</TableHead>
@@ -502,6 +569,7 @@ export default function ExternalDebtReceiptsPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-ext-debt-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{r.receiptNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{r.date}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.debtName}</TableCell>
@@ -552,7 +620,7 @@ export default function ExternalDebtReceiptsPage() {
                   ))}
                   {paginatedReceipts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No receipts yet')}
                       </TableCell>
                     </TableRow>
@@ -616,6 +684,10 @@ export default function ExternalDebtReceiptsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Receipt Number')}</Label>
+                <Input value={editReceiptNumber} onChange={(e) => setEditReceiptNumber(e.target.value)} placeholder={t('Receipt number...')} className="font-mono" data-testid="input-edit-ext-debt-receipt-number" />
+              </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
                 <div className="relative">

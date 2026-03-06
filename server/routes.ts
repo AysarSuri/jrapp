@@ -2891,9 +2891,9 @@ export async function registerRoutes(
   app.patch('/api/external-debt-transactions/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { debtId, debtName, type, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const { debtId, debtName, type, receiptNumber, amountUsd, amountIqd, description, reference, date, time } = req.body;
       const [updated] = await db.update(externalDebtTransactions).set({
-        debtId, debtName, type, amountUsd, amountIqd, description, reference, date, time,
+        debtId, debtName, type, receiptNumber, amountUsd, amountIqd, description, reference, date, time,
       }).where(eq(externalDebtTransactions.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Transaction not found" });
       res.json(updated);
