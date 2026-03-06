@@ -392,7 +392,7 @@ export default function ExternalDebtReceiptsPage() {
               <Button
                 onClick={handleSave}
                 disabled={isSaving || !debtId}
-                className="w-full h-12 text-base gap-2 bg-green-600 hover:bg-green-700"
+                className="w-full h-12 text-base gap-2 bg-green-600 hover:bg-green-700 text-[#ffffff]"
                 data-testid="button-save-external-debt-receipt"
               >
                 {isSaving ? (
