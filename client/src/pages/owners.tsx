@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertOwnerSchema, type Owner } from "@shared/routes";
-import { z } from "zod";
+import type { Owner } from "@shared/routes";
 import { useOwners, useCreateOwner, useUpdateOwner, useDeleteOwner } from "@/hooks/use-owners";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -20,7 +12,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, UserCog, Loader2, Trash2, Pencil } from "lucide-react";
+import { Save, Search, UserCog, Loader2, Trash2, Pencil, RotateCcw, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,34 +25,40 @@ export default function OwnersPage() {
   const { mutate: updateOwner, isPending: isUpdating } = useUpdateOwner();
   const { mutate: deleteOwner } = useDeleteOwner();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Owner | null>(null);
+
+  const [name, setName] = useState("");
+  const [oldDebtUsd, setOldDebtUsd] = useState("0");
+  const [oldDebtIqd, setOldDebtIqd] = useState("0");
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const form = useForm<z.infer<typeof insertOwnerSchema>>({
-    resolver: zodResolver(insertOwnerSchema),
-    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
-  });
-
-  const openCreateDialog = () => {
-    setEditing(null);
-    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
-    setOpen(true);
+  const resetForm = () => {
+    setName("");
+    setOldDebtUsd("0");
+    setOldDebtIqd("0");
+    setEditingId(null);
   };
 
-  const openEditDialog = (item: Owner) => {
-    setEditing(item);
-    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
-    setOpen(true);
+  const startEdit = (item: Owner) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setOldDebtUsd(item.oldDebtUsd || "0");
+    setOldDebtIqd(item.oldDebtIqd || "0");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const onSubmit = (values: z.infer<typeof insertOwnerSchema>) => {
-    if (editing) {
-      updateOwner({ id: editing.id, data: values }, {
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({ title: t("Please enter the owner name"), variant: "destructive" });
+      return;
+    }
+
+    const payload = { name: name.trim(), oldDebtUsd, oldDebtIqd };
+
+    if (editingId) {
+      updateOwner({ id: editingId, data: payload }, {
         onSuccess: () => {
-          setOpen(false);
-          setEditing(null);
-          form.reset();
+          resetForm();
           toast({ title: t("Owner updated successfully") });
         },
         onError: (err) => {
@@ -68,10 +66,9 @@ export default function OwnersPage() {
         },
       });
     } else {
-      createOwner(values, {
+      createOwner(payload, {
         onSuccess: () => {
-          setOpen(false);
-          form.reset();
+          resetForm();
           toast({ title: t("Owner added successfully") });
         },
         onError: (err) => {
@@ -97,69 +94,89 @@ export default function OwnersPage() {
   ) || [];
 
   const isSaving = isCreating || isUpdating;
-
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Owner Names')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage owner names and balances')}</p>
-        </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-owner" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('Add Owner')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{editing ? t('Edit Owner') : t('Add New Owner')}</DialogTitle>
-              <DialogDescription>{t('Enter the owner name and balances')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Owner Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-owner-name" placeholder={t('e.g. Ahmed')} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance USD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" data-testid="input-owner-old-debt-usd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance IQD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="250" placeholder="0" data-testid="input-owner-old-debt-iqd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-owner">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+            <UserCog className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          {t('Owner Names')}
+        </h1>
+        <p className="text-muted-foreground mt-1">{t('Manage owner names and balances')}</p>
       </div>
+
+      <Card className={`border-border/50 shadow-sm ${editingId ? "ring-2 ring-orange-400 border-orange-400" : ""}`}>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            {editingId ? (
+              <>
+                <Pencil className="h-4 w-4 text-orange-500" />
+                {t('Edit Owner')}
+              </>
+            ) : (
+              <>
+                <UserCog className="h-4 w-4" />
+                {t('Add New Owner')}
+              </>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>{t('Owner Name')}</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('e.g. Ahmed')}
+                data-testid="input-owner-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Opening Balance USD')}</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={oldDebtUsd}
+                onChange={(e) => setOldDebtUsd(e.target.value)}
+                placeholder="0.00"
+                data-testid="input-owner-old-debt-usd"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Opening Balance IQD')}</Label>
+              <Input
+                type="number"
+                step="250"
+                value={oldDebtIqd}
+                onChange={(e) => setOldDebtIqd(e.target.value)}
+                placeholder="0"
+                data-testid="input-owner-old-debt-iqd"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-2">
+            <Button onClick={handleSave} disabled={isSaving} data-testid="button-save-owner" className="gap-2">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {editingId ? t('Update') : t('Save')}
+            </Button>
+            {editingId ? (
+              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-cancel-edit-owner">
+                <X className="w-4 h-4" />
+                {t('Cancel')}
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-owner">
+                <RotateCcw className="w-4 h-4" />
+                {t('Reset')}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -202,24 +219,28 @@ export default function OwnersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item: Owner) => (
-                    <TableRow key={item.id} data-testid={`row-owner-${item.id}`}>
-                      <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                  {filtered.map((item: Owner, idx: number) => (
+                    <TableRow
+                      key={item.id}
+                      data-testid={`row-owner-${item.id}`}
+                      className={editingId === item.id ? "bg-orange-50 dark:bg-orange-950/20" : ""}
+                    >
+                      <TableCell className="font-mono text-xs">{idx + 1}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
                           <UserCog className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : "-"}
+                      <TableCell className="font-mono text-sm text-blue-600">
+                        {parseFloat(item.oldDebtUsd) !== 0 ? usd(item.oldDebtUsd) : "-"}
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
+                      <TableCell className="font-mono text-sm text-blue-600">
+                        {parseFloat(item.oldDebtIqd) !== 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-owner-${item.id}`}>
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(item)} data-testid={`button-edit-owner-${item.id}`}>
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
