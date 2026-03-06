@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
@@ -69,11 +69,29 @@ export default function ExpensesPage() {
   const types: ExpenseType[] = expenseTypesList || [];
   const isBusy = isSaving || isUpdating;
 
+  const nextInvoiceNumber = useMemo(() => {
+    const expensesList = allExpenses || [];
+    let maxNum = 0;
+    expensesList.forEach((e: Expense) => {
+      if (e.invoiceNumber) {
+        const num = parseInt(e.invoiceNumber.replace(/\D/g, ""), 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+    return `EXP-${String(maxNum + 1).padStart(4, "0")}`;
+  }, [allExpenses]);
+
+  useEffect(() => {
+    if (!editingId && !invoiceNumber) {
+      setInvoiceNumber(nextInvoiceNumber);
+    }
+  }, [nextInvoiceNumber, editingId]);
+
   const resetForm = () => {
     setEditingId(null);
     setExpenseTypeId("");
     setExpenseTypeName("");
-    setInvoiceNumber("");
+    setInvoiceNumber(nextInvoiceNumber);
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -454,7 +472,11 @@ export default function ExpensesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Invoice Number')}</Label>
+                <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder={t('Invoice number...')} className="font-mono" data-testid="input-expense-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Expense Type')}</Label>
                 <ExpenseTypeSearchSelect
@@ -510,11 +532,7 @@ export default function ExpensesPage() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Invoice Number')}</Label>
-                <Input placeholder={t('Invoice number...')} value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} data-testid="input-expense-invoice-number" />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Reference')}</Label>
                 <Input placeholder={t('Reference number...')} value={reference} onChange={(e) => setReference(e.target.value)} data-testid="input-expense-reference" />
@@ -533,6 +551,12 @@ export default function ExpensesPage() {
               <CardTitle className="text-lg">{editingId ? t('Edit Expense') : t('Expense Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {invoiceNumber && (
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{t('Invoice Number')}</p>
+                  <p className="font-bold text-lg font-mono">{invoiceNumber}</p>
+                </div>
+              )}
               {expenseTypeName && (
                 <div className="rounded-lg border p-3 text-center">
                   <p className="text-xs text-muted-foreground mb-1">{t('Expense Type')}</p>
