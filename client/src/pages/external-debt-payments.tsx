@@ -17,9 +17,6 @@ import {
   Pencil, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
@@ -57,18 +54,7 @@ export default function ExternalDebtPaymentsPage() {
   const [historyToDate, setHistoryToDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [editPayment, setEditPayment] = useState<ExternalDebtTransaction | null>(null);
-  const [editDebtId, setEditDebtId] = useState("");
-  const [editDebtName, setEditDebtName] = useState("");
-  const [editDebtSearch, setEditDebtSearch] = useState("");
-  const [showEditDebtSuggestions, setShowEditDebtSuggestions] = useState(false);
-  const [editAmountUsd, setEditAmountUsd] = useState("");
-  const [editAmountIqd, setEditAmountIqd] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
-  const [editPaymentNumber, setEditPaymentNumber] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const debts = debtsList || [];
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
@@ -89,10 +75,10 @@ export default function ExternalDebtPaymentsPage() {
   }, [allPayments]);
 
   useEffect(() => {
-    if (!editPayment) {
+    if (!editingId) {
       setPaymentNumber(nextPaymentNumber);
     }
-  }, [nextPaymentNumber, editPayment]);
+  }, [nextPaymentNumber, editingId]);
 
   const incrementPaymentNumber = (current: string) => {
     const match = current.match(/^(.*?)(\d+)$/);
@@ -109,12 +95,6 @@ export default function ExternalDebtPaymentsPage() {
     const q = debtSearch.toLowerCase();
     return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
   }, [debtSearch, debts]);
-
-  const editDebtSuggestions = useMemo(() => {
-    if (!editDebtSearch.trim() || !debts.length) return debts.slice(0, 8);
-    const q = editDebtSearch.toLowerCase();
-    return debts.filter((d: ExternalDebt) => d.name.toLowerCase().includes(q)).slice(0, 8);
-  }, [editDebtSearch, debts]);
 
   const historyFilterSuggestions = useMemo(() => {
     if (!historyFilterSearch.trim() || !debts.length) return debts.slice(0, 8);
@@ -136,6 +116,7 @@ export default function ExternalDebtPaymentsPage() {
 
   const resetForm = (autoIncrement?: boolean) => {
     const nextNum = autoIncrement ? incrementPaymentNumber(paymentNumber) : nextPaymentNumber;
+    setEditingId(null);
     setPaymentNumber(nextNum);
     setDebtId("");
     setDebtName("");
@@ -147,6 +128,21 @@ export default function ExternalDebtPaymentsPage() {
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
+  };
+
+  const startEdit = (p: ExternalDebtTransaction) => {
+    setEditingId(p.id);
+    setPaymentNumber(p.receiptNumber || "");
+    setDebtId(String(p.debtId));
+    setDebtName(p.debtName);
+    setDebtSearch(p.debtName);
+    setAmountUsd(p.amountUsd);
+    setAmountIqd(p.amountIqd);
+    setDescription(p.description || "");
+    setReference(p.reference || "");
+    setDate(p.date);
+    setTime(p.time || "00:00");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSave = () => {
@@ -163,7 +159,7 @@ export default function ExternalDebtPaymentsPage() {
 
     if (paymentNumber && paymentNumber.trim()) {
       const duplicate = allPayments.find(
-        (p: ExternalDebtTransaction) => p.receiptNumber === paymentNumber.trim()
+        (p: ExternalDebtTransaction) => p.receiptNumber === paymentNumber.trim() && p.id !== editingId
       );
       if (duplicate) {
         toast({ title: t("This payment number already exists"), variant: "destructive" });
@@ -171,10 +167,10 @@ export default function ExternalDebtPaymentsPage() {
       }
     }
 
-    createTxn({
+    const payload = {
       debtId: parseInt(debtId),
       debtName,
-      type: "payment",
+      type: "payment" as const,
       receiptNumber: paymentNumber || null,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
@@ -182,80 +178,36 @@ export default function ExternalDebtPaymentsPage() {
       reference: reference || null,
       date,
       time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Payment saved successfully") });
-        resetForm(true);
-      },
-      onError: () => {
-        toast({ title: t("Failed to save payment"), variant: "destructive" });
-      },
-    });
-  };
+    };
 
-  const openEdit = (p: ExternalDebtTransaction) => {
-    setEditPayment(p);
-    setEditPaymentNumber(p.receiptNumber || "");
-    setEditDebtId(String(p.debtId));
-    setEditDebtName(p.debtName);
-    setEditDebtSearch(p.debtName);
-    setEditAmountUsd(p.amountUsd);
-    setEditAmountIqd(p.amountIqd);
-    setEditDescription(p.description || "");
-    setEditReference(p.reference || "");
-    setEditDate(p.date);
-    setEditTime(p.time || "00:00");
-  };
-
-  const handleUpdate = () => {
-    if (!editPayment) return;
-    if (!editDebtId) {
-      toast({ title: t("Please select an external debt"), variant: "destructive" });
-      return;
+    if (editingId) {
+      updateTxn({ id: editingId, data: payload }, {
+        onSuccess: () => {
+          toast({ title: t("Payment updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to update payment"), variant: "destructive" });
+        },
+      });
+    } else {
+      createTxn(payload, {
+        onSuccess: () => {
+          toast({ title: t("Payment saved successfully") });
+          resetForm(true);
+        },
+        onError: () => {
+          toast({ title: t("Failed to save payment"), variant: "destructive" });
+        },
+      });
     }
-    const usdVal = parseFloat(editAmountUsd || "0");
-    const iqdVal = parseFloat(editAmountIqd || "0");
-    if (usdVal <= 0 && iqdVal <= 0) {
-      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
-      return;
-    }
-
-    if (editPaymentNumber && editPaymentNumber.trim()) {
-      const duplicate = allPayments.find(
-        (p: ExternalDebtTransaction) => p.receiptNumber === editPaymentNumber.trim() && p.id !== editPayment.id
-      );
-      if (duplicate) {
-        toast({ title: t("This payment number already exists"), variant: "destructive" });
-        return;
-      }
-    }
-
-    updateTxn({ id: editPayment.id, data: {
-      debtId: parseInt(editDebtId),
-      debtName: editDebtName,
-      type: "payment",
-      receiptNumber: editPaymentNumber || null,
-      amountUsd: editAmountUsd || "0",
-      amountIqd: editAmountIqd || "0",
-      description: editDescription || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
-    }}, {
-      onSuccess: () => {
-        toast({ title: t("Payment updated successfully") });
-        setEditPayment(null);
-      },
-      onError: () => {
-        toast({ title: t("Failed to update payment"), variant: "destructive" });
-      },
-    });
   };
 
   const handleDelete = (id: number) => {
     deleteTxn(id, {
       onSuccess: () => {
         toast({ title: t("Payment deleted successfully") });
+        if (editingId === id) resetForm();
       },
       onError: () => {
         toast({ title: t("Failed to delete payment"), variant: "destructive" });
@@ -295,9 +247,17 @@ export default function ExternalDebtPaymentsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-border/50 shadow-sm">
+        <Card className={`lg:col-span-2 shadow-sm ${editingId ? 'border-orange-300 dark:border-orange-700' : 'border-border/50'}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
+            <CardTitle className="text-lg">
+              {editingId ? (
+                <span className="flex items-center gap-2">
+                  <Pencil className="h-5 w-5 text-orange-600" />
+                  {t('Edit Payment')}
+                  <Badge variant="outline" className="ml-2 text-orange-600 border-orange-300">#{editingId}</Badge>
+                </span>
+              ) : t('Payment Details')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -423,9 +383,9 @@ export default function ExternalDebtPaymentsPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-red-200 dark:border-red-900 shadow-sm">
+          <Card className={`shadow-sm ${editingId ? 'border-orange-200 dark:border-orange-900' : 'border-red-200 dark:border-red-900'}`}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>
+              <CardTitle className="text-lg">{editingId ? t('Edit Payment') : t('Payment Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {paymentNumber && (
@@ -455,19 +415,27 @@ export default function ExternalDebtPaymentsPage() {
                 </div>
               </div>
 
-              <Button
-                onClick={handleSave}
-                disabled={isSaving || !debtId}
-                className="w-full h-12 text-base gap-2 bg-red-600 hover:bg-red-700"
-                data-testid="button-save-external-debt-payment"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Save className="h-5 w-5" />
+              <div className="flex gap-2">
+                {editingId && (
+                  <Button variant="outline" onClick={() => resetForm()} className="h-12 gap-2" data-testid="button-cancel-edit-payment">
+                    <RotateCcw className="h-4 w-4" />
+                    {t('Cancel')}
+                  </Button>
                 )}
-                {t('Save Payment')}
-              </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={(editingId ? isUpdating : isSaving) || !debtId}
+                  className={`flex-1 h-12 text-base gap-2 text-[#ffffff] ${editingId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}`}
+                  data-testid="button-save-external-debt-payment"
+                >
+                  {(editingId ? isUpdating : isSaving) ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Save className="h-5 w-5" />
+                  )}
+                  {editingId ? t('Update') : t('Save Payment')}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -587,7 +555,7 @@ export default function ExternalDebtPaymentsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => openEdit(p)}
+                            onClick={() => startEdit(p)}
                             data-testid={`button-edit-ext-debt-payment-${p.id}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -674,111 +642,6 @@ export default function ExternalDebtPaymentsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editPayment} onOpenChange={(open) => { if (!open) setEditPayment(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit Payment')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Payment Number')}</Label>
-                <Input value={editPaymentNumber} onChange={(e) => setEditPaymentNumber(e.target.value)} placeholder={t('Payment number...')} className="font-mono" data-testid="input-edit-ext-debt-payment-number" />
-              </div>
-              <div className="space-y-2 relative">
-                <Label>{t('External Debt')}</Label>
-                <div className="relative">
-                  <Input
-                    value={editDebtSearch}
-                    onChange={(e) => {
-                      setEditDebtSearch(e.target.value);
-                      setShowEditDebtSuggestions(true);
-                      if (!e.target.value.trim()) { setEditDebtId(""); setEditDebtName(""); }
-                    }}
-                    onFocus={() => setShowEditDebtSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowEditDebtSuggestions(false), 200)}
-                    placeholder={t('Select external debt...')}
-                    data-testid="select-edit-ext-debt-payment"
-                    autoComplete="off"
-                  />
-                  {showEditDebtSuggestions && editDebtSuggestions.length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {editDebtSuggestions.map((item: ExternalDebt) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setEditDebtId(String(item.id));
-                            setEditDebtName(item.name);
-                            setEditDebtSearch(item.name);
-                            setShowEditDebtSuggestions(false);
-                          }}
-                          data-testid={`suggestion-edit-payment-debt-${item.id}`}
-                        >
-                          <span className="font-medium">{item.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : ""}
-                            {parseFloat(item.oldDebtUsd) > 0 && parseFloat(item.oldDebtIqd) > 0 ? " | " : ""}
-                            {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : ""}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-ext-debt-payment-date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Time')}</Label>
-              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-ext-debt-payment-time" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-ext-debt-payment-usd"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-ext-debt-payment-iqd"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-ext-debt-payment-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-ext-debt-payment-description" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPayment(null)}>{t('No')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-ext-debt-payment">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {t('Update')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
