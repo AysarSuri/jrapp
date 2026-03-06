@@ -51,7 +51,6 @@ import ExpensesPage from "@/pages/expenses";
 import ExternalDebtsPage from "@/pages/external-debts";
 import ExternalDebtReceiptsPage from "@/pages/external-debt-receipts";
 import ExternalDebtPaymentsPage from "@/pages/external-debt-payments";
-import ExternalDebtStatementPage from "@/pages/external-debt-statement";
 import ExternalDebtStatementUsdPage from "@/pages/external-debt-statement-usd";
 import ExternalDebtStatementIqdPage from "@/pages/external-debt-statement-iqd";
 import OwnersPage from "@/pages/owners";
@@ -247,9 +246,6 @@ function Router() {
       </Route>
       <Route path="/external-debt-payments">
         <ProtectedRoute component={ExternalDebtPaymentsPage} />
-      </Route>
-      <Route path="/external-debt-statement">
-        <ProtectedRoute component={ExternalDebtStatementPage} />
       </Route>
       <Route path="/external-debt-statement-usd">
         <ProtectedRoute component={ExternalDebtStatementUsdPage} />
