@@ -89,7 +89,7 @@ export default function ExternalDebtPaymentsPage() {
   }, [allPayments]);
 
   useEffect(() => {
-    if (!editPayment && !paymentNumber) {
+    if (!editPayment) {
       setPaymentNumber(nextPaymentNumber);
     }
   }, [nextPaymentNumber, editPayment]);

@@ -88,7 +88,7 @@ export default function ExternalDebtReceiptsPage() {
   }, [allReceipts]);
 
   useEffect(() => {
-    if (!editReceipt && !receiptNumber) {
+    if (!editReceipt) {
       setReceiptNumber(nextReceiptNumber);
     }
   }, [nextReceiptNumber, editReceipt]);
