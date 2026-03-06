@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useOwnerTransactions, useCreateOwnerTransaction, useUpdateOwnerTransaction, useDeleteOwnerTransaction } from "@/hooks/use-owner-transactions";
 import { useOwners } from "@/hooks/use-owners";
@@ -17,11 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
-  Pencil, Trash2, ChevronLeft, ChevronRight, Search,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Search, X,
 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -39,6 +36,7 @@ export default function OwnerReturnsPage() {
   const { mutate: updateTxn, isPending: isUpdating } = useUpdateOwnerTransaction();
   const { mutate: deleteTxn } = useDeleteOwnerTransaction();
 
+  const formRef = useRef<HTMLDivElement>(null);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [selectedOwnerId, setSelectedOwnerId] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
@@ -54,15 +52,8 @@ export default function OwnerReturnsPage() {
   const [historyInvoiceSearch, setHistoryInvoiceSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [editReturn, setEditReturn] = useState<OwnerTransaction | null>(null);
-  const [editOwnerId, setEditOwnerId] = useState("");
-  const [editOwnerName, setEditOwnerName] = useState("");
-  const [editAmountUsd, setEditAmountUsd] = useState("");
-  const [editAmountIqd, setEditAmountIqd] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingReceiptNumber, setEditingReceiptNumber] = useState("");
 
   const owners: Owner[] = ownersList || [];
 
@@ -83,6 +74,8 @@ export default function OwnerReturnsPage() {
   }, [nextInvoiceNumber]);
 
   const resetForm = () => {
+    setEditingId(null);
+    setEditingReceiptNumber("");
     setSelectedOwnerId("");
     setAmountUsd("");
     setAmountIqd("");
@@ -94,6 +87,20 @@ export default function OwnerReturnsPage() {
   };
 
   const selectedOwner = owners.find((o: Owner) => o.id.toString() === selectedOwnerId);
+
+  const startEdit = (r: OwnerTransaction) => {
+    setEditingId(r.id);
+    setEditingReceiptNumber(r.receiptNumber || "");
+    setInvoiceNumber(r.receiptNumber || "");
+    setSelectedOwnerId(String(r.ownerId));
+    setAmountUsd(r.amountUsd);
+    setAmountIqd(r.amountIqd);
+    setDescription(r.description || "");
+    setReference(r.reference || "");
+    setDate(r.date);
+    setTime(r.time || "00:00");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handleSave = () => {
     if (!selectedOwner) {
@@ -107,73 +114,49 @@ export default function OwnerReturnsPage() {
       return;
     }
 
-    createTxn({
-      ownerId: selectedOwner.id,
-      ownerName: selectedOwner.name,
-      type: "return",
-      receiptNumber: invoiceNumber,
-      amountUsd: amountUsd || "0",
-      amountIqd: amountIqd || "0",
-      description: description || null,
-      reference: reference || null,
-      date,
-      time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Return saved successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Failed to save return"), variant: "destructive" });
-      },
-    });
-  };
-
-  const openEdit = (r: OwnerTransaction) => {
-    setEditReturn(r);
-    setEditOwnerId(String(r.ownerId));
-    setEditOwnerName(r.ownerName);
-    setEditAmountUsd(r.amountUsd);
-    setEditAmountIqd(r.amountIqd);
-    setEditDescription(r.description || "");
-    setEditReference(r.reference || "");
-    setEditDate(r.date);
-    setEditTime(r.time || "00:00");
-  };
-
-  const handleUpdate = () => {
-    if (!editReturn) return;
-    if (!editOwnerId) {
-      toast({ title: t("Please select an owner"), variant: "destructive" });
-      return;
+    if (editingId) {
+      updateTxn({ id: editingId, data: {
+        ownerId: selectedOwner.id,
+        ownerName: selectedOwner.name,
+        type: "return",
+        receiptNumber: editingReceiptNumber,
+        amountUsd: amountUsd || "0",
+        amountIqd: amountIqd || "0",
+        description: description || null,
+        reference: reference || null,
+        date,
+        time,
+      }}, {
+        onSuccess: () => {
+          toast({ title: t("Return updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to update return"), variant: "destructive" });
+        },
+      });
+    } else {
+      createTxn({
+        ownerId: selectedOwner.id,
+        ownerName: selectedOwner.name,
+        type: "return",
+        receiptNumber: invoiceNumber,
+        amountUsd: amountUsd || "0",
+        amountIqd: amountIqd || "0",
+        description: description || null,
+        reference: reference || null,
+        date,
+        time,
+      }, {
+        onSuccess: () => {
+          toast({ title: t("Return saved successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to save return"), variant: "destructive" });
+        },
+      });
     }
-    const usdVal = parseFloat(editAmountUsd || "0");
-    const iqdVal = parseFloat(editAmountIqd || "0");
-    if (usdVal <= 0 && iqdVal <= 0) {
-      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
-      return;
-    }
-
-    updateTxn({ id: editReturn.id, data: {
-      ownerId: parseInt(editOwnerId),
-      ownerName: editOwnerName,
-      type: "return",
-      receiptNumber: editReturn.receiptNumber,
-      amountUsd: editAmountUsd || "0",
-      amountIqd: editAmountIqd || "0",
-      description: editDescription || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
-    }}, {
-      onSuccess: () => {
-        toast({ title: t("Return updated successfully") });
-        setEditReturn(null);
-      },
-      onError: () => {
-        toast({ title: t("Failed to update return"), variant: "destructive" });
-      },
-    });
   };
 
   const handleDelete = (id: number) => {
@@ -215,6 +198,12 @@ export default function OwnerReturnsPage() {
           <p className="text-muted-foreground mt-1">{t('Record owner returns to the business')}</p>
         </div>
         <div className="flex gap-2">
+          {editingId && (
+            <Button variant="outline" onClick={resetForm} className="gap-2 border-orange-300 text-orange-600 hover:bg-orange-50" data-testid="button-cancel-edit-return">
+              <X className="h-4 w-4" />
+              {t('Cancel')}
+            </Button>
+          )}
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-return">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -243,10 +232,13 @@ export default function OwnerReturnsPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-border/50 shadow-sm">
+      <div ref={formRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className={`lg:col-span-2 shadow-sm ${editingId ? 'ring-2 ring-orange-500 border-orange-300' : 'border-border/50'}`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Return Details')}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {editingId ? <Pencil className="h-5 w-5 text-orange-600" /> : null}
+              {editingId ? t('Edit Return') : t('Return Details')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -357,17 +349,25 @@ export default function OwnerReturnsPage() {
 
               <Button
                 onClick={handleSave}
-                disabled={isSaving}
-                className="w-full h-12 text-base gap-2 bg-green-600 hover:bg-green-700"
+                disabled={isSaving || isUpdating}
+                className={`w-full h-12 text-base gap-2 text-[#ffffff] ${editingId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
                 data-testid="button-save-return"
               >
-                {isSaving ? (
+                {(isSaving || isUpdating) ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
+                ) : editingId ? (
+                  <Pencil className="h-5 w-5" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                {t('Save Return')}
+                {editingId ? t('Update') : t('Save Return')}
               </Button>
+              {editingId && (
+                <Button variant="outline" onClick={resetForm} className="w-full gap-2 border-orange-300 text-orange-600 hover:bg-orange-50" data-testid="button-cancel-edit-return-form">
+                  <X className="h-4 w-4" />
+                  {t('Cancel')}
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -439,7 +439,7 @@ export default function OwnerReturnsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedReturns.map((r: OwnerTransaction, i: number) => (
-                    <TableRow key={r.id} data-testid={`row-return-${r.id}`}>
+                    <TableRow key={r.id} data-testid={`row-return-${r.id}`} className={editingId === r.id ? 'bg-orange-50 dark:bg-orange-900/20' : ''}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-xs text-primary">{r.receiptNumber || "-"}</TableCell>
                       <TableCell className="text-sm font-medium">{r.ownerName}</TableCell>
@@ -459,7 +459,7 @@ export default function OwnerReturnsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => openEdit(r)}
+                            onClick={() => startEdit(r)}
                             data-testid={`button-edit-return-${r.id}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -546,84 +546,6 @@ export default function OwnerReturnsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editReturn} onOpenChange={(open) => { if (!open) setEditReturn(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit Return')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('Invoice Number')}</Label>
-              <Input value={editReturn?.receiptNumber || ""} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-edit-return-invoice-number" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Select Owner')}</Label>
-                <Select value={editOwnerId} onValueChange={(v) => {
-                  setEditOwnerId(v);
-                  const o = owners.find(ow => ow.id === parseInt(v));
-                  if (o) setEditOwnerName(o.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-return-owner">
-                    <SelectValue placeholder={t('Please select an owner')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {owners.map((o: Owner) => (
-                      <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-return-date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Time')}</Label>
-              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-return-time" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-return-usd"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-return-iqd"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-return-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-return-description" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditReturn(null)}>{t('No')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-return">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {t('Update')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
