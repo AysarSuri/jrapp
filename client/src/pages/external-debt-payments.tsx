@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalDebtTransactions, useCreateExternalDebtTransaction, useUpdateExternalDebtTransaction, useDeleteExternalDebtTransaction } from "@/hooks/use-external-debt-transactions";
 import { useQuery } from "@tanstack/react-query";
@@ -39,6 +39,7 @@ export default function ExternalDebtPaymentsPage() {
     queryKey: ["/api/external-debts"],
   });
 
+  const [paymentNumber, setPaymentNumber] = useState("");
   const [debtId, setDebtId] = useState<string>("");
   const [debtName, setDebtName] = useState("");
   const [debtSearch, setDebtSearch] = useState("");
@@ -67,9 +68,41 @@ export default function ExternalDebtPaymentsPage() {
   const [editReference, setEditReference] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
+  const [editPaymentNumber, setEditPaymentNumber] = useState("");
 
   const debts = debtsList || [];
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
+
+  const allPayments = useMemo(() => {
+    return (allTxns || []).filter((t: ExternalDebtTransaction) => t.type === "payment");
+  }, [allTxns]);
+
+  const nextPaymentNumber = useMemo(() => {
+    let maxNum = 0;
+    allPayments.forEach((p: ExternalDebtTransaction) => {
+      if (p.receiptNumber) {
+        const num = parseInt(p.receiptNumber.replace(/\D/g, ""), 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+    return `EDP-${String(maxNum + 1).padStart(4, "0")}`;
+  }, [allPayments]);
+
+  useEffect(() => {
+    if (!editPayment && !paymentNumber) {
+      setPaymentNumber(nextPaymentNumber);
+    }
+  }, [nextPaymentNumber, editPayment]);
+
+  const incrementPaymentNumber = (current: string) => {
+    const match = current.match(/^(.*?)(\d+)$/);
+    if (match) {
+      const prefix = match[1];
+      const num = parseInt(match[2], 10) + 1;
+      return `${prefix}${String(num).padStart(match[2].length, "0")}`;
+    }
+    return nextPaymentNumber;
+  };
 
   const debtSuggestions = useMemo(() => {
     if (!debtSearch.trim() || !debts.length) return debts.slice(0, 8);
@@ -101,7 +134,9 @@ export default function ExternalDebtPaymentsPage() {
 
   const selectedDebt = debts.find(b => b.id === parseInt(debtId));
 
-  const resetForm = () => {
+  const resetForm = (autoIncrement?: boolean) => {
+    const nextNum = autoIncrement ? incrementPaymentNumber(paymentNumber) : nextPaymentNumber;
+    setPaymentNumber(nextNum);
     setDebtId("");
     setDebtName("");
     setDebtSearch("");
@@ -126,10 +161,21 @@ export default function ExternalDebtPaymentsPage() {
       return;
     }
 
+    if (paymentNumber && paymentNumber.trim()) {
+      const duplicate = allPayments.find(
+        (p: ExternalDebtTransaction) => p.receiptNumber === paymentNumber.trim()
+      );
+      if (duplicate) {
+        toast({ title: t("This payment number already exists"), variant: "destructive" });
+        return;
+      }
+    }
+
     createTxn({
       debtId: parseInt(debtId),
       debtName,
       type: "payment",
+      receiptNumber: paymentNumber || null,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
       description: description || null,
@@ -139,7 +185,7 @@ export default function ExternalDebtPaymentsPage() {
     }, {
       onSuccess: () => {
         toast({ title: t("Payment saved successfully") });
-        resetForm();
+        resetForm(true);
       },
       onError: () => {
         toast({ title: t("Failed to save payment"), variant: "destructive" });
@@ -149,6 +195,7 @@ export default function ExternalDebtPaymentsPage() {
 
   const openEdit = (p: ExternalDebtTransaction) => {
     setEditPayment(p);
+    setEditPaymentNumber(p.receiptNumber || "");
     setEditDebtId(String(p.debtId));
     setEditDebtName(p.debtName);
     setEditDebtSearch(p.debtName);
@@ -173,10 +220,21 @@ export default function ExternalDebtPaymentsPage() {
       return;
     }
 
+    if (editPaymentNumber && editPaymentNumber.trim()) {
+      const duplicate = allPayments.find(
+        (p: ExternalDebtTransaction) => p.receiptNumber === editPaymentNumber.trim() && p.id !== editPayment.id
+      );
+      if (duplicate) {
+        toast({ title: t("This payment number already exists"), variant: "destructive" });
+        return;
+      }
+    }
+
     updateTxn({ id: editPayment.id, data: {
       debtId: parseInt(editDebtId),
       debtName: editDebtName,
       type: "payment",
+      receiptNumber: editPaymentNumber || null,
       amountUsd: editAmountUsd || "0",
       amountIqd: editAmountIqd || "0",
       description: editDescription || null,
@@ -242,7 +300,11 @@ export default function ExternalDebtPaymentsPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Payment Number')}</Label>
+                <Input value={paymentNumber} onChange={(e) => setPaymentNumber(e.target.value)} placeholder={t('Payment number...')} className="font-mono" data-testid="input-payment-number" />
+              </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
                 <div className="relative">
@@ -366,6 +428,12 @@ export default function ExternalDebtPaymentsPage() {
               <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {paymentNumber && (
+                <div className="rounded-lg border p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{t('Payment Number')}</p>
+                  <p className="font-bold text-lg font-mono">{paymentNumber}</p>
+                </div>
+              )}
               {selectedDebt && (
                 <div className="rounded-lg border p-3 text-center">
                   <p className="text-xs text-muted-foreground mb-1">{t('External Debt')}</p>
@@ -486,6 +554,7 @@ export default function ExternalDebtPaymentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Payment Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('External Debt')}</TableHead>
@@ -500,6 +569,7 @@ export default function ExternalDebtPaymentsPage() {
                   {paginatedPayments.map((p, i) => (
                     <TableRow key={p.id} data-testid={`row-ext-debt-payment-${p.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{p.receiptNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{p.date}</TableCell>
                       <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                       <TableCell className="font-medium">{p.debtName}</TableCell>
@@ -550,7 +620,7 @@ export default function ExternalDebtPaymentsPage() {
                   ))}
                   {paginatedPayments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No payments yet')}
                       </TableCell>
                     </TableRow>
@@ -614,6 +684,10 @@ export default function ExternalDebtPaymentsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Payment Number')}</Label>
+                <Input value={editPaymentNumber} onChange={(e) => setEditPaymentNumber(e.target.value)} placeholder={t('Payment number...')} className="font-mono" data-testid="input-edit-ext-debt-payment-number" />
+              </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
                 <div className="relative">
