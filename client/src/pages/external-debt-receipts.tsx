@@ -264,7 +264,7 @@ export default function ExternalDebtReceiptsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>{t('Receipt Number')}</Label>
-                <Input value={receiptNumber} onChange={(e) => setReceiptNumber(e.target.value)} placeholder={t('Receipt number...')} className="font-mono" data-testid="input-receipt-number" />
+                <Input value={receiptNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-receipt-number" />
               </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>

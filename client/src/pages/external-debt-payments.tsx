@@ -265,7 +265,7 @@ export default function ExternalDebtPaymentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>{t('Payment Number')}</Label>
-                <Input value={paymentNumber} onChange={(e) => setPaymentNumber(e.target.value)} placeholder={t('Payment number...')} className="font-mono" data-testid="input-payment-number" />
+                <Input value={paymentNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-payment-number" />
               </div>
               <div className="space-y-2 relative">
                 <Label>{t('External Debt')}</Label>
