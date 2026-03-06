@@ -679,10 +679,10 @@ export default function ExpensesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Expense Type')}</TableHead>
-                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('USD Amount')}</TableHead>
                     <TableHead>{t('IQD Amount')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
@@ -698,10 +698,10 @@ export default function ExpensesPage() {
                       data-testid={`row-expense-${e.id}`}
                     >
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{e.invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{e.date}</TableCell>
                       <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
                       <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
-                      <TableCell className="font-mono text-sm">{e.invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}
                       </TableCell>
