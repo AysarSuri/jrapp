@@ -83,7 +83,7 @@ export default function ExpensesPage() {
   }, [allExpenses]);
 
   useEffect(() => {
-    if (!editingId && !invoiceNumber) {
+    if (!editingId) {
       setInvoiceNumber(nextInvoiceNumber);
     }
   }, [nextInvoiceNumber, editingId]);
@@ -497,7 +497,7 @@ export default function ExpensesPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>{t('Invoice Number')}</Label>
-                <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder={t('Invoice number...')} className="font-mono" data-testid="input-expense-invoice-number" />
+                <Input value={invoiceNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-expense-invoice-number" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Expense Type')}</Label>
