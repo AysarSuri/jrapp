@@ -88,11 +88,22 @@ export default function ExpensesPage() {
     }
   }, [nextInvoiceNumber, editingId]);
 
-  const resetForm = () => {
+  const incrementInvoiceNumber = (current: string) => {
+    const match = current.match(/^(.*?)(\d+)$/);
+    if (match) {
+      const prefix = match[1];
+      const num = parseInt(match[2], 10) + 1;
+      return `${prefix}${String(num).padStart(match[2].length, "0")}`;
+    }
+    return nextInvoiceNumber;
+  };
+
+  const resetForm = (autoIncrement?: boolean) => {
+    const nextNum = autoIncrement ? incrementInvoiceNumber(invoiceNumber) : nextInvoiceNumber;
     setEditingId(null);
     setExpenseTypeId("");
     setExpenseTypeName("");
-    setInvoiceNumber(nextInvoiceNumber);
+    setInvoiceNumber(nextNum);
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -162,7 +173,7 @@ export default function ExpensesPage() {
       createExpense(payload, {
         onSuccess: () => {
           toast({ title: t("Expense saved successfully") });
-          resetForm();
+          resetForm(true);
         },
         onError: () => {
           toast({ title: t("Failed to save expense"), variant: "destructive" });
