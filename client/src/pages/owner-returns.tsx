@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
-  Pencil, Trash2, ChevronLeft, ChevronRight,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -47,9 +47,11 @@ export default function OwnerReturnsPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const todayStr = new Date().toISOString().split('T')[0];
   const [historyFilter, setHistoryFilter] = useState<string>("");
-  const [historyFromDate, setHistoryFromDate] = useState("");
-  const [historyToDate, setHistoryToDate] = useState("");
+  const [historyFromDate, setHistoryFromDate] = useState(todayStr);
+  const [historyToDate, setHistoryToDate] = useState(todayStr);
+  const [historyInvoiceSearch, setHistoryInvoiceSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [editReturn, setEditReturn] = useState<OwnerTransaction | null>(null);
@@ -189,6 +191,7 @@ export default function OwnerReturnsPage() {
     if (historyFilter && historyFilter !== "all" && String(r.ownerId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
     if (historyToDate && r.date > historyToDate) return false;
+    if (historyInvoiceSearch && !(r.receiptNumber || "").toLowerCase().includes(historyInvoiceSearch.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredReturns.length / pageSize));
@@ -386,6 +389,16 @@ export default function OwnerReturnsPage() {
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-return-history-to-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={historyInvoiceSearch}
+                  onChange={(e) => { setHistoryInvoiceSearch(e.target.value); setCurrentPage(1); }}
+                  placeholder={t('Invoice Number')}
+                  className="w-36 h-9 font-mono"
+                  data-testid="input-return-history-invoice-search"
+                />
               </div>
               <div className="w-48">
                 <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
