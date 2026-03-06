@@ -199,6 +199,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/external-debt-receipts",
     "/external-debt-payments",
     "/external-debt-statement",
+    "/external-debt-statement-usd",
+    "/external-debt-statement-iqd",
   ];
 
   const ownerSubRoutes = [
@@ -361,6 +363,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/external-debt-receipts", icon: ArrowDownToLine, label: "External Debt Receipts" },
     { href: "/external-debt-payments", icon: ArrowUpFromLine, label: "External Debt Payments" },
     { href: "/external-debt-statement", icon: FileText, label: "External Debt Statement" },
+    { href: "/external-debt-statement-usd", icon: DollarSign, label: "External Debt Statement USD" },
+    { href: "/external-debt-statement-iqd", icon: Banknote, label: "External Debt Statement IQD" },
   ];
 
   const ownerNavItems: NavItem[] = [
