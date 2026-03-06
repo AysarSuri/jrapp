@@ -198,7 +198,6 @@ export default function ExternalDebtsPage() {
               <Input
                 type="number"
                 step="0.01"
-                min="0"
                 value={oldDebtUsd}
                 onChange={(e) => setOldDebtUsd(e.target.value)}
                 placeholder="0.00"
@@ -210,7 +209,6 @@ export default function ExternalDebtsPage() {
               <Input
                 type="number"
                 step="250"
-                min="0"
                 value={oldDebtIqd}
                 onChange={(e) => setOldDebtIqd(e.target.value)}
                 placeholder="0"

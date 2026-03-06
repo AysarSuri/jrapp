@@ -133,7 +133,7 @@ export default function TransferOfficesPage() {
                     <FormItem>
                       <FormLabel>{t('Opening Balance USD')}</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" min="0" placeholder="0.00" data-testid="input-transfer-office-old-debt-usd" {...field} />
+                        <Input type="number" step="0.01" placeholder="0.00" data-testid="input-transfer-office-old-debt-usd" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -142,7 +142,7 @@ export default function TransferOfficesPage() {
                     <FormItem>
                       <FormLabel>{t('Opening Balance IQD')}</FormLabel>
                       <FormControl>
-                        <Input type="number" step="250" min="0" placeholder="0" data-testid="input-transfer-office-old-debt-iqd" {...field} />
+                        <Input type="number" step="250" placeholder="0" data-testid="input-transfer-office-old-debt-iqd" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
