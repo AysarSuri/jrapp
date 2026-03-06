@@ -1804,9 +1804,9 @@ export async function registerRoutes(
   app.patch('/api/expenses/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { expenseTypeId, expenseTypeName, amountUsd, amountIqd, description, reference, date, time } = req.body;
+      const { expenseTypeId, expenseTypeName, invoiceNumber, amountUsd, amountIqd, description, reference, date, time } = req.body;
       const [updated] = await db.update(expenses).set({
-        expenseTypeId, expenseTypeName, amountUsd, amountIqd, description, reference, date, time,
+        expenseTypeId, expenseTypeName, invoiceNumber, amountUsd, amountIqd, description, reference, date, time,
       }).where(eq(expenses.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Expense not found" });
       res.json(updated);

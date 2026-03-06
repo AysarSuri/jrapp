@@ -52,6 +52,7 @@ export default function ExpensesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expenseTypeId, setExpenseTypeId] = useState<string>("");
   const [expenseTypeName, setExpenseTypeName] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
@@ -72,6 +73,7 @@ export default function ExpensesPage() {
     setEditingId(null);
     setExpenseTypeId("");
     setExpenseTypeName("");
+    setInvoiceNumber("");
     setAmountUsd("");
     setAmountIqd("");
     setDescription("");
@@ -84,6 +86,7 @@ export default function ExpensesPage() {
     setEditingId(e.id);
     setExpenseTypeId(String(e.expenseTypeId));
     setExpenseTypeName(e.expenseTypeName);
+    setInvoiceNumber(e.invoiceNumber || "");
     setAmountUsd(e.amountUsd);
     setAmountIqd(e.amountIqd);
     setDescription(e.description || "");
@@ -108,6 +111,7 @@ export default function ExpensesPage() {
     const payload = {
       expenseTypeId: parseInt(expenseTypeId),
       expenseTypeName,
+      invoiceNumber: invoiceNumber || null,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
       description: description || null,
@@ -188,6 +192,7 @@ export default function ExpensesPage() {
         <td>${formatDate(e.date)}</td>
         <td>${e.time || "-"}</td>
         <td><strong>${e.expenseTypeName}</strong></td>
+        <td>${e.invoiceNumber || "-"}</td>
         <td class="debit">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</td>
         <td class="credit">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
         <td>${e.description || "-"}</td>
@@ -236,6 +241,7 @@ export default function ExpensesPage() {
               <th>${t("Date")}</th>
               <th>${t("Time")}</th>
               <th>${t("Expense Type")}</th>
+              <th>${t("Invoice Number")}</th>
               <th>${t("USD Amount")}</th>
               <th>${t("IQD Amount")}</th>
               <th>${t("Description")}</th>
@@ -245,7 +251,7 @@ export default function ExpensesPage() {
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="4"><strong>${t("Total")}</strong></td>
+              <td colspan="5"><strong>${t("Total")}</strong></td>
               <td class="debit"><strong>${usd(filteredTotalUsd)}</strong></td>
               <td class="credit"><strong>${filteredTotalIqd.toLocaleString()} IQD</strong></td>
               <td colspan="2"></td>
@@ -365,6 +371,10 @@ export default function ExpensesPage() {
           <div class="detail-item">
             <span class="detail-label">${t("Expense Type")}</span>
             <span class="detail-value">${e.expenseTypeName}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">${t("Invoice Number")}</span>
+            <span class="detail-value">${e.invoiceNumber || "-"}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">${t("Reference")}</span>
@@ -500,7 +510,11 @@ export default function ExpensesPage() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Invoice Number')}</Label>
+                <Input placeholder={t('Invoice number...')} value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} data-testid="input-expense-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Reference')}</Label>
                 <Input placeholder={t('Reference number...')} value={reference} onChange={(e) => setReference(e.target.value)} data-testid="input-expense-reference" />
@@ -644,6 +658,7 @@ export default function ExpensesPage() {
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Expense Type')}</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('USD Amount')}</TableHead>
                     <TableHead>{t('IQD Amount')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
@@ -662,6 +677,7 @@ export default function ExpensesPage() {
                       <TableCell className="font-mono text-sm">{e.date}</TableCell>
                       <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
                       <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
+                      <TableCell className="font-mono text-sm">{e.invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}
                       </TableCell>
@@ -705,7 +721,7 @@ export default function ExpensesPage() {
                   ))}
                   {paginatedExpenses.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No expenses yet')}
                       </TableCell>
                     </TableRow>

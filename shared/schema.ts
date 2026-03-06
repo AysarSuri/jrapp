@@ -326,6 +326,7 @@ export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
   expenseTypeId: integer("expense_type_id").notNull(),
   expenseTypeName: text("expense_type_name").notNull(),
+  invoiceNumber: text("invoice_number"),
   amountUsd: numeric("amount_usd").notNull().default("0"),
   amountIqd: numeric("amount_iqd").notNull().default("0"),
   description: text("description"),
