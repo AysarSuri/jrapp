@@ -120,6 +120,15 @@ export default function ExpensesPage() {
       toast({ title: t("Please select an expense type"), variant: "destructive" });
       return;
     }
+    if (invoiceNumber && invoiceNumber.trim()) {
+      const duplicate = (allExpenses || []).find((e: Expense) =>
+        e.invoiceNumber === invoiceNumber.trim() && e.id !== editingId
+      );
+      if (duplicate) {
+        toast({ title: t("Invoice number already exists"), variant: "destructive" });
+        return;
+      }
+    }
     const usdVal = parseFloat(amountUsd || "0");
     const iqdVal = parseFloat(amountIqd || "0");
     if (usdVal <= 0 && iqdVal <= 0) {
