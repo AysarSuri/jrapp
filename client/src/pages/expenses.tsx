@@ -209,10 +209,10 @@ export default function ExpensesPage() {
     const rows = filteredExpenses.map((e: Expense, idx: number) => `
       <tr>
         <td>${idx + 1}</td>
+        <td>${e.invoiceNumber || "-"}</td>
         <td>${formatDate(e.date)}</td>
         <td>${e.time || "-"}</td>
         <td><strong>${e.expenseTypeName}</strong></td>
-        <td>${e.invoiceNumber || "-"}</td>
         <td class="debit">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</td>
         <td class="credit">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
         <td>${e.description || "-"}</td>
@@ -258,10 +258,10 @@ export default function ExpensesPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>${t("Invoice Number")}</th>
               <th>${t("Date")}</th>
               <th>${t("Time")}</th>
               <th>${t("Expense Type")}</th>
-              <th>${t("Invoice Number")}</th>
               <th>${t("USD Amount")}</th>
               <th>${t("IQD Amount")}</th>
               <th>${t("Description")}</th>
