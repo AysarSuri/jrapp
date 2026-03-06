@@ -2,15 +2,28 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { ExternalDebt } from "@shared/schema";
+import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Banknote } from "lucide-react";
+import { Loader2, Banknote, Printer } from "lucide-react";
+import i18n from "@/lib/i18n";
+
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  logo: string | null;
+  cliche: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+};
 
 interface StatementEntry {
   id: number;
@@ -40,6 +53,10 @@ export default function ExternalDebtStatementIqdPage() {
 
   const { data: debtsList } = useQuery<ExternalDebt[]>({
     queryKey: ["/api/external-debts"],
+  });
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
   });
 
   const debts = debtsList || [];
@@ -80,9 +97,114 @@ export default function ExternalDebtStatementIqdPage() {
   const totalCreditIqd = filteredEntries.reduce((s, e) => s + e.creditIqd, 0);
   const finalBalanceIqd = parseFloat(statement?.debt?.oldDebtIqd || "0") + totalDebitIqd - totalCreditIqd;
 
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const fieldColor = companyProfile?.primaryColor || "#ea580c";
+  const textColor = companyProfile?.secondaryColor || "#ffffff";
+
   const typeBadge = (type: string) => {
     if (type === "receipt") return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Receipt')}</Badge>;
     return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Payment')}</Badge>;
+  };
+
+  const handlePrintReport = () => {
+    if (!statement) return;
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const debtName = statement.debt.name;
+    const dateRangeText = fromDate && toDate
+      ? `${formatDate(fromDate)} - ${formatDate(toDate)}`
+      : fromDate ? `${formatDate(fromDate)} - ${t("Now")}`
+      : toDate ? `${t("Beginning")} - ${formatDate(toDate)}`
+      : formatDate(new Date());
+
+    const openingIqd = parseFloat(statement.debt.oldDebtIqd || "0");
+
+    const rows = entriesWithBalance.map((entry, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatDate(entry.date)}</td>
+        <td>${entry.time || "-"}</td>
+        <td><span class="${entry.type === 'receipt' ? 'badge-green' : 'badge-red'}">${entry.type === 'receipt' ? t('Receipt') : t('Payment')}</span></td>
+        <td>${entry.description || "-"}</td>
+        <td>${entry.reference || "-"}</td>
+        <td class="debit">${entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}</td>
+        <td class="credit">${entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}</td>
+        <td class="balance">${formatIQD(entry.balanceIqd)}</td>
+      </tr>
+    `).join("");
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("External Debt Statement IQD")} - ${debtName}</title>
+        <style>
+          ${printStyles}
+          .badge-green { background: #dcfce7; color: #15803d; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .badge-red { background: #fee2e2; color: #b91c1c; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .balance { color: #2563eb; font-weight: 700; }
+          .opening-row { background: #fffbeb; }
+          .opening-row td { color: #b45309; font-weight: 600; }
+        </style>
+      </head>
+      <body>
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("External Debt Statement IQD")}</h1>
+            <div class="supplier-name">${debtName}</div>
+            <div class="date-range">${dateRangeText}</div>
+          </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            ${companyProfile?.name ? `<div style="font-size:11pt;font-weight:700;color:${fieldColor};">${companyProfile.name}</div>` : ""}
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-amber"><div class="label">${t("Opening Balance (Opening Balance)")}</div><div class="value" style="color:#b45309;">${formatIQD(openingIqd)}</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Total Receipts")}</div><div class="value green">${formatIQD(totalDebitIqd)}</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Total Payments")}</div><div class="value red">${formatIQD(totalCreditIqd)}</div></div>
+          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value blue">${formatIQD(finalBalanceIqd)}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("Date")}</th>
+              <th>${t("Time")}</th>
+              <th>${t("Type")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Reference")}</th>
+              <th>${t("Debit IQD")}</th>
+              <th>${t("Credit IQD")}</th>
+              <th>${t("Balance IQD")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="opening-row">
+              <td colspan="6">${t("Opening Balance (Opening Balance)")}</td>
+              <td colspan="2"></td>
+              <td class="balance">${formatIQD(openingIqd)}</td>
+            </tr>
+            ${rows}
+            ${filteredEntries.length > 0 ? `
+            <tr class="total-row">
+              <td colspan="6"><strong>${t("Total")}</strong></td>
+              <td class="debit"><strong>${formatIQD(totalDebitIqd)}</strong></td>
+              <td class="credit"><strong>${formatIQD(totalCreditIqd)}</strong></td>
+              <td class="balance"><strong>${formatIQD(finalBalanceIqd)}</strong></td>
+            </tr>` : ""}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
   };
 
   return (
@@ -150,6 +272,12 @@ export default function ExternalDebtStatementIqdPage() {
               <Label>{t('To Date')}</Label>
               <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" data-testid="input-debt-statement-iqd-to-date" />
             </div>
+            {selectedDebtId && statement && !statementLoading && (
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-debt-statement-iqd">
+                <Printer className="h-4 w-4" />
+                {t('Print Report')}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
