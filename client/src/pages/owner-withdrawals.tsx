@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useOwnerTransactions, useCreateOwnerTransaction, useUpdateOwnerTransaction, useDeleteOwnerTransaction } from "@/hooks/use-owner-transactions";
 import { useOwners } from "@/hooks/use-owners";
@@ -39,6 +39,7 @@ export default function OwnerWithdrawalsPage() {
   const { mutate: updateTxn, isPending: isUpdating } = useUpdateOwnerTransaction();
   const { mutate: deleteTxn } = useDeleteOwnerTransaction();
 
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [selectedOwnerId, setSelectedOwnerId] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
@@ -63,6 +64,22 @@ export default function OwnerWithdrawalsPage() {
 
   const owners: Owner[] = ownersList || [];
 
+  const withdrawals = allTxns?.filter((t: OwnerTransaction) => t.type === "withdrawal") || [];
+
+  const nextInvoiceNumber = useMemo(() => {
+    const nums = withdrawals
+      .map((w: OwnerTransaction) => {
+        const match = w.receiptNumber?.match(/OWD-(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+    const max = nums.length > 0 ? Math.max(...nums) : 0;
+    return `OWD-${String(max + 1).padStart(4, "0")}`;
+  }, [withdrawals]);
+
+  useEffect(() => {
+    setInvoiceNumber(nextInvoiceNumber);
+  }, [nextInvoiceNumber]);
+
   const resetForm = () => {
     setSelectedOwnerId("");
     setAmountUsd("");
@@ -71,6 +88,7 @@ export default function OwnerWithdrawalsPage() {
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
+    setInvoiceNumber(nextInvoiceNumber);
   };
 
   const selectedOwner = owners.find((o: Owner) => o.id.toString() === selectedOwnerId);
@@ -91,6 +109,7 @@ export default function OwnerWithdrawalsPage() {
       ownerId: selectedOwner.id,
       ownerName: selectedOwner.name,
       type: "withdrawal",
+      receiptNumber: invoiceNumber,
       amountUsd: amountUsd || "0",
       amountIqd: amountIqd || "0",
       description: description || null,
@@ -137,6 +156,7 @@ export default function OwnerWithdrawalsPage() {
       ownerId: parseInt(editOwnerId),
       ownerName: editOwnerName,
       type: "withdrawal",
+      receiptNumber: editWithdrawal.receiptNumber,
       amountUsd: editAmountUsd || "0",
       amountIqd: editAmountIqd || "0",
       description: editDescription || null,
@@ -165,7 +185,6 @@ export default function OwnerWithdrawalsPage() {
     });
   };
 
-  const withdrawals = allTxns?.filter((t: OwnerTransaction) => t.type === "withdrawal") || [];
   const filteredWithdrawals = withdrawals.filter((w: OwnerTransaction) => {
     if (historyFilter && historyFilter !== "all" && String(w.ownerId) !== historyFilter) return false;
     if (historyFromDate && w.date < historyFromDate) return false;
@@ -227,18 +246,24 @@ export default function OwnerWithdrawalsPage() {
             <CardTitle className="text-lg">{t('Withdrawal Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label>{t('Select Owner')}</Label>
-              <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
-                <SelectTrigger data-testid="select-withdrawal-owner">
-                  <SelectValue placeholder={t('Please select an owner')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {owners.map((o: Owner) => (
-                    <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Invoice Number')}</Label>
+                <Input value={invoiceNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-withdrawal-invoice-number" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Select Owner')}</Label>
+                <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
+                  <SelectTrigger data-testid="select-withdrawal-owner">
+                    <SelectValue placeholder={t('Please select an owner')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {owners.map((o: Owner) => (
+                      <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -388,6 +413,7 @@ export default function OwnerWithdrawalsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Owner Name')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
@@ -402,6 +428,7 @@ export default function OwnerWithdrawalsPage() {
                   {paginatedWithdrawals.map((w: OwnerTransaction, i: number) => (
                     <TableRow key={w.id} data-testid={`row-withdrawal-${w.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-xs text-primary">{w.receiptNumber || "-"}</TableCell>
                       <TableCell className="text-sm font-medium">{w.ownerName}</TableCell>
                       <TableCell className="font-mono text-sm">{w.date}</TableCell>
                       <TableCell className="font-mono text-sm">{w.time || "-"}</TableCell>
@@ -452,7 +479,7 @@ export default function OwnerWithdrawalsPage() {
                   ))}
                   {paginatedWithdrawals.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No withdrawals yet')}
                       </TableCell>
                     </TableRow>
@@ -515,6 +542,10 @@ export default function OwnerWithdrawalsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('Invoice Number')}</Label>
+              <Input value={editWithdrawal?.receiptNumber || ""} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-edit-withdrawal-invoice-number" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Select Owner')}</Label>

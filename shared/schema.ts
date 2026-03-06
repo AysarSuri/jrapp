@@ -309,6 +309,7 @@ export const ownerTransactions = pgTable("owner_transactions", {
   ownerId: integer("owner_id").notNull(),
   ownerName: text("owner_name").notNull(),
   type: text("type").notNull(), // 'withdrawal' | 'return'
+  receiptNumber: text("receipt_number"),
   amountUsd: numeric("amount_usd").notNull().default("0"),
   amountIqd: numeric("amount_iqd").notNull().default("0"),
   description: text("description"),
