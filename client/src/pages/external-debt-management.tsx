@@ -4,7 +4,8 @@ import {
   HandCoins,
   ArrowDownToLine,
   ArrowUpFromLine,
-  FileText,
+  DollarSign,
+  Banknote,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,9 +39,17 @@ export default function ExternalDebtManagementPage() {
       iconColor: "text-orange-600 dark:text-orange-400",
     },
     {
-      href: "/external-debt-statement",
-      icon: FileText,
-      label: "External Debt Statement",
+      href: "/external-debt-statement-usd",
+      icon: DollarSign,
+      label: "External Debt Statement USD",
+      color: "from-blue-500 to-cyan-600",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950/30",
+      iconColor: "text-cyan-600 dark:text-cyan-400",
+    },
+    {
+      href: "/external-debt-statement-iqd",
+      icon: Banknote,
+      label: "External Debt Statement IQD",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",
       iconColor: "text-purple-600 dark:text-purple-400",
