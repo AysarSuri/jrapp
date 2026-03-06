@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
-  Pencil, Trash2, ChevronLeft, ChevronRight,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -52,6 +52,7 @@ export default function ExternalDebtReceiptsPage() {
   const [showHistoryFilterSuggestions, setShowHistoryFilterSuggestions] = useState(false);
   const [historyFromDate, setHistoryFromDate] = useState(new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(new Date().toISOString().split('T')[0]);
+  const [searchNumber, setSearchNumber] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -218,6 +219,7 @@ export default function ExternalDebtReceiptsPage() {
     if (historyFilter && historyFilter !== "all" && String(r.debtId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
     if (historyToDate && r.date > historyToDate) return false;
+    if (searchNumber && !(r.receiptNumber || "").toLowerCase().includes(searchNumber.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
@@ -458,6 +460,17 @@ export default function ExternalDebtReceiptsPage() {
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-ext-debt-receipt-history-to-date" />
+              </div>
+              <div className="relative w-40">
+                <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchNumber}
+                  onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }}
+                  placeholder={t('Search by number...')}
+                  className="h-9 ps-8"
+                  data-testid="input-search-receipt-number"
+                  autoComplete="off"
+                />
               </div>
               <div className="w-48 relative">
                 <Input
