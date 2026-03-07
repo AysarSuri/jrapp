@@ -2778,6 +2778,46 @@ export async function registerRoutes(
     }
   });
 
+  app.put('/api/product-damages/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { damage: damageData, items: itemsData } = req.body;
+
+      if (!itemsData || itemsData.length === 0) {
+        return res.status(400).json({ message: "At least one item is required" });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const [updated] = await tx.update(productDamages)
+          .set({
+            warehouseId: damageData.warehouseId,
+            warehouseName: damageData.warehouseName,
+            reason: damageData.reason,
+            note: damageData.note,
+            date: damageData.date,
+            time: damageData.time,
+          })
+          .where(eq(productDamages.id, id))
+          .returning();
+
+        await tx.delete(productDamageItems).where(eq(productDamageItems.damageId, id));
+
+        for (const item of itemsData) {
+          await tx.insert(productDamageItems).values({
+            ...item,
+            damageId: id,
+          });
+        }
+
+        return updated;
+      });
+
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete('/api/product-damages/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);

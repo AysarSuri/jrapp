@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useProductDamages, useNextDamageNumber, useCreateProductDamage, useDeleteProductDamage, useProductDamageItems } from "@/hooks/use-product-damages";
+import { useProductDamages, useNextDamageNumber, useCreateProductDamage, useUpdateProductDamage, useDeleteProductDamage, useProductDamageItems } from "@/hooks/use-product-damages";
 import { useQuery } from "@tanstack/react-query";
 import type { ProductDamage } from "@shared/schema";
 import { products, warehouses } from "@shared/schema";
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, AlertTriangle,
-  ChevronLeft, ChevronRight, Eye, Printer,
+  ChevronLeft, ChevronRight, Eye, Printer, Pencil,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -65,6 +65,7 @@ export default function ProductDamagePage() {
   const { data: damages, isLoading: damagesLoading } = useProductDamages();
   const { data: nextNumber } = useNextDamageNumber();
   const { mutate: createDamage, isPending: isSaving } = useCreateProductDamage();
+  const { mutate: updateDamage, isPending: isUpdating } = useUpdateProductDamage();
   const { mutate: deleteDamage } = useDeleteProductDamage();
 
   const { data: productsList } = useQuery<Product[]>({
@@ -90,8 +91,10 @@ export default function ProductDamagePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [detailDamageId, setDetailDamageId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const { data: detailItems } = useProductDamageItems(detailDamageId);
+  const { data: editItems } = useProductDamageItems(editingId);
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -164,6 +167,7 @@ export default function ProductDamagePage() {
   }, []);
 
   const resetForm = useCallback(() => {
+    setEditingId(null);
     setWarehouseId("");
     setWarehouseName("");
     setReason("");
@@ -185,7 +189,7 @@ export default function ProductDamagePage() {
       return;
     }
 
-    createDamage({
+    const payload = {
       damage: {
         damageNumber,
         warehouseId: warehouseId ? parseInt(warehouseId) : null,
@@ -202,16 +206,53 @@ export default function ProductDamagePage() {
         quantity: parseInt(item.quantity),
         unit: item.unit,
       })),
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Success"), description: t("Damage report recorded successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Error"), description: t("Failed to record damage report"), variant: "destructive" });
-      },
-    });
-  }, [reason, warehouseId, warehouseName, damageNumber, note, date, time, items, createDamage, toast, t, resetForm]);
+    };
+
+    if (editingId) {
+      updateDamage({ id: editingId, data: payload }, {
+        onSuccess: () => {
+          toast({ title: t("Success"), description: t("Damage report updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Error"), description: t("Failed to update damage report"), variant: "destructive" });
+        },
+      });
+    } else {
+      createDamage(payload, {
+        onSuccess: () => {
+          toast({ title: t("Success"), description: t("Damage report recorded successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Error"), description: t("Failed to record damage report"), variant: "destructive" });
+        },
+      });
+    }
+  }, [reason, warehouseId, warehouseName, damageNumber, note, date, time, items, createDamage, updateDamage, editingId, toast, t, resetForm]);
+
+  const handleEdit = useCallback((dmg: any) => {
+    setEditingId(dmg.id);
+    setDamageNumber(dmg.damageNumber);
+    setWarehouseId(dmg.warehouseId ? String(dmg.warehouseId) : "");
+    setWarehouseName(dmg.warehouseName || "");
+    setReason(dmg.reason);
+    setNote(dmg.note || "");
+    setDate(dmg.date);
+    setTime(dmg.time || "00:00");
+  }, []);
+
+  useEffect(() => {
+    if (editingId && editItems && editItems.length > 0) {
+      setItems(editItems.map(item => ({
+        productId: item.productId,
+        productCode: item.productCode,
+        productName: item.productName,
+        quantity: String(item.quantity),
+        unit: item.unit,
+      })));
+    }
+  }, [editingId, editItems]);
 
   const handleDelete = (id: number) => {
     deleteDamage(id, {
@@ -327,7 +368,13 @@ export default function ProductDamagePage() {
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-destructive" />
-            {t('New Damage Report')}
+            {editingId ? t('Edit Damage Report') : t('New Damage Report')}
+            {editingId && (
+              <Button variant="ghost" size="sm" onClick={resetForm} className="ms-2 text-muted-foreground" data-testid="button-cancel-edit">
+                <RotateCcw className="w-4 h-4 me-1" />
+                {t('Cancel')}
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -492,9 +539,9 @@ export default function ProductDamagePage() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button onClick={handleSubmit} disabled={isSaving} className="gap-2" data-testid="button-save">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {t('Save')}
+            <Button onClick={handleSubmit} disabled={isSaving || isUpdating} className="gap-2" data-testid="button-save">
+              {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {editingId ? t('Update') : t('Save')}
             </Button>
             <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
               <RotateCcw className="w-4 h-4" />
@@ -604,6 +651,15 @@ export default function ProductDamagePage() {
                             data-testid={`button-detail-${dmg.id}`}
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                            onClick={() => { handleEdit(dmg); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            data-testid={`button-edit-damage-${dmg.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
