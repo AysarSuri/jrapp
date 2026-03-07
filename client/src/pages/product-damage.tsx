@@ -265,7 +265,7 @@ export default function ProductDamagePage() {
               <Input
                 value={damageNumber}
                 readOnly
-                className="font-mono bg-muted/50"
+                className="font-mono bg-muted cursor-not-allowed"
                 data-testid="input-damage-number"
               />
             </div>
