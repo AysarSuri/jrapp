@@ -207,7 +207,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/owners",
     "/owner-withdrawals",
     "/owner-returns",
-    "/owner-statement",
   ];
 
   const agentSubRoutes = [
@@ -369,7 +368,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/owners", icon: UserCog, label: "Owner Names" },
     { href: "/owner-withdrawals", icon: ArrowUpFromLine, label: "Owner Withdrawals" },
     { href: "/owner-returns", icon: ArrowDownToLine, label: "Owner Returns" },
-    { href: "/owner-statement", icon: FileText, label: "Owner Statement" },
   ];
 
   const agentManagementNavItems: NavItem[] = [
