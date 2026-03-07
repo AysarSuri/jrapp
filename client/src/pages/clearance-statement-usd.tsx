@@ -50,27 +50,9 @@ interface StatementEntry {
   creditIqd: number;
 }
 
-interface VehicleRow {
-  invoiceId: number;
-  invoiceNumber: string;
-  date: string;
-  currency: string;
-  supplierName: string;
-  carNumber: string;
-  manifest: string;
-  driverName: string;
-  driverMobile: string;
-  customsExpense: number;
-  carExpense: number;
-  invoiceAmount: number;
-  amountPaid: number;
-  remaining: number;
-}
-
 interface StatementResponse {
   clearance: CustomsClearance;
   entries: StatementEntry[];
-  vehicles: VehicleRow[];
 }
 
 export default function ClearanceStatementUsdPage() {
@@ -149,12 +131,6 @@ export default function ClearanceStatementUsdPage() {
     return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const usdVehicles = (statement?.vehicles || []).filter(v => v.currency === "USD");
-  const totalVehicleCustoms = usdVehicles.reduce((s, r) => s + r.customsExpense, 0);
-  const totalVehicleCarExpense = usdVehicles.reduce((s, r) => s + r.carExpense, 0);
-  const totalVehicleAmount = usdVehicles.reduce((s, r) => s + r.invoiceAmount, 0);
-  const totalVehiclePaid = usdVehicles.reduce((s, r) => s + r.amountPaid, 0);
-  const totalVehicleRemaining = usdVehicles.reduce((s, r) => s + r.remaining, 0);
 
   const typeBadge = (type: string, source: string) => {
     if (source === "clearance_invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs')}</Badge>;
@@ -411,75 +387,6 @@ export default function ClearanceStatementUsdPage() {
             </CardContent>
           </Card>
 
-          {usdVehicles.length > 0 && (
-            <Card className="border-indigo-200 dark:border-indigo-900 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Banknote className="h-5 w-5 text-indigo-600" />
-                  {t('Incoming Vehicles')}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">{t('Incoming vehicles and manifests for this clearance')}</p>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-indigo-50/50 dark:bg-indigo-950/20">
-                      <TableHead className="w-8">#</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Invoice Number')}</TableHead>
-                      <TableHead>{t('Supplier')}</TableHead>
-                      <TableHead>{t('Vehicle Number')}</TableHead>
-                      <TableHead>{t('Manifest')}</TableHead>
-                      <TableHead>{t('Driver Name')}</TableHead>
-                      <TableHead className="text-center">{t('Customs Expense')}</TableHead>
-                      <TableHead className="text-center">{t('Car Expense')}</TableHead>
-                      <TableHead className="text-center">{t('Invoice Amount')}</TableHead>
-                      <TableHead className="text-center">{t('Amount Paid')}</TableHead>
-                      <TableHead className="text-center">{t('Remaining')}</TableHead>
-                      <TableHead className="text-center">{t('Actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {usdVehicles.map((v, i) => (
-                      <TableRow key={v.invoiceId} data-testid={`row-vehicle-usd-${v.invoiceId}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{formatDate(v.date)}</TableCell>
-                        <TableCell className="text-sm font-medium">{v.invoiceNumber}</TableCell>
-                        <TableCell className="text-sm">{v.supplierName}</TableCell>
-                        <TableCell className="text-sm font-medium">{v.carNumber || "-"}</TableCell>
-                        <TableCell className="text-sm">{v.manifest || "-"}</TableCell>
-                        <TableCell className="text-sm">{v.driverName || "-"}</TableCell>
-                        <TableCell className="font-mono text-sm text-center text-purple-600">{v.customsExpense > 0 ? fmtUsd(v.customsExpense) : "-"}</TableCell>
-                        <TableCell className="font-mono text-sm text-center text-orange-600">{v.carExpense > 0 ? fmtUsd(v.carExpense) : "-"}</TableCell>
-                        <TableCell className="font-mono text-sm text-center">{fmtUsd(v.invoiceAmount)}</TableCell>
-                        <TableCell className="font-mono text-sm text-center text-green-600">{fmtUsd(v.amountPaid)}</TableCell>
-                        <TableCell className="font-mono text-sm text-center text-red-600">{fmtUsd(v.remaining)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 justify-center">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(v.invoiceId); setReportOpen(true); }} data-testid={`btn-view-vehicle-usd-${v.invoiceId}`}>
-                              <Eye className="h-3.5 w-3.5 text-blue-600" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/purchase-invoice-usd?edit=${v.invoiceId}`)} data-testid={`btn-edit-vehicle-usd-${v.invoiceId}`}>
-                              <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={7} className="text-end">{t('Total')}</TableCell>
-                      <TableCell className="font-mono text-center text-purple-700">{fmtUsd(totalVehicleCustoms)}</TableCell>
-                      <TableCell className="font-mono text-center text-orange-700">{fmtUsd(totalVehicleCarExpense)}</TableCell>
-                      <TableCell className="font-mono text-center">{fmtUsd(totalVehicleAmount)}</TableCell>
-                      <TableCell className="font-mono text-center text-green-700">{fmtUsd(totalVehiclePaid)}</TableCell>
-                      <TableCell className="font-mono text-center text-red-700">{fmtUsd(totalVehicleRemaining)}</TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
         </>
       )}
 

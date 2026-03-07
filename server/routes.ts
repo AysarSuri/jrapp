@@ -1671,13 +1671,14 @@ export async function registerRoutes(
       const invoiceEntries = invoicesWithCustoms.map((inv) => {
         const expense = parseFloat(inv.customsExpense || "0");
         const isUsd = inv.currency === "USD";
+        const descParts = [inv.carNumber, inv.manifest].filter(Boolean).join(" - ");
         return {
           id: inv.id,
           date: inv.date,
           time: inv.time || "00:00",
           type: "customs_expense" as const,
           source: "invoice" as const,
-          description: `${inv.invoiceNumber} - ${inv.supplierName}`,
+          description: descParts || `${inv.invoiceNumber} - ${inv.supplierName}`,
           reference: inv.invoiceNumber,
           debitUsd: isUsd ? expense : 0,
           debitIqd: !isUsd ? expense : 0,
