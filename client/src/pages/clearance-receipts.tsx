@@ -198,6 +198,98 @@ export default function ClearanceReceiptsPage() {
     });
   };
 
+  const fieldColor = companyProfile?.primaryColor || "#16a34a";
+  const textColor = companyProfile?.secondaryColor || "#ffffff";
+
+  const handlePrintReport = () => {
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const filterName = historyFilter && historyFilter !== "all"
+      ? clearances.find(c => String(c.id) === historyFilter)?.name || ""
+      : t("All Clearances");
+
+    const totalUsd = filteredReceipts.reduce((s: number, r: CustomsClearanceTransaction) => s + parseFloat(r.amountUsd || "0"), 0);
+    const totalIqd = filteredReceipts.reduce((s: number, r: CustomsClearanceTransaction) => s + parseFloat(r.amountIqd || "0"), 0);
+
+    const rows = filteredReceipts.map((r: CustomsClearanceTransaction, idx: number) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${r.listNumber || "-"}</td>
+        <td>${formatDate(r.date)}</td>
+        <td>${r.time || "-"}</td>
+        <td><strong>${r.clearanceName}</strong></td>
+        <td class="debit">${parseFloat(r.amountUsd) > 0 ? usd(r.amountUsd) : "-"}</td>
+        <td class="credit">${parseFloat(r.amountIqd) > 0 ? parseFloat(r.amountIqd).toLocaleString() + " IQD" : "-"}</td>
+        <td>${r.description || "-"}</td>
+        <td>${r.reference || "-"}</td>
+      </tr>
+    `).join("");
+
+    const dateRangeText = historyFromDate && historyToDate
+      ? `${formatDate(historyFromDate)} - ${formatDate(historyToDate)}`
+      : historyFromDate ? `${formatDate(historyFromDate)} - ${t("Now")}`
+      : historyToDate ? `${t("Beginning")} - ${formatDate(historyToDate)}`
+      : formatDate(new Date());
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Clearance Receipt Report")}</title>
+        <style>${printStyles}</style>
+      </head>
+      <body>
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("Clearance Receipt Report")}</h1>
+            <div class="supplier-name">${filterName}</div>
+            <div class="date-range">${dateRangeText}</div>
+          </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            <div style="font-size:11pt;font-weight:700;color:${fieldColor};">${t("Total Records")}: ${filteredReceipts.length}</div>
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-blue"><div class="label">${t("Total USD")}</div><div class="value blue">${usd(totalUsd)}</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Total IQD")}</div><div class="value red">${totalIqd.toLocaleString()} IQD</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Total Records")}</div><div class="value green">${filteredReceipts.length}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("List No")}</th>
+              <th>${t("Date")}</th>
+              <th>${t("Time")}</th>
+              <th>${t("Customs Clearance")}</th>
+              <th>${t("USD Amount")}</th>
+              <th>${t("IQD Amount")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Reference")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="5"><strong>${t("Total")}</strong></td>
+              <td class="debit"><strong>${usd(totalUsd)}</strong></td>
+              <td class="credit"><strong>${totalIqd.toLocaleString()} IQD</strong></td>
+              <td colspan="2"></td>
+            </tr>
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
+
   const receipts = allTxns?.filter(t => t.type === "receipt") || [];
   const filteredReceipts = receipts.filter(r => {
     if (historyFilter && historyFilter !== "all" && String(r.clearanceId) !== historyFilter) return false;
@@ -431,6 +523,10 @@ export default function ClearanceReceiptsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-receipt-report">
+                <Printer className="h-4 w-4" />
+                {t('Report')}
+              </Button>
             </div>
           </div>
         </CardHeader>
