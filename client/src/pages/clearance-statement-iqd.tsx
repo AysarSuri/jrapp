@@ -137,8 +137,8 @@ export default function ClearanceStatementIqdPage() {
     return { ...entry, balance: runIqd };
   });
 
-  const totalCustomsFeeIqd = iqdEntries.filter(e => e.source === "invoice").reduce((s, e) => s + e.debitIqd, 0);
-  const totalReceiptsIqd = iqdEntries.filter(e => e.source !== "invoice" && e.type === "receipt").reduce((s, e) => s + e.debitIqd, 0);
+  const totalCustomsFeeIqd = iqdEntries.filter(e => e.source === "invoice" || e.source === "clearance_invoice").reduce((s, e) => s + e.debitIqd, 0);
+  const totalReceiptsIqd = iqdEntries.filter(e => e.source !== "invoice" && e.source !== "clearance_invoice" && e.type === "receipt").reduce((s, e) => s + e.debitIqd, 0);
   const totalDebitIqd = totalCustomsFeeIqd + totalReceiptsIqd;
   const totalCreditIqd = iqdEntries.reduce((s, e) => s + e.creditIqd, 0);
   const finalBalanceIqd = openingIqd + totalDebitIqd - totalCreditIqd;
@@ -157,6 +157,7 @@ export default function ClearanceStatementIqdPage() {
   const totalVehicleRemaining = iqdVehicles.reduce((s, r) => s + r.remaining, 0);
 
   const typeBadge = (type: string, source: string) => {
+    if (source === "clearance_invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs')}</Badge>;
     if (source === "invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs Fee')}</Badge>;
     if (type === "receipt") return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Receipt')}</Badge>;
     return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Payment')}</Badge>;
@@ -166,6 +167,8 @@ export default function ClearanceStatementIqdPage() {
     if (entry.source === "invoice") {
       setReportInvoiceId(entry.id);
       setReportOpen(true);
+    } else if (entry.source === "clearance_invoice") {
+      navigate(`/clearance-purchase-invoices`);
     } else {
       setViewEntry(entry);
     }
@@ -174,6 +177,8 @@ export default function ClearanceStatementIqdPage() {
   const handleEditClick = (entry: StatementEntry) => {
     if (entry.source === "invoice") {
       navigate(`/purchase-invoice-iqd?edit=${entry.id}`);
+    } else if (entry.source === "clearance_invoice") {
+      navigate(`/clearance-purchase-invoices`);
     } else {
       setEditEntry(entry);
       setEditAmountUsd(String(entry.type === "receipt" ? entry.debitUsd : entry.creditUsd));
@@ -212,7 +217,13 @@ export default function ClearanceStatementIqdPage() {
   const handleDelete = async () => {
     if (!deleteEntry) return;
     try {
-      if (deleteEntry.source === "invoice") {
+      if (deleteEntry.source === "clearance_invoice") {
+        await apiRequest("DELETE", `/api/clearance-purchase-invoices/${deleteEntry.id}`);
+        queryClient.invalidateQueries({ queryKey: ["/api/clearance-statement", selectedClearanceId] });
+        toast({ title: t("Deleted successfully") });
+        playDeleteSound();
+        setDeleteEntry(null);
+      } else if (deleteEntry.source === "invoice") {
         await apiRequest("DELETE", `/api/purchase-invoices/${deleteEntry.id}`);
         queryClient.invalidateQueries({ queryKey: ["/api/clearance-statement", selectedClearanceId] });
         toast({ title: t("Deleted successfully") });
@@ -334,7 +345,6 @@ export default function ClearanceStatementIqdPage() {
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
-                    <TableHead>{t('Reference')}</TableHead>
                     <TableHead className="text-green-700 dark:text-green-400">{t('Debit')}</TableHead>
                     <TableHead className="text-red-700 dark:text-red-400">{t('Credit')}</TableHead>
                     <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')}</TableHead>
@@ -343,7 +353,7 @@ export default function ClearanceStatementIqdPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
-                    <TableCell colSpan={5} className="text-amber-700 dark:text-amber-400">
+                    <TableCell colSpan={4} className="text-amber-700 dark:text-amber-400">
                       {t('Opening Balance')}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
@@ -356,7 +366,6 @@ export default function ClearanceStatementIqdPage() {
                       <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
                         {entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}
                       </TableCell>
@@ -383,14 +392,14 @@ export default function ClearanceStatementIqdPage() {
                   ))}
                   {iqdEntries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         {t('No transactions found')}
                       </TableCell>
                     </TableRow>
                   )}
                   {iqdEntries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={5} className="text-end">{t('Total')}</TableCell>
+                      <TableCell colSpan={4} className="text-end">{t('Total')}</TableCell>
                       <TableCell className="font-mono text-green-700">{formatIQD(totalDebitIqd)}</TableCell>
                       <TableCell className="font-mono text-red-700">{formatIQD(totalCreditIqd)}</TableCell>
                       <TableCell className="font-mono text-blue-700">{formatIQD(finalBalanceIqd)}</TableCell>

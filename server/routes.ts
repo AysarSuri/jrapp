@@ -1686,7 +1686,30 @@ export async function registerRoutes(
         };
       });
 
-      const allEntries = [...txnEntries, ...invoiceEntries].sort((a, b) => {
+      const clearancePurchaseInvs = await db.select().from(clearancePurchaseInvoices).where(
+        eq(clearancePurchaseInvoices.clearanceId, clearanceId)
+      ).orderBy(clearancePurchaseInvoices.date);
+
+      const clearanceInvoiceEntries = clearancePurchaseInvs.map((inv) => {
+        const usdAmt = parseFloat(inv.customsUsd || "0");
+        const iqdAmt = parseFloat(inv.customsIqd || "0");
+        const descParts = [inv.carNumber, inv.manifest].filter(Boolean).join(" - ");
+        return {
+          id: inv.id,
+          date: inv.date,
+          time: inv.time || "00:00",
+          type: "customs" as const,
+          source: "clearance_invoice" as const,
+          description: descParts || inv.description || null,
+          reference: inv.listNumber,
+          debitUsd: usdAmt,
+          debitIqd: iqdAmt,
+          creditUsd: 0,
+          creditIqd: 0,
+        };
+      });
+
+      const allEntries = [...txnEntries, ...invoiceEntries, ...clearanceInvoiceEntries].sort((a, b) => {
         const dateCompare = a.date.localeCompare(b.date);
         if (dateCompare !== 0) return dateCompare;
         return a.time.localeCompare(b.time);
