@@ -81,8 +81,9 @@ export default function ProductDamagePage() {
   const [note, setNote] = useState("");
   const [items, setItems] = useState<DamageItem[]>([emptyItem()]);
   const [historyFilter, setHistoryFilter] = useState<string>("");
-  const [historyFromDate, setHistoryFromDate] = useState("");
-  const [historyToDate, setHistoryToDate] = useState("");
+  const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historyDamageNumber, setHistoryDamageNumber] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [detailDamageId, setDetailDamageId] = useState<number | null>(null);
@@ -244,6 +245,7 @@ export default function ProductDamagePage() {
     if (historyFilter && historyFilter !== "all" && dmg.reason !== historyFilter) return false;
     if (historyFromDate && dmg.date < historyFromDate) return false;
     if (historyToDate && dmg.date > historyToDate) return false;
+    if (historyDamageNumber && !dmg.damageNumber?.toLowerCase().includes(historyDamageNumber.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredDamages.length / pageSize));
@@ -449,6 +451,16 @@ export default function ProductDamagePage() {
               <Badge variant="secondary" className="ml-2">{filteredDamages.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('Damage No')}</Label>
+                <Input
+                  value={historyDamageNumber}
+                  onChange={(e) => { setHistoryDamageNumber(e.target.value); setCurrentPage(1); }}
+                  placeholder={t('Search by damage number')}
+                  className="w-40 h-9 font-mono"
+                  data-testid="input-search-damage-number"
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-damage-history-from-date" />
