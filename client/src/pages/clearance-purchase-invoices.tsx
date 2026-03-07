@@ -313,7 +313,6 @@ export default function ClearancePurchaseInvoicesPage() {
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-border/50 shadow-sm">
           <CardHeader className="pb-4">
@@ -447,7 +446,7 @@ export default function ClearancePurchaseInvoicesPage() {
             <Button
               onClick={handleSave}
               disabled={(editInvoice ? isUpdating : isSaving) || !clearanceId}
-              className={`w-full h-12 text-base gap-2 ${editInvoice ? 'bg-orange-600 hover:bg-orange-700' : 'bg-sky-600 hover:bg-sky-700'}`}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98] shadow-sm hover:shadow-md px-4 py-2 w-full h-12 text-base gap-2 bg-sky-600 hover:bg-sky-700 text-[#ffffff]"
               data-testid="button-save-invoice"
             >
               {(editInvoice ? isUpdating : isSaving) ? (
@@ -460,7 +459,6 @@ export default function ClearancePurchaseInvoicesPage() {
           </CardContent>
         </Card>
       </div>
-
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
