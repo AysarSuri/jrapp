@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, AlertTriangle,
-  ChevronLeft, ChevronRight, Eye,
+  ChevronLeft, ChevronRight, Eye, Printer,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -30,6 +30,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
+import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
 
 interface DamageItem {
   productId: number | null;
@@ -58,7 +60,7 @@ const DAMAGE_REASONS = [
 ];
 
 export default function ProductDamagePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { data: damages, isLoading: damagesLoading } = useProductDamages();
   const { data: nextNumber } = useNextDamageNumber();
@@ -253,6 +255,64 @@ export default function ProductDamagePage() {
   const totalPages = Math.max(1, Math.ceil(filteredDamages.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedDamages = filteredDamages.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const handlePrintReport = () => {
+    if (!filteredDamages.length) return;
+    const dir = i18n.language === "en" ? "ltr" : "rtl";
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const rows = filteredDamages.map((dmg: any, i: number) => {
+      const prNames = (dmg.itemProductNames || []).join("، ");
+      return `<tr>
+        <td>${i + 1}</td>
+        <td style="font-weight:600;font-family:monospace">${dmg.damageNumber}</td>
+        <td>${dmg.date}</td>
+        <td>${dmg.time || "-"}</td>
+        <td>${dmg.warehouseName || "-"}</td>
+        <td><span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:8pt">${reasonLabel(dmg.reason)}</span></td>
+        <td style="max-width:150px">${prNames || "-"}</td>
+        <td style="max-width:100px;color:#666">${dmg.note || "-"}</td>
+      </tr>`;
+    }).join("");
+
+    const dateRange = historyFromDate && historyToDate
+      ? `${formatDate(historyFromDate)} - ${formatDate(historyToDate)}`
+      : formatDate(new Date());
+
+    printWindow.document.write(`<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head><meta charset="UTF-8" />
+        <title>${t("Damage Report")}</title>
+        <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor: "#991b1b", accentTextColor: "#ffffff" })}</style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${t("Damage Report")}</h1>
+          <p>${dateRange}</p>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-red"><div class="label">${t("Total Records")}</div><div class="value red">${filteredDamages.length}</div></div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>${t("Damage No")}</th>
+            <th>${t("Date")}</th>
+            <th>${t("Time")}</th>
+            <th>${t("Warehouse")}</th>
+            <th>${t("Reason")}</th>
+            <th>${t("Products")}</th>
+            <th>${t("Note")}</th>
+          </tr></thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
 
   return (
     <div className="space-y-6">
@@ -494,6 +554,10 @@ export default function ProductDamagePage() {
                   </SelectContent>
                 </Select>
               </div>
+              <Button onClick={handlePrintReport} variant="outline" size="sm" className="h-9" data-testid="button-print-damage-report">
+                <Printer className="w-4 h-4 me-2" />
+                {t("Print")}
+              </Button>
             </div>
           </div>
         </CardHeader>
