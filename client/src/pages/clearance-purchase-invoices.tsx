@@ -364,11 +364,11 @@ export default function ClearancePurchaseInvoicesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Car Number')}</Label>
-                <Input value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Car Number')} data-testid="input-car-number" />
+                <Input dir="ltr" value={carNumber} onChange={(e) => setCarNumber(e.target.value)} placeholder={t('Car Number')} data-testid="input-car-number" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Manifest')}</Label>
-                <Input value={manifest} onChange={(e) => setManifest(e.target.value)} placeholder={t('Manifest')} data-testid="input-manifest" />
+                <Input dir="ltr" value={manifest} onChange={(e) => setManifest(e.target.value)} placeholder={t('Manifest')} data-testid="input-manifest" />
               </div>
             </div>
 
