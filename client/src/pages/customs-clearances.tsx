@@ -1,18 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCustomsClearanceSchema, type CustomsClearance } from "@shared/routes";
-import { z } from "zod";
+import { type CustomsClearance } from "@shared/routes";
 import { useCustomsClearances, useCreateCustomsClearance, useUpdateCustomsClearance, useDeleteCustomsClearance } from "@/hooks/use-customs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -20,11 +12,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, ShieldCheck, Loader2, Trash2, Pencil } from "lucide-react";
+import { ShieldCheck, Loader2, Trash2, Pencil, Save, RotateCcw, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usd } from "@/lib/format-utils";
+import { usd, fmtIqd } from "@/lib/format-utils";
 
 export default function CustomsClearancesPage() {
   const { t } = useTranslation();
@@ -33,61 +25,70 @@ export default function CustomsClearancesPage() {
   const { mutate: updateClearance, isPending: isUpdating } = useUpdateCustomsClearance();
   const { mutate: deleteClearance } = useDeleteCustomsClearance();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<CustomsClearance | null>(null);
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [name, setName] = useState("");
+  const [oldDebtUsd, setOldDebtUsd] = useState("0");
+  const [oldDebtIqd, setOldDebtIqd] = useState("0");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const form = useForm<z.infer<typeof insertCustomsClearanceSchema>>({
-    resolver: zodResolver(insertCustomsClearanceSchema),
-    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
-  });
+  const resetForm = useCallback(() => {
+    setEditingId(null);
+    setName("");
+    setOldDebtUsd("0");
+    setOldDebtIqd("0");
+  }, []);
 
-  const openCreateDialog = () => {
-    setEditing(null);
-    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
-    setOpen(true);
-  };
+  const handleEdit = useCallback((item: CustomsClearance) => {
+    setEditingId(item.id);
+    setName(item.name);
+    setOldDebtUsd(item.oldDebtUsd || "0");
+    setOldDebtIqd(item.oldDebtIqd || "0");
+  }, []);
 
-  const openEditDialog = (item: CustomsClearance) => {
-    setEditing(item);
-    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
-    setOpen(true);
-  };
+  const handleSubmit = useCallback(() => {
+    if (!name.trim()) {
+      toast({ title: t("Error"), description: t("Please enter the customs clearance name"), variant: "destructive" });
+      return;
+    }
 
-  const onSubmit = (values: z.infer<typeof insertCustomsClearanceSchema>) => {
-    if (editing) {
-      updateClearance({ id: editing.id, data: values }, {
+    const payload = {
+      name: name.trim(),
+      oldDebtUsd: oldDebtUsd || "0",
+      oldDebtIqd: oldDebtIqd || "0",
+    };
+
+    if (editingId) {
+      updateClearance({ id: editingId, data: payload }, {
         onSuccess: () => {
-          setOpen(false);
-          setEditing(null);
-          form.reset();
           toast({ title: t("Customs clearance updated successfully") });
+          resetForm();
         },
-        onError: (err) => {
-          toast({ title: t("Failed to update customs clearance"), description: t(err.message), variant: "destructive" });
+        onError: (err: any) => {
+          toast({ title: t("Failed to update customs clearance"), description: err?.message, variant: "destructive" });
         },
       });
     } else {
-      createClearance(values, {
+      createClearance(payload, {
         onSuccess: () => {
-          setOpen(false);
-          form.reset();
           toast({ title: t("Customs clearance added successfully") });
+          resetForm();
         },
-        onError: (err) => {
-          toast({ title: t("Failed to add customs clearance"), description: t(err.message), variant: "destructive" });
+        onError: (err: any) => {
+          toast({ title: t("Failed to add customs clearance"), description: err?.message, variant: "destructive" });
         },
       });
     }
-  };
+  }, [name, oldDebtUsd, oldDebtIqd, editingId, createClearance, updateClearance, toast, t, resetForm]);
 
   const handleDelete = (id: number) => {
     deleteClearance(id, {
       onSuccess: () => {
         toast({ title: t("Customs clearance deleted successfully") });
+        if (editingId === id) resetForm();
       },
-      onError: (err) => {
-        toast({ title: t("Failed to delete customs clearance"), description: t(err.message), variant: "destructive" });
+      onError: (err: any) => {
+        toast({ title: t("Failed to delete customs clearance"), description: err?.message, variant: "destructive" });
       },
     });
   };
@@ -98,94 +99,105 @@ export default function CustomsClearancesPage() {
 
   const isSaving = isCreating || isUpdating;
 
-  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
-
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Customs Clearances')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage customs clearance companies')}</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-7 h-7 text-primary" />
+          <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Customs Clearances')}</h1>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-customs-clearance" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('Add Customs Clearance')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{editing ? t('Edit Customs Clearance') : t('Add New Customs Clearance')}</DialogTitle>
-              <DialogDescription>{t('Enter the customs clearance company name')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Customs Clearance Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-customs-clearance-name" placeholder={t('e.g. Al-Basra Customs')} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance USD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" data-testid="input-customs-clearance-old-debt-usd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('Opening Balance IQD')}</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="250" placeholder="0" data-testid="input-customs-clearance-old-debt-iqd" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-customs-clearance">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Customs Clearances')}</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{clearances?.length || 0}</div>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="text-base px-3 py-1">
+          {clearances?.length || 0} {t('Total')}
+        </Badge>
       </div>
 
       <Card className="border-border/50 shadow-sm">
-        <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search customs clearances...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customs-clearances" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            {editingId ? t('Edit Customs Clearance') : t('Add New Customs Clearance')}
+            {editingId && (
+              <Button variant="ghost" size="sm" onClick={resetForm} className="ms-2 text-muted-foreground" data-testid="button-cancel-edit">
+                <RotateCcw className="w-4 h-4 me-1" />
+                {t('Cancel')}
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label>{t('Customs Clearance Name')}</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('e.g. Al-Basra Customs')}
+                data-testid="input-customs-clearance-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Opening Balance USD')}</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={oldDebtUsd}
+                onChange={(e) => setOldDebtUsd(e.target.value)}
+                placeholder="0.00"
+                data-testid="input-customs-clearance-old-debt-usd"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Opening Balance IQD')}</Label>
+              <Input
+                type="number"
+                step="250"
+                value={oldDebtIqd}
+                onChange={(e) => setOldDebtIqd(e.target.value)}
+                placeholder="0"
+                data-testid="input-customs-clearance-old-debt-iqd"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button onClick={handleSubmit} disabled={isSaving} className="gap-2" data-testid="button-save-customs-clearance">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {editingId ? t('Update') : t('Save')}
+            </Button>
+            <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
+              <RotateCcw className="w-4 h-4" />
+              {t('Reset')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-lg">{t('Customs Clearances')}</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('Search customs clearances...')}
+                className="ps-9 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                data-testid="input-search-customs-clearances"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><ShieldCheck className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4">
+                <ShieldCheck className="w-10 h-10" />
+              </div>
               <h3 className="font-semibold text-lg">{t('No customs clearances found')}</h3>
               <p>{t('Add a new customs clearance to get started.')}</p>
             </div>
@@ -194,17 +206,17 @@ export default function CustomsClearancesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>#</TableHead>
+                    <TableHead className="w-12">#</TableHead>
                     <TableHead>{t('Customs Clearance Name')}</TableHead>
                     <TableHead>{t('Opening Balance USD')}</TableHead>
                     <TableHead>{t('Opening Balance IQD')}</TableHead>
-                    <TableHead className="text-right">{t('Actions')}</TableHead>
+                    <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((item: CustomsClearance) => (
+                  {filtered.map((item: CustomsClearance, i: number) => (
                     <TableRow key={item.id} data-testid={`row-customs-clearance-${item.id}`}>
-                      <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
                           <ShieldCheck className="h-3 w-3" />
@@ -215,16 +227,27 @@ export default function CustomsClearancesPage() {
                         {parseFloat(item.oldDebtUsd) > 0 ? usd(item.oldDebtUsd) : "-"}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
+                        {parseFloat(item.oldDebtIqd) > 0 ? fmtIqd(parseFloat(item.oldDebtIqd)) : "-"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-customs-clearance-${item.id}`}>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                            onClick={() => { handleEdit(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                            data-testid={`button-edit-customs-clearance-${item.id}`}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-customs-clearance-${item.id}`}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                data-testid={`button-delete-customs-clearance-${item.id}`}
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
