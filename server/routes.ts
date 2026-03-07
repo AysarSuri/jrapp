@@ -3009,6 +3009,73 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/external-debt-debts', requireAuth, async (req, res) => {
+    try {
+      const debts = await db.select().from(externalDebts);
+      const allTxns = await db.select().from(externalDebtTransactions);
+
+      const results = debts.map(debt => {
+        const dTxns = allTxns.filter(t => t.debtId === debt.id);
+
+        let totalDebitUsd = parseFloat(debt.oldDebtUsd || "0");
+        let totalDebitIqd = parseFloat(debt.oldDebtIqd || "0");
+        let totalCreditUsd = 0;
+        let totalCreditIqd = 0;
+
+        for (const t of dTxns) {
+          const usdAmt = parseFloat(t.amountUsd || "0");
+          const iqdAmt = parseFloat(t.amountIqd || "0");
+          if (t.type === "receipt") {
+            totalDebitUsd += usdAmt;
+            totalDebitIqd += iqdAmt;
+          } else {
+            totalCreditUsd += usdAmt;
+            totalCreditIqd += iqdAmt;
+          }
+        }
+
+        const remainingUsd = totalDebitUsd - totalCreditUsd;
+        const remainingIqd = totalDebitIqd - totalCreditIqd;
+
+        const sorted = [...dTxns].sort((a, b) => {
+          const da = `${a.date} ${a.time}`;
+          const db2 = `${b.date} ${b.time}`;
+          return db2.localeCompare(da);
+        });
+        const lastReceipt = sorted.find(t => t.type === "receipt") || null;
+        const lastPayment = sorted.find(t => t.type === "payment") || null;
+
+        const txnAmount = (t: typeof sorted[0] | null) => {
+          if (!t) return { usd: null, iqd: null, date: null };
+          const u = parseFloat(t.amountUsd || "0");
+          const i = parseFloat(t.amountIqd || "0");
+          return { usd: u || null, iqd: i || null, date: t.date };
+        };
+
+        const lr = txnAmount(lastReceipt);
+        const lp = txnAmount(lastPayment);
+
+        return {
+          id: debt.id,
+          name: debt.name,
+          remainingUsd,
+          remainingIqd,
+          lastReceiptAmountUsd: lr.usd,
+          lastReceiptAmountIqd: lr.iqd,
+          lastReceiptDate: lr.date,
+          lastPaymentAmountUsd: lp.usd,
+          lastPaymentAmountIqd: lp.iqd,
+          lastPaymentDate: lp.date,
+        };
+      });
+
+      res.json(results);
+    } catch (error: any) {
+      console.error("Error fetching external debt debts:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // External Debt Statement
   app.get('/api/external-debt-statement/:id', requireAuth, async (req, res) => {
     try {

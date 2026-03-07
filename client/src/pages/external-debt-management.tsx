@@ -6,6 +6,7 @@ import {
   ArrowUpFromLine,
   DollarSign,
   Banknote,
+  ListChecks,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,6 +54,14 @@ export default function ExternalDebtManagementPage() {
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",
       iconColor: "text-purple-600 dark:text-purple-400",
+    },
+    {
+      href: "/external-debt-debts",
+      icon: ListChecks,
+      label: "External Debts List",
+      color: "from-red-500 to-red-600",
+      bgColor: "bg-red-50 dark:bg-red-950/30",
+      iconColor: "text-red-600 dark:text-red-400",
     },
   ];
 
