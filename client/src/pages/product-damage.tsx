@@ -95,6 +95,14 @@ export default function ProductDamagePage() {
     }
   }, [nextNumber]);
 
+  useEffect(() => {
+    if (warehousesList?.length && !warehouseId) {
+      const first = warehousesList[0];
+      setWarehouseId(String(first.id));
+      setWarehouseName(first.name);
+    }
+  }, [warehousesList, warehouseId]);
+
   const selectWarehouse = useCallback((id: string) => {
     setWarehouseId(id);
     const wh = warehousesList?.find(w => w.id === parseInt(id));
