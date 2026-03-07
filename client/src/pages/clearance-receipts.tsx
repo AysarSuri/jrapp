@@ -241,7 +241,7 @@ export default function ClearanceReceiptsPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('List No')}</Label>
                 <Input
@@ -264,6 +264,8 @@ export default function ClearanceReceiptsPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
                 <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-clearance-receipt-date" />
