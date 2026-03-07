@@ -624,6 +624,7 @@ export default function ProductDamagePage() {
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Warehouse')}</TableHead>
                     <TableHead>{t('Reason')}</TableHead>
+                    <TableHead>{t('Products')}</TableHead>
                     <TableHead>{t('Note')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
@@ -640,6 +641,13 @@ export default function ProductDamagePage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="destructive">{reasonLabel(dmg.reason)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm max-w-[200px]">
+                        {((dmg as any).itemProductNames || []).length > 0
+                          ? ((dmg as any).itemProductNames as string[]).map((name: string, idx: number) => (
+                              <span key={idx} className="inline-block bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs me-1 mb-0.5">{name}</span>
+                            ))
+                          : "-"}
                       </TableCell>
                       <TableCell className="text-sm max-w-[150px] truncate text-muted-foreground">{dmg.note || "-"}</TableCell>
                       <TableCell>
