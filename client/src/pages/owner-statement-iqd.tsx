@@ -101,6 +101,10 @@ export default function OwnerStatementIqdPage() {
   const totalCreditIqd = filteredEntries.reduce((s, e) => s + e.creditIqd, 0);
   const finalBalanceIqd = parseFloat(statement?.owner?.oldDebtIqd || "0") + totalDebitIqd - totalCreditIqd;
 
+  const finalBalanceLabel = finalBalanceIqd >= 0
+    ? `${t('Withdrawals of')} ${statement?.owner?.name || ""}`
+    : `${t('Remaining at')} ${companyProfile?.name || t('Company')}`;
+
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const fieldColor = companyProfile?.primaryColor || "#2563eb";
   const textColor = companyProfile?.secondaryColor || "#ffffff";
@@ -171,7 +175,7 @@ export default function OwnerStatementIqdPage() {
           <div class="summary-card accent-amber"><div class="label">${t("Opening Balance (Opening Balance)")}</div><div class="value" style="color:#b45309;">${formatIQD(openingIqd)}</div></div>
           <div class="summary-card accent-red"><div class="label">${t("Total Withdrawals")}</div><div class="value red">${formatIQD(totalDebitIqd)}</div></div>
           <div class="summary-card accent-green"><div class="label">${t("Total Returns")}</div><div class="value green">${formatIQD(totalCreditIqd)}</div></div>
-          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value blue">${formatIQD(finalBalanceIqd)}</div></div>
+          <div class="summary-card ${finalBalanceIqd >= 0 ? 'accent-red' : 'accent-green'}"><div class="label">${finalBalanceLabel}</div><div class="value ${finalBalanceIqd >= 0 ? 'red' : 'green'}">${finalBalanceIqd >= 0 ? '' : '-'}${formatIQD(Math.abs(finalBalanceIqd))}</div></div>
         </div>
         <table>
           <thead>
@@ -313,10 +317,10 @@ export default function OwnerStatementIqdPage() {
                 <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-owner-stmt-iqd-returns">{formatIQD(totalCreditIqd)}</p>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
+            <Card className={`bg-gradient-to-br ${finalBalanceIqd >= 0 ? 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800' : 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800'}`}>
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-orange-700 dark:text-orange-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-orange-800 dark:text-orange-300" data-testid="text-owner-stmt-iqd-final">{formatIQD(finalBalanceIqd)}</p>
+                <p className={`text-xs mb-1 ${finalBalanceIqd >= 0 ? 'text-red-700 dark:text-red-400' : 'text-green-700 dark:text-green-400'}`}>{finalBalanceLabel}</p>
+                <p className={`font-mono font-bold ${finalBalanceIqd >= 0 ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'}`} data-testid="text-owner-stmt-iqd-final">{formatIQD(Math.abs(finalBalanceIqd))}</p>
               </CardContent>
             </Card>
           </div>
