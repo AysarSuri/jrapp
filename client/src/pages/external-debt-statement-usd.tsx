@@ -96,6 +96,10 @@ export default function ExternalDebtStatementUsdPage() {
   const totalCreditUsd = filteredEntries.reduce((s, e) => s + e.creditUsd, 0);
   const finalBalanceUsd = parseFloat(statement?.debt?.oldDebtUsd || "0") + totalDebitUsd - totalCreditUsd;
 
+  const finalBalanceLabel = finalBalanceUsd >= 0
+    ? `${t('Remaining at')} ${statement?.debt?.name || ""}`
+    : `${t('Remaining at')} ${companyProfile?.name || t('Company')}`;
+
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const fieldColor = companyProfile?.primaryColor || "#2563eb";
   const textColor = companyProfile?.secondaryColor || "#ffffff";
@@ -166,7 +170,7 @@ export default function ExternalDebtStatementUsdPage() {
           <div class="summary-card accent-amber"><div class="label">${t("Opening Balance (Opening Balance)")}</div><div class="value" style="color:#b45309;">${usd(openingUsd)}</div></div>
           <div class="summary-card accent-green"><div class="label">${t("Total Receipts")}</div><div class="value green">${usd(totalDebitUsd)}</div></div>
           <div class="summary-card accent-red"><div class="label">${t("Total Payments")}</div><div class="value red">${usd(totalCreditUsd)}</div></div>
-          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value blue">${usd(finalBalanceUsd)}</div></div>
+          <div class="summary-card ${finalBalanceUsd >= 0 ? 'accent-red' : 'accent-green'}"><div class="label">${finalBalanceLabel}</div><div class="value ${finalBalanceUsd >= 0 ? 'red' : 'green'}">${finalBalanceUsd >= 0 ? '' : '-'}${usd(Math.abs(finalBalanceUsd))}</div></div>
         </div>
         <table>
           <thead>
@@ -308,10 +312,10 @@ export default function ExternalDebtStatementUsdPage() {
                 <p className="font-mono font-bold text-red-800 dark:text-red-300">{usd(totalCreditUsd)}</p>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+            <Card className={`bg-gradient-to-br ${finalBalanceUsd >= 0 ? 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800' : 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800'}`}>
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-blue-800 dark:text-blue-300">{usd(finalBalanceUsd)}</p>
+                <p className={`text-xs mb-1 ${finalBalanceUsd >= 0 ? 'text-red-700 dark:text-red-400' : 'text-green-700 dark:text-green-400'}`}>{finalBalanceLabel}</p>
+                <p className={`font-mono font-bold ${finalBalanceUsd >= 0 ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'}`}>{usd(Math.abs(finalBalanceUsd))}</p>
               </CardContent>
             </Card>
           </div>
