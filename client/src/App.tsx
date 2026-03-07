@@ -56,6 +56,8 @@ import ExternalDebtStatementIqdPage from "@/pages/external-debt-statement-iqd";
 import OwnersPage from "@/pages/owners";
 import OwnerWithdrawalsPage from "@/pages/owner-withdrawals";
 import OwnerReturnsPage from "@/pages/owner-returns";
+import OwnerStatementUsdPage from "@/pages/owner-statement-usd";
+import OwnerStatementIqdPage from "@/pages/owner-statement-iqd";
 import SalesInvoiceUsdPage from "@/pages/sales-invoice-usd";
 import SalesInvoiceIqdPage from "@/pages/sales-invoice-iqd";
 import SalesReturnUsdPage from "@/pages/sales-return-usd";
@@ -260,6 +262,12 @@ function Router() {
       </Route>
       <Route path="/owner-returns">
         <ProtectedRoute component={OwnerReturnsPage} />
+      </Route>
+      <Route path="/owner-statement-usd">
+        <ProtectedRoute component={OwnerStatementUsdPage} />
+      </Route>
+      <Route path="/owner-statement-iqd">
+        <ProtectedRoute component={OwnerStatementIqdPage} />
       </Route>
       <Route path="/sales-invoice-usd">
         <ProtectedRoute component={SalesInvoiceUsdPage} />

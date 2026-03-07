@@ -1,0 +1,390 @@
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import type { Owner } from "@shared/schema";
+import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Banknote, Printer } from "lucide-react";
+import i18n from "@/lib/i18n";
+
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  logo: string | null;
+  cliche: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+};
+
+interface StatementEntry {
+  id: number;
+  date: string;
+  time: string;
+  type: string;
+  description: string | null;
+  reference: string | null;
+  debitUsd: number;
+  debitIqd: number;
+  creditUsd: number;
+  creditIqd: number;
+}
+
+interface StatementResponse {
+  owner: Owner;
+  entries: StatementEntry[];
+}
+
+const formatIQD = (val: number | string) => {
+  const n = typeof val === "string" ? parseFloat(val) : val;
+  return n.toLocaleString() + " IQD";
+};
+
+export default function OwnerStatementIqdPage() {
+  const { t } = useTranslation();
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
+  const [ownerSearch, setOwnerSearch] = useState("");
+  const [showOwnerSuggestions, setShowOwnerSuggestions] = useState(false);
+  const [fromDate, setFromDate] = useState(new Date().toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const { data: ownersList } = useQuery<Owner[]>({
+    queryKey: ["/api/owners"],
+  });
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
+  });
+
+  const owners = ownersList || [];
+
+  const ownerSuggestions = useMemo(() => {
+    if (!ownerSearch.trim() || !owners.length) return owners.slice(0, 8);
+    const q = ownerSearch.toLowerCase();
+    return owners.filter((o: Owner) => o.name.toLowerCase().includes(q)).slice(0, 8);
+  }, [ownerSearch, owners]);
+
+  const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
+    queryKey: ["/api/owner-statement", selectedOwnerId],
+    queryFn: async () => {
+      const res = await fetch(`/api/owner-statement/${selectedOwnerId}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedOwnerId,
+  });
+
+  const filteredEntries = useMemo(() => {
+    const entries = statement?.entries || [];
+    return entries.filter(e => {
+      if (fromDate && e.date < fromDate) return false;
+      if (toDate && e.date > toDate) return false;
+      return true;
+    });
+  }, [statement, fromDate, toDate]);
+
+  let runningIqd = parseFloat(statement?.owner?.oldDebtIqd || "0");
+  const entriesWithBalance = filteredEntries.map((entry) => {
+    runningIqd += entry.debitIqd - entry.creditIqd;
+    return { ...entry, balanceIqd: runningIqd };
+  });
+
+  const totalDebitIqd = filteredEntries.reduce((s, e) => s + e.debitIqd, 0);
+  const totalCreditIqd = filteredEntries.reduce((s, e) => s + e.creditIqd, 0);
+  const finalBalanceIqd = parseFloat(statement?.owner?.oldDebtIqd || "0") + totalDebitIqd - totalCreditIqd;
+
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const fieldColor = companyProfile?.primaryColor || "#2563eb";
+  const textColor = companyProfile?.secondaryColor || "#ffffff";
+
+  const typeBadge = (type: string) => {
+    if (type === "withdrawal") return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Withdrawal')}</Badge>;
+    return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Return')}</Badge>;
+  };
+
+  const handlePrintReport = () => {
+    if (!statement) return;
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+
+    const ownerName = statement.owner.name;
+    const dateRangeText = fromDate && toDate
+      ? `${formatDate(fromDate)} - ${formatDate(toDate)}`
+      : fromDate ? `${formatDate(fromDate)} - ${t("Now")}`
+      : toDate ? `${t("Beginning")} - ${formatDate(toDate)}`
+      : formatDate(new Date());
+
+    const openingIqd = parseFloat(statement.owner.oldDebtIqd || "0");
+
+    const rows = entriesWithBalance.map((entry, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${formatDate(entry.date)}</td>
+        <td>${entry.time || "-"}</td>
+        <td><span class="${entry.type === 'withdrawal' ? 'badge-red' : 'badge-green'}">${entry.type === 'withdrawal' ? t('Withdrawal') : t('Return')}</span></td>
+        <td>${entry.description || "-"}</td>
+        <td>${entry.reference || "-"}</td>
+        <td class="debit">${entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}</td>
+        <td class="credit">${entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}</td>
+        <td class="balance">${formatIQD(entry.balanceIqd)}</td>
+      </tr>
+    `).join("");
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Owner Statement IQD")} - ${ownerName}</title>
+        <style>
+          ${printStyles}
+          .badge-green { background: #dcfce7; color: #15803d; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .badge-red { background: #fee2e2; color: #b91c1c; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .balance { color: #ea580c; font-weight: 700; }
+          .opening-row { background: #fffbeb; }
+          .opening-row td { color: #b45309; font-weight: 600; }
+        </style>
+      </head>
+      <body>
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("Owner Statement IQD")}</h1>
+            <div class="supplier-name">${ownerName}</div>
+            <div class="date-range">${dateRangeText}</div>
+          </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            ${companyProfile?.name ? `<div style="font-size:11pt;font-weight:700;color:${fieldColor};">${companyProfile.name}</div>` : ""}
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-amber"><div class="label">${t("Opening Balance (Opening Balance)")}</div><div class="value" style="color:#b45309;">${formatIQD(openingIqd)}</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Total Withdrawals")}</div><div class="value red">${formatIQD(totalDebitIqd)}</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Total Returns")}</div><div class="value green">${formatIQD(totalCreditIqd)}</div></div>
+          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value blue">${formatIQD(finalBalanceIqd)}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("Date")}</th>
+              <th>${t("Time")}</th>
+              <th>${t("Type")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Reference")}</th>
+              <th>${t("Debit IQD")}</th>
+              <th>${t("Credit IQD")}</th>
+              <th>${t("Balance IQD")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="opening-row">
+              <td colspan="6">${t("Opening Balance (Opening Balance)")}</td>
+              <td colspan="2"></td>
+              <td class="balance">${formatIQD(openingIqd)}</td>
+            </tr>
+            ${rows}
+            ${filteredEntries.length > 0 ? `
+            <tr class="total-row">
+              <td colspan="6"><strong>${t("Total")}</strong></td>
+              <td class="debit"><strong>${formatIQD(totalDebitIqd)}</strong></td>
+              <td class="credit"><strong>${formatIQD(totalCreditIqd)}</strong></td>
+              <td class="balance"><strong>${formatIQD(finalBalanceIqd)}</strong></td>
+            </tr>` : ""}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+            <Banknote className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+          </div>
+          {t('Owner Statement IQD')}
+        </h1>
+        <p className="text-muted-foreground mt-1">{t('Ledger for owner withdrawals and returns in IQD')}</p>
+      </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">{t('Filters')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-4 flex-wrap">
+            <div className="space-y-2 w-64 relative">
+              <Label>{t('Owner Name')}</Label>
+              <Input
+                value={ownerSearch}
+                onChange={(e) => {
+                  setOwnerSearch(e.target.value);
+                  setShowOwnerSuggestions(true);
+                  if (!e.target.value.trim()) { setSelectedOwnerId(""); }
+                }}
+                onFocus={() => setShowOwnerSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowOwnerSuggestions(false), 200)}
+                placeholder={t('Select owner...')}
+                data-testid="input-search-owner-statement-iqd"
+                autoComplete="off"
+              />
+              {showOwnerSuggestions && ownerSuggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {ownerSuggestions.map((item: Owner) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="w-full text-start px-3 py-2 hover:bg-muted/80 flex items-center justify-between gap-2 text-sm transition-colors"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setSelectedOwnerId(String(item.id));
+                        setOwnerSearch(item.name);
+                        setShowOwnerSuggestions(false);
+                      }}
+                      data-testid={`suggestion-owner-statement-iqd-${item.id}`}
+                    >
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(item.oldDebtIqd) : ""}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>{t('From Date')}</Label>
+              <DateInput value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-40" data-testid="input-owner-statement-iqd-from-date" />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('To Date')}</Label>
+              <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-40" data-testid="input-owner-statement-iqd-to-date" />
+            </div>
+            {selectedOwnerId && statement && !statementLoading && (
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-owner-statement-iqd">
+                <Printer className="h-4 w-4" />
+                {t('Print Report')}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedOwnerId && statementLoading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {selectedOwnerId && statement && !statementLoading && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Opening Balance (Opening Balance)')}</p>
+                <p className="font-mono font-bold text-amber-800 dark:text-amber-300" data-testid="text-owner-stmt-iqd-opening">{formatIQD(statement.owner.oldDebtIqd)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Withdrawals')}</p>
+                <p className="font-mono font-bold text-red-800 dark:text-red-300" data-testid="text-owner-stmt-iqd-withdrawals">{formatIQD(totalDebitIqd)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Returns')}</p>
+                <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-owner-stmt-iqd-returns">{formatIQD(totalCreditIqd)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-orange-700 dark:text-orange-400 mb-1">{t('Final Balance')}</p>
+                <p className="font-mono font-bold text-orange-800 dark:text-orange-300" data-testid="text-owner-stmt-iqd-final">{formatIQD(finalBalanceIqd)}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-border/50 shadow-sm">
+            <CardContent className="pt-6 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead>#</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Time')}</TableHead>
+                    <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('Description')}</TableHead>
+                    <TableHead>{t('Reference')}</TableHead>
+                    <TableHead className="text-red-700 dark:text-red-400">{t('Debit IQD')}</TableHead>
+                    <TableHead className="text-green-700 dark:text-green-400">{t('Credit IQD')}</TableHead>
+                    <TableHead className="text-orange-700 dark:text-orange-400">{t('Balance IQD')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
+                    <TableCell colSpan={6} className="text-amber-700 dark:text-amber-400">
+                      {t('Opening Balance (Opening Balance)')}
+                    </TableCell>
+                    <TableCell colSpan={2}></TableCell>
+                    <TableCell className="font-mono text-orange-600">{formatIQD(statement.owner.oldDebtIqd)}</TableCell>
+                  </TableRow>
+                  {entriesWithBalance.map((entry, i) => (
+                    <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-owner-stmt-iqd-${entry.id}`}>
+                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{entry.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{entry.time}</TableCell>
+                      <TableCell>{typeBadge(entry.type)}</TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm text-red-600">
+                        {entry.debitIqd > 0 ? formatIQD(entry.debitIqd) : ""}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-green-600">
+                        {entry.creditIqd > 0 ? formatIQD(entry.creditIqd) : ""}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-medium text-orange-600">
+                        {formatIQD(entry.balanceIqd)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredEntries.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                        {t('No transactions found')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {filteredEntries.length > 0 && (
+                    <TableRow className="bg-muted/50 font-bold">
+                      <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
+                      <TableCell className="font-mono text-red-700">{formatIQD(totalDebitIqd)}</TableCell>
+                      <TableCell className="font-mono text-green-700">{formatIQD(totalCreditIqd)}</TableCell>
+                      <TableCell className="font-mono text-orange-700">{formatIQD(finalBalanceIqd)}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}

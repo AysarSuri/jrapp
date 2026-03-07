@@ -5,6 +5,8 @@ import {
   ArrowUpFromLine,
   ArrowDownToLine,
   ArrowRight,
+  DollarSign,
+  Banknote,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -35,6 +37,22 @@ export default function OwnerManagementPage() {
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-950/30",
       iconColor: "text-orange-600 dark:text-orange-400",
+    },
+    {
+      href: "/owner-statement-usd",
+      icon: DollarSign,
+      label: "Owner Statement USD",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-950/30",
+      iconColor: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      href: "/owner-statement-iqd",
+      icon: Banknote,
+      label: "Owner Statement IQD",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50 dark:bg-purple-950/30",
+      iconColor: "text-purple-600 dark:text-purple-400",
     },
   ];
 
