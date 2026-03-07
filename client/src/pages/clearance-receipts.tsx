@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useClearanceTransactions, useCreateClearanceTransaction, useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,11 @@ export default function ClearanceReceiptsPage() {
     queryKey: ["/api/customs-clearances"],
   });
 
+  const { data: nextNumberData } = useQuery<{ number: string }>({
+    queryKey: ["/api/clearance-transactions/next-number/receipt"],
+  });
+
+  const [listNumber, setListNumber] = useState("");
   const [clearanceId, setClearanceId] = useState<string>("");
   const [clearanceName, setClearanceName] = useState("");
   const [amountUsd, setAmountUsd] = useState("");
@@ -76,7 +81,12 @@ export default function ClearanceReceiptsPage() {
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
 
+  const qc = useQueryClient();
   const clearances = clearancesList || [];
+
+  useEffect(() => {
+    if (nextNumberData?.number) setListNumber(nextNumberData.number);
+  }, [nextNumberData]);
 
   const selectClearance = useCallback((id: string) => {
     setClearanceId(id);
@@ -95,6 +105,7 @@ export default function ClearanceReceiptsPage() {
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
+    qc.invalidateQueries({ queryKey: ["/api/clearance-transactions/next-number/receipt"] });
   };
 
   const handleSave = () => {
@@ -110,6 +121,7 @@ export default function ClearanceReceiptsPage() {
     }
 
     createTxn({
+      listNumber: listNumber || null,
       clearanceId: parseInt(clearanceId),
       clearanceName,
       type: "receipt",
@@ -229,7 +241,16 @@ export default function ClearanceReceiptsPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('List No')}</Label>
+                <Input
+                  value={listNumber}
+                  readOnly
+                  className="bg-muted cursor-not-allowed font-mono"
+                  data-testid="input-clearance-receipt-list-number"
+                />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Customs Clearance')}</Label>
                 <Select value={clearanceId} onValueChange={selectClearance}>
@@ -412,6 +433,7 @@ export default function ClearanceReceiptsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('List No')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Customs Clearance')}</TableHead>
@@ -426,6 +448,7 @@ export default function ClearanceReceiptsPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-clearance-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-medium">{r.listNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{r.date}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.clearanceName}</TableCell>

@@ -249,6 +249,7 @@ export const bankTransactions = pgTable("bank_transactions", {
 
 export const customsClearanceTransactions = pgTable("customs_clearance_transactions", {
   id: serial("id").primaryKey(),
+  listNumber: text("list_number"),
   clearanceId: integer("clearance_id").notNull(),
   clearanceName: text("clearance_name").notNull(),
   type: text("type").notNull(),

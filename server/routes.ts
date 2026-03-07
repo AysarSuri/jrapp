@@ -1511,6 +1511,24 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  app.get('/api/clearance-transactions/next-number/:type', requireAuth, async (req, res) => {
+    try {
+      const txnType = req.params.type as string;
+      const prefix = txnType === 'payment' ? 'CP' : 'CR';
+      const [result] = await db.select({ maxNum: sql<string>`MAX(${customsClearanceTransactions.listNumber})` })
+        .from(customsClearanceTransactions)
+        .where(sql`${customsClearanceTransactions.listNumber} LIKE ${prefix + '%'}`);
+      let nextNum = 1;
+      if (result?.maxNum) {
+        const numPart = parseInt(result.maxNum.replace(prefix + '-', ''), 10);
+        if (!isNaN(numPart)) nextNum = numPart + 1;
+      }
+      res.json({ number: `${prefix}-${String(nextNum).padStart(5, '0')}` });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post(api.customsClearanceTransactions.create.path, requireAuth, async (req, res) => {
     try {
       const input = api.customsClearanceTransactions.create.input.parse(req.body);
