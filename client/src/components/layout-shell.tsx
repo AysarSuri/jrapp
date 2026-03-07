@@ -176,6 +176,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/clearance-receipts",
     "/clearance-payments",
     "/clearance-purchase-invoices",
+    "/clearance-statement-usd",
+    "/clearance-statement-iqd",
   ];
 
   const officeSubRoutes = [
@@ -342,6 +344,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/clearance-receipts", icon: ArrowDownToLine, label: "Clearance Receipts" },
     { href: "/clearance-payments", icon: ArrowUpFromLine, label: "Clearance Payments" },
     { href: "/clearance-purchase-invoices", icon: FileText, label: "Clearance Purchase Invoices" },
+    { href: "/clearance-statement-usd", icon: DollarSign, label: "Clearance Statement USD" },
+    { href: "/clearance-statement-iqd", icon: Banknote, label: "Clearance Statement IQD" },
   ];
 
   const officeNavItems: NavItem[] = [
