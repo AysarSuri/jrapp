@@ -72,14 +72,6 @@ export default function ClearancePaymentsPage() {
   const pageSize = 10;
   const [viewPayment, setViewPayment] = useState<CustomsClearanceTransaction | null>(null);
   const [editPayment, setEditPayment] = useState<CustomsClearanceTransaction | null>(null);
-  const [editClearanceId, setEditClearanceId] = useState("");
-  const [editClearanceName, setEditClearanceName] = useState("");
-  const [editAmountUsd, setEditAmountUsd] = useState("");
-  const [editAmountIqd, setEditAmountIqd] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
 
   const qc = useQueryClient();
   const clearances = clearancesList || [];
@@ -144,43 +136,50 @@ export default function ClearancePaymentsPage() {
 
   const openEdit = (r: CustomsClearanceTransaction) => {
     setEditPayment(r);
-    setEditClearanceId(String(r.clearanceId));
-    setEditClearanceName(r.clearanceName);
-    setEditAmountUsd(r.amountUsd);
-    setEditAmountIqd(r.amountIqd);
-    setEditDescription(r.description || "");
-    setEditReference(r.reference || "");
-    setEditDate(r.date);
-    setEditTime(r.time || "00:00");
+    setListNumber(r.listNumber || "");
+    setClearanceId(String(r.clearanceId));
+    setClearanceName(r.clearanceName);
+    setAmountUsd(r.amountUsd);
+    setAmountIqd(r.amountIqd);
+    setDescription(r.description || "");
+    setReference(r.reference || "");
+    setDate(r.date);
+    setTime(r.time || "00:00");
+  };
+
+  const cancelEdit = () => {
+    setEditPayment(null);
+    resetForm();
   };
 
   const handleUpdate = () => {
     if (!editPayment) return;
-    if (!editClearanceId) {
+    if (!clearanceId) {
       toast({ title: t("Please select a clearance"), variant: "destructive" });
       return;
     }
-    const usdVal = parseFloat(editAmountUsd || "0");
-    const iqdVal = parseFloat(editAmountIqd || "0");
+    const usdVal = parseFloat(amountUsd || "0");
+    const iqdVal = parseFloat(amountIqd || "0");
     if (usdVal <= 0 && iqdVal <= 0) {
       toast({ title: t("Please enter at least one amount"), variant: "destructive" });
       return;
     }
 
     updateTxn({ id: editPayment.id, data: {
-      clearanceId: parseInt(editClearanceId),
-      clearanceName: editClearanceName,
+      clearanceId: parseInt(clearanceId),
+      clearanceName,
       type: "payment",
-      amountUsd: editAmountUsd || "0",
-      amountIqd: editAmountIqd || "0",
-      description: editDescription || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
+      amountUsd: amountUsd || "0",
+      amountIqd: amountIqd || "0",
+      description: description || null,
+      reference: reference || null,
+      date,
+      time,
     }}, {
       onSuccess: () => {
         toast({ title: t("Payment updated successfully") });
         setEditPayment(null);
+        resetForm();
       },
       onError: () => {
         toast({ title: t("Failed to update payment"), variant: "destructive" });
@@ -238,7 +237,17 @@ export default function ClearancePaymentsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-border/50 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                {editPayment && <Pencil className="h-4 w-4 text-orange-600" />}
+                {editPayment ? t('Edit Payment') : t('Payment Details')}
+              </CardTitle>
+              {editPayment && (
+                <Button variant="outline" size="sm" onClick={cancelEdit} data-testid="button-cancel-edit-payment">
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -373,17 +382,17 @@ export default function ClearancePaymentsPage() {
               </div>
 
               <Button
-                onClick={handleSave}
-                disabled={isSaving || !clearanceId}
-                className="w-full h-12 text-base gap-2 bg-red-600 hover:bg-red-700"
+                onClick={editPayment ? handleUpdate : handleSave}
+                disabled={(editPayment ? isUpdating : isSaving) || !clearanceId}
+                className={`w-full h-12 text-base gap-2 ${editPayment ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}`}
                 data-testid="button-save-clearance-payment"
               >
-                {isSaving ? (
+                {(editPayment ? isUpdating : isSaving) ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                {t('Save Payment')}
+                {editPayment ? t('Update') : t('Save Payment')}
               </Button>
             </CardContent>
           </Card>
@@ -685,81 +694,6 @@ export default function ClearancePaymentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Payment Dialog */}
-      <Dialog open={!!editPayment} onOpenChange={(open) => { if (!open) setEditPayment(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit Payment')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Customs Clearance')}</Label>
-                <Select value={editClearanceId} onValueChange={(v) => {
-                  setEditClearanceId(v);
-                  const c = clearances.find(b => b.id === parseInt(v));
-                  if (c) setEditClearanceName(c.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-clearance-payment">
-                    <SelectValue placeholder={t('Select clearance...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clearances.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-clearance-payment-date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Time')}</Label>
-              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-clearance-payment-time" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-clearance-payment-usd"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-clearance-payment-iqd"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-clearance-payment-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-clearance-payment-description" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPayment(null)}>{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-orange-600 hover:bg-orange-700" data-testid="button-update-clearance-payment">
-              {isUpdating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              {t('Update')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

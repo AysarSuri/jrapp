@@ -72,14 +72,6 @@ export default function ClearanceReceiptsPage() {
   const pageSize = 10;
   const [viewReceipt, setViewReceipt] = useState<CustomsClearanceTransaction | null>(null);
   const [editReceipt, setEditReceipt] = useState<CustomsClearanceTransaction | null>(null);
-  const [editClearanceId, setEditClearanceId] = useState("");
-  const [editClearanceName, setEditClearanceName] = useState("");
-  const [editAmountUsd, setEditAmountUsd] = useState("");
-  const [editAmountIqd, setEditAmountIqd] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
 
   const qc = useQueryClient();
   const clearances = clearancesList || [];
@@ -144,43 +136,50 @@ export default function ClearanceReceiptsPage() {
 
   const openEdit = (r: CustomsClearanceTransaction) => {
     setEditReceipt(r);
-    setEditClearanceId(String(r.clearanceId));
-    setEditClearanceName(r.clearanceName);
-    setEditAmountUsd(r.amountUsd);
-    setEditAmountIqd(r.amountIqd);
-    setEditDescription(r.description || "");
-    setEditReference(r.reference || "");
-    setEditDate(r.date);
-    setEditTime(r.time || "00:00");
+    setListNumber(r.listNumber || "");
+    setClearanceId(String(r.clearanceId));
+    setClearanceName(r.clearanceName);
+    setAmountUsd(r.amountUsd);
+    setAmountIqd(r.amountIqd);
+    setDescription(r.description || "");
+    setReference(r.reference || "");
+    setDate(r.date);
+    setTime(r.time || "00:00");
+  };
+
+  const cancelEdit = () => {
+    setEditReceipt(null);
+    resetForm();
   };
 
   const handleUpdate = () => {
     if (!editReceipt) return;
-    if (!editClearanceId) {
+    if (!clearanceId) {
       toast({ title: t("Please select a clearance"), variant: "destructive" });
       return;
     }
-    const usdVal = parseFloat(editAmountUsd || "0");
-    const iqdVal = parseFloat(editAmountIqd || "0");
+    const usdVal = parseFloat(amountUsd || "0");
+    const iqdVal = parseFloat(amountIqd || "0");
     if (usdVal <= 0 && iqdVal <= 0) {
       toast({ title: t("Please enter at least one amount"), variant: "destructive" });
       return;
     }
 
     updateTxn({ id: editReceipt.id, data: {
-      clearanceId: parseInt(editClearanceId),
-      clearanceName: editClearanceName,
+      clearanceId: parseInt(clearanceId),
+      clearanceName,
       type: "receipt",
-      amountUsd: editAmountUsd || "0",
-      amountIqd: editAmountIqd || "0",
-      description: editDescription || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
+      amountUsd: amountUsd || "0",
+      amountIqd: amountIqd || "0",
+      description: description || null,
+      reference: reference || null,
+      date,
+      time,
     }}, {
       onSuccess: () => {
         toast({ title: t("Receipt updated successfully") });
         setEditReceipt(null);
+        resetForm();
       },
       onError: () => {
         toast({ title: t("Failed to update receipt"), variant: "destructive" });
@@ -238,7 +237,17 @@ export default function ClearanceReceiptsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-border/50 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                {editReceipt && <Pencil className="h-4 w-4 text-orange-600" />}
+                {editReceipt ? t('Edit Receipt') : t('Receipt Details')}
+              </CardTitle>
+              {editReceipt && (
+                <Button variant="outline" size="sm" onClick={cancelEdit} data-testid="button-cancel-edit-receipt">
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,17 +384,17 @@ export default function ClearanceReceiptsPage() {
               </div>
 
               <Button
-                onClick={handleSave}
-                disabled={isSaving || !clearanceId}
-                className="w-full h-12 text-base gap-2 bg-green-600 hover:bg-green-700"
+                onClick={editReceipt ? handleUpdate : handleSave}
+                disabled={(editReceipt ? isUpdating : isSaving) || !clearanceId}
+                className={`w-full h-12 text-base gap-2 ${editReceipt ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
                 data-testid="button-save-clearance-receipt"
               >
-                {isSaving ? (
+                {(editReceipt ? isUpdating : isSaving) ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                {t('Save Receipt')}
+                {editReceipt ? t('Update') : t('Save Receipt')}
               </Button>
             </CardContent>
           </Card>
@@ -684,82 +693,6 @@ export default function ClearanceReceiptsPage() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Receipt Dialog */}
-      <Dialog open={!!editReceipt} onOpenChange={(open) => { if (!open) setEditReceipt(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit Receipt')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Customs Clearance')}</Label>
-                <Select value={editClearanceId} onValueChange={(v) => {
-                  setEditClearanceId(v);
-                  const c = clearances.find(b => b.id === parseInt(v));
-                  if (c) setEditClearanceName(c.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-clearance-receipt">
-                    <SelectValue placeholder={t('Select clearance...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clearances.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-clearance-receipt-date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Time')}</Label>
-              <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-clearance-receipt-time" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-clearance-receipt-usd"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-clearance-receipt-iqd"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-clearance-receipt-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Description')}</Label>
-              <Textarea placeholder={t('Description...')} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="resize-none" data-testid="input-edit-clearance-receipt-description" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditReceipt(null)}>{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700" data-testid="button-update-clearance-receipt">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {t('Save')}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
