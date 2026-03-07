@@ -84,6 +84,7 @@ export default function ProductDamagePage() {
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyDamageNumber, setHistoryDamageNumber] = useState("");
+  const [historyProductName, setHistoryProductName] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [detailDamageId, setDetailDamageId] = useState<number | null>(null);
@@ -241,11 +242,12 @@ export default function ProductDamagePage() {
   };
 
   const allDamages = damages || [];
-  const filteredDamages = allDamages.filter((dmg: ProductDamage) => {
+  const filteredDamages = allDamages.filter((dmg: any) => {
     if (historyFilter && historyFilter !== "all" && dmg.reason !== historyFilter) return false;
     if (historyFromDate && dmg.date < historyFromDate) return false;
     if (historyToDate && dmg.date > historyToDate) return false;
     if (historyDamageNumber && !dmg.damageNumber?.toLowerCase().includes(historyDamageNumber.toLowerCase())) return false;
+    if (historyProductName && !(dmg.itemProductNames || []).some((n: string) => n.toLowerCase().includes(historyProductName.toLowerCase()))) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredDamages.length / pageSize));
@@ -459,6 +461,16 @@ export default function ProductDamagePage() {
                   placeholder={t('Search by damage number')}
                   className="w-40 h-9 font-mono"
                   data-testid="input-search-damage-number"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('Product Name')}</Label>
+                <Input
+                  value={historyProductName}
+                  onChange={(e) => { setHistoryProductName(e.target.value); setCurrentPage(1); }}
+                  placeholder={t('Search by product name')}
+                  className="w-40 h-9"
+                  data-testid="input-search-product-name"
                 />
               </div>
               <div className="flex items-center gap-2">

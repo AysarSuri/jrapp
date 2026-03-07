@@ -2733,7 +2733,12 @@ export async function registerRoutes(
 
   app.get(api.productDamages.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getProductDamages();
-    res.json(data);
+    const allItems = await db.select().from(productDamageItems);
+    const result = data.map(d => ({
+      ...d,
+      itemProductNames: allItems.filter(i => i.damageId === d.id).map(i => i.productName),
+    }));
+    res.json(result);
   });
 
   app.get('/api/product-damages/:id/items', requireAuth, async (req, res) => {
