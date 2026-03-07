@@ -325,8 +325,8 @@ export default function SupplierStatementIqdPage() {
   const finalBalance = entriesWithBalance.length > 0 ? entriesWithBalance[entriesWithBalance.length - 1].balanceIqd : openingBalance;
 
   const finalBalanceLabel = finalBalance >= 0
-    ? `${t('Remaining at')} ${statement?.supplier?.name || ""}`
-    : `${t('Remaining at')} ${companyProfile?.name || t('Company')}`;
+    ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}`
+    : `${t('Remaining at')} ${statement?.supplier?.name || ""}`;
 
   const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
@@ -422,7 +422,7 @@ export default function SupplierStatementIqdPage() {
         <div class="summary-cards">
           <div class="summary-card accent-red"><div class="label">${t("Opening Balance")}</div><div class="value red">${fmt(openingBalanceVal)} IQD</div></div>
           <div class="summary-card accent-green"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
-          <div class="summary-card ${finalBalance >= 0 ? 'accent-red' : 'accent-green'}"><div class="label">${finalBalanceLabel}</div><div class="value ${finalBalance >= 0 ? 'red' : 'green'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
+          <div class="summary-card ${finalBalance >= 0 ? 'accent-green' : 'accent-red'}"><div class="label">${finalBalanceLabel}</div><div class="value ${finalBalance >= 0 ? 'green' : 'red'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
         </div>
         <table>
           <thead>
@@ -496,7 +496,7 @@ export default function SupplierStatementIqdPage() {
       <div style="display:flex;gap:10px;margin-bottom:10px">
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Opening Balance")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${fmt(openingBalanceVal)} IQD</div></div>
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments IQD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${fmt(totalCreditIqd)} IQD</div></div>
-        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${finalBalanceLabel}</div><div style="font-size:12pt;font-weight:700;color:${finalBalance >= 0 ? '#dc2626' : '#16a34a'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
+        <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${finalBalanceLabel}</div><div style="font-size:12pt;font-weight:700;color:${finalBalance >= 0 ? '#16a34a' : '#dc2626'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:9pt">
         <thead><tr>
@@ -706,10 +706,10 @@ export default function SupplierStatementIqdPage() {
                 <p className="text-xl font-bold text-green-600 dark:text-green-400">{fmt(totalCreditIqd)} IQD</p>
               </CardContent>
             </Card>
-            <Card className={`border-l-4 ${finalBalance >= 0 ? 'border-l-red-500' : 'border-l-green-500'}`}>
+            <Card className={`border-l-4 ${finalBalance >= 0 ? 'border-l-green-500' : 'border-l-red-500'}`}>
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">{finalBalanceLabel}</p>
-                <p className={`text-xl font-bold ${finalBalance >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{fmt(Math.abs(finalBalance))} IQD</p>
+                <p className={`text-xl font-bold ${finalBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{fmt(Math.abs(finalBalance))} IQD</p>
               </CardContent>
             </Card>
           </div>
