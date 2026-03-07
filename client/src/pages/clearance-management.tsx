@@ -4,7 +4,6 @@ import {
   ShieldCheck,
   ArrowDownToLine,
   ArrowUpFromLine,
-  FileText,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,14 +35,6 @@ export default function ClearanceManagementPage() {
       color: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-950/30",
       iconColor: "text-orange-600 dark:text-orange-400",
-    },
-    {
-      href: "/clearance-statement",
-      icon: FileText,
-      label: "Clearance Account Statement",
-      color: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/30",
-      iconColor: "text-purple-600 dark:text-purple-400",
     },
   ];
 
