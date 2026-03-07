@@ -2,7 +2,7 @@ import { db } from "./db";
 import {
   addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
-  supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, transferOfficeTransactions,
+  supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, clearancePurchaseInvoices, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
   salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications, agentPayments,
   companyProfile,
@@ -26,6 +26,7 @@ import {
   type SupplierAdjustment, type InsertSupplierAdjustment,
   type BankTransaction, type InsertBankTransaction,
   type CustomsClearanceTransaction, type InsertCustomsClearanceTransaction,
+  type ClearancePurchaseInvoice, type InsertClearancePurchaseInvoice,
   type TransferOfficeTransaction, type InsertTransferOfficeTransaction,
   type ExternalDebt, type InsertExternalDebt,
   type ExternalDebtTransaction, type InsertExternalDebtTransaction,
@@ -144,6 +145,11 @@ export interface IStorage {
   getCustomsClearanceTransactions(): Promise<CustomsClearanceTransaction[]>;
   getCustomsClearanceTransactionsByClearanceId(clearanceId: number): Promise<CustomsClearanceTransaction[]>;
   createCustomsClearanceTransaction(txn: InsertCustomsClearanceTransaction): Promise<CustomsClearanceTransaction>;
+
+  getClearancePurchaseInvoices(): Promise<ClearancePurchaseInvoice[]>;
+  createClearancePurchaseInvoice(invoice: InsertClearancePurchaseInvoice): Promise<ClearancePurchaseInvoice>;
+  updateClearancePurchaseInvoice(id: number, invoice: Partial<InsertClearancePurchaseInvoice>): Promise<ClearancePurchaseInvoice>;
+  deleteClearancePurchaseInvoice(id: number): Promise<void>;
 
   getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]>;
   getTransferOfficeTransactionsByOfficeId(officeId: number): Promise<TransferOfficeTransaction[]>;
@@ -528,6 +534,24 @@ export class DatabaseStorage implements IStorage {
   async createCustomsClearanceTransaction(txn: InsertCustomsClearanceTransaction): Promise<CustomsClearanceTransaction> {
     const [created] = await db.insert(customsClearanceTransactions).values(txn).returning();
     return created;
+  }
+
+  async getClearancePurchaseInvoices(): Promise<ClearancePurchaseInvoice[]> {
+    return await db.select().from(clearancePurchaseInvoices).orderBy(sql`${clearancePurchaseInvoices.createdAt} DESC`);
+  }
+
+  async createClearancePurchaseInvoice(invoice: InsertClearancePurchaseInvoice): Promise<ClearancePurchaseInvoice> {
+    const [created] = await db.insert(clearancePurchaseInvoices).values(invoice).returning();
+    return created;
+  }
+
+  async updateClearancePurchaseInvoice(id: number, invoice: Partial<InsertClearancePurchaseInvoice>): Promise<ClearancePurchaseInvoice> {
+    const [updated] = await db.update(clearancePurchaseInvoices).set(invoice).where(eq(clearancePurchaseInvoices.id, id)).returning();
+    return updated;
+  }
+
+  async deleteClearancePurchaseInvoice(id: number): Promise<void> {
+    await db.delete(clearancePurchaseInvoices).where(eq(clearancePurchaseInvoices.id, id));
   }
 
   async getTransferOfficeTransactions(): Promise<TransferOfficeTransaction[]> {

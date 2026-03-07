@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1570,6 +1570,66 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id as string, 10);
       await db.delete(customsClearanceTransactions).where(eq(customsClearanceTransactions.id, id));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/clearance-purchase-invoices', requireAuth, async (req, res) => {
+    const data = await storage.getClearancePurchaseInvoices();
+    res.json(data);
+  });
+
+  app.get('/api/clearance-purchase-invoices/next-number', requireAuth, async (req, res) => {
+    try {
+      const prefix = 'CPI';
+      const [result] = await db.select({ maxNum: sql<string>`MAX(${clearancePurchaseInvoices.listNumber})` })
+        .from(clearancePurchaseInvoices)
+        .where(sql`${clearancePurchaseInvoices.listNumber} LIKE ${prefix + '%'}`);
+      let nextNum = 1;
+      if (result?.maxNum) {
+        const numPart = parseInt(result.maxNum.replace(prefix + '-', ''), 10);
+        if (!isNaN(numPart)) nextNum = numPart + 1;
+      }
+      res.json({ number: `${prefix}-${String(nextNum).padStart(5, '0')}` });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/clearance-purchase-invoices', requireAuth, async (req, res) => {
+    try {
+      const { insertClearancePurchaseInvoiceSchema } = await import("@shared/schema");
+      const input = insertClearancePurchaseInvoiceSchema.parse(req.body);
+      const result = await storage.createClearancePurchaseInvoice(input);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/clearance-purchase-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { clearanceId, clearanceName, date, time, carNumber, manifest, customsUsd, customsIqd, description } = req.body;
+      const updated = await storage.updateClearancePurchaseInvoice(id, {
+        clearanceId, clearanceName, date, time, carNumber, manifest, customsUsd, customsIqd, description,
+      });
+      if (!updated) return res.status(404).json({ message: "Invoice not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/clearance-purchase-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteClearancePurchaseInvoice(id);
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });

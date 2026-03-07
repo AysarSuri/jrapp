@@ -262,6 +262,21 @@ export const customsClearanceTransactions = pgTable("customs_clearance_transacti
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const clearancePurchaseInvoices = pgTable("clearance_purchase_invoices", {
+  id: serial("id").primaryKey(),
+  listNumber: text("list_number"),
+  clearanceId: integer("clearance_id").notNull(),
+  clearanceName: text("clearance_name").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull().default("00:00"),
+  carNumber: text("car_number"),
+  manifest: text("manifest"),
+  customsUsd: numeric("customs_usd").notNull().default("0"),
+  customsIqd: numeric("customs_iqd").notNull().default("0"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const transferOfficeTransactions = pgTable("transfer_office_transactions", {
   id: serial("id").primaryKey(),
   officeId: integer("office_id").notNull(),
@@ -474,6 +489,9 @@ export const insertBankTransactionSchema = createInsertSchema(bankTransactions).
 export type BankTransaction = typeof bankTransactions.$inferSelect;
 export type InsertBankTransaction = z.infer<typeof insertBankTransactionSchema>;
 export const insertCustomsClearanceTransactionSchema = createInsertSchema(customsClearanceTransactions).omit({ id: true, createdAt: true });
+export type ClearancePurchaseInvoice = typeof clearancePurchaseInvoices.$inferSelect;
+export const insertClearancePurchaseInvoiceSchema = createInsertSchema(clearancePurchaseInvoices).omit({ id: true, createdAt: true });
+export type InsertClearancePurchaseInvoice = z.infer<typeof insertClearancePurchaseInvoiceSchema>;
 export const insertTransferOfficeTransactionSchema = createInsertSchema(transferOfficeTransactions).omit({ id: true, createdAt: true });
 export type TransferOfficeTransaction = typeof transferOfficeTransactions.$inferSelect;
 export type InsertTransferOfficeTransaction = z.infer<typeof insertTransferOfficeTransactionSchema>;
