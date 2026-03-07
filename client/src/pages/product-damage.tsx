@@ -214,8 +214,9 @@ export default function ProductDamagePage() {
           toast({ title: t("Success"), description: t("Damage report updated successfully") });
           resetForm();
         },
-        onError: () => {
-          toast({ title: t("Error"), description: t("Failed to update damage report"), variant: "destructive" });
+        onError: (err: any) => {
+          console.error("UPDATE ERROR:", err?.message || err);
+          toast({ title: t("Error"), description: err?.message || t("Failed to update damage report"), variant: "destructive" });
         },
       });
     } else {

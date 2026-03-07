@@ -2814,6 +2814,7 @@ export async function registerRoutes(
 
       res.json(result);
     } catch (err) {
+      console.error("Error updating product damage:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -42,8 +42,8 @@ export function useCreateProductDamage() {
 export function useUpdateProductDamage() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: { damage: any; items: any[] } }) => {
-      const res = await apiRequest("PUT", `/api/product-damages/${id}`, data);
-      return res.json();
+      await apiRequest("PUT", `/api/product-damages/${id}`, data);
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/product-damages"] });
