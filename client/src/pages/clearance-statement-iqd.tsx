@@ -97,6 +97,8 @@ export default function ClearanceStatementIqdPage() {
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
     queryKey: ["/api/clearance-statement", selectedClearanceId],
     enabled: !!selectedClearanceId,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const entries = (statement?.entries || []).map(e => ({
