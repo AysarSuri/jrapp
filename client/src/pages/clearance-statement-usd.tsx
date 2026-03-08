@@ -99,16 +99,20 @@ export default function ClearanceStatementUsdPage() {
     enabled: !!selectedClearanceId,
   });
 
-  const entries = statement?.entries || [];
+  const entries = (statement?.entries || []).map(e => ({
+    ...e,
+    debitUsd: Number(e.debitUsd) || 0,
+    debitIqd: Number(e.debitIqd) || 0,
+    creditUsd: Number(e.creditUsd) || 0,
+    creditIqd: Number(e.creditIqd) || 0,
+  }));
   const usdEntries = entries.filter(e => {
-    if (!(e.debitUsd > 0 || e.creditUsd > 0)) return false;
+    if (e.debitUsd === 0 && e.creditUsd === 0) return false;
     if (dateFrom) {
-      const entryDate = new Date(e.date).toISOString().slice(0, 10);
-      if (entryDate < dateFrom) return false;
+      if (e.date < dateFrom) return false;
     }
     if (dateTo) {
-      const entryDate = new Date(e.date).toISOString().slice(0, 10);
-      if (entryDate > dateTo) return false;
+      if (e.date > dateTo) return false;
     }
     return true;
   });
