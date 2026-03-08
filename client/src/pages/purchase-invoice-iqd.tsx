@@ -472,7 +472,7 @@ export default function PurchaseInvoiceIqdPage() {
                   if (historyStartDate && invDate < historyStartDate) return false;
                   if (historyEndDate && invDate > historyEndDate) return false;
                   return true;
-                });
+                }).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
                 const totSubtotal = filteredInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);
                 const totDiscount = filteredInvoices.reduce((s, i) => s + Number(i.discount || 0), 0);
                 const totAmountPaid = filteredInvoices.reduce((s, i) => s + Number(i.amountPaid || 0), 0);
