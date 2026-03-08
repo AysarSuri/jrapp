@@ -447,18 +447,18 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               marginTop: 14, border: "2px solid #ef4444", borderRadius: 10,
               padding: "10px 14px", background: "linear-gradient(145deg, #fef2f2, #fff5f5)"
             }}>
-              <h3 style={{ color: "#dc2626", fontSize: "10pt", fontWeight: 700, marginBottom: 6 }}>{t("Supplier Balance")}</h3>
-              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt" }}>
+              <h3 style={{ color: "#dc2626", fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
+              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
                 <span>{t("Opening Balance")}:</span>
-                <span style={{ fontWeight: 600 }}>{fmtCurrency(oldDebt)}</span>
+                <span>{fmtCurrency(oldDebt)}</span>
               </div>
-              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt" }}>
+              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
                 <span>{t("Invoice Remaining")}:</span>
-                <span style={{ fontWeight: 600 }}>{fmtCurrency(invoiceRemaining)}</span>
+                <span>{fmtCurrency(invoiceRemaining)}</span>
               </div>
               <div className="debt-row final" style={{
                 display: "flex", justifyContent: "space-between",
-                fontWeight: 800, fontSize: "12pt", color: "#dc2626",
+                fontWeight: 800, fontSize: "14pt", color: "#dc2626",
                 borderTop: "2px solid #dc2626", paddingTop: 6, marginTop: 6
               }}>
                 <span>{t("Total Balance")}:</span>
