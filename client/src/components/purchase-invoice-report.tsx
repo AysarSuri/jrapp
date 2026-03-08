@@ -406,9 +406,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </tbody>
             </table>
 
-            <div className="summary-section" style={{ marginTop: 14 }}>
+            <div style={{ display: "flex", gap: 14, marginTop: 14, direction: "ltr" }}>
               <div className="summary-box" style={{
-                border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
+                flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
                 background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
               }}>
                 <h3 style={{ fontSize: "12pt", fontWeight: 800, marginBottom: 8, paddingBottom: 5, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
@@ -439,28 +439,28 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   <span>{fmtCurrency(remaining)}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="debt-section" style={{
-              marginTop: 14, border: `2px solid ${accentColor}30`, borderRadius: 10,
-              padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
-            }}>
-              <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
-              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
-                <span>{t("Opening Balance")}:</span>
-                <span>{fmtCurrency(oldDebt)}</span>
-              </div>
-              <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
-                <span>{t("Invoice Remaining")}:</span>
-                <span>{fmtCurrency(invoiceRemaining)}</span>
-              </div>
-              <div className="debt-row final" style={{
-                display: "flex", justifyContent: "space-between",
-                fontWeight: 800, fontSize: "14pt", color: accentColor,
-                borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6
+              <div className="debt-section" style={{
+                flex: 1, border: `2px solid ${accentColor}30`, borderRadius: 10,
+                padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
               }}>
-                <span>{t("Total Balance")}:</span>
-                <span>{fmtCurrency(totalBalance)}</span>
+                <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
+                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
+                  <span>{t("Opening Balance")}:</span>
+                  <span>{fmtCurrency(oldDebt)}</span>
+                </div>
+                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
+                  <span>{t("Invoice Remaining")}:</span>
+                  <span>{fmtCurrency(invoiceRemaining)}</span>
+                </div>
+                <div className="debt-row final" style={{
+                  display: "flex", justifyContent: "space-between",
+                  fontWeight: 800, fontSize: "14pt", color: accentColor,
+                  borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6
+                }}>
+                  <span>{t("Total Balance")}:</span>
+                  <span>{fmtCurrency(totalBalance)}</span>
+                </div>
               </div>
             </div>
 
