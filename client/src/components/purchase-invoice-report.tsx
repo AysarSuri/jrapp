@@ -322,7 +322,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 <div style={{ fontSize: "13pt", fontWeight: 700, color: "#333", marginBottom: 3 }}>
                   {invoice.supplierName}
                 </div>
-                <div style={{ fontSize: "9pt", color: "#666" }}>
+                <div style={{ fontSize: "11pt", fontWeight: 700, color: "#333" }}>
                   {t("Invoice #")}: {invoice.invoiceNumber} &nbsp;|&nbsp; {formatDate(invoice.date)} &nbsp;|&nbsp; {invoice.time}
                 </div>
               </div>
