@@ -123,6 +123,16 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
     enabled: open,
   });
 
+  const { data: openingBalanceData } = useQuery<{ openingBalanceUsd: number; openingBalanceIqd: number }>({
+    queryKey: ["/api/purchase-invoices", invoiceId, "opening-balance"],
+    queryFn: async () => {
+      const res = await fetch(`/api/purchase-invoices/${invoiceId}/opening-balance`);
+      if (!res.ok) throw new Error("Failed to fetch opening balance");
+      return res.json();
+    },
+    enabled: !!invoiceId && open,
+  });
+
   const { data: units } = useUnits();
   const unitsList = units || [];
 
@@ -146,8 +156,8 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
   const supplier = clients?.find(c => c.id === invoice?.supplierId);
   const oldDebt = currency === "USD"
-    ? parseFloat(supplier?.oldDebtUsd || "0")
-    : parseFloat(supplier?.oldDebtIqd || "0");
+    ? (openingBalanceData?.openingBalanceUsd ?? 0)
+    : (openingBalanceData?.openingBalanceIqd ?? 0);
 
   const invoiceRemaining = parseFloat(invoice?.remaining || "0");
   const totalBalance = oldDebt + invoiceRemaining;
