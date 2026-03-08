@@ -888,19 +888,21 @@ export async function registerRoutes(
 
       const invoiceDate = invoice.date;
       const invoiceTime = invoice.time || "00:00";
-      const invoiceDatetime = `${invoiceDate} ${invoiceTime}`;
+
+      const beforeDateTimeCondition = (dateCol: any, timeCol: any) =>
+        sql`(${dateCol} < ${invoiceDate} OR (${dateCol} = ${invoiceDate} AND COALESCE(${timeCol}, '00:00') < ${invoiceTime}))`;
 
       const prevInvoices = await db.select().from(purchaseInvoices)
-        .where(sql`${purchaseInvoices.supplierId} = ${invoice.supplierId} AND ${purchaseInvoices.id} != ${id} AND (${purchaseInvoices.date} || ' ' || COALESCE(${purchaseInvoices.time}, '00:00')) < ${invoiceDatetime}`);
+        .where(sql`${purchaseInvoices.supplierId} = ${invoice.supplierId} AND ${purchaseInvoices.id} != ${id} AND ${beforeDateTimeCondition(purchaseInvoices.date, purchaseInvoices.time)}`);
 
       const prevReturns = await db.select().from(purchaseReturns)
-        .where(sql`${purchaseReturns.supplierId} = ${invoice.supplierId} AND (${purchaseReturns.date} || ' ' || COALESCE(${purchaseReturns.time}, '00:00')) < ${invoiceDatetime}`);
+        .where(sql`${purchaseReturns.supplierId} = ${invoice.supplierId} AND ${beforeDateTimeCondition(purchaseReturns.date, purchaseReturns.time)}`);
 
       const prevPayments = await db.select().from(supplierPayments)
-        .where(sql`${supplierPayments.supplierId} = ${invoice.supplierId} AND (${supplierPayments.date} || ' ' || COALESCE(${supplierPayments.time}, '00:00')) < ${invoiceDatetime}`);
+        .where(sql`${supplierPayments.supplierId} = ${invoice.supplierId} AND ${beforeDateTimeCondition(supplierPayments.date, supplierPayments.time)}`);
 
       const prevAdjustments = await db.select().from(supplierAdjustments)
-        .where(sql`${supplierAdjustments.supplierId} = ${invoice.supplierId} AND (${supplierAdjustments.date} || ' ' || COALESCE(${supplierAdjustments.time}, '00:00')) < ${invoiceDatetime}`);
+        .where(sql`${supplierAdjustments.supplierId} = ${invoice.supplierId} AND ${beforeDateTimeCondition(supplierAdjustments.date, supplierAdjustments.time)}`);
 
       let openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
       let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
