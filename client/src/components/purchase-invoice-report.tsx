@@ -309,7 +309,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <div className="report-banner" style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               direction: "ltr",
-              marginBottom: 16, padding: "16px 20px",
+              marginBottom: 16, padding: "10px 20px",
               border: `2px solid ${accentColor}30`, borderRadius: 12,
               background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
             }}>
@@ -331,7 +331,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             {(invoice.address || invoice.carNumber || invoice.manifest || invoice.note) && (
               <div className="info-grid" style={{
                 display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap",
-                marginBottom: 14, fontSize: "12pt", fontWeight: 700, textAlign: "center"
+                marginBottom: 10, fontSize: "12pt", fontWeight: 700, textAlign: "center"
               }}>
                 {invoice.address && (
                   <div className="info-item" style={{ padding: "4px 0" }}>
