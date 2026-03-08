@@ -425,9 +425,11 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             <div style={{ display: "flex", gap: 14, marginTop: 14, direction: "ltr" }}>
               <div className="debt-section" style={{
                 flex: 1, border: `2px solid ${accentColor}30`, borderRadius: 10,
-                padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
+                padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`,
+                display: "flex", flexDirection: "column", justifyContent: "flex-end"
               }}>
                 <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8, textAlign: isRtl ? "right" : "left" }}>{t("Supplier Balance")}</h3>
+                <div style={{ flex: 1 }}></div>
                 <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Opening Balance")}:</span>
                   <span>{fmtCurrency(oldDebt)}</span>
