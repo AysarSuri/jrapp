@@ -330,30 +330,30 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
             {(invoice.address || invoice.carNumber || invoice.manifest || invoice.note) && (
               <div className="info-grid" style={{
-                display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 24px",
-                marginBottom: 14, fontSize: "10pt"
+                display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap",
+                marginBottom: 14, fontSize: "10pt", textAlign: "center"
               }}>
                 {invoice.address && (
-                  <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Address")}</span>
+                  <div className="info-item" style={{ padding: "4px 0" }}>
+                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Address")}: </span>
                     <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.address}</span>
                   </div>
                 )}
                 {invoice.carNumber && (
-                  <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Car Number")}</span>
+                  <div className="info-item" style={{ padding: "4px 0" }}>
+                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Car Number")}: </span>
                     <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.carNumber}</span>
                   </div>
                 )}
                 {invoice.manifest && (
-                  <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Manifest")}</span>
+                  <div className="info-item" style={{ padding: "4px 0" }}>
+                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Manifest")}: </span>
                     <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.manifest}</span>
                   </div>
                 )}
                 {invoice.note && (
-                  <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9", gridColumn: "1 / -1" }}>
-                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Note")}</span>
+                  <div className="info-item" style={{ padding: "4px 0" }}>
+                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Note")}: </span>
                     <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.note}</span>
                   </div>
                 )}
