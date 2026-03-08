@@ -307,7 +307,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             )}
 
             <div className="report-banner" style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
+              display: "flex", justifyContent: isRtl ? "flex-end" : "flex-start", alignItems: "center",
               marginBottom: 16, padding: "16px 20px",
               border: `2px solid ${accentColor}30`, borderRadius: 12,
               background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
