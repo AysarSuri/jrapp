@@ -362,7 +362,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
             <table style={{
               width: "100%", borderCollapse: "separate", borderSpacing: 0,
-              fontSize: "9pt", borderRadius: 8, overflow: "hidden",
+              fontSize: "11pt", borderRadius: 8, overflow: "hidden",
               border: "1px solid #e2e8f0", marginBottom: 14
             }}>
               <thead>
@@ -380,8 +380,8 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                     <th key={i} style={{
                       background: `linear-gradient(145deg, ${accentColor}, ${accentColor}ee)`,
                       color: accentText,
-                      padding: "8px 6px", textAlign: "center", fontWeight: 600,
-                      fontSize: "8.5pt", whiteSpace: "nowrap", letterSpacing: "0.2px",
+                      padding: "8px 6px", textAlign: "center", fontWeight: 700,
+                      fontSize: "10pt", whiteSpace: "nowrap", letterSpacing: "0.2px",
                       ...(i === 0 ? { borderRadius: isRtl ? "0 8px 0 0" : "8px 0 0 0" } : {}),
                       ...(i === arr.length - 1 ? { borderRadius: isRtl ? "8px 0 0 0" : "0 8px 0 0" } : {})
                     }}>{header}</th>
@@ -391,16 +391,16 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               <tbody>
                 {items?.map((item, idx) => (
                   <tr key={item.id} style={{ background: idx % 2 === 0 ? "white" : "#f8fafc" }}>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", color: "#94a3b8", fontSize: "8pt", fontWeight: 600 }}>{idx + 1}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontFamily: "monospace", color: "#334155" }}>{item.productCode}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: isRtl ? "right" : "left", fontWeight: 500, color: "#1e293b" }}>{resolveProductName(item)}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontWeight: 600, color: "#334155" }}>{item.quantity}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", color: "#94a3b8", fontWeight: 700 }}>{idx + 1}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#334155" }}>{item.productCode}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: isRtl ? "right" : "left", fontWeight: 700, color: "#1e293b" }}>{resolveProductName(item)}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#334155" }}>{item.quantity}</td>
                     {hasGifts && (
-                      <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontWeight: 600, color: "#16a34a" }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>
+                      <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#16a34a" }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>
                     )}
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", color: "#64748b" }}>{resolveUnitName(item.unit, unitsList)}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontFamily: "monospace", color: "#334155" }}>{fmtCurrency(item.price)}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#2563eb" }}>{fmtCurrency(item.amount)}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#64748b" }}>{resolveUnitName(item.unit, unitsList)}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#334155" }}>{fmtCurrency(item.price)}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 800, color: "#2563eb" }}>{fmtCurrency(item.amount)}</td>
                   </tr>
                 ))}
               </tbody>
