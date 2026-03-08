@@ -24,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: React 18 with TypeScript, bundled by Vite
 - **Routing**: `wouter` (lightweight client-side router)
 - **State/Data Fetching**: `@tanstack/react-query` for server state management. Custom hooks in `client/src/hooks/` wrap API calls for each domain (products, clients, accounts, invoices, transactions, auth).
-- **UI Components**: shadcn/ui (new-york style) built on Radix UI primitives, styled with Tailwind CSS. Components live in `client/src/components/ui/`.
+- **UI Components**: shadcn/ui (new-york style) built on Radix UI primitives, styled with Tailwind CSS. Components live in `client/src/components/ui/`. Base components have been globally standardized: Label (`text-base font-bold`), Input/SelectTrigger (`h-11 text-base font-semibold`), Textarea (`text-base font-semibold`), TableHead (`text-sm font-bold`), TableCell (`text-sm font-semibold`).
 - **Forms**: `react-hook-form` with `zod` validation via `@hookform/resolvers`. Schemas are shared between client and server from `shared/schema.ts`.
 - **Internationalization**: `i18next` + `react-i18next` with inline translation resources in `client/src/lib/i18n.ts`. Supports English, Arabic, Kurdish (CKB), and Turkish. RTL is supported.
 - **Amount in Words**: `client/src/lib/number-to-words.ts` converts numeric amounts to words in Arabic, Kurdish, Turkish, and English. Used in all print receipt/payment vouchers (clearance statements, clearance receipts/payments, supplier payment/adjustment reports, expenses).
