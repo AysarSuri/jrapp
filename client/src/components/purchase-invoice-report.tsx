@@ -411,18 +411,18 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 flex: 1, border: `2px solid ${accentColor}30`, borderRadius: 10,
                 padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
               }}>
-                <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
-                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
+                <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8, textAlign: isRtl ? "right" : "left" }}>{t("Supplier Balance")}</h3>
+                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Opening Balance")}:</span>
                   <span>{fmtCurrency(oldDebt)}</span>
                 </div>
-                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
+                <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Invoice Remaining")}:</span>
                   <span>{fmtCurrency(invoiceRemaining)}</span>
                 </div>
                 <div className="debt-row final" style={{
                   display: "flex", justifyContent: "space-between",
-                  fontWeight: 800, fontSize: "14pt", color: accentColor,
+                  fontWeight: 800, fontSize: "14pt", color: accentColor, direction: isRtl ? "rtl" : "ltr",
                   borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6
                 }}>
                   <span>{t("Total Balance")}:</span>
@@ -434,28 +434,28 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
                 background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
               }}>
-                <h3 style={{ fontSize: "12pt", fontWeight: 800, marginBottom: 8, paddingBottom: 5, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
+                <h3 style={{ fontSize: "12pt", fontWeight: 800, marginBottom: 8, paddingBottom: 5, borderBottom: `2px solid #e2e8f0`, color: accentColor, textAlign: isRtl ? "right" : "left" }}>{t("Invoice Summary")}</h3>
                 {totalExpenses > 0 && (
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155" }}>
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
                     <span>{t("Total Expenses")}:</span>
                     <span>{fmtCurrency(invoice.totalExpenses)}</span>
                   </div>
                 )}
-                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155" }}>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Invoice Total")}:</span>
                   <span style={{ color: "#2563eb" }}>{fmtCurrency(subtotal)}</span>
                 </div>
-                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a" }}>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Amount Paid")}:</span>
                   <span>{fmtCurrency(amountPaid)}</span>
                 </div>
-                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706" }}>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706", direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Discount")}:</span>
                   <span>{discount > 0 ? `-${fmtCurrency(discount)}` : fmtCurrency(0)}</span>
                 </div>
                 <div className="summary-row total" style={{
                   display: "flex", justifyContent: "space-between",
-                  fontWeight: 800, fontSize: "13pt",
+                  fontWeight: 800, fontSize: "13pt", direction: isRtl ? "rtl" : "ltr",
                   borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6, color: "#dc2626"
                 }}>
                   <span>{t("Remaining")}:</span>
