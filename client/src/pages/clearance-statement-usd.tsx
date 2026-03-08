@@ -324,9 +324,9 @@ export default function ClearanceStatementUsdPage() {
                 <TableHeader>
                   <TableRow className="bg-blue-50/50 dark:bg-blue-950/20">
                     <TableHead className="w-8">#</TableHead>
+                    <TableHead>{t('List Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('List Number')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
                     <TableHead>{t('Car Number')}</TableHead>
                     <TableHead>{t('Manifest')}</TableHead>
@@ -348,9 +348,9 @@ export default function ClearanceStatementUsdPage() {
                   {usdWithBalance.map((entry, i) => (
                     <TableRow key={`usd-${entry.source}-${entry.id}`} data-testid={`row-usd-statement-${entry.id}`}>
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm" dir="ltr">{entry.listNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
-                      <TableCell className="font-mono text-sm" dir="ltr">{entry.listNumber || "-"}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                       <TableCell className="font-mono text-sm" dir="ltr">{entry.carNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm" dir="ltr">{entry.manifest || "-"}</TableCell>
