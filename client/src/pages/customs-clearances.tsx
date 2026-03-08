@@ -12,7 +12,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ShieldCheck, Loader2, Trash2, Pencil, Save, RotateCcw, Search } from "lucide-react";
+import { ShieldCheck, Loader2, Trash2, Pencil, Save, RotateCcw, Search, Undo2 } from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +104,11 @@ export default function CustomsClearancesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <Link href="/clearance-management">
+            <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-back">
+              <Undo2 className="h-5 w-5" />
+            </Button>
+          </Link>
           <ShieldCheck className="w-7 h-7 text-primary" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Customs Clearances')}</h1>
         </div>

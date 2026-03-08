@@ -16,8 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, FileText,
-  Pencil, Trash2, Printer, ChevronLeft, ChevronRight,
+  Pencil, Trash2, Printer, ChevronLeft, ChevronRight, Undo2,
 } from "lucide-react";
+import { Link } from "wouter";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -322,6 +323,11 @@ export default function ClearancePurchaseInvoicesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
+            <Link href="/clearance-management">
+              <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-back">
+                <Undo2 className="h-5 w-5" />
+              </Button>
+            </Link>
             <div className="p-2 rounded-lg bg-sky-100 dark:bg-sky-900/30">
               <FileText className="h-7 w-7 text-sky-600 dark:text-sky-400" />
             </div>

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
@@ -33,7 +33,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Loader2, DollarSign, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Banknote,
+  Loader2, DollarSign, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Banknote, Undo2,
 } from "lucide-react";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 
@@ -350,6 +350,11 @@ export default function ClearanceStatementUsdPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <Link href="/clearance-management">
+            <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-back">
+              <Undo2 className="h-5 w-5" />
+            </Button>
+          </Link>
           <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <DollarSign className="h-7 w-7 text-blue-600 dark:text-blue-400" />
           </div>

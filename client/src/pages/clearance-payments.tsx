@@ -17,8 +17,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowUpFromLine,
-  Eye, Pencil, Trash2, Printer, MessageCircle, ChevronLeft, ChevronRight,
+  Eye, Pencil, Trash2, Printer, MessageCircle, ChevronLeft, ChevronRight, Undo2,
 } from "lucide-react";
+import { Link } from "wouter";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -312,6 +313,11 @@ export default function ClearancePaymentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <Link href="/clearance-management">
+              <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-back">
+                <Undo2 className="h-5 w-5" />
+              </Button>
+            </Link>
             <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
               <ArrowUpFromLine className="h-7 w-7 text-red-600 dark:text-red-400" />
             </div>
