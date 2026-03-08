@@ -108,18 +108,16 @@ export default function ClearanceStatementUsdPage() {
     creditUsd: Number(e.creditUsd) || 0,
     creditIqd: Number(e.creditIqd) || 0,
   }));
-  const usdEntries = entries.filter(e => {
-    if (e.debitUsd === 0 && e.creditUsd === 0) return false;
-    if (dateFrom) {
-      if (e.date < dateFrom) return false;
-    }
-    if (dateTo) {
-      if (e.date > dateTo) return false;
-    }
+  const usdAllRelevant = entries.filter(e => e.debitUsd !== 0 || e.creditUsd !== 0);
+  const usdBefore = dateFrom ? usdAllRelevant.filter(e => e.date < dateFrom) : [];
+  const usdEntries = usdAllRelevant.filter(e => {
+    if (dateFrom && e.date < dateFrom) return false;
+    if (dateTo && e.date > dateTo) return false;
     return true;
   });
 
-  const openingUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0");
+  const baseOpeningUsd = parseFloat(statement?.clearance?.oldDebtUsd || "0");
+  const openingUsd = baseOpeningUsd + usdBefore.reduce((s, e) => s + e.debitUsd - e.creditUsd, 0);
 
   let runUsd = openingUsd;
   const usdWithBalance = usdEntries.map((entry) => {

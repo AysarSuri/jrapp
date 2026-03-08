@@ -108,18 +108,16 @@ export default function ClearanceStatementIqdPage() {
     creditUsd: Number(e.creditUsd) || 0,
     creditIqd: Number(e.creditIqd) || 0,
   }));
-  const iqdEntries = entries.filter(e => {
-    if (e.debitIqd === 0 && e.creditIqd === 0) return false;
-    if (dateFrom) {
-      if (e.date < dateFrom) return false;
-    }
-    if (dateTo) {
-      if (e.date > dateTo) return false;
-    }
+  const iqdAllRelevant = entries.filter(e => e.debitIqd !== 0 || e.creditIqd !== 0);
+  const iqdBefore = dateFrom ? iqdAllRelevant.filter(e => e.date < dateFrom) : [];
+  const iqdEntries = iqdAllRelevant.filter(e => {
+    if (dateFrom && e.date < dateFrom) return false;
+    if (dateTo && e.date > dateTo) return false;
     return true;
   });
 
-  const openingIqd = parseFloat(statement?.clearance?.oldDebtIqd || "0");
+  const baseOpeningIqd = parseFloat(statement?.clearance?.oldDebtIqd || "0");
+  const openingIqd = baseOpeningIqd + iqdBefore.reduce((s, e) => s + e.debitIqd - e.creditIqd, 0);
 
   let runIqd = openingIqd;
   const iqdWithBalance = iqdEntries.map((entry) => {
