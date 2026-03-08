@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Users, Plus, Pencil, Trash2, Loader2, Save, Shield, User, Truck,
   Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw,
-  CheckCircle, XCircle, Phone,
+  CheckCircle, XCircle, Phone, LogOut, KeyRound, Clock, LogIn,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -34,6 +34,8 @@ type SafeUser = {
   mobile: string;
   role: string;
   isActive: number;
+  lastLoginAt: string | null;
+  lastLogoutAt: string | null;
   createdAt: string;
 };
 
@@ -89,6 +91,37 @@ export default function UserManagementPage() {
     },
   });
 
+  const forceLogoutMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("POST", `/api/users/${id}/force-logout`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: t("User has been logged out") });
+    },
+    onError: (err: any) => {
+      toast({ title: err.message || t("Failed to force logout user"), variant: "destructive" });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ id, newPassword }: { id: string; newPassword: string }) => {
+      const res = await apiRequest("POST", `/api/users/${id}/change-password`, { newPassword });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: t("Password changed successfully") });
+      setPasswordUser(null);
+      setNewPassword("");
+      setShowNewPassword(false);
+    },
+    onError: (err: any) => {
+      toast({ title: err.message || t("Failed to change password"), variant: "destructive" });
+    },
+  });
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -104,6 +137,10 @@ export default function UserManagementPage() {
   const [editRole, setEditRole] = useState("");
   const [editIsActive, setEditIsActive] = useState(1);
   const [editShowPassword, setEditShowPassword] = useState(false);
+
+  const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState("");
@@ -169,6 +206,15 @@ export default function UserManagementPage() {
     updateMutation.mutate({ id: editUser.id, data });
   };
 
+  const handleChangePassword = () => {
+    if (!passwordUser) return;
+    if (!newPassword.trim()) {
+      toast({ title: t("Please enter a new password"), variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate({ id: passwordUser.id, newPassword: newPassword.trim() });
+  };
+
   const roleConfig = {
     admin: { icon: Shield, color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300", label: "Admin" },
     user: { icon: User, color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "User" },
@@ -195,6 +241,22 @@ export default function UserManagementPage() {
     } catch {
       return "-";
     }
+  };
+
+  const formatDateTime = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return null;
+    }
+  };
+
+  const isUserOnline = (u: SafeUser) => {
+    if (!u.lastLoginAt) return false;
+    if (!u.lastLogoutAt) return true;
+    return new Date(u.lastLoginAt) > new Date(u.lastLogoutAt);
   };
 
   return (
@@ -379,6 +441,15 @@ export default function UserManagementPage() {
                   {allUsers.filter(u => u.isActive === 1).length}
                 </span>
               </div>
+              <div className="flex justify-between items-center p-3 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-medium">{t('Online')}</span>
+                </div>
+                <span className="font-bold text-lg text-green-600" data-testid="text-online-count">
+                  {allUsers.filter(u => isUserOnline(u)).length}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -434,6 +505,7 @@ export default function UserManagementPage() {
                     <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Role')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
+                    <TableHead>{t('Session Info')}</TableHead>
                     <TableHead>{t('Created')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
@@ -442,6 +514,7 @@ export default function UserManagementPage() {
                   {paginatedUsers.map((u, i) => {
                     const rc = roleConfig[u.role as keyof typeof roleConfig] || roleConfig.user;
                     const RoleIcon = rc.icon;
+                    const online = isUserOnline(u);
                     return (
                       <TableRow key={u.id} data-testid={`row-user-${u.id}`}>
                         <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
@@ -455,17 +528,44 @@ export default function UserManagementPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {u.isActive === 1 ? (
-                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                              <CheckCircle className="h-3 w-3 me-1" />
-                              {t('Active')}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-                              <XCircle className="h-3 w-3 me-1" />
-                              {t('Inactive')}
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {u.isActive === 1 ? (
+                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                                <CheckCircle className="h-3 w-3 me-1" />
+                                {t('Active')}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                                <XCircle className="h-3 w-3 me-1" />
+                                {t('Inactive')}
+                              </Badge>
+                            )}
+                            {online ? (
+                              <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse me-1" />
+                                {t('Online')}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">
+                                <div className="h-2 w-2 rounded-full bg-gray-400 me-1" />
+                                {t('Offline')}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1 text-xs">
+                            <div className="flex items-center gap-1 text-green-700 dark:text-green-400" data-testid={`text-login-time-${u.id}`}>
+                              <LogIn className="h-3 w-3" />
+                              <span className="font-medium">{t('Last Login')}:</span>
+                              <span>{formatDateTime(u.lastLoginAt) || t('Never logged in')}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-red-600 dark:text-red-400" data-testid={`text-logout-time-${u.id}`}>
+                              <LogOut className="h-3 w-3" />
+                              <span className="font-medium">{t('Last Logout')}:</span>
+                              <span>{formatDateTime(u.lastLogoutAt) || "-"}</span>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
                         <TableCell>
@@ -475,10 +575,54 @@ export default function UserManagementPage() {
                               size="icon"
                               className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                               onClick={() => openEdit(u)}
+                              title={t('Edit User')}
                               data-testid={`button-edit-user-${u.id}`}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => { setPasswordUser(u); setNewPassword(""); setShowNewPassword(false); }}
+                              title={t('Change Password')}
+                              data-testid={`button-change-password-${u.id}`}
+                            >
+                              <KeyRound className="h-4 w-4" />
+                            </Button>
+                            {u.role !== 'admin' && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                    disabled={!online}
+                                    title={t('Force Logout')}
+                                    data-testid={`button-force-logout-${u.id}`}
+                                  >
+                                    <LogOut className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>{t('Force logout this user?')}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      {t('This will terminate the user\'s active session')} - <strong>{u.fullName || u.username}</strong>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => forceLogoutMutation.mutate(u.id)}
+                                      className="bg-amber-600 hover:bg-amber-700"
+                                    >
+                                      {t('Yes')}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
@@ -515,7 +659,7 @@ export default function UserManagementPage() {
                   })}
                   {paginatedUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                         {t('No users yet')}
                       </TableCell>
                     </TableRow>
@@ -694,6 +838,61 @@ export default function UserManagementPage() {
             >
               {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t('Update')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!passwordUser} onOpenChange={(open) => { if (!open) { setPasswordUser(null); setNewPassword(""); setShowNewPassword(false); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-blue-600" />
+              {t('Change Password')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">{passwordUser?.fullName || passwordUser?.username}</span>
+                <span className="text-muted-foreground text-sm">({passwordUser?.username})</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="font-semibold">{t('New Password')}</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pe-10"
+                  data-testid="input-new-password"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute end-1 top-1 h-8 w-8"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  data-testid="button-toggle-new-password"
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => { setPasswordUser(null); setNewPassword(""); setShowNewPassword(false); }}>{t('Cancel')}</Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={changePasswordMutation.isPending}
+              className="gap-2 bg-blue-600 hover:bg-blue-700 text-[#ffffff]"
+              data-testid="button-save-password"
+            >
+              {changePasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              {t('Change Password')}
             </Button>
           </DialogFooter>
         </DialogContent>

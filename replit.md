@@ -37,7 +37,7 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js running on Node.js with TypeScript (executed via `tsx`)
 - **Entry point**: `server/index.ts` creates HTTP server, registers routes, serves static files in production or sets up Vite dev middleware in development
 - **API pattern**: All API routes defined in `server/routes.ts`, with route metadata (paths, input schemas, response schemas) centralized in `shared/routes.ts`. This creates a typed API contract shared between frontend and backend.
-- **Authentication**: Session-based auth using `express-session` with `connect-pg-simple` (sessions stored in PostgreSQL). Passwords hashed with `bcryptjs`. Session cookie lasts 24 hours.
+- **Authentication**: Session-based auth using `express-session` with `connect-pg-simple` (sessions stored in PostgreSQL). Passwords hashed with `bcryptjs`. Session cookie lasts 24 hours. Users table tracks `lastLoginAt` and `lastLogoutAt` timestamps. Admin can force-logout users (deletes their sessions from DB) and change passwords (also invalidates sessions). Online status is derived from login/logout timestamps.
 - **Storage layer**: `server/storage.ts` defines an `IStorage` interface and `DatabaseStorage` class. All database operations go through this abstraction layer.
 
 ### Shared Code (`shared/`)

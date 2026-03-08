@@ -43,7 +43,9 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid username or password" });
       }
       req.session.userId = user.id;
-      const { password, ...safeUser } = user;
+      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      const updatedUser = await storage.getUser(user.id);
+      const { password: _pw, ...safeUser } = updatedUser!;
       res.status(200).json(safeUser);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -67,6 +69,7 @@ export async function registerRoutes(
       const hashed = await bcrypt.hash(input.password, 12);
       const user = await storage.createUser({ ...input, password: hashed });
       req.session.userId = user.id;
+      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
       const { password, ...safeUser } = user;
       res.status(201).json(safeUser);
     } catch (err) {
@@ -102,6 +105,7 @@ export async function registerRoutes(
         user = await storage.createUser({ username: role, password: hashed, role });
       }
       req.session.userId = user.id;
+      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
       const { password, ...safeUser } = user;
       res.status(200).json(safeUser);
     } catch (err) {
@@ -109,7 +113,11 @@ export async function registerRoutes(
     }
   });
 
-  app.post(api.auth.logout.path, (req, res) => {
+  app.post(api.auth.logout.path, async (req, res) => {
+    const userId = req.session.userId;
+    if (userId) {
+      await db.update(users).set({ lastLogoutAt: new Date() }).where(eq(users.id, userId));
+    }
     req.session.destroy(() => {
       res.json({ message: "Logged out" });
     });
@@ -251,6 +259,44 @@ export async function registerRoutes(
       }
       await storage.deleteUser(id);
       res.json({ message: "User deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/users/:id/force-logout', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can force logout users" });
+      }
+      const { id } = req.params;
+      if (id === currentUser.id) {
+        return res.status(400).json({ message: "Cannot force logout yourself" });
+      }
+      await pool.query(`DELETE FROM "session" WHERE sess::text LIKE $1`, [`%"userId":"${id}"%`]);
+      await db.update(users).set({ lastLogoutAt: new Date() }).where(eq(users.id, id));
+      res.json({ message: "User session terminated" });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post('/api/users/:id/change-password', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can change passwords" });
+      }
+      const { id } = req.params;
+      const { newPassword } = req.body;
+      if (!newPassword || newPassword.length < 3) {
+        return res.status(400).json({ message: "Password must be at least 3 characters" });
+      }
+      const hashed = await bcrypt.hash(newPassword, 12);
+      await storage.updateUser(id, { password: hashed });
+      await pool.query(`DELETE FROM "session" WHERE sess::text LIKE $1`, [`%"userId":"${id}"%`]);
+      res.json({ message: "Password changed successfully" });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }

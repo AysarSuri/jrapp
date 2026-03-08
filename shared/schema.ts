@@ -71,6 +71,8 @@ export const users = pgTable("users", {
   mobile: text("mobile").default(""),
   role: text("role").notNull(), // 'admin', 'user', 'sales_rep'
   isActive: integer("is_active").notNull().default(1),
+  lastLoginAt: timestamp("last_login_at"),
+  lastLogoutAt: timestamp("last_logout_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
