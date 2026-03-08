@@ -444,10 +444,10 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             </div>
 
             <div className="debt-section" style={{
-              marginTop: 14, border: "2px solid #ef4444", borderRadius: 10,
-              padding: "10px 14px", background: "linear-gradient(145deg, #fef2f2, #fff5f5)"
+              marginTop: 14, border: `2px solid ${accentColor}30`, borderRadius: 10,
+              padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
             }}>
-              <h3 style={{ color: "#dc2626", fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
+              <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8 }}>{t("Supplier Balance")}</h3>
               <div className="debt-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700 }}>
                 <span>{t("Opening Balance")}:</span>
                 <span>{fmtCurrency(oldDebt)}</span>
@@ -458,8 +458,8 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
               <div className="debt-row final" style={{
                 display: "flex", justifyContent: "space-between",
-                fontWeight: 800, fontSize: "14pt", color: "#dc2626",
-                borderTop: "2px solid #dc2626", paddingTop: 6, marginTop: 6
+                fontWeight: 800, fontSize: "14pt", color: accentColor,
+                borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6
               }}>
                 <span>{t("Total Balance")}:</span>
                 <span>{fmtCurrency(totalBalance)}</span>
