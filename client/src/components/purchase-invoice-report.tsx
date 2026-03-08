@@ -342,7 +342,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 {invoice.carNumber && (
                   <div className="info-item" style={{ padding: "4px 0" }}>
                     <span className="info-label" style={{ fontWeight: 700, color: "#64748b" }}>{t("Car Number")}: </span>
-                    <span className="info-value" style={{ fontWeight: 700, color: "#1e293b" }}>{invoice.carNumber}</span>
+                    <span className="info-value" style={{ fontWeight: 700, color: "#1e293b", direction: "ltr", unicodeBidi: "embed" }}>{invoice.carNumber}</span>
                   </div>
                 )}
                 {invoice.manifest && (
