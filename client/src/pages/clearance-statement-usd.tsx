@@ -158,9 +158,11 @@ export default function ClearanceStatementUsdPage() {
 
   const handleEditClick = (entry: StatementEntry) => {
     if (entry.source === "invoice") {
-      navigate(`/purchase-invoice-usd?edit=${entry.id}`);
+      window.open(`/purchase-invoice-usd?edit=${entry.id}`, '_blank');
+      return;
     } else if (entry.source === "clearance_invoice") {
-      navigate(`/clearance-purchase-invoices`);
+      window.open(`/clearance-purchase-invoices`, '_blank');
+      return;
     } else {
       setEditEntry(entry);
       setEditAmountUsd(String(entry.type === "receipt" ? entry.debitUsd : entry.creditUsd));
