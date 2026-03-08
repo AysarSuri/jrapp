@@ -357,43 +357,6 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             )}
 
-            <div className="summary-cards" style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-              <div className="summary-card accent-blue" style={{
-                flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px",
-                textAlign: "center", background: "linear-gradient(145deg, #fafbfc, #f1f5f9)",
-                position: "relative", overflow: "hidden", borderTop: "3px solid #3b82f6"
-              }}>
-                <div className="label" style={{ fontSize: "7.5pt", color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("Invoice Total")}</div>
-                <div className="value blue" style={{ fontSize: "13pt", fontWeight: 800, color: "#2563eb" }}>{fmtCurrency(subtotal)}</div>
-              </div>
-              <div className="summary-card accent-green" style={{
-                flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px",
-                textAlign: "center", background: "linear-gradient(145deg, #fafbfc, #f1f5f9)",
-                position: "relative", overflow: "hidden", borderTop: "3px solid #22c55e"
-              }}>
-                <div className="label" style={{ fontSize: "7.5pt", color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("Amount Paid")}</div>
-                <div className="value green" style={{ fontSize: "13pt", fontWeight: 800, color: "#16a34a" }}>{fmtCurrency(amountPaid)}</div>
-              </div>
-              <div className="summary-card accent-red" style={{
-                flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px",
-                textAlign: "center", background: "linear-gradient(145deg, #fafbfc, #f1f5f9)",
-                position: "relative", overflow: "hidden", borderTop: "3px solid #ef4444"
-              }}>
-                <div className="label" style={{ fontSize: "7.5pt", color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("Remaining")}</div>
-                <div className="value red" style={{ fontSize: "13pt", fontWeight: 800, color: "#dc2626" }}>{fmtCurrency(remaining)}</div>
-              </div>
-              {discount > 0 && (
-                <div className="summary-card accent-orange" style={{
-                  flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px",
-                  textAlign: "center", background: "linear-gradient(145deg, #fafbfc, #f1f5f9)",
-                  position: "relative", overflow: "hidden", borderTop: "3px solid #f59e0b"
-                }}>
-                  <div className="label" style={{ fontSize: "7.5pt", color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("Discount")}</div>
-                  <div className="value orange" style={{ fontSize: "13pt", fontWeight: 800, color: "#d97706" }}>{fmtCurrency(discount)}</div>
-                </div>
-              )}
-            </div>
-
             <table style={{
               width: "100%", borderCollapse: "separate", borderSpacing: 0,
               fontSize: "9pt", borderRadius: 8, overflow: "hidden",
