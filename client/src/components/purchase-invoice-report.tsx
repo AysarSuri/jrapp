@@ -411,30 +411,30 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
                 background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
               }}>
-                <h3 style={{ fontSize: "10pt", fontWeight: 700, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
+                <h3 style={{ fontSize: "12pt", fontWeight: 800, marginBottom: 8, paddingBottom: 5, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
                 {totalExpenses > 0 && (
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155" }}>
                     <span>{t("Total Expenses")}:</span>
-                    <span style={{ fontWeight: 600 }}>{fmtCurrency(invoice.totalExpenses)}</span>
+                    <span>{fmtCurrency(invoice.totalExpenses)}</span>
                   </div>
                 )}
-                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155" }}>
                   <span>{t("Invoice Total")}:</span>
-                  <span style={{ fontWeight: 700, color: "#2563eb" }}>{fmtCurrency(subtotal)}</span>
+                  <span style={{ color: "#2563eb" }}>{fmtCurrency(subtotal)}</span>
                 </div>
-                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#16a34a" }}>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a" }}>
                   <span>{t("Amount Paid")}:</span>
-                  <span style={{ fontWeight: 600 }}>{fmtCurrency(amountPaid)}</span>
+                  <span>{fmtCurrency(amountPaid)}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#d97706" }}>
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706" }}>
                     <span>{t("Discount")}:</span>
-                    <span style={{ fontWeight: 600 }}>-{fmtCurrency(discount)}</span>
+                    <span>-{fmtCurrency(discount)}</span>
                   </div>
                 )}
                 <div className="summary-row total" style={{
                   display: "flex", justifyContent: "space-between",
-                  fontWeight: 800, fontSize: "11pt",
+                  fontWeight: 800, fontSize: "13pt",
                   borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6, color: "#dc2626"
                 }}>
                   <span>{t("Remaining")}:</span>
