@@ -597,7 +597,6 @@ export default function UserManagementPage() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                                    disabled={!online}
                                     title={t('Force Logout')}
                                     data-testid={`button-force-logout-${u.id}`}
                                   >
