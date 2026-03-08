@@ -211,7 +211,7 @@ export default function ClearanceStatementUsdPage() {
           <div class="summary-card accent-green"><div class="label">${t("Receipts from Clearance")}</div><div class="value green">${fmtUsd(totalReceiptsUsd)}</div></div>
           <div class="summary-card accent-amber"><div class="label">${t("Old Debt")}</div><div class="value" style="color:#b45309;">${fmtUsd(openingUsd)}</div></div>
           <div class="summary-card accent-red"><div class="label">${t("Total Payments")}</div><div class="value red">${fmtUsd(totalCreditUsd)}</div></div>
-          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value" style="color:#2563eb;">${fmtUsd(finalBalanceUsd)}</div></div>
+          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value" style="color:#2563eb;">${fmtUsd(Math.abs(finalBalanceUsd))}</div><div style="font-size:9pt;margin-top:4px;color:${finalBalanceUsd >= 0 ? '#15803d' : '#b91c1c'};font-weight:600;">${finalBalanceUsd >= 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : `${t("Remaining at")} ${clearanceName}`}</div></div>
         </div>
         <table>
           <thead>
@@ -427,7 +427,12 @@ export default function ClearanceStatementUsdPage() {
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-blue-800 dark:text-blue-300" data-testid="text-usd-final-balance">{fmtUsd(finalBalanceUsd)}</p>
+                <p className="font-mono font-bold text-blue-800 dark:text-blue-300" data-testid="text-usd-final-balance">{fmtUsd(Math.abs(finalBalanceUsd))}</p>
+                <p className="text-xs mt-1 font-medium" style={{ color: finalBalanceUsd >= 0 ? '#15803d' : '#b91c1c' }}>
+                  {finalBalanceUsd >= 0
+                    ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}`
+                    : `${t('Remaining at')} ${statement?.clearance?.name || ''}`}
+                </p>
               </CardContent>
             </Card>
           </div>
