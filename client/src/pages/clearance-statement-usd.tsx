@@ -44,6 +44,8 @@ interface StatementEntry {
   source: string;
   description: string | null;
   reference: string | null;
+  carNumber: string;
+  manifest: string;
   debitUsd: number;
   debitIqd: number;
   creditUsd: number;
@@ -321,6 +323,8 @@ export default function ClearanceStatementUsdPage() {
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
+                    <TableHead>{t('Car Number')}</TableHead>
+                    <TableHead>{t('Manifest')}</TableHead>
                     <TableHead className="text-green-700 dark:text-green-400">{t('Debit')}</TableHead>
                     <TableHead className="text-red-700 dark:text-red-400">{t('Credit')}</TableHead>
                     <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')}</TableHead>
@@ -329,7 +333,7 @@ export default function ClearanceStatementUsdPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
-                    <TableCell colSpan={4} className="text-amber-700 dark:text-amber-400">
+                    <TableCell colSpan={6} className="text-amber-700 dark:text-amber-400">
                       {t('Opening Balance')}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
@@ -341,7 +345,9 @@ export default function ClearanceStatementUsdPage() {
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate" dir="ltr">{entry.description || "-"}</TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm" dir="ltr">{entry.carNumber || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm" dir="ltr">{entry.manifest || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
                         {entry.debitUsd > 0 ? fmtUsd(entry.debitUsd) : ""}
                       </TableCell>
@@ -368,14 +374,14 @@ export default function ClearanceStatementUsdPage() {
                   ))}
                   {usdEntries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No transactions found')}
                       </TableCell>
                     </TableRow>
                   )}
                   {usdEntries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={4} className="text-end">{t('Total')}</TableCell>
+                      <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
                       <TableCell className="font-mono text-green-700">{fmtUsd(totalDebitUsd)}</TableCell>
                       <TableCell className="font-mono text-red-700">{fmtUsd(totalCreditUsd)}</TableCell>
                       <TableCell className="font-mono text-blue-700">{fmtUsd(finalBalanceUsd)}</TableCell>

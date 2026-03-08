@@ -1661,6 +1661,8 @@ export async function registerRoutes(
           source: "clearance" as const,
           description: t.description,
           reference: t.reference,
+          carNumber: "",
+          manifest: "",
           debitUsd: t.type === "receipt" ? usdAmt : 0,
           debitIqd: t.type === "receipt" ? iqdAmt : 0,
           creditUsd: t.type === "payment" ? usdAmt : 0,
@@ -1671,15 +1673,16 @@ export async function registerRoutes(
       const invoiceEntries = invoicesWithCustoms.map((inv) => {
         const expense = parseFloat(inv.customsExpense || "0");
         const isUsd = inv.currency === "USD";
-        const descParts = [inv.carNumber, inv.manifest].filter(Boolean).join(" - ");
         return {
           id: inv.id,
           date: inv.date,
           time: inv.time || "00:00",
           type: "customs_expense" as const,
           source: "invoice" as const,
-          description: descParts || `${inv.invoiceNumber} - ${inv.supplierName}`,
+          description: `${inv.invoiceNumber} - ${inv.supplierName}`,
           reference: inv.invoiceNumber,
+          carNumber: inv.carNumber || "",
+          manifest: inv.manifest || "",
           debitUsd: isUsd ? expense : 0,
           debitIqd: !isUsd ? expense : 0,
           creditUsd: 0,
@@ -1694,15 +1697,16 @@ export async function registerRoutes(
       const clearanceInvoiceEntries = clearancePurchaseInvs.map((inv) => {
         const usdAmt = parseFloat(inv.customsUsd || "0");
         const iqdAmt = parseFloat(inv.customsIqd || "0");
-        const descParts = [inv.carNumber, inv.manifest].filter(Boolean).join(" - ");
         return {
           id: inv.id,
           date: inv.date,
           time: inv.time || "00:00",
           type: "customs" as const,
           source: "clearance_invoice" as const,
-          description: descParts || inv.description || null,
+          description: inv.description || null,
           reference: inv.listNumber,
+          carNumber: inv.carNumber || "",
+          manifest: inv.manifest || "",
           debitUsd: usdAmt,
           debitIqd: iqdAmt,
           creditUsd: 0,
