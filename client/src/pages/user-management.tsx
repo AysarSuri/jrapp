@@ -26,6 +26,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getAssignableModules, SALES_REP_PERMISSIONS, getDefaultPermissions } from "@/lib/permissions";
 
 type SafeUser = {
   id: string;
@@ -34,6 +36,7 @@ type SafeUser = {
   mobile: string;
   role: string;
   isActive: number;
+  permissions: string[] | null;
   lastLoginAt: string | null;
   lastLogoutAt: string | null;
   createdAt: string;
@@ -57,6 +60,7 @@ export default function UserManagementPage() {
   const [role, setRole] = useState("");
   const [isActive, setIsActive] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -76,6 +80,7 @@ export default function UserManagementPage() {
     setRole("");
     setIsActive(1);
     setShowPassword(false);
+    setPermissions([]);
   };
 
   const openEdit = (u: SafeUser) => {
@@ -86,12 +91,13 @@ export default function UserManagementPage() {
     setMobile(u.mobile || "");
     setRole(u.role);
     setIsActive(u.isActive);
+    setPermissions(u.permissions || []);
     setShowPassword(false);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const createMutation = useMutation({
-    mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string }) => {
+    mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string; permissions: string[] }) => {
       const res = await apiRequest("POST", "/api/users", data);
       return res.json();
     },
@@ -179,6 +185,8 @@ export default function UserManagementPage() {
       return;
     }
 
+    const effectivePermissions = role === "admin" ? getDefaultPermissions("admin") : role === "sales_rep" ? getDefaultPermissions("sales_rep") : permissions;
+
     if (editUser) {
       const data: any = {
         username: username.trim(),
@@ -186,13 +194,14 @@ export default function UserManagementPage() {
         mobile: mobile.trim(),
         role,
         isActive,
+        permissions: effectivePermissions,
       };
       if (password.trim()) {
         data.password = password;
       }
       updateMutation.mutate({ id: editUser.id, data });
     } else {
-      createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role });
+      createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions });
     }
   };
 
@@ -400,6 +409,90 @@ export default function UserManagementPage() {
                 </div>
               )}
             </div>
+            {role && (
+              <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold text-base flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    {t('Permissions')}
+                  </Label>
+                  {role === "user" && (
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPermissions(getAssignableModules().map(m => m.key))}
+                        data-testid="button-select-all-permissions"
+                      >
+                        {t('Select All')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPermissions([])}
+                        data-testid="button-deselect-all-permissions"
+                      >
+                        {t('Deselect All')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {role === "admin" && (
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium" data-testid="text-admin-full-access">
+                    <CheckCircle className="h-4 w-4 inline me-1" />
+                    {t('Full access to all modules')}
+                  </p>
+                )}
+                {role === "sales_rep" && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground" data-testid="text-sales-rep-fixed">
+                      {t('Fixed permissions for representatives')}
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {getAssignableModules().map(mod => {
+                        const isChecked = SALES_REP_PERMISSIONS.includes(mod.key);
+                        return (
+                          <label key={mod.key} className={`flex items-center gap-2 p-2 rounded border text-sm ${isChecked ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'opacity-50'}`}>
+                            <Checkbox checked={isChecked} disabled data-testid={`checkbox-perm-${mod.key}`} />
+                            <span>{t(mod.labelKey)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {role === "user" && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {t('Select permissions for this user')}
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {getAssignableModules().map(mod => {
+                        const isChecked = permissions.includes(mod.key);
+                        return (
+                          <label key={mod.key} className={`flex items-center gap-2 p-2 rounded border text-sm cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'hover:bg-muted/50'}`}>
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setPermissions(prev => [...prev, mod.key]);
+                                } else {
+                                  setPermissions(prev => prev.filter(p => p !== mod.key));
+                                }
+                              }}
+                              data-testid={`checkbox-perm-${mod.key}`}
+                            />
+                            <span>{t(mod.labelKey)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex gap-2 pt-2">
               <Button
                 onClick={handleSubmit}

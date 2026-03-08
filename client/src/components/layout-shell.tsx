@@ -50,6 +50,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLogout, useUser } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { hasRoutePermission, PERMISSION_MODULES } from "@/lib/permissions";
 import { useUnreadNotificationCount, useNotifications, useMarkNotificationRead } from "@/hooks/use-notifications";
 import { useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
 
@@ -430,6 +431,20 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/user-management", icon: Users, label: "User Management" },
   ];
 
+  const userRole = user?.role || "user";
+  const userPermissions = (user as any)?.permissions || [];
+
+  const filteredSidebarItems = sidebarItems.filter((entry) => {
+    if ('type' in entry && entry.type === 'group') {
+      const firstChildRoute = entry.children[0]?.href;
+      if (firstChildRoute) {
+        return hasRoutePermission(userRole, userPermissions, firstChildRoute);
+      }
+      return true;
+    }
+    return hasRoutePermission(userRole, userPermissions, entry.href);
+  });
+
   const renderNavLink = (item: NavItem, indent = false) => {
     const isActive = location === item.href;
     const testId = `link-nav-${item.href.replace(/\//g, '') || 'dashboard'}`;
@@ -457,7 +472,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
       </div>
 
       <nav ref={sidebarScrollRef} className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {sidebarItems.map((entry) => {
+        {filteredSidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
             const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
               "Sales Management": { isOpen: salesOpen, setOpen: setSalesOpen, isActive: isSalesSection },

@@ -142,6 +142,97 @@ export async function registerRoutes(
     next();
   };
 
+  const API_PERMISSION_MAP: Record<string, string> = {
+    '/api/customers': 'sales_management',
+    '/api/sales-invoices': 'sales_management',
+    '/api/sales-returns': 'sales_management',
+    '/api/customer-receipts': 'sales_management',
+    '/api/agent-payments': 'sales_management',
+    '/api/suppliers': 'supplier_management',
+    '/api/purchase-invoices': 'supplier_management',
+    '/api/purchase-returns': 'supplier_management',
+    '/api/supplier-payments': 'supplier_management',
+    '/api/supplier-adjustments': 'supplier_management',
+    '/api/supplier-debts': 'supplier_management',
+    '/api/agents': 'agent_management',
+    '/api/agent-clients': 'agent_management',
+    '/api/agent-product-loads': 'agent_management',
+    '/api/agent-locations': 'agent_management',
+    '/api/products': 'material_management',
+    '/api/units': 'material_management',
+    '/api/categories': 'material_management',
+    '/api/inventory': 'material_management',
+    '/api/banks': 'bank_management',
+    '/api/bank-transactions': 'bank_management',
+    '/api/customs-clearances': 'clearance_management',
+    '/api/clearance-transactions': 'clearance_management',
+    '/api/clearance-purchase-invoices': 'clearance_management',
+    '/api/transfer-offices': 'office_management',
+    '/api/office-transactions': 'office_management',
+    '/api/expense-types': 'expense_management',
+    '/api/expenses': 'expense_management',
+    '/api/external-debts': 'external_debt_management',
+    '/api/external-debt-transactions': 'external_debt_management',
+    '/api/owners': 'owner_management',
+    '/api/owner-transactions': 'owner_management',
+    '/api/warehouses': 'warehouse_management',
+    '/api/warehouse-transfers': 'warehouse_management',
+    '/api/accounts': 'accounts',
+    '/api/currency-exchange': 'currency_exchange',
+    '/api/product-damages': 'product_damage',
+    '/api/company-profile': 'company_profile',
+    '/api/addresses': 'addresses',
+    '/api/users': 'user_management',
+  };
+
+  const SALES_REP_PERMS = ['dashboard', 'sales_management', 'agent_management'];
+
+  function getEffectivePerms(role: string, perms: string[] | null): string[] {
+    if (role === 'admin') return Object.values(API_PERMISSION_MAP).concat(['user_management', 'dashboard']);
+    if (role === 'sales_rep') return SALES_REP_PERMS;
+    return perms || [];
+  }
+
+  const requirePermission = (permissionKey: string): import("express").RequestHandler => {
+    return async (req, res, next) => {
+      if (!req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const effectivePerms = getEffectivePerms(user.role, user.permissions);
+      if (!effectivePerms.includes(permissionKey)) {
+        return res.status(403).json({ message: "You do not have permission to access this resource" });
+      }
+      next();
+    };
+  };
+
+  app.use('/api', (req, res, next) => {
+    const openPaths = ['/api/auth', '/api/user', '/api/login-users', '/api/notifications', '/api/dashboard'];
+    const fullPath = req.path.startsWith('/api') ? req.path : `/api${req.path}`;
+    if (openPaths.some(p => fullPath.startsWith(p))) return next();
+    if (!req.session.userId) return next();
+
+    const matchedKey = Object.keys(API_PERMISSION_MAP)
+      .sort((a, b) => b.length - a.length)
+      .find(prefix => fullPath.startsWith(prefix));
+
+    if (!matchedKey) return next();
+
+    const permKey = API_PERMISSION_MAP[matchedKey];
+    storage.getUser(req.session.userId).then(user => {
+      if (!user) return next();
+      const effectivePerms = getEffectivePerms(user.role, user.permissions);
+      if (!effectivePerms.includes(permKey)) {
+        return res.status(403).json({ message: "You do not have permission to access this resource" });
+      }
+      next();
+    }).catch(() => next());
+  });
+
   app.get('/api/agents', requireAuth, async (_req, res) => {
     try {
       const salesRepUsers = await db.select({ id: users.id, fullName: users.fullName, username: users.username, mobile: users.mobile }).from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
@@ -170,7 +261,7 @@ export async function registerRoutes(
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can manage users" });
       }
-      const { username, password, fullName, role, mobile } = req.body;
+      const { username, password, fullName, role, mobile, permissions } = req.body;
       if (!username || !password || !role) {
         return res.status(400).json({ message: "Username, password, and role are required" });
       }
@@ -183,7 +274,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Username already exists" });
       }
       const hashed = await bcrypt.hash(password, 12);
-      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role });
+      let effectivePerms: string[] = Array.isArray(permissions) ? permissions : [];
+      if (role === 'admin') effectivePerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
+      if (role === 'sales_rep') effectivePerms = SALES_REP_PERMS;
+      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms });
       if (role === 'sales_rep') {
         const repName = fullName || username;
         await db.insert(representatives).values({ name: repName, mobile: mobile || null }).onConflictDoNothing();
@@ -202,7 +296,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Only admins can manage users" });
       }
       const { id } = req.params;
-      const { username, password, fullName, role, isActive, mobile } = req.body;
+      const { username, password, fullName, role, isActive, mobile, permissions } = req.body;
       const updateData: any = {};
       if (username !== undefined) updateData.username = username;
       if (fullName !== undefined) updateData.fullName = fullName;
@@ -213,6 +307,14 @@ export async function registerRoutes(
           return res.status(400).json({ message: "Invalid role" });
         }
         updateData.role = role;
+      }
+      const finalRole = role || (await storage.getUser(id))?.role || 'user';
+      if (finalRole === 'admin') {
+        updateData.permissions = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
+      } else if (finalRole === 'sales_rep') {
+        updateData.permissions = SALES_REP_PERMS;
+      } else if (permissions !== undefined) {
+        updateData.permissions = Array.isArray(permissions) ? permissions : [];
       }
       if (isActive !== undefined) updateData.isActive = isActive;
       if (password) {

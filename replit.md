@@ -59,9 +59,16 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication & Authorization
 - Session-based authentication (not JWT)
-- User roles defined: `admin`, `accountant`, `purchasing`, `warehouse`, `sales_rep`
+- User roles: `admin` (full access), `user` (configurable permissions), `sales_rep` (fixed limited permissions)
+- **Permissions system**: Module-based permissions stored as `text[]` in users table. Config in `client/src/lib/permissions.ts`.
+  - Admin: all modules accessible
+  - Sales Rep: fixed access to dashboard, sales_management, agent_management only
+  - User (accountant): admin selects which modules they can access via checkboxes in user management form
+  - 19 permission modules mapping to sidebar groups/pages (dashboard, sales_management, supplier_management, etc.)
+  - Sidebar items filtered by user permissions in `layout-shell.tsx`
+  - Route protection in `App.tsx` ProtectedRoute shows "Access Denied" page for unauthorized routes
 - Protected routes on frontend redirect to `/auth` if no session
-- `/api/user` endpoint checks session and returns current user
+- `/api/user` endpoint checks session and returns current user (including permissions)
 - Session secret configurable via `SESSION_SECRET` environment variable
 
 ## External Dependencies

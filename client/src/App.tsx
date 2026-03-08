@@ -1,10 +1,12 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
+import { hasRoutePermission } from "@/lib/permissions";
+import { useTranslation } from "react-i18next";
 
 import Dashboard from "@/pages/dashboard";
 import ProductsPage from "@/pages/products";
@@ -91,6 +93,8 @@ import "./lib/i18n";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { data: user, isLoading } = useUser();
+  const [location] = useLocation();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -102,6 +106,23 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   if (!user) {
     return <Redirect to="/auth" />;
+  }
+
+  const userRole = (user as any).role || "user";
+  const userPermissions = (user as any).permissions || [];
+
+  if (!hasRoutePermission(userRole, userPermissions, location)) {
+    return (
+      <LayoutShell>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4" data-testid="access-denied-page">
+          <div className="p-4 rounded-full bg-red-100 dark:bg-red-900/30">
+            <ShieldAlert className="h-12 w-12 text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold">{t('Access Denied')}</h2>
+          <p className="text-muted-foreground">{t('You do not have permission to access this page')}</p>
+        </div>
+      </LayoutShell>
+    );
   }
 
   return (
