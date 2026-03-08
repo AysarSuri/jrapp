@@ -64,8 +64,8 @@ export default function ClearanceStatementIqdPage() {
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
 
   const [selectedClearanceId, setSelectedClearanceId] = useState<string>("");
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [dateTo, setDateTo] = useState<string>(new Date().toISOString().split("T")[0]);
   const [viewEntry, setViewEntry] = useState<(StatementEntry & { balance: number }) | null>(null);
   const [editEntry, setEditEntry] = useState<StatementEntry | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<StatementEntry | null>(null);
