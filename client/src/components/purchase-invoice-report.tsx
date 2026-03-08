@@ -498,7 +498,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
               {companyProfile?.stamp && (
                 <div style={{ textAlign: "center" }}>
-                  <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 90, height: 90, objectFit: "contain", opacity: 0.8 }} />
+                  <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
                 </div>
               )}
               <div className="signature-box" style={{ textAlign: "center", width: 180 }}>
