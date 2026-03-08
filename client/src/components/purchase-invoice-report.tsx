@@ -323,21 +323,9 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   {t("Invoice #")}: {invoice.invoiceNumber} &nbsp;|&nbsp; {formatDate(invoice.date)} &nbsp;|&nbsp; {invoice.time}
                 </div>
               </div>
-              <div style={{
-                padding: "10px 20px", borderRadius: 10,
-                background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
-                color: accentText, textAlign: "center"
-              }}>
-                <div style={{ fontSize: "8pt", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>
-                  {t("Invoice Type")}
-                </div>
-                <div style={{ fontSize: "14pt", fontWeight: 800 }}>
-                  {invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}
-                </div>
-              </div>
             </div>
 
-            {(invoice.address || invoice.customsClearance || invoice.carNumber || invoice.manifest || invoice.note) && (
+            {(invoice.address || invoice.carNumber || invoice.manifest || invoice.note) && (
               <div className="info-grid" style={{
                 display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 24px",
                 marginBottom: 14, fontSize: "10pt"
@@ -346,12 +334,6 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
                     <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Address")}</span>
                     <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.address}</span>
-                  </div>
-                )}
-                {invoice.customsClearance && (
-                  <div className="info-item" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
-                    <span className="info-label" style={{ fontWeight: 600, color: "#64748b", fontSize: "9pt" }}>{t("Customs Clearance")}</span>
-                    <span className="info-value" style={{ fontWeight: 500, color: "#1e293b" }}>{invoice.customsClearance}</span>
                   </div>
                 )}
                 {invoice.carNumber && (
@@ -455,94 +437,43 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#2563eb" }}>{fmtCurrency(item.amount)}</td>
                   </tr>
                 ))}
-                <tr className="total-row" style={{
-                  background: "linear-gradient(145deg, #f0f4ff, #e8ecf4)",
-                  fontWeight: 700, borderTop: `2px solid ${accentColor}`
-                }}>
-                  <td colSpan={3} style={{ padding: "8px 6px", fontSize: "9.5pt", color: "#1e293b", borderBottom: "none", textAlign: "center", fontWeight: 700 }}>{t("Invoice Summary")}</td>
-                  <td style={{ padding: "8px 6px", fontSize: "9.5pt", color: "#1e293b", borderBottom: "none", textAlign: "center", fontWeight: 700 }}>{invoice.totalQuantity}</td>
-                  {hasGifts && <td style={{ padding: "8px 6px", borderBottom: "none" }}></td>}
-                  <td colSpan={2} style={{ padding: "8px 6px", fontSize: "9.5pt", color: "#1e293b", borderBottom: "none", textAlign: "center", fontWeight: 700 }}>
-                    {t("Products")}: {invoice.totalItems}
-                  </td>
-                  <td style={{ padding: "8px 6px", fontSize: "10pt", color: "#2563eb", borderBottom: "none", textAlign: "center", fontWeight: 800 }}>{fmtCurrency(subtotal)}</td>
-                </tr>
               </tbody>
             </table>
 
             <div className="summary-section" style={{ marginTop: 14 }}>
-              <div className="summary-grid" style={{ display: "grid", gridTemplateColumns: totalExpenses > 0 ? "1fr 1fr" : "1fr", gap: 12 }}>
-                <div className="summary-box" style={{
-                  border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
-                  background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
-                }}>
-                  <h3 style={{ fontSize: "10pt", fontWeight: 700, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                    <span>{t("Products")}:</span>
-                    <span style={{ fontWeight: 600 }}>{invoice.totalItems}</span>
-                  </div>
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                    <span>{t("Total Quantity")}:</span>
-                    <span style={{ fontWeight: 600 }}>{invoice.totalQuantity}</span>
-                  </div>
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                    <span>{t("Invoice Total")}:</span>
-                    <span style={{ fontWeight: 700, color: "#2563eb" }}>{fmtCurrency(subtotal)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#16a34a" }}>
-                      <span>{t("Discount")}:</span>
-                      <span style={{ fontWeight: 600 }}>-{fmtCurrency(discount)}</span>
-                    </div>
-                  )}
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#16a34a" }}>
-                    <span>{t("Amount Paid")}:</span>
-                    <span style={{ fontWeight: 600 }}>{fmtCurrency(amountPaid)}</span>
-                  </div>
-                  <div className="summary-row total" style={{
-                    display: "flex", justifyContent: "space-between",
-                    fontWeight: 800, fontSize: "11pt",
-                    borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6, color: "#dc2626"
-                  }}>
-                    <span>{t("Remaining")}:</span>
-                    <span>{fmtCurrency(remaining)}</span>
-                  </div>
-                </div>
-
+              <div className="summary-box" style={{
+                border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
+                background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
+              }}>
+                <h3 style={{ fontSize: "10pt", fontWeight: 700, marginBottom: 6, paddingBottom: 4, borderBottom: `2px solid #e2e8f0`, color: accentColor }}>{t("Invoice Summary")}</h3>
                 {totalExpenses > 0 && (
-                  <div className="summary-box" style={{
-                    border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
-                    background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
-                  }}>
-                    <h3 style={{ fontSize: "10pt", fontWeight: 700, marginBottom: 6, paddingBottom: 4, borderBottom: "2px solid #e2e8f0", color: accentColor }}>{t("Expenses")}</h3>
-                    {parseFloat(invoice.carExpense || "0") > 0 && (
-                      <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                        <span>{t("Car Expense")}:</span>
-                        <span style={{ fontWeight: 600 }}>{fmtCurrency(invoice.carExpense)}</span>
-                      </div>
-                    )}
-                    {parseFloat(invoice.customsExpense || "0") > 0 && (
-                      <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                        <span>{t("Customs Expense")}:</span>
-                        <span style={{ fontWeight: 600 }}>{fmtCurrency(invoice.customsExpense)}</span>
-                      </div>
-                    )}
-                    {parseFloat(invoice.otherExpenses || "0") > 0 && (
-                      <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
-                        <span>{t("Other Expenses")}:</span>
-                        <span style={{ fontWeight: 600 }}>{fmtCurrency(invoice.otherExpenses)}</span>
-                      </div>
-                    )}
-                    <div className="summary-row total" style={{
-                      display: "flex", justifyContent: "space-between",
-                      fontWeight: 800, fontSize: "11pt",
-                      borderTop: "2px solid #e2e8f0", paddingTop: 6, marginTop: 6, color: "#1e293b"
-                    }}>
-                      <span>{t("Total Expenses")}:</span>
-                      <span>{fmtCurrency(invoice.totalExpenses)}</span>
-                    </div>
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
+                    <span>{t("Total Expenses")}:</span>
+                    <span style={{ fontWeight: 600 }}>{fmtCurrency(invoice.totalExpenses)}</span>
                   </div>
                 )}
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#334155" }}>
+                  <span>{t("Invoice Total")}:</span>
+                  <span style={{ fontWeight: 700, color: "#2563eb" }}>{fmtCurrency(subtotal)}</span>
+                </div>
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#16a34a" }}>
+                  <span>{t("Amount Paid")}:</span>
+                  <span style={{ fontWeight: 600 }}>{fmtCurrency(amountPaid)}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "9.5pt", color: "#d97706" }}>
+                    <span>{t("Discount")}:</span>
+                    <span style={{ fontWeight: 600 }}>-{fmtCurrency(discount)}</span>
+                  </div>
+                )}
+                <div className="summary-row total" style={{
+                  display: "flex", justifyContent: "space-between",
+                  fontWeight: 800, fontSize: "11pt",
+                  borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6, color: "#dc2626"
+                }}>
+                  <span>{t("Remaining")}:</span>
+                  <span>{fmtCurrency(remaining)}</span>
+                </div>
               </div>
             </div>
 
