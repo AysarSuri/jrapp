@@ -307,15 +307,18 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
             )}
 
             <div className="report-banner" style={{
-              display: "flex", justifyContent: isRtl ? "flex-end" : "flex-start", alignItems: "center",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              direction: "ltr",
               marginBottom: 16, padding: "16px 20px",
               border: `2px solid ${accentColor}30`, borderRadius: 12,
               background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`
             }}>
               <div style={{ textAlign: "left" }}>
-                <h1 style={{ fontSize: "16pt", fontWeight: 800, color: accentColor, marginBottom: 4 }}>
+                <h1 style={{ fontSize: "16pt", fontWeight: 800, color: accentColor, marginBottom: 0 }}>
                   {currency === "USD" ? t("Purchase Invoice - USD") : t("Purchase Invoice - IQD")}
                 </h1>
+              </div>
+              <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "13pt", fontWeight: 700, color: "#333", marginBottom: 3 }}>
                   {invoice.supplierName}
                 </div>
