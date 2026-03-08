@@ -328,6 +328,7 @@ export default function ClearanceStatementUsdPage() {
                     <TableHead className="w-8">#</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('List Number')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
                     <TableHead>{t('Car Number')}</TableHead>
                     <TableHead>{t('Manifest')}</TableHead>
@@ -339,7 +340,7 @@ export default function ClearanceStatementUsdPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow className="bg-amber-50/50 dark:bg-amber-950/20 font-medium">
-                    <TableCell colSpan={6} className="text-amber-700 dark:text-amber-400">
+                    <TableCell colSpan={7} className="text-amber-700 dark:text-amber-400">
                       {t('Opening Balance')}
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
@@ -351,6 +352,7 @@ export default function ClearanceStatementUsdPage() {
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
+                      <TableCell className="font-mono text-sm" dir="ltr">{entry.listNumber || "-"}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                       <TableCell className="font-mono text-sm" dir="ltr">{entry.carNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm" dir="ltr">{entry.manifest || "-"}</TableCell>
@@ -380,14 +382,14 @@ export default function ClearanceStatementUsdPage() {
                   ))}
                   {usdEntries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                         {t('No transactions found')}
                       </TableCell>
                     </TableRow>
                   )}
                   {usdEntries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
+                      <TableCell colSpan={7} className="text-end">{t('Total')}</TableCell>
                       <TableCell className="font-mono text-green-700">{fmtUsd(totalDebitUsd)}</TableCell>
                       <TableCell className="font-mono text-red-700">{fmtUsd(totalCreditUsd)}</TableCell>
                       <TableCell className="font-mono text-blue-700">{fmtUsd(finalBalanceUsd)}</TableCell>
