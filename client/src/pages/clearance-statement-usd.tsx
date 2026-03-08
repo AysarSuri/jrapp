@@ -137,6 +137,118 @@ export default function ClearanceStatementUsdPage() {
     return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  const handlePrintReport = () => {
+    if (!statement) return;
+    const printWindow = window.open("", "_blank", "width=794,height=1123");
+    if (!printWindow) return;
+    const clearanceName = statement.clearance.name;
+    const dateRangeText = dateFrom && dateTo
+      ? `${formatDate(dateFrom)} - ${formatDate(dateTo)}`
+      : dateFrom ? `${formatDate(dateFrom)} - ${t("Now")}`
+      : dateTo ? `${t("Beginning")} - ${formatDate(dateTo)}`
+      : formatDate(new Date());
+
+    const typeLabel = (type: string, source: string) => {
+      if (source === "clearance_invoice" || source === "invoice") return t("Customs");
+      if (type === "receipt") return t("Receipt");
+      return t("Payment");
+    };
+    const typeBadgeCls = (type: string, source: string) => {
+      if (source === "clearance_invoice" || source === "invoice") return "badge-purple";
+      if (type === "receipt") return "badge-green";
+      return "badge-red";
+    };
+
+    const rows = usdWithBalance.map((entry, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${entry.listNumber || "-"}</td>
+        <td>${formatDate(entry.date)}</td>
+        <td><span class="${typeBadgeCls(entry.type, entry.source)}">${typeLabel(entry.type, entry.source)}</span></td>
+        <td>${entry.description || "-"}</td>
+        <td>${entry.carNumber || "-"}</td>
+        <td>${entry.manifest || "-"}</td>
+        <td class="debit">${entry.debitUsd > 0 ? fmtUsd(entry.debitUsd) : ""}</td>
+        <td class="credit">${entry.creditUsd > 0 ? fmtUsd(entry.creditUsd) : ""}</td>
+        <td class="balance">${fmtUsd(entry.balance)}</td>
+      </tr>
+    `).join("");
+
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: "#1e40af", accentTextColor: "#ffffff" });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Clearance Statement USD")} - ${clearanceName}</title>
+        <style>
+          ${printStyles}
+          .badge-green { background: #dcfce7; color: #15803d; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .badge-red { background: #fee2e2; color: #b91c1c; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .badge-purple { background: #f3e8ff; color: #7c3aed; padding: 2px 10px; border-radius: 6px; font-size: 10pt; font-weight: 600; }
+          .balance { color: #2563eb; font-weight: 700; }
+          .debit { color: #15803d; }
+          .credit { color: #b91c1c; }
+          .opening-row { background: #fffbeb; }
+          .opening-row td { color: #b45309; font-weight: 600; }
+        </style>
+      </head>
+      <body>
+        <div class="report-banner">
+          <div class="banner-right">
+            <h1>${t("Clearance Statement USD")}</h1>
+            <div class="supplier-name">${clearanceName}</div>
+            <div class="date-range">${dateRangeText}</div>
+          </div>
+          <div class="banner-left" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:10px;" />` : ""}
+            ${companyProfile?.name ? `<div style="font-size:11pt;font-weight:700;color:#1e40af;">${companyProfile.name}</div>` : ""}
+          </div>
+        </div>
+        <div class="summary-cards">
+          <div class="summary-card accent-purple"><div class="label">${t("Customs Fee")}</div><div class="value" style="color:#7c3aed;">${fmtUsd(totalCustomsFeeUsd)}</div></div>
+          <div class="summary-card accent-green"><div class="label">${t("Receipts from Clearance")}</div><div class="value green">${fmtUsd(totalReceiptsUsd)}</div></div>
+          <div class="summary-card accent-amber"><div class="label">${t("Old Debt")}</div><div class="value" style="color:#b45309;">${fmtUsd(openingUsd)}</div></div>
+          <div class="summary-card accent-red"><div class="label">${t("Total Payments")}</div><div class="value red">${fmtUsd(totalCreditUsd)}</div></div>
+          <div class="summary-card accent-blue"><div class="label">${t("Final Balance")}</div><div class="value" style="color:#2563eb;">${fmtUsd(finalBalanceUsd)}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>${t("List Number")}</th>
+              <th>${t("Date")}</th>
+              <th>${t("Type")}</th>
+              <th>${t("Description")}</th>
+              <th>${t("Car Number")}</th>
+              <th>${t("Manifest")}</th>
+              <th>${t("Debit")}</th>
+              <th>${t("Credit")}</th>
+              <th>${t("Balance")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="opening-row">
+              <td colspan="7">${t("Opening Balance")}</td>
+              <td colspan="2"></td>
+              <td class="balance">${fmtUsd(openingUsd)}</td>
+            </tr>
+            ${rows}
+            <tr style="font-weight:bold; background:#f1f5f9;">
+              <td colspan="7" style="text-align:${isRtl ? 'left' : 'right'};">${t("Total")}</td>
+              <td class="debit">${fmtUsd(totalDebitUsd)}</td>
+              <td class="credit">${fmtUsd(totalCreditUsd)}</td>
+              <td class="balance">${fmtUsd(finalBalanceUsd)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
 
   const typeBadge = (type: string, source: string) => {
     if (source === "clearance_invoice") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Customs')}</Badge>;
@@ -321,7 +433,14 @@ export default function ClearanceStatementUsdPage() {
           </div>
 
           <Card className="border-blue-200 dark:border-blue-900 shadow-sm">
-            <CardContent className="pt-6 overflow-x-auto">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg">{t('Statement')}</CardTitle>
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-clearance-statement-usd">
+                <Printer className="w-4 h-4" />
+                {t('Print')}
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-2 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-blue-50/50 dark:bg-blue-950/20">
