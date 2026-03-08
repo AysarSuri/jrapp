@@ -99,7 +99,12 @@ export function numberToWords(amount: number, lang: string, currency?: string): 
   }
 
   if (currency) {
-    result += " " + currency;
+    const currencyNames: Record<string, Record<string, string>> = {
+      USD: { ar: "دولار", ckb: "دۆلار", tr: "dolar", en: "USD" },
+      IQD: { ar: "دينار عراقي", ckb: "دیناری عێراقی", tr: "Irak dinarı", en: "IQD" },
+    };
+    const name = currencyNames[currency]?.[lang] || currency;
+    result += " " + name;
   }
 
   if (isNegative) {
