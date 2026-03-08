@@ -161,7 +161,7 @@ export default function ClearanceStatementUsdPage() {
       window.open(`/purchase-invoice-usd?edit=${entry.id}`, '_blank');
       return;
     } else if (entry.source === "clearance_invoice") {
-      window.open(`/clearance-purchase-invoices`, '_blank');
+      window.open(`/clearance-purchase-invoices?edit=${entry.id}`, '_blank');
       return;
     } else {
       setEditEntry(entry);

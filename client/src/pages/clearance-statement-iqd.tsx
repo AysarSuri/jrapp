@@ -161,7 +161,7 @@ export default function ClearanceStatementIqdPage() {
       window.open(`/purchase-invoice-iqd?edit=${entry.id}`, '_blank');
       return;
     } else if (entry.source === "clearance_invoice") {
-      window.open(`/clearance-purchase-invoices`, '_blank');
+      window.open(`/clearance-purchase-invoices?edit=${entry.id}`, '_blank');
       return;
     } else {
       setEditEntry(entry);

@@ -92,6 +92,29 @@ export default function ClearancePurchaseInvoicesPage() {
     if (nextNumberData?.number && !editInvoice) setListNumber(nextNumberData.number);
   }, [nextNumberData, editInvoice]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+    if (editId && invoices) {
+      const inv = invoices.find(i => i.id === parseInt(editId));
+      if (inv) {
+        setEditInvoice(inv);
+        setClearanceId(String(inv.clearanceId));
+        const c = clearances.find(b => b.id === inv.clearanceId);
+        if (c) setClearanceName(c.name);
+        setListNumber(inv.listNumber || "");
+        setDate(inv.date);
+        setTime(inv.time || "");
+        setCarNumber(inv.carNumber || "");
+        setManifest(inv.manifest || "");
+        setCustomsUsd(inv.customsUsd || "");
+        setCustomsIqd(inv.customsIqd || "");
+        setDescription(inv.description || "");
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [invoices, clearances]);
+
   const selectClearance = (id: string) => {
     setClearanceId(id);
     const c = clearances.find(b => b.id === parseInt(id));
