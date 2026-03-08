@@ -341,7 +341,7 @@ export default function ClearanceStatementUsdPage() {
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell>{typeBadge(entry.type, entry.source)}</TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate" dir="ltr">{entry.description || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
                         {entry.debitUsd > 0 ? fmtUsd(entry.debitUsd) : ""}
                       </TableCell>
@@ -478,7 +478,7 @@ export default function ClearanceStatementUsdPage() {
                 {viewEntry.description && (
                   <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
                     <span style={{ fontWeight: 600, color: "#555" }}>{t("Description")}:</span>
-                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.description}</span>
+                    <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }} dir="ltr">{viewEntry.description}</span>
                   </div>
                 )}
               </div>
