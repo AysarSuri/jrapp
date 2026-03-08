@@ -367,7 +367,7 @@ export default function ClearanceStatementUsdPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 justify-center">
-                          {entry.source !== "invoice" && (
+                          {entry.source !== "invoice" && entry.source !== "clearance_invoice" && (
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleViewClick(entry)} data-testid={`btn-view-${entry.source}-${entry.id}`}>
                               <Eye className="h-3.5 w-3.5 text-blue-600" />
                             </Button>
