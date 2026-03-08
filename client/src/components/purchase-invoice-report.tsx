@@ -10,6 +10,7 @@ import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 
@@ -451,10 +452,13 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 <div className="debt-row final" style={{
                   display: "flex", justifyContent: "space-between",
                   fontWeight: 800, fontSize: "14pt", color: accentColor, direction: isRtl ? "rtl" : "ltr",
-                  borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6
+                  borderTop: `2px solid ${accentColor}`, paddingTop: 8, marginTop: 8
                 }}>
                   <span>{t("Total Balance")}:</span>
                   <span>{fmtCurrency(totalBalance)}</span>
+                </div>
+                <div style={{ fontSize: "9pt", fontWeight: 600, color: "#64748b", textAlign: isRtl ? "right" : "left", marginTop: 4, fontStyle: "italic", direction: isRtl ? "rtl" : "ltr" }}>
+                  {numberToWords(Math.abs(totalBalance), i18n.language, currency === "USD" ? "USD" : "IQD")}
                 </div>
               </div>
 
