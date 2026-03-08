@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Users, Plus, Pencil, Trash2, Loader2, Save, Shield, User, Truck,
   Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw,
-  CheckCircle, XCircle, Phone, LogOut, KeyRound, Clock, LogIn,
+  CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -42,10 +42,53 @@ type SafeUser = {
 export default function UserManagementPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const formRef = useRef<HTMLDivElement>(null);
 
   const { data: users, isLoading } = useQuery<SafeUser[]>({
     queryKey: ["/api/users"],
   });
+
+  const [editUser, setEditUser] = useState<SafeUser | null>(null);
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [role, setRole] = useState("");
+  const [isActive, setIsActive] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRole, setFilterRole] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const resetForm = () => {
+    setEditUser(null);
+    setUsername("");
+    setPassword("");
+    setFullName("");
+    setMobile("");
+    setRole("");
+    setIsActive(1);
+    setShowPassword(false);
+  };
+
+  const openEdit = (u: SafeUser) => {
+    setEditUser(u);
+    setUsername(u.username);
+    setPassword("");
+    setFullName(u.fullName);
+    setMobile(u.mobile || "");
+    setRole(u.role);
+    setIsActive(u.isActive);
+    setShowPassword(false);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string }) => {
@@ -70,7 +113,7 @@ export default function UserManagementPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({ title: t("User updated successfully") });
-      setEditUser(null);
+      resetForm();
     },
     onError: (err: any) => {
       toast({ title: err.message || t("Failed to update user"), variant: "destructive" });
@@ -122,46 +165,12 @@ export default function UserManagementPage() {
     },
   });
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [role, setRole] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [editUser, setEditUser] = useState<SafeUser | null>(null);
-  const [editUsername, setEditUsername] = useState("");
-  const [editPassword, setEditPassword] = useState("");
-  const [editFullName, setEditFullName] = useState("");
-  const [editMobile, setEditMobile] = useState("");
-  const [editRole, setEditRole] = useState("");
-  const [editIsActive, setEditIsActive] = useState(1);
-  const [editShowPassword, setEditShowPassword] = useState(false);
-
-  const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
-  const [newPassword, setNewPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterRole, setFilterRole] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-
-  const resetForm = () => {
-    setUsername("");
-    setPassword("");
-    setFullName("");
-    setMobile("");
-    setRole("");
-    setShowPassword(false);
-  };
-
-  const handleCreate = () => {
+  const handleSubmit = () => {
     if (!username.trim()) {
       toast({ title: t("Please enter a username"), variant: "destructive" });
       return;
     }
-    if (!password.trim()) {
+    if (!editUser && !password.trim()) {
       toast({ title: t("Please enter a password"), variant: "destructive" });
       return;
     }
@@ -169,41 +178,22 @@ export default function UserManagementPage() {
       toast({ title: t("Please select a role"), variant: "destructive" });
       return;
     }
-    createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role });
-  };
 
-  const openEdit = (u: SafeUser) => {
-    setEditUser(u);
-    setEditUsername(u.username);
-    setEditPassword("");
-    setEditFullName(u.fullName);
-    setEditMobile(u.mobile || "");
-    setEditRole(u.role);
-    setEditIsActive(u.isActive);
-    setEditShowPassword(false);
-  };
-
-  const handleUpdate = () => {
-    if (!editUser) return;
-    if (!editUsername.trim()) {
-      toast({ title: t("Please enter a username"), variant: "destructive" });
-      return;
+    if (editUser) {
+      const data: any = {
+        username: username.trim(),
+        fullName: fullName.trim(),
+        mobile: mobile.trim(),
+        role,
+        isActive,
+      };
+      if (password.trim()) {
+        data.password = password;
+      }
+      updateMutation.mutate({ id: editUser.id, data });
+    } else {
+      createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role });
     }
-    if (!editRole) {
-      toast({ title: t("Please select a role"), variant: "destructive" });
-      return;
-    }
-    const data: any = {
-      username: editUsername.trim(),
-      fullName: editFullName.trim(),
-      mobile: editMobile.trim(),
-      role: editRole,
-      isActive: editIsActive,
-    };
-    if (editPassword.trim()) {
-      data.password = editPassword;
-    }
-    updateMutation.mutate({ id: editUser.id, data });
   };
 
   const handleChangePassword = () => {
@@ -259,6 +249,8 @@ export default function UserManagementPage() {
     return new Date(u.lastLoginAt) > new Date(u.lastLogoutAt);
   };
 
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -273,12 +265,21 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-border/50 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" ref={formRef}>
+        <Card className={`lg:col-span-2 shadow-sm ${editUser ? 'border-orange-300 dark:border-orange-700' : 'border-border/50'}`}>
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-purple-600" />
-              {t('Add New User')}
+              {editUser ? (
+                <>
+                  <Pencil className="h-5 w-5 text-orange-600" />
+                  {t('Edit User')} - <span className="text-orange-600">{editUser.fullName || editUser.username}</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-5 w-5 text-purple-600" />
+                  {t('Add New User')}
+                </>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -319,13 +320,15 @@ export default function UserManagementPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-semibold">{t('Password')}</Label>
+                <Label className="font-semibold">
+                  {editUser ? t('New Password') : t('Password')}
+                </Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={editUser ? t('Leave empty to keep current password') : "••••••••"}
                     className="h-11 pe-10"
                     data-testid="input-user-password"
                   />
@@ -340,6 +343,9 @@ export default function UserManagementPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
+                {editUser && (
+                  <p className="text-xs text-muted-foreground">{t('Leave empty to keep current password')}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label className="font-semibold">{t('User Role')}</Label>
@@ -369,24 +375,50 @@ export default function UserManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {editUser && (
+                <div className="space-y-2">
+                  <Label className="font-semibold">{t('Status')}</Label>
+                  <Select value={String(isActive)} onValueChange={(v) => setIsActive(parseInt(v))}>
+                    <SelectTrigger className="h-11" data-testid="select-user-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          {t('Active')}
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="0">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="h-4 w-4 text-red-600" />
+                          {t('Inactive')}
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 pt-2">
               <Button
-                onClick={handleCreate}
-                disabled={createMutation.isPending}
-                className="gap-2 bg-purple-600 hover:bg-purple-700 text-[#ffffff]"
-                data-testid="button-create-user"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`gap-2 text-[#ffffff] ${editUser ? 'bg-orange-600 hover:bg-orange-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+                data-testid={editUser ? "button-update-user" : "button-create-user"}
               >
-                {createMutation.isPending ? (
+                {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : editUser ? (
+                  <Save className="h-4 w-4" />
                 ) : (
                   <Plus className="h-4 w-4" />
                 )}
-                {t('Add User')}
+                {editUser ? t('Update') : t('Add User')}
               </Button>
               <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-user-form">
                 <RotateCcw className="h-4 w-4" />
-                {t('Reset')}
+                {editUser ? t('Cancel') : t('Reset')}
               </Button>
             </div>
           </CardContent>
@@ -515,8 +547,9 @@ export default function UserManagementPage() {
                     const rc = roleConfig[u.role as keyof typeof roleConfig] || roleConfig.user;
                     const RoleIcon = rc.icon;
                     const online = isUserOnline(u);
+                    const isEditing = editUser?.id === u.id;
                     return (
-                      <TableRow key={u.id} data-testid={`row-user-${u.id}`}>
+                      <TableRow key={u.id} className={isEditing ? "bg-orange-50 dark:bg-orange-950/20" : ""} data-testid={`row-user-${u.id}`}>
                         <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                         <TableCell className="font-semibold">{u.fullName || "-"}</TableCell>
                         <TableCell className="font-mono text-sm">{u.username}</TableCell>
@@ -573,12 +606,12 @@ export default function UserManagementPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                              onClick={() => openEdit(u)}
-                              title={t('Edit User')}
+                              className={`h-8 w-8 ${isEditing ? 'text-orange-700 bg-orange-100 dark:bg-orange-900/40' : 'text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20'}`}
+                              onClick={() => isEditing ? resetForm() : openEdit(u)}
+                              title={isEditing ? t('Cancel') : t('Edit User')}
                               data-testid={`button-edit-user-${u.id}`}
                             >
-                              <Pencil className="h-4 w-4" />
+                              {isEditing ? <XCircle className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"
@@ -711,136 +744,6 @@ export default function UserManagementPage() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-orange-600" />
-              {t('Edit User')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('Full Name')}</Label>
-              <Input
-                value={editFullName}
-                onChange={(e) => setEditFullName(e.target.value)}
-                placeholder={t('Enter full name...')}
-                data-testid="input-edit-user-fullname"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('Username')}</Label>
-              <Input
-                value={editUsername}
-                onChange={(e) => setEditUsername(e.target.value)}
-                placeholder={t('Enter username...')}
-                data-testid="input-edit-user-username"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('Mobile')}</Label>
-              <div className="relative">
-                <Phone className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={editMobile}
-                  onChange={(e) => setEditMobile(e.target.value)}
-                  placeholder={t('Enter mobile number...')}
-                  className="ps-9"
-                  data-testid="input-edit-user-mobile"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('New Password')}</Label>
-              <div className="relative">
-                <Input
-                  type={editShowPassword ? "text" : "password"}
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  placeholder={t('Leave empty to keep current password')}
-                  className="pe-10"
-                  data-testid="input-edit-user-password"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute end-1 top-1 h-8 w-8"
-                  onClick={() => setEditShowPassword(!editShowPassword)}
-                  data-testid="button-toggle-edit-password"
-                >
-                  {editShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('Leave empty to keep current password')}</p>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('User Role')}</Label>
-              <Select value={editRole} onValueChange={setEditRole}>
-                <SelectTrigger data-testid="select-edit-user-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-purple-600" />
-                      {t('Admin')}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="user">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-blue-600" />
-                      {t('User')}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="sales_rep">
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-emerald-600" />
-                      {t('Representative')}
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold">{t('Status')}</Label>
-              <Select value={String(editIsActive)} onValueChange={(v) => setEditIsActive(parseInt(v))}>
-                <SelectTrigger data-testid="select-edit-user-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      {t('Active')}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="0">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-600" />
-                      {t('Inactive')}
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setEditUser(null)}>{t('Cancel')}</Button>
-            <Button
-              onClick={handleUpdate}
-              disabled={updateMutation.isPending}
-              className="gap-2 bg-purple-600 hover:bg-purple-700 text-[#ffffff]"
-              data-testid="button-update-user"
-            >
-              {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {t('Update')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={!!passwordUser} onOpenChange={(open) => { if (!open) { setPasswordUser(null); setNewPassword(""); setShowNewPassword(false); } }}>
         <DialogContent className="max-w-md">
