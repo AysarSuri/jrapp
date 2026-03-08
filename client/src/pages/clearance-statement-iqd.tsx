@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { CustomsClearance } from "@shared/schema";
 import { formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playDeleteSound } from "@/lib/sounds";
@@ -632,6 +633,9 @@ export default function ClearanceStatementIqdPage() {
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("IQD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: viewEntry.type === "receipt" ? "#ea580c" : "#dc2626", fontFamily: "monospace" }}>
                       {fmtNum(viewEntry.debitIqd > 0 ? viewEntry.debitIqd : viewEntry.creditIqd)} IQD
+                    </p>
+                    <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>
+                      {numberToWords(viewEntry.debitIqd > 0 ? viewEntry.debitIqd : viewEntry.creditIqd, i18n.language, t("Dinar"))}
                     </p>
                   </div>
                 )}

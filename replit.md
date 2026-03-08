@@ -26,7 +26,8 @@ Preferred communication style: Simple, everyday language.
 - **State/Data Fetching**: `@tanstack/react-query` for server state management. Custom hooks in `client/src/hooks/` wrap API calls for each domain (products, clients, accounts, invoices, transactions, auth).
 - **UI Components**: shadcn/ui (new-york style) built on Radix UI primitives, styled with Tailwind CSS. Components live in `client/src/components/ui/`.
 - **Forms**: `react-hook-form` with `zod` validation via `@hookform/resolvers`. Schemas are shared between client and server from `shared/schema.ts`.
-- **Internationalization**: `i18next` + `react-i18next` with inline translation resources in `client/src/lib/i18n.ts`. Supports English, Arabic, and Kurdish (CKB). RTL is supported.
+- **Internationalization**: `i18next` + `react-i18next` with inline translation resources in `client/src/lib/i18n.ts`. Supports English, Arabic, Kurdish (CKB), and Turkish. RTL is supported.
+- **Amount in Words**: `client/src/lib/number-to-words.ts` converts numeric amounts to words in Arabic, Kurdish, Turkish, and English. Used in all print receipt/payment vouchers (clearance statements, clearance receipts/payments, supplier payment/adjustment reports, expenses).
 - **Charts**: `recharts` for dashboard visualizations
 - **Theming**: CSS variables for light/dark mode, toggled via class on `<html>`. Custom fonts: Inter (Latin), Tajawal (Arabic).
 - **Path aliases**: `@/` → `client/src/`, `@shared/` → `shared/`

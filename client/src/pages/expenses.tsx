@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd, formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import i18n from "@/lib/i18n";
 
@@ -426,10 +427,12 @@ export default function ExpensesPage() {
           <div class="amount-box usd">
             <div class="amount-label">${t("USD Amount")}</div>
             <div class="amount-value">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</div>
+            ${parseFloat(e.amountUsd) > 0 ? `<div style="font-size:9pt;color:#666;font-style:italic;margin-top:4px">${numberToWords(parseFloat(e.amountUsd), i18n.language, t("Dollar"))}</div>` : ""}
           </div>
           <div class="amount-box iqd">
             <div class="amount-label">${t("IQD Amount")}</div>
             <div class="amount-value">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</div>
+            ${parseFloat(e.amountIqd) > 0 ? `<div style="font-size:9pt;color:#666;font-style:italic;margin-top:4px">${numberToWords(parseFloat(e.amountIqd), i18n.language, t("Dinar"))}</div>` : ""}
           </div>
         </div>
 

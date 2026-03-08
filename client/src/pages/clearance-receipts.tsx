@@ -29,6 +29,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd, formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -763,12 +764,18 @@ export default function ClearanceReceiptsPage() {
                   <div style={{ border: "2px solid #2563eb", borderRadius: 6, padding: 15, textAlign: "center" }}>
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: "#2563eb", fontFamily: "monospace" }}>${fmt(viewReceipt.amountUsd)}</p>
+                    <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>
+                      {numberToWords(parseFloat(viewReceipt.amountUsd), i18n.language, t("Dollar"))}
+                    </p>
                   </div>
                 )}
                 {parseFloat(viewReceipt.amountIqd) > 0 && (
                   <div style={{ border: "2px solid #ea580c", borderRadius: 6, padding: 15, textAlign: "center" }}>
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("IQD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: "#ea580c", fontFamily: "monospace" }}>{fmt(viewReceipt.amountIqd)} IQD</p>
+                    <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>
+                      {numberToWords(parseFloat(viewReceipt.amountIqd), i18n.language, t("Dinar"))}
+                    </p>
                   </div>
                 )}
               </div>

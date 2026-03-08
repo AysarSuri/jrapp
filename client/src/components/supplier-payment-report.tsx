@@ -7,6 +7,7 @@ import { Loader2, Printer, MessageCircle } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 
@@ -254,6 +255,9 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                     {t("Payment Amount (USD)")}
                   </h3>
                   {renderRow(t("Amount"), `$${fmt(amountUsd)}`)}
+                  <p style={{ fontSize: "9pt", color: "#666", fontStyle: "italic", margin: "2px 0 6px" }}>
+                    {numberToWords(amountUsd, i18n.language, t("Dollar"))}
+                  </p>
                   {commUsd > 0 && renderRow(t("Commission"), `-$${fmt(commUsd)}`, false, "#dc2626")}
                   {commUsd > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #333", marginTop: 5 }}>
@@ -269,6 +273,9 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                     {t("Payment Amount (IQD)")}
                   </h3>
                   {renderRow(t("Amount"), `${fmt(amountIqd)} IQD`)}
+                  <p style={{ fontSize: "9pt", color: "#666", fontStyle: "italic", margin: "2px 0 6px" }}>
+                    {numberToWords(amountIqd, i18n.language, t("Dinar"))}
+                  </p>
                   {commIqd > 0 && renderRow(t("Commission"), `-${fmt(commIqd)} IQD`, false, "#dc2626")}
                   {commIqd > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #333", marginTop: 5 }}>

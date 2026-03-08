@@ -7,6 +7,7 @@ import { Loader2, Printer, MessageCircle } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 
@@ -242,6 +243,9 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "15px 0", fontSize: "22pt", fontWeight: 800, fontFamily: "monospace", color: typeColor }}>
                     ${fmt(amountUsd)}
                   </div>
+                  <p style={{ fontSize: "9pt", color: "#666", fontStyle: "italic", textAlign: "center", margin: "0 0 4px" }}>
+                    {numberToWords(amountUsd, i18n.language, t("Dollar"))}
+                  </p>
                 </div>
               )}
               {amountIqd > 0 && (
@@ -252,6 +256,9 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "15px 0", fontSize: "22pt", fontWeight: 800, fontFamily: "monospace", color: typeColor }}>
                     {fmt(amountIqd)} IQD
                   </div>
+                  <p style={{ fontSize: "9pt", color: "#666", fontStyle: "italic", textAlign: "center", margin: "0 0 4px" }}>
+                    {numberToWords(amountIqd, i18n.language, t("Dinar"))}
+                  </p>
                 </div>
               )}
             </div>

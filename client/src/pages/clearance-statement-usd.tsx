@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
+import { numberToWords } from "@/lib/number-to-words";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playDeleteSound } from "@/lib/sounds";
@@ -631,6 +632,9 @@ export default function ClearanceStatementUsdPage() {
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: viewEntry.type === "receipt" ? "#2563eb" : "#dc2626", fontFamily: "monospace" }}>
                       ${fmt(viewEntry.debitUsd > 0 ? viewEntry.debitUsd : viewEntry.creditUsd)}
+                    </p>
+                    <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>
+                      {numberToWords(viewEntry.debitUsd > 0 ? viewEntry.debitUsd : viewEntry.creditUsd, i18n.language, t("Dollar"))}
                     </p>
                   </div>
                 )}
