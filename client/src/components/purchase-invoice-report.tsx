@@ -426,12 +426,10 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   <span>{t("Amount Paid")}:</span>
                   <span>{fmtCurrency(amountPaid)}</span>
                 </div>
-                {discount > 0 && (
-                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706" }}>
-                    <span>{t("Discount")}:</span>
-                    <span>-{fmtCurrency(discount)}</span>
-                  </div>
-                )}
+                <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706" }}>
+                  <span>{t("Discount")}:</span>
+                  <span>{discount > 0 ? `-${fmtCurrency(discount)}` : fmtCurrency(0)}</span>
+                </div>
                 <div className="summary-row total" style={{
                   display: "flex", justifyContent: "space-between",
                   fontWeight: 800, fontSize: "13pt",
