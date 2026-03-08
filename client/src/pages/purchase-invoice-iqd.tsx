@@ -334,10 +334,13 @@ export default function PurchaseInvoiceIqdPage() {
       return;
     }
 
+    const currentTime = editId ? time : new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    if (!editId) setTime(currentTime);
+
     const invoiceData = {
       invoiceNumber,
       date,
-      time,
+      time: currentTime,
       supplierId: supplierId,
       supplierName,
       address: address || null,
