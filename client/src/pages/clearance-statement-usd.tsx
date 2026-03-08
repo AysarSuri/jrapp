@@ -370,11 +370,9 @@ export default function ClearanceStatementUsdPage() {
                               <Eye className="h-3.5 w-3.5 text-blue-600" />
                             </Button>
                           )}
-                          {entry.source !== "invoice" && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(entry)} data-testid={`btn-edit-${entry.source}-${entry.id}`}>
-                              <Pencil className="h-3.5 w-3.5 text-orange-600" />
-                            </Button>
-                          )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(entry)} data-testid={`btn-edit-${entry.source}-${entry.id}`}>
+                            <Pencil className="h-3.5 w-3.5 text-orange-600" />
+                          </Button>
                           {entry.source !== "invoice" && (
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteEntry(entry)} data-testid={`btn-delete-${entry.source}-${entry.id}`}>
                               <Trash2 className="h-3.5 w-3.5 text-red-600" />
