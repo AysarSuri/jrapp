@@ -32,6 +32,10 @@ export default function SupplierDebtsPage() {
     queryKey: ["/api/supplier-debts"],
   });
 
+  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; address: string | null; phone: string | null; primaryColor: string | null; secondaryColor: string | null }>({
+    queryKey: ["/api/company-profile"],
+  });
+
   const handlePrint = () => {
     if (!debts) return;
     const dir = i18n.language === "en" ? "ltr" : "rtl";
@@ -55,16 +59,32 @@ export default function SupplierDebtsPage() {
       </tr>`;
     }).join("");
 
+    const accentColor = companyProfile?.primaryColor || "#991b1b";
+    const accentText = companyProfile?.secondaryColor || "#ffffff";
+    const currentTime = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const logoHtml = companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:8px" />` : "";
+    const companyNameHtml = companyProfile?.name ? `<div style="font-size:14pt;font-weight:800;color:${accentColor}">${companyProfile.name}</div>` : "";
+    const companyAddressHtml = companyProfile?.address ? `<div style="font-size:9pt;color:#64748b">${companyProfile.address}</div>` : "";
+
     printWindow.document.write(`<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head><meta charset="UTF-8" />
         <title>${t("Supplier Debts List")}</title>
-        <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor: "#991b1b", accentTextColor: "#ffffff" })}</style>
+        <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor, accentTextColor: accentText })}</style>
       </head>
       <body>
-        <div class="header">
-          <h1>${t("Supplier Debts List")}</h1>
-          <p>${formatDate(new Date())}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;direction:ltr">
+          <div style="display:flex;align-items:center;gap:12px">
+            ${logoHtml}
+            <div>
+              ${companyNameHtml}
+              ${companyAddressHtml}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <h1 style="font-size:16pt;font-weight:800;color:${accentColor};margin:0">${t("Supplier Debts List")}</h1>
+            <p style="margin:4px 0 0;font-size:11pt;font-weight:700;color:#333">${formatDate(new Date())} &nbsp;|&nbsp; ${currentTime}</p>
+          </div>
         </div>
         <div class="summary-cards">
           <div class="summary-card accent-green"><div class="label">${t("Total Remaining USD")}</div><div class="value green">${usd(totalRemainingUsd)}</div></div>
