@@ -1028,21 +1028,6 @@ export async function registerRoutes(
           remainingIqd: String(remainingIqd),
         }).returning();
 
-        if (usdAmount > 0) {
-          await tx.update(clients)
-            .set({
-              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${usdAmount}`,
-            })
-            .where(eq(clients.id, input.supplierId));
-        }
-        if (iqdAmount > 0) {
-          await tx.update(clients)
-            .set({
-              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${iqdAmount}`,
-            })
-            .where(eq(clients.id, input.supplierId));
-        }
-
         return payment;
       });
       res.status(201).json(result);
@@ -1078,8 +1063,8 @@ export async function registerRoutes(
         let remainingIqd: number;
 
         if (input.type === "received") {
-          remainingUsd = currentDebtUsd - usdAmount;
-          remainingIqd = currentDebtIqd - iqdAmount;
+          remainingUsd = currentDebtUsd + usdAmount;
+          remainingIqd = currentDebtIqd + iqdAmount;
         } else {
           remainingUsd = currentDebtUsd - usdAmount;
           remainingIqd = currentDebtIqd - iqdAmount;
@@ -1092,21 +1077,6 @@ export async function registerRoutes(
           remainingUsd: String(remainingUsd),
           remainingIqd: String(remainingIqd),
         }).returning();
-
-        if (usdAmount > 0) {
-          await tx.update(clients)
-            .set({
-              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${usdAmount}`,
-            })
-            .where(eq(clients.id, input.supplierId));
-        }
-        if (iqdAmount > 0) {
-          await tx.update(clients)
-            .set({
-              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${iqdAmount}`,
-            })
-            .where(eq(clients.id, input.supplierId));
-        }
 
         return adj;
       });
