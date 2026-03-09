@@ -263,29 +263,29 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
               )}
             </div>
 
-            <div style={{ border: "2px solid #2563eb", borderRadius: 6, padding: 12, marginBottom: 16 }}>
-              <h3 style={{ color: "#2563eb", fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 20px" }}>
-                {(parseFloat(adjustment.oldDebtUsd) !== 0 || amountUsd > 0) && (
+            <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 12, marginBottom: 16 }}>
+              <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {amountUsd > 0 && (
                   <>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt" }}>
-                      <span>{t("Opening Balance")} (USD):</span>
-                      <span style={{ fontWeight: 500, fontFamily: "monospace" }}>${fmt(adjustment.oldDebtUsd)}</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>${fmt(adjustment.oldDebtUsd)}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#dc2626", fontWeight: 700 }}>
-                      <span>{t("Remaining")} (USD):</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                      <span>{t("Remaining")}:</span>
                       <span style={{ fontFamily: "monospace" }}>${fmt(adjustment.remainingUsd)}</span>
                     </div>
                   </>
                 )}
-                {(parseFloat(adjustment.oldDebtIqd) !== 0 || amountIqd > 0) && (
+                {amountIqd > 0 && amountUsd <= 0 && (
                   <>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt" }}>
-                      <span>{t("Opening Balance")} (IQD):</span>
-                      <span style={{ fontWeight: 500, fontFamily: "monospace" }}>{fmt(adjustment.oldDebtIqd)} IQD</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{fmt(adjustment.oldDebtIqd)} IQD</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#dc2626", fontWeight: 700 }}>
-                      <span>{t("Remaining")} (IQD):</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                      <span>{t("Remaining")}:</span>
                       <span style={{ fontFamily: "monospace" }}>{fmt(adjustment.remainingIqd)} IQD</span>
                     </div>
                   </>
