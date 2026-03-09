@@ -293,7 +293,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
               <h1 style={{ fontSize: "16pt", marginBottom: 3, color: "#dc2626" }}>
                 {currency === "USD" ? t("Purchase Return - USD") : t("Purchase Return - IQD")}
               </h1>
-              <p style={{ fontSize: "12pt", color: "#666" }}>
+              <p style={{ fontSize: "12pt", color: "#666", fontWeight: 700 }}>
                 {t("Return #")}: {returnData.returnNumber} | {t("Date")}: {formatDate(returnData.date)} | {t("Time")}: {returnData.time}
               </p>
             </div>
