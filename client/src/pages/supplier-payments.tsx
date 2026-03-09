@@ -139,6 +139,18 @@ export default function SupplierPaymentsPage() {
   const selectedSupplier = suppliers?.find(s => s.id === parseInt(supplierId));
   const isBank = paymentSource.startsWith("bank:");
 
+  const { data: openingBalance } = useQuery<{ openingBalanceUsd: number; openingBalanceIqd: number }>({
+    queryKey: ["/api/supplier-opening-balance", supplierId, date, time, editId],
+    queryFn: async () => {
+      const params = new URLSearchParams({ supplierId, date, time });
+      if (editId) params.append("excludePaymentId", editId);
+      const res = await fetch(`/api/supplier-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!supplierId && !!date && !!time,
+  });
+
   const handleDeletePayment = async () => {
     if (!deletePayment) return;
     setIsDeleting(true);
@@ -323,12 +335,12 @@ export default function SupplierPaymentsPage() {
                       <p className="font-bold">{selectedSupplier.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt')} USD</p>
-                      <p className="font-mono font-bold text-red-600">{usd(selectedSupplier.oldDebtUsd)}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance')} USD</p>
+                      <p className="font-mono font-bold text-red-600">{usd(openingBalance?.openingBalanceUsd ?? 0)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt')} IQD</p>
-                      <p className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedSupplier.oldDebtIqd))}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance')} IQD</p>
+                      <p className="font-mono font-bold text-red-600">{formatIQD(openingBalance?.openingBalanceIqd ?? 0)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -646,28 +658,28 @@ export default function SupplierPaymentsPage() {
           {selectedSupplier && (
             <Card className="border-red-200 dark:border-red-900 shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-red-600">{t('Old Debt')}</CardTitle>
+                <CardTitle className="text-sm text-red-600">{t('Opening Balance')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">{t('Old Debt')} USD</span>
-                  <span className="font-mono font-bold text-red-600">{usd(selectedSupplier.oldDebtUsd)}</span>
+                  <span className="text-sm">{t('Opening Balance')} USD</span>
+                  <span className="font-mono font-bold text-red-600">{usd(openingBalance?.openingBalanceUsd ?? 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">{t('Old Debt')} IQD</span>
-                  <span className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedSupplier.oldDebtIqd))}</span>
+                  <span className="text-sm">{t('Opening Balance')} IQD</span>
+                  <span className="font-mono font-bold text-red-600">{formatIQD(openingBalance?.openingBalanceIqd ?? 0)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{t('After Payment USD')}</span>
                   <span className="font-mono font-bold text-emerald-600">
-                    {usd((parseFloat(selectedSupplier.oldDebtUsd) - parseFloat(amountUsd || "0")))}
+                    {usd((openingBalance?.openingBalanceUsd ?? 0) - parseFloat(amountUsd || "0"))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{t('After Payment IQD')}</span>
                   <span className="font-mono font-bold text-emerald-600">
-                    {formatIQD(parseFloat(selectedSupplier.oldDebtIqd) - parseFloat(amountIqd || "0"))}
+                    {formatIQD((openingBalance?.openingBalanceIqd ?? 0) - parseFloat(amountIqd || "0"))}
                   </span>
                 </div>
               </CardContent>

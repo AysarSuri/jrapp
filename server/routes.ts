@@ -1141,6 +1141,64 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-opening-balance', requireAuth, async (req, res) => {
+    try {
+      const supplierId = parseInt(req.query.supplierId as string, 10);
+      const balanceDate = req.query.date as string;
+      const balanceTime = (req.query.time as string) || "00:00";
+      const excludePaymentId = req.query.excludePaymentId ? parseInt(req.query.excludePaymentId as string, 10) : null;
+
+      if (!supplierId || !balanceDate) return res.status(400).json({ message: "supplierId and date are required" });
+
+      const [supplier] = await db.select().from(clients).where(eq(clients.id, supplierId));
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+
+      const beforeDateTimeCondition = (dateCol: any, timeCol: any) =>
+        sql`(${dateCol} < ${balanceDate} OR (${dateCol} = ${balanceDate} AND COALESCE(${timeCol}, '00:00') < ${balanceTime}))`;
+
+      const prevInvoices = await db.select().from(purchaseInvoices)
+        .where(sql`${purchaseInvoices.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(purchaseInvoices.date, purchaseInvoices.time)}`);
+
+      const prevReturns = await db.select().from(purchaseReturns)
+        .where(sql`${purchaseReturns.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(purchaseReturns.date, purchaseReturns.time)}`);
+
+      let paymentCondition = sql`${supplierPayments.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(supplierPayments.date, supplierPayments.time)}`;
+      if (excludePaymentId) {
+        paymentCondition = sql`${paymentCondition} AND ${supplierPayments.id} != ${excludePaymentId}`;
+      }
+      const prevPayments = await db.select().from(supplierPayments).where(paymentCondition);
+
+      const prevAdjustments = await db.select().from(supplierAdjustments)
+        .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(supplierAdjustments.date, supplierAdjustments.time)}`);
+
+      let openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
+      let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
+
+      for (const inv of prevInvoices) {
+        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        if (inv.currency === "USD") openingBalanceUsd += amount;
+        else openingBalanceIqd += amount;
+      }
+      for (const r of prevReturns) {
+        const amount = parseFloat(r.subtotal || "0") - parseFloat(r.discount || "0");
+        if (r.currency === "USD") openingBalanceUsd -= amount;
+        else openingBalanceIqd -= amount;
+      }
+      for (const pay of prevPayments) {
+        openingBalanceUsd -= parseFloat(pay.amountUsd || "0");
+        openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
+      }
+      for (const adj of prevAdjustments) {
+        openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+        openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+      }
+
+      res.json({ openingBalanceUsd, openingBalanceIqd });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
