@@ -85,6 +85,22 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
     enabled: open,
   });
 
+  const { data: openingBalance } = useQuery<{ openingBalanceUsd: number; openingBalanceIqd: number }>({
+    queryKey: ["/api/supplier-opening-balance", payment?.supplierId, payment?.date, payment?.time, paymentId],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        supplierId: String(payment!.supplierId),
+        date: payment!.date,
+        time: payment!.time || "00:00",
+        excludePaymentId: String(paymentId),
+      });
+      const res = await fetch(`/api/supplier-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!payment?.supplierId && !!payment?.date && open,
+  });
+
   const fieldColor = companyProfile?.primaryColor || "#333";
   const textColor = companyProfile?.secondaryColor || "white";
   const supplier = clients?.find(c => c.id === payment?.supplierId);
@@ -294,11 +310,15 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                   <>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
                       <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
-                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>${fmt(payment.oldDebtUsd)}</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>${fmt(openingBalance?.openingBalanceUsd ?? 0)}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Payment")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>-${fmt(amountUsd)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
-                      <span>{t("Remaining")}:</span>
-                      <span style={{ fontFamily: "monospace" }}>${fmt(payment.remainingUsd)}</span>
+                      <span>{t("Total Balance")}:</span>
+                      <span style={{ fontFamily: "monospace" }}>${fmt((openingBalance?.openingBalanceUsd ?? 0) - amountUsd)}</span>
                     </div>
                   </>
                 )}
@@ -306,11 +326,15 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                   <>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
                       <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
-                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{fmt(payment.oldDebtIqd)} IQD</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{fmt(openingBalance?.openingBalanceIqd ?? 0)} IQD</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Payment")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>-{fmt(amountIqd)} IQD</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
-                      <span>{t("Remaining")}:</span>
-                      <span style={{ fontFamily: "monospace" }}>{fmt(payment.remainingIqd)} IQD</span>
+                      <span>{t("Total Balance")}:</span>
+                      <span style={{ fontFamily: "monospace" }}>{fmt((openingBalance?.openingBalanceIqd ?? 0) - amountIqd)} IQD</span>
                     </div>
                   </>
                 )}
