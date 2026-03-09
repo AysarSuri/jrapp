@@ -311,25 +311,25 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
             <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 12, fontSize: "12pt" }}>
               <thead>
                 <tr>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>#</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Code")}</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Product Name")}</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Quantity")}</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Unit")}</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Price")}</th>
-                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 600, fontSize: "12pt" }}>{t("Amount")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>#</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Product Code")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Product Name")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Quantity")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Unit")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Price")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Amount")}</th>
                 </tr>
               </thead>
               <tbody>
                 {items?.map((item, idx) => (
                   <tr key={item.id} style={{ background: idx % 2 === 0 ? "white" : "#f9f9f9" }}>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{idx + 1}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{item.productCode}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left" }}>{resolveProductName(item)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center" }}>{resolveUnitName(item.unit, unitsList)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace" }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 600 }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{item.productCode}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left", fontWeight: 700 }}>{resolveProductName(item)}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{item.quantity}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{resolveUnitName(item.unit, unitsList)}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>
                   </tr>
                 ))}
               </tbody>
