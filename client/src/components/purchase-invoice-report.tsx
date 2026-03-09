@@ -430,7 +430,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                       <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#16a34a" }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>
                     )}
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#64748b" }}>{resolveUnitName(item.unit, unitsList)}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#334155" }}>{fmtCurrency(item.price)}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 800, color: "#334155" }}>{fmtCurrency(item.price)}</td>
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 800, color: "#2563eb" }}>{fmtCurrency(item.amount)}</td>
                   </tr>
                 ))}
