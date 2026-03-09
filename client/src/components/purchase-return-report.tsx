@@ -356,7 +356,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                 </div>
               )}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
-                <span>{t("Amount Paid")}:</span>
+                <span>{t("Amount Received")}:</span>
                 <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(returnData.amountPaid)}{currencySuffix}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #dc2626", marginTop: 5, color: "#dc2626" }}>
