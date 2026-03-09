@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
+import { useUser } from "@/hooks/use-auth";
 
 type AdjustmentData = {
   id: number;
@@ -61,6 +62,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
   const { t, i18n } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+  const { data: user } = useUser();
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
   const { data: adjustment, isLoading } = useQuery<AdjustmentData>({
@@ -293,18 +295,16 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
               </div>
             </div>
 
-            {companyProfile?.stamp && (
-              <div style={{ textAlign: "center", margin: "15px 0" }}>
-                <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 150, maxHeight: 150, objectFit: "contain" }} />
-              </div>
-            )}
-
             <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
               </div>
               <div style={{ textAlign: "center", width: 200 }}>
-                <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
+                {companyProfile?.stamp && (
+                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 120, maxHeight: 120, objectFit: "contain", margin: "0 auto 5px" }} />
+                )}
+                <div style={{ fontWeight: 700, fontSize: "12pt" }}>{user?.fullName || ""}</div>
+                <div style={{ borderTop: "1px solid #333", marginTop: 10, paddingTop: 3 }}>{t("Accountant")}</div>
               </div>
             </div>
           </div>
