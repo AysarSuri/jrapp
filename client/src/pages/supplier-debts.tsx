@@ -30,6 +30,8 @@ export default function SupplierDebtsPage() {
 
   const { data: debts, isLoading } = useQuery<SupplierDebt[]>({
     queryKey: ["/api/supplier-debts"],
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   const { data: companyProfile } = useQuery<{ name: string; logo: string | null; address: string | null; phone: string | null; primaryColor: string | null; secondaryColor: string | null }>({
