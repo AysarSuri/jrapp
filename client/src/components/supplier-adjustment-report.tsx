@@ -292,11 +292,11 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
                       <span style={{ fontWeight: 700 }}>{t("Adjustment")}:</span>
-                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{isReceived ? "+" : "-"}${fmt(amountUsd)}</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>+${fmt(amountUsd)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
                       <span>{t("Total Balance")}:</span>
-                      <span style={{ fontFamily: "monospace" }}>${fmt((openingBalance?.openingBalanceUsd ?? 0) - amountUsd)}</span>
+                      <span style={{ fontFamily: "monospace" }}>${fmt((openingBalance?.openingBalanceUsd ?? 0) + amountUsd)}</span>
                     </div>
                   </>
                 )}
@@ -308,11 +308,11 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
                       <span style={{ fontWeight: 700 }}>{t("Adjustment")}:</span>
-                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{isReceived ? "+" : "-"}{fmt(amountIqd)} IQD</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>+{fmt(amountIqd)} IQD</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
                       <span>{t("Total Balance")}:</span>
-                      <span style={{ fontFamily: "monospace" }}>{fmt((openingBalance?.openingBalanceIqd ?? 0) - amountIqd)} IQD</span>
+                      <span style={{ fontFamily: "monospace" }}>{fmt((openingBalance?.openingBalanceIqd ?? 0) + amountIqd)} IQD</span>
                     </div>
                   </>
                 )}
