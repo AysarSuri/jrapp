@@ -922,8 +922,13 @@ export async function registerRoutes(
         openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
       }
       for (const adj of prevAdjustments) {
-        openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
-        openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        if (adj.type === "received") {
+          openingBalanceUsd += parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd += parseFloat(adj.amountIqd || "0");
+        } else {
+          openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        }
       }
 
       res.json({ openingBalanceUsd, openingBalanceIqd });
@@ -1193,8 +1198,13 @@ export async function registerRoutes(
         openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
       }
       for (const adj of prevAdjustments) {
-        openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
-        openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        if (adj.type === "received") {
+          openingBalanceUsd += parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd += parseFloat(adj.amountIqd || "0");
+        } else {
+          openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        }
       }
 
       res.json({ openingBalanceUsd, openingBalanceIqd });
@@ -1369,8 +1379,13 @@ export async function registerRoutes(
           openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
         }
         for (const adj of prevAdjustments) {
-          openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
-          openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+          if (adj.type === "received") {
+            openingBalanceUsd += parseFloat(adj.amountUsd || "0");
+            openingBalanceIqd += parseFloat(adj.amountIqd || "0");
+          } else {
+            openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+            openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+          }
         }
 
         invoicesQuery = db.select().from(purchaseInvoices)
@@ -1477,16 +1492,18 @@ export async function registerRoutes(
       }
 
       for (const adj of adjustments) {
+        const amtUsd = parseFloat(adj.amountUsd || "0");
+        const amtIqd = parseFloat(adj.amountIqd || "0");
         entries.push({
           id: adj.id,
           date: adj.date,
           time: adj.time || "00:00",
           type: adj.type === "received" ? "adjustment_received" : "adjustment_discount",
           description: adj.type === "received" ? "Received" : "Discount",
-          debitUsd: 0,
-          debitIqd: 0,
-          creditUsd: parseFloat(adj.amountUsd || "0"),
-          creditIqd: parseFloat(adj.amountIqd || "0"),
+          debitUsd: adj.type === "received" ? amtUsd : 0,
+          debitIqd: adj.type === "received" ? amtIqd : 0,
+          creditUsd: adj.type === "discount" ? amtUsd : 0,
+          creditIqd: adj.type === "discount" ? amtIqd : 0,
           note: adj.note || null,
           agentName: adj.payToName || null,
         });
@@ -2470,8 +2487,13 @@ export async function registerRoutes(
         openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
       }
       for (const adj of prevAdjustments) {
-        openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
-        openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        if (adj.type === "received") {
+          openingBalanceUsd += parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd += parseFloat(adj.amountIqd || "0");
+        } else {
+          openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+          openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+        }
       }
 
       res.json({ openingBalanceUsd, openingBalanceIqd });
