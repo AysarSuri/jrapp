@@ -70,8 +70,8 @@ export default function SupplierPaymentsPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [isEditMode, setIsEditMode] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<string>("");
-  const [historyFromDate, setHistoryFromDate] = useState("");
-  const [historyToDate, setHistoryToDate] = useState("");
+  const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [reportPaymentId, setReportPaymentId] = useState<number | null>(null);
