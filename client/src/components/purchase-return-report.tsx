@@ -12,6 +12,7 @@ import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
+import { numberToWords } from "@/lib/number-to-words";
 
 type ReturnData = {
   id: number;
@@ -124,6 +125,16 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
     enabled: open,
   });
 
+  const { data: openingBalanceData } = useQuery<{ openingBalanceUsd: number; openingBalanceIqd: number }>({
+    queryKey: ["/api/purchase-returns", returnId, "opening-balance"],
+    queryFn: async () => {
+      const res = await fetch(`/api/purchase-returns/${returnId}/opening-balance`);
+      if (!res.ok) throw new Error("Failed to fetch opening balance");
+      return res.json();
+    },
+    enabled: !!returnId && open,
+  });
+
   const resolveProductName = (item: ReturnItemData) => {
     if (item.productId && allProducts) {
       const product = allProducts.find(p => p.id === item.productId);
@@ -148,13 +159,21 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
   const isRtlLang = lang === "ar" || lang === "ckb";
   const currencyPrefix = currency === "USD" ? (isRtlLang ? "" : "$") : "";
   const currencySuffix = currency === "USD" ? (isRtlLang ? "$" : "") : " IQD";
+  const fmtCurrency = (n: number | string) => `${currencyPrefix}${fmt(n)}${currencySuffix}`;
+
+  const accentColor = companyProfile?.primaryColor || "#1e293b";
+  const oldDebt = currency === "USD"
+    ? (openingBalanceData?.openingBalanceUsd ?? 0)
+    : (openingBalanceData?.openingBalanceIqd ?? 0);
+  const returnRemaining = parseFloat(returnData?.remaining || "0");
+  const totalBalance = oldDebt - returnRemaining;
 
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
     const printWindow = window.open("", "_blank", "width=794,height=1123");
     if (!printWindow) return;
-    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: "#1e293b", accentTextColor: "#ffffff" });
+    const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor, accentTextColor: companyProfile?.secondaryColor || "#ffffff" });
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
@@ -335,42 +354,84 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
               </tbody>
             </table>
 
-            <div style={{ border: "1px solid #ddd", borderRadius: 4, padding: 8, maxWidth: 400 }}>
-              <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #eee", paddingBottom: 3, fontWeight: 700 }}>{t("Return Summary")}</h3>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Products")}:</span>
-                <span style={{ fontWeight: 500 }}>{returnData.totalItems}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Total Quantity")}:</span>
-                <span style={{ fontWeight: 500 }}>{returnData.totalQuantity}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt" }}>
-                <span>{t("Subtotal")}:</span>
-                <span style={{ fontWeight: 600 }}>{currencyPrefix}{fmt(returnData.subtotal)}{currencySuffix}</span>
-              </div>
-              {parseFloat(returnData.discount || "0") > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
-                  <span>{t("Discount")}:</span>
-                  <span style={{ fontWeight: 500 }}>-{currencyPrefix}{fmt(returnData.discount)}{currencySuffix}</span>
+            <div style={{ display: "flex", gap: 14, marginTop: 14, direction: "ltr" }}>
+              <div style={{
+                flex: 1, border: `2px solid ${accentColor}30`, borderRadius: 10,
+                padding: "10px 14px", background: `linear-gradient(135deg, ${accentColor}05, ${accentColor}10)`,
+                display: "flex", flexDirection: "column", justifyContent: "flex-end"
+              }}>
+                <h3 style={{ color: accentColor, fontSize: "12pt", fontWeight: 800, marginBottom: 8, textAlign: isRtl ? "right" : "left" }}>{t("Supplier Balance")}</h3>
+                <div style={{ flex: 1 }}></div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Opening Balance")}:</span>
+                  <span>{fmtCurrency(oldDebt)}</span>
                 </div>
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "12pt", color: "#16a34a" }}>
-                <span>{t("Amount Received")}:</span>
-                <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(returnData.amountPaid)}{currencySuffix}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Return Remaining")}:</span>
+                  <span style={{ color: "#dc2626" }}>-{fmtCurrency(returnRemaining)}</span>
+                </div>
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  fontWeight: 800, fontSize: "14pt", color: accentColor, direction: isRtl ? "rtl" : "ltr",
+                  borderTop: `2px solid ${accentColor}`, paddingTop: 8, marginTop: 8
+                }}>
+                  <span>{t("Total Balance")}:</span>
+                  <span>{fmtCurrency(totalBalance)}</span>
+                </div>
+                <div style={{ fontSize: "9pt", fontWeight: 600, color: "#64748b", textAlign: isRtl ? "right" : "left", marginTop: 4, fontStyle: "italic", direction: isRtl ? "rtl" : "ltr" }}>
+                  {numberToWords(Math.abs(totalBalance), i18n.language, currency === "USD" ? "USD" : "IQD")}
+                </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "14pt", fontWeight: 700, borderTop: "2px solid #dc2626", marginTop: 5, color: "#dc2626" }}>
-                <span>{t("Remaining")}:</span>
-                <span>{currencyPrefix}{fmt(returnData.remaining)}{currencySuffix}</span>
+
+              <div style={{
+                flex: 1, border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px",
+                background: "linear-gradient(145deg, #fafbfc, #f1f5f9)"
+              }}>
+                <h3 style={{ fontSize: "12pt", fontWeight: 800, marginBottom: 8, paddingBottom: 5, borderBottom: "2px solid #e2e8f0", color: accentColor, textAlign: isRtl ? "right" : "left" }}>{t("Return Summary")}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Products")}:</span>
+                  <span>{returnData.totalItems}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Total Quantity")}:</span>
+                  <span>{returnData.totalQuantity}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Subtotal")}:</span>
+                  <span style={{ color: "#2563eb" }}>{fmtCurrency(returnData.subtotal)}</span>
+                </div>
+                {parseFloat(returnData.discount || "0") > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#d97706", direction: isRtl ? "rtl" : "ltr" }}>
+                    <span>{t("Discount")}:</span>
+                    <span>-{fmtCurrency(returnData.discount)}</span>
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span>{t("Amount Received")}:</span>
+                  <span>{fmtCurrency(returnData.amountPaid)}</span>
+                </div>
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  fontWeight: 800, fontSize: "13pt", direction: isRtl ? "rtl" : "ltr",
+                  borderTop: `2px solid ${accentColor}`, paddingTop: 6, marginTop: 6, color: "#dc2626"
+                }}>
+                  <span>{t("Remaining")}:</span>
+                  <span>{fmtCurrency(returnData.remaining)}</span>
+                </div>
               </div>
             </div>
 
-            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
-              <div style={{ textAlign: "center", width: 200 }}>
-                <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
+            <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between", fontSize: "9pt" }}>
+              <div style={{ textAlign: "center", width: 180 }}>
+                <div style={{ borderTop: "1.5px solid #94a3b8", marginTop: 44, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Supplier Signature")}</div>
               </div>
-              <div style={{ textAlign: "center", width: 200 }}>
-                <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
+              {companyProfile?.stamp && (
+                <div style={{ textAlign: "center" }}>
+                  <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
+                </div>
+              )}
+              <div style={{ textAlign: "center", width: 180 }}>
+                <div style={{ borderTop: "1.5px solid #94a3b8", marginTop: 44, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Accountant")}</div>
               </div>
             </div>
           </div>

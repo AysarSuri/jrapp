@@ -2363,6 +2363,61 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  app.get('/api/purchase-returns/:id/opening-balance', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const ret = await storage.getPurchaseReturn(id);
+      if (!ret) return res.status(404).json({ message: "Return not found" });
+
+      const [supplier] = await db.select().from(clients).where(eq(clients.id, ret.supplierId));
+      if (!supplier) return res.status(404).json({ message: "Supplier not found" });
+
+      const retDate = ret.date;
+      const retTime = ret.time || "00:00";
+
+      const beforeDateTimeCondition = (dateCol: any, timeCol: any) =>
+        sql`(${dateCol} < ${retDate} OR (${dateCol} = ${retDate} AND COALESCE(${timeCol}, '00:00') < ${retTime}))`;
+
+      const prevInvoices = await db.select().from(purchaseInvoices)
+        .where(sql`${purchaseInvoices.supplierId} = ${ret.supplierId} AND ${beforeDateTimeCondition(purchaseInvoices.date, purchaseInvoices.time)}`);
+
+      const prevReturns = await db.select().from(purchaseReturns)
+        .where(sql`${purchaseReturns.supplierId} = ${ret.supplierId} AND ${purchaseReturns.id} != ${id} AND ${beforeDateTimeCondition(purchaseReturns.date, purchaseReturns.time)}`);
+
+      const prevPayments = await db.select().from(supplierPayments)
+        .where(sql`${supplierPayments.supplierId} = ${ret.supplierId} AND ${beforeDateTimeCondition(supplierPayments.date, supplierPayments.time)}`);
+
+      const prevAdjustments = await db.select().from(supplierAdjustments)
+        .where(sql`${supplierAdjustments.supplierId} = ${ret.supplierId} AND ${beforeDateTimeCondition(supplierAdjustments.date, supplierAdjustments.time)}`);
+
+      let openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
+      let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
+
+      for (const inv of prevInvoices) {
+        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        if (inv.currency === "USD") openingBalanceUsd += amount;
+        else openingBalanceIqd += amount;
+      }
+      for (const r of prevReturns) {
+        const amount = parseFloat(r.subtotal || "0") - parseFloat(r.discount || "0");
+        if (r.currency === "USD") openingBalanceUsd -= amount;
+        else openingBalanceIqd -= amount;
+      }
+      for (const pay of prevPayments) {
+        openingBalanceUsd -= parseFloat(pay.amountUsd || "0");
+        openingBalanceIqd -= parseFloat(pay.amountIqd || "0");
+      }
+      for (const adj of prevAdjustments) {
+        openingBalanceUsd -= parseFloat(adj.amountUsd || "0");
+        openingBalanceIqd -= parseFloat(adj.amountIqd || "0");
+      }
+
+      res.json({ openingBalanceUsd, openingBalanceIqd });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/purchase-returns/:id/items', requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string, 10);
     const data = await storage.getPurchaseReturnItems(id);
