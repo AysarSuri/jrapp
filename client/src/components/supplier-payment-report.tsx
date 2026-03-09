@@ -238,7 +238,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
 
             <div style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
               <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>{receiptTitle}</h1>
-              <p style={{ fontSize: "12pt", color: "#666" }}>
+              <p style={{ fontSize: "12pt", color: "#666", fontWeight: 700 }}>
                 {t("Date")}: {formatDate(payment.date)} | {t("Time")}: {payment.time}
               </p>
             </div>
