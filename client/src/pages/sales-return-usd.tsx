@@ -373,7 +373,7 @@ export default function SalesReturnUsdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-orange-600 hover:bg-orange-700" data-testid="button-save-sales-return">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-sales-return">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {userRole === 'sales_rep' ? t('Send for Approval') : t('Save Return')}
           </Button>

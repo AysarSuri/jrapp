@@ -1225,7 +1225,7 @@ export default function SupplierStatementIqdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-iqd">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" data-testid="btn-confirm-delete-iqd">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1242,7 +1242,7 @@ export default function SupplierStatementIqdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteReportEntry} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-report-iqd">
+            <AlertDialogAction onClick={handleDeleteReportEntry} className="bg-red-600 hover:bg-red-700 text-white" data-testid="btn-confirm-delete-report-iqd">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

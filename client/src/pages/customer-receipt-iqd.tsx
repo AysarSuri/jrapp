@@ -768,7 +768,7 @@ export default function CustomerReceiptIqdPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditReceipt(null)} data-testid="button-cancel-edit-receipt">{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-orange-600 hover:bg-orange-700" data-testid="button-save-edit-receipt">
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-edit-receipt">
               {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t('Save')}
             </Button>

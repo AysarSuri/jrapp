@@ -1003,7 +1003,7 @@ export default function PurchaseInvoiceUsdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-invoice">
+            <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-invoice">
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>

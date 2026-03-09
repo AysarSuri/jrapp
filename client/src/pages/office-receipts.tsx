@@ -582,7 +582,7 @@ export default function OfficeReceiptsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditReceipt(null)}>{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700" data-testid="button-update-office-receipt">
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700 text-white" data-testid="button-update-office-receipt">
               {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t('Save')}
             </Button>

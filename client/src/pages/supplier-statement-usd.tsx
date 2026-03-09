@@ -1233,7 +1233,7 @@ export default function SupplierStatementUsdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" data-testid="btn-confirm-delete">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1250,7 +1250,7 @@ export default function SupplierStatementUsdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteReportEntry} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-report">
+            <AlertDialogAction onClick={handleDeleteReportEntry} className="bg-red-600 hover:bg-red-700 text-white" data-testid="btn-confirm-delete-report">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

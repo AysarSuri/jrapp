@@ -580,7 +580,7 @@ export default function BankPaymentsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditPayment(null)}>{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-red-600 hover:bg-red-700" data-testid="button-update-bank-payment">
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-red-600 hover:bg-red-700 text-white" data-testid="button-update-bank-payment">
               {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t('Save')}
             </Button>

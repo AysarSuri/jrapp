@@ -705,7 +705,7 @@ export default function ClearanceStatementUsdPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditEntry(null)}>{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700" data-testid="button-update-statement">
+            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700 text-white" data-testid="button-update-statement">
               {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {t('Save')}
             </Button>
@@ -723,7 +723,7 @@ export default function ClearanceStatementUsdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-statement">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" data-testid="btn-confirm-delete-statement">
               {t("Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

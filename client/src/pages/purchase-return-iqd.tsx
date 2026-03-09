@@ -829,7 +829,7 @@ export default function PurchaseReturnIqdPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteReturn} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-return-iqd">
+            <AlertDialogAction onClick={handleDeleteReturn} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-return-iqd">
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>

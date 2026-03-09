@@ -227,7 +227,7 @@ export default function ExpenseTypesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700" data-testid="button-confirm-delete-expense-type">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white" data-testid="button-confirm-delete-expense-type">
               {t('Delete')}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -495,7 +495,7 @@ export default function SalesInvoiceUsdPage() {
                           {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
                             <Button
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-green-600 hover:bg-green-700 text-white"
                               onClick={() => handleApprove(inv.id)}
                               disabled={isApproving}
                               data-testid={`button-approve-invoice-${inv.id}`}
@@ -516,7 +516,7 @@ export default function SalesInvoiceUsdPage() {
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700" data-testid="button-save-sales-invoice">
+          <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-white" data-testid="button-save-sales-invoice">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {userRole === 'sales_rep' ? t('Send for Approval') : t('Save Invoice')}
           </Button>

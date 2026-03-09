@@ -387,7 +387,7 @@ export default function AgentProductLoadPage() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button onClick={handleSubmit} disabled={isSaving} className="gap-2 bg-indigo-600 hover:bg-indigo-700" data-testid="button-save-load">
+            <Button onClick={handleSubmit} disabled={isSaving} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white" data-testid="button-save-load">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {t('Save')}
             </Button>

@@ -880,7 +880,7 @@ export default function SupplierPaymentsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePayment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700" data-testid="confirm-delete-payment">
+            <AlertDialogAction onClick={handleDeletePayment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-payment">
               {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
