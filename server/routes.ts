@@ -1147,6 +1147,7 @@ export async function registerRoutes(
       const balanceDate = req.query.date as string;
       const balanceTime = (req.query.time as string) || "00:00";
       const excludePaymentId = req.query.excludePaymentId ? parseInt(req.query.excludePaymentId as string, 10) : null;
+      const excludeAdjustmentId = req.query.excludeAdjustmentId ? parseInt(req.query.excludeAdjustmentId as string, 10) : null;
 
       if (!supplierId || !balanceDate) return res.status(400).json({ message: "supplierId and date are required" });
 
@@ -1168,8 +1169,11 @@ export async function registerRoutes(
       }
       const prevPayments = await db.select().from(supplierPayments).where(paymentCondition);
 
-      const prevAdjustments = await db.select().from(supplierAdjustments)
-        .where(sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(supplierAdjustments.date, supplierAdjustments.time)}`);
+      let adjustmentCondition = sql`${supplierAdjustments.supplierId} = ${supplierId} AND ${beforeDateTimeCondition(supplierAdjustments.date, supplierAdjustments.time)}`;
+      if (excludeAdjustmentId) {
+        adjustmentCondition = sql`${adjustmentCondition} AND ${supplierAdjustments.id} != ${excludeAdjustmentId}`;
+      }
+      const prevAdjustments = await db.select().from(supplierAdjustments).where(adjustmentCondition);
 
       let openingBalanceUsd = parseFloat(supplier.oldDebtUsd || "0");
       let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
