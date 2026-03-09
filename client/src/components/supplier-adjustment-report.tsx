@@ -247,7 +247,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
               {adjustment.note && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
                   <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
-                  <span style={{ fontWeight: 700 }}>{adjustment.note}</span>
+                  <span style={{ fontWeight: 700, textAlign: "center", flex: 1 }}>{adjustment.note}</span>
                 </div>
               )}
             </div>
