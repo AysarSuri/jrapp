@@ -337,19 +337,16 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
               </div>
             </div>
 
-            {companyProfile?.stamp && (
-              <div style={{ textAlign: "center", margin: "15px 0" }}>
-                <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 150, maxHeight: 150, objectFit: "contain" }} />
-              </div>
-            )}
-
             <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
               </div>
               <div style={{ textAlign: "center", width: 200 }}>
+                {companyProfile?.stamp && (
+                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 120, maxHeight: 120, objectFit: "contain", margin: "0 auto 5px" }} />
+                )}
                 <div style={{ fontWeight: 700, fontSize: "12pt" }}>{user?.fullName || ""}</div>
-                <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
+                <div style={{ borderTop: "1px solid #333", marginTop: 10, paddingTop: 3 }}>{t("Accountant")}</div>
               </div>
             </div>
           </div>
