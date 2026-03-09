@@ -111,7 +111,12 @@ export default function SupplierDebtsPage() {
         </table>
       </body></html>`);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 500);
+    const doPrint = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrint, 200));
+    } else {
+      setTimeout(doPrint, 800);
+    }
   };
 
   const totalRemainingUsd = debts?.reduce((sum, d) => sum + d.remainingUsd, 0) || 0;

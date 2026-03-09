@@ -195,9 +195,12 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 300);
+    const doPrint = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrint, 200));
+    } else {
+      setTimeout(doPrint, 800);
+    }
     if (invoice) {
       logExport({ reportName: t("Purchase Invoice Report"), supplierName: invoice.supplierName, invoiceNumber: invoice.invoiceNumber, exportType: "print", currency });
     }

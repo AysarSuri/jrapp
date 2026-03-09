@@ -315,7 +315,7 @@ export default function ClearancePurchaseInvoicesPage() {
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 300);
+    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
   };
 
   return (

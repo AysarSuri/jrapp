@@ -454,7 +454,7 @@ export default function SupplierStatementUsdPage() {
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 300);
+    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
     logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "print", currency: "USD" });
   };
 
@@ -902,7 +902,7 @@ export default function SupplierStatementUsdPage() {
                       </div>
                     </body></html>`);
                   printWindow.document.close();
-                  setTimeout(() => printWindow.print(), 500);
+                  const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                   logExport({ reportName: t("Incoming Report"), supplierName: productsReport?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "USD" });
                 }} data-testid="button-print-products-report-usd">
                   <Printer className="w-4 h-4 mr-1" />
@@ -1071,7 +1071,7 @@ export default function SupplierStatementUsdPage() {
                       </table>
                     </body></html>`);
                   printWindow.document.close();
-                  setTimeout(() => printWindow.print(), 500);
+                  const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                   logExport({ reportName: t("Incoming Vehicle Expenses"), supplierName: vehicleExpenses?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "USD" });
                 }} data-testid="button-print-vehicle-expenses-usd">
                   <Printer className="w-4 h-4 mr-1" />

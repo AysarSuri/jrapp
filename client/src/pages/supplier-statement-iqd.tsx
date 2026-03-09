@@ -456,7 +456,7 @@ export default function SupplierStatementIqdPage() {
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 300);
+    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
     logExport({ reportName: t("Supplier Statement"), supplierName: statement.supplier.name, invoiceNumber: "", exportType: "print", currency: "IQD" });
   };
 
@@ -894,7 +894,7 @@ export default function SupplierStatementIqdPage() {
                       </div>
                     </body></html>`);
                   printWindow.document.close();
-                  setTimeout(() => printWindow.print(), 500);
+                  const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                   logExport({ reportName: t("Incoming Report"), supplierName: productsReport?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "IQD" });
                 }} data-testid="button-print-products-report-iqd">
                   <Printer className="w-4 h-4 mr-1" />
@@ -1063,7 +1063,7 @@ export default function SupplierStatementIqdPage() {
                       </table>
                     </body></html>`);
                   printWindow.document.close();
-                  setTimeout(() => printWindow.print(), 500);
+                  const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                   logExport({ reportName: t("Incoming Vehicle Expenses"), supplierName: vehicleExpenses?.supplier?.name || "", invoiceNumber: "", exportType: "print", currency: "IQD" });
                 }} data-testid="button-print-vehicle-expenses-iqd">
                   <Printer className="w-4 h-4 mr-1" />

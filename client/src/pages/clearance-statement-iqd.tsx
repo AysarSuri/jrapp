@@ -248,7 +248,7 @@ export default function ClearanceStatementIqdPage() {
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 300);
+    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
   };
 
   const typeBadge = (type: string, source: string) => {
@@ -584,7 +584,7 @@ export default function ClearanceStatementIqdPage() {
                   const title = viewEntry?.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
                   printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head><meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
                   printWindow.document.close();
-                  setTimeout(() => { printWindow.print(); }, 300);
+                  const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-statement-iqd">
                   <Printer className="w-4 h-4 mr-1" />
                   {t("Print")}
