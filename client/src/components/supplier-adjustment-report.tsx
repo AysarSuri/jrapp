@@ -206,30 +206,30 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
 
             <div style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
               <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>{receiptTitle}</h1>
-              <p style={{ fontSize: "12pt", color: "#666" }}>
+              <p style={{ fontSize: "12pt", color: "#666", fontWeight: 700 }}>
                 {t("Date")}: {formatDate(adjustment.date)} | {t("Time")}: {adjustment.time}
               </p>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 16, fontSize: "12pt" }}>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
-                <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{adjustment.supplierName}</span>
+                <span style={{ fontWeight: 700, color: "#555" }}>{t("Supplier Name")}:</span>
+                <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{adjustment.supplierName}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 600, color: "#555" }}>{t("Adjustment Type")}:</span>
+                <span style={{ fontWeight: 700, color: "#555" }}>{t("Adjustment Type")}:</span>
                 <span style={{ fontWeight: 700, flex: 1, textAlign: "center", color: typeColor }}>{typeLabel}</span>
               </div>
               {adjustment.payToName && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Pay To")}:</span>
-                  <span style={{ fontWeight: 500 }}>{adjustment.payToName}</span>
+                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Pay To")}:</span>
+                  <span style={{ fontWeight: 700 }}>{adjustment.payToName}</span>
                 </div>
               )}
               {adjustment.note && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
-                  <span style={{ fontWeight: 500 }}>{adjustment.note}</span>
+                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
+                  <span style={{ fontWeight: 700 }}>{adjustment.note}</span>
                 </div>
               )}
             </div>
