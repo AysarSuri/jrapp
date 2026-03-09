@@ -249,7 +249,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                 <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.supplierName}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 700, color: "#555" }}>{t("Description")}:</span>
+                <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
                 <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.note || "-"}</span>
               </div>
               {payment.reference && (

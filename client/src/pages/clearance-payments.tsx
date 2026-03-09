@@ -271,7 +271,7 @@ export default function ClearancePaymentsPage() {
               <th>${t("Customs Clearance")}</th>
               <th>${t("USD Amount")}</th>
               <th>${t("IQD Amount")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Reference")}</th>
             </tr>
           </thead>
@@ -757,7 +757,7 @@ export default function ClearancePaymentsPage() {
                 )}
                 {viewPayment.description && (
                   <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
-                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Description")}:</span>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewPayment.description}</span>
                   </div>
                 )}

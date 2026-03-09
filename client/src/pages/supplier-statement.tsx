@@ -182,7 +182,7 @@ export default function SupplierStatementPage() {
                         <TableHead className="text-center">#</TableHead>
                         <TableHead>{t("Date")}</TableHead>
                         <TableHead>{t("Type")}</TableHead>
-                        <TableHead>{t("Description")}</TableHead>
+                        <TableHead>{t("Note")}</TableHead>
                         <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit USD")}</TableHead>
                         <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit IQD")}</TableHead>
                         <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit USD")}</TableHead>

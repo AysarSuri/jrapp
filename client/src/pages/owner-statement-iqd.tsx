@@ -184,7 +184,7 @@ export default function OwnerStatementIqdPage() {
               <th>${t("Date")}</th>
               <th>${t("Time")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Reference")}</th>
               <th>${t("Debit IQD")}</th>
               <th>${t("Credit IQD")}</th>

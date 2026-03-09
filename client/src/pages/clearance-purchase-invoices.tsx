@@ -298,7 +298,7 @@ export default function ClearancePurchaseInvoicesPage() {
               <th>${t("Manifest")}</th>
               <th>${t("Customs USD")}</th>
               <th>${t("Customs IQD")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
             </tr>
           </thead>
           <tbody>

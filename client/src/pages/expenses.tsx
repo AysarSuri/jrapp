@@ -285,7 +285,7 @@ export default function ExpensesPage() {
               <th>${t("Expense Type")}</th>
               <th>${t("USD Amount")}</th>
               <th>${t("IQD Amount")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Reference")}</th>
             </tr>
           </thead>
@@ -438,7 +438,7 @@ export default function ExpensesPage() {
 
         ${e.description ? `
           <div class="description-box">
-            <div class="desc-label">${t("Description")}</div>
+            <div class="desc-label">${t("Note")}</div>
             <div class="desc-value">${e.description}</div>
           </div>
         ` : ""}

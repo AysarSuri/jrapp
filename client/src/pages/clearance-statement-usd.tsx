@@ -221,7 +221,7 @@ export default function ClearanceStatementUsdPage() {
               <th>${t("List Number")}</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Car Number")}</th>
               <th>${t("Manifest")}</th>
               <th>${t("Debit")}</th>
@@ -625,7 +625,7 @@ export default function ClearanceStatementUsdPage() {
                 )}
                 {viewEntry.description && (
                   <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
-                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Description")}:</span>
+                    <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }} dir="ltr">{viewEntry.description}</span>
                   </div>
                 )}

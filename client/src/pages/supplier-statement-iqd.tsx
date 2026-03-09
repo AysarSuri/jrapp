@@ -430,7 +430,7 @@ export default function SupplierStatementIqdPage() {
               <th>#</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Debit IQD")}</th>
               <th>${t("Credit IQD")}</th>
               <th>${t("Balance IQD")}</th>
@@ -503,7 +503,7 @@ export default function SupplierStatementIqdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
-          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Description")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance IQD")}</th>
@@ -731,7 +731,7 @@ export default function SupplierStatementIqdPage() {
                         <TableHead className="text-center">#</TableHead>
                         <TableHead>{t("Date")}</TableHead>
                         <TableHead>{t("Type")}</TableHead>
-                        <TableHead>{t("Description")}</TableHead>
+                        <TableHead>{t("Note")}</TableHead>
                         <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit IQD")}</TableHead>
                         <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit IQD")}</TableHead>
                         <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance IQD")}</TableHead>
@@ -1162,7 +1162,7 @@ export default function SupplierStatementIqdPage() {
                 <div><span className="text-muted-foreground">{t("Date")}:</span> <span className="font-medium">{formatDate(viewEntry.date)}</span></div>
                 <div><span className="text-muted-foreground">{t("Time")}:</span> <span className="font-medium">{viewEntry.time}</span></div>
                 <div><span className="text-muted-foreground">{t("Type")}:</span> <span className="font-medium">{viewEntry.type === "purchase_invoice" ? t("Purchase Invoice") : viewEntry.type === "return_invoice" ? t("Return Invoice") : viewEntry.type === "payment" ? t("Payment") : t("Adjustment")}</span></div>
-                <div><span className="text-muted-foreground">{t("Description")}:</span> <span className="font-medium">{viewEntry.description}</span></div>
+                <div><span className="text-muted-foreground">{t("Note")}:</span> <span className="font-medium">{viewEntry.description}</span></div>
                 {viewEntry.debitIqd > 0 && <div><span className="text-muted-foreground">{t("Debit IQD")}:</span> <span className="font-medium text-red-600">{fmt(viewEntry.debitIqd)} IQD</span></div>}
                 {viewEntry.creditIqd > 0 && <div><span className="text-muted-foreground">{t("Credit IQD")}:</span> <span className="font-medium text-green-600">{fmt(viewEntry.creditIqd)} IQD</span></div>}
                 {viewEntry.note && <div className="col-span-2"><span className="text-muted-foreground">{t("Note")}:</span> <span className="font-medium">{viewEntry.note}</span></div>}

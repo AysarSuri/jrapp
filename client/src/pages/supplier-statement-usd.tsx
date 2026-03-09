@@ -428,7 +428,7 @@ export default function SupplierStatementUsdPage() {
               <th>#</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Description")}</th>
+              <th>${t("Note")}</th>
               <th>${t("Debit USD")}</th>
               <th>${t("Credit USD")}</th>
               <th>${t("Balance USD")}</th>
@@ -504,7 +504,7 @@ export default function SupplierStatementUsdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
-          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Description")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit USD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit USD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance USD")}</th>
@@ -732,7 +732,7 @@ export default function SupplierStatementUsdPage() {
                             <TableHead className="text-center">#</TableHead>
                             <TableHead>{t("Date")}</TableHead>
                             <TableHead>{t("Type")}</TableHead>
-                            <TableHead>{t("Description")}</TableHead>
+                            <TableHead>{t("Note")}</TableHead>
                             <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit USD")}</TableHead>
                             <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit USD")}</TableHead>
 
@@ -1170,7 +1170,7 @@ export default function SupplierStatementUsdPage() {
                 <div><span className="text-muted-foreground">{t("Date")}:</span> <span className="font-medium">{formatDate(viewEntry.date)}</span></div>
                 <div><span className="text-muted-foreground">{t("Time")}:</span> <span className="font-medium">{viewEntry.time}</span></div>
                 <div><span className="text-muted-foreground">{t("Type")}:</span> <span className="font-medium">{viewEntry.type === "purchase_invoice" ? t("Purchase Invoice") : viewEntry.type === "return_invoice" ? t("Return Invoice") : viewEntry.type === "payment" ? t("Payment") : t("Adjustment")}</span></div>
-                <div><span className="text-muted-foreground">{t("Description")}:</span> <span className="font-medium">{viewEntry.description}</span></div>
+                <div><span className="text-muted-foreground">{t("Note")}:</span> <span className="font-medium">{viewEntry.description}</span></div>
                 {viewEntry.debitUsd > 0 && <div><span className="text-muted-foreground">{t("Debit USD")}:</span> <span className="font-medium text-red-600">{usd(viewEntry.debitUsd)}</span></div>}
                 {viewEntry.creditUsd > 0 && <div><span className="text-muted-foreground">{t("Credit USD")}:</span> <span className="font-medium text-green-600">{usd(viewEntry.creditUsd)}</span></div>}
                 {viewEntry.note && <div className="col-span-2"><span className="text-muted-foreground">{t("Note")}:</span> <span className="font-medium">{viewEntry.note}</span></div>}
