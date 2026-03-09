@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
+import { useUser } from "@/hooks/use-auth";
 
 type PaymentData = {
   id: number;
@@ -64,6 +65,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const { data: user } = useUser();
 
   const { data: payment, isLoading } = useQuery<PaymentData>({
     queryKey: ["/api/supplier-payments", paymentId],
@@ -346,6 +348,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Supplier Signature")}</div>
               </div>
               <div style={{ textAlign: "center", width: 200 }}>
+                <div style={{ fontWeight: 700, fontSize: "12pt" }}>{user?.fullName || ""}</div>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Accountant")}</div>
               </div>
             </div>
