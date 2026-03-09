@@ -560,15 +560,6 @@ export default function SupplierPaymentsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('Reference')}</Label>
-                <Input
-                  placeholder={t('Reference number...')}
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  data-testid="input-payment-reference"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label>{t('Notes')}</Label>
                 <Textarea
                   placeholder={t('Notes...')}
@@ -740,7 +731,6 @@ export default function SupplierPaymentsPage() {
                     <TableHead>{t('IQD Amount')}</TableHead>
                     <TableHead>{t('Commission USD')}</TableHead>
                     <TableHead>{t('Commission IQD')}</TableHead>
-                    <TableHead>{t('Reference')}</TableHead>
                     <TableHead>{t('Notes')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
@@ -769,7 +759,6 @@ export default function SupplierPaymentsPage() {
                       <TableCell className="font-mono text-sm">
                         {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
@@ -806,7 +795,7 @@ export default function SupplierPaymentsPage() {
                   ))}
                   {paginatedPayments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                         {t('No payments yet')}
                       </TableCell>
                     </TableRow>
