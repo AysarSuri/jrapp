@@ -323,11 +323,11 @@ export default function SupplierPaymentsPage() {
                       <p className="font-bold">{selectedSupplier.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt')} USD</p>
                       <p className="font-mono font-bold text-red-600">{usd(selectedSupplier.oldDebtUsd)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Debt IQD')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Old Debt')} IQD</p>
                       <p className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedSupplier.oldDebtIqd))}</p>
                     </div>
                   </div>
@@ -646,15 +646,15 @@ export default function SupplierPaymentsPage() {
           {selectedSupplier && (
             <Card className="border-red-200 dark:border-red-900 shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-red-600">{t('Current Supplier Debt')}</CardTitle>
+                <CardTitle className="text-sm text-red-600">{t('Old Debt')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">{t('Debt USD')}</span>
+                  <span className="text-sm">{t('Old Debt')} USD</span>
                   <span className="font-mono font-bold text-red-600">{usd(selectedSupplier.oldDebtUsd)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">{t('Debt IQD')}</span>
+                  <span className="text-sm">{t('Old Debt')} IQD</span>
                   <span className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedSupplier.oldDebtIqd))}</span>
                 </div>
                 <Separator />
