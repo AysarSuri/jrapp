@@ -76,6 +76,7 @@ export default function SupplierPaymentsPage() {
   const pageSize = 10;
   const [reportPaymentId, setReportPaymentId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportCurrency, setReportCurrency] = useState<"USD" | "IQD">("USD");
   const [deletePayment, setDeletePayment] = useState<{ id: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -792,7 +793,7 @@ export default function SupplierPaymentsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            onClick={() => { setReportPaymentId(p.id); setReportOpen(true); }}
+                            onClick={() => { setReportPaymentId(p.id); setReportCurrency(parseFloat(p.amountUsd || "0") > 0 ? "USD" : "IQD"); setReportOpen(true); }}
                             data-testid={`btn-view-payment-${p.id}`}
                           >
                             <Eye className="h-4 w-4" />
@@ -879,7 +880,7 @@ export default function SupplierPaymentsPage() {
         paymentId={reportPaymentId}
         open={reportOpen}
         onOpenChange={(open) => { setReportOpen(open); if (!open) setReportPaymentId(null); }}
-        currency="USD"
+        currency={reportCurrency}
       />
 
       <AlertDialog open={!!deletePayment} onOpenChange={(open) => { if (!open) setDeletePayment(null); }}>

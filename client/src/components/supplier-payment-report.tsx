@@ -289,27 +289,27 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
 
             <div style={{ border: "2px solid #2563eb", borderRadius: 6, padding: 12, marginBottom: 16 }}>
               <h3 style={{ color: "#2563eb", fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 20px" }}>
-                {(parseFloat(payment.oldDebtUsd) !== 0 || amountUsd > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {currency === "USD" && (
                   <>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt" }}>
-                      <span>{t("Opening Balance")} (USD):</span>
-                      <span style={{ fontWeight: 500, fontFamily: "monospace" }}>${fmt(payment.oldDebtUsd)}</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>${fmt(payment.oldDebtUsd)}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#dc2626", fontWeight: 700 }}>
-                      <span>{t("Remaining")} (USD):</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                      <span>{t("Remaining")}:</span>
                       <span style={{ fontFamily: "monospace" }}>${fmt(payment.remainingUsd)}</span>
                     </div>
                   </>
                 )}
-                {(parseFloat(payment.oldDebtIqd) !== 0 || amountIqd > 0) && (
+                {currency === "IQD" && (
                   <>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt" }}>
-                      <span>{t("Opening Balance")} (IQD):</span>
-                      <span style={{ fontWeight: 500, fontFamily: "monospace" }}>{fmt(payment.oldDebtIqd)} IQD</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
+                      <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
+                      <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{fmt(payment.oldDebtIqd)} IQD</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#dc2626", fontWeight: 700 }}>
-                      <span>{t("Remaining")} (IQD):</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                      <span>{t("Remaining")}:</span>
                       <span style={{ fontFamily: "monospace" }}>{fmt(payment.remainingIqd)} IQD</span>
                     </div>
                   </>
