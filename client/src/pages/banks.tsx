@@ -39,18 +39,18 @@ export default function BanksPage() {
 
   const form = useForm<z.infer<typeof insertBankSchema>>({
     resolver: zodResolver(insertBankSchema),
-    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0" },
+    defaultValues: { name: "", oldDebtUsd: "0", oldDebtIqd: "0", note: "" },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0" });
+    form.reset({ name: "", oldDebtUsd: "0", oldDebtIqd: "0", note: "" });
     setOpen(true);
   };
 
   const openEditDialog = (item: Bank) => {
     setEditing(item);
-    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0" });
+    form.reset({ name: item.name, oldDebtUsd: item.oldDebtUsd || "0", oldDebtIqd: item.oldDebtIqd || "0", note: item.note || "" });
     setOpen(true);
   };
 
@@ -148,6 +148,13 @@ export default function BanksPage() {
                     </FormItem>
                   )} />
                 </div>
+                <FormField control={form.control} name="note" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Note')}</FormLabel>
+                    <FormControl><Input data-testid="input-bank-note" placeholder={t('Note')} {...field} value={field.value || ""} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-bank">
@@ -198,6 +205,7 @@ export default function BanksPage() {
                     <TableHead>{t('Bank Name')}</TableHead>
                     <TableHead>{t('Opening Balance USD')}</TableHead>
                     <TableHead>{t('Opening Balance IQD')}</TableHead>
+                    <TableHead>{t('Note')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -216,6 +224,9 @@ export default function BanksPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(item.oldDebtIqd) > 0 ? formatIQD(parseFloat(item.oldDebtIqd)) : "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.note || "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

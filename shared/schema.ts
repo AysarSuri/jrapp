@@ -31,6 +31,7 @@ export const transferOffices = pgTable("transfer_offices", {
   name: text("name").notNull().unique(),
   oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
   oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
+  note: text("note").default(""),
 });
 
 export const banks = pgTable("banks", {
@@ -38,6 +39,7 @@ export const banks = pgTable("banks", {
   name: text("name").notNull().unique(),
   oldDebtUsd: numeric("old_debt_usd").notNull().default("0"),
   oldDebtIqd: numeric("old_debt_iqd").notNull().default("0"),
+  note: text("note").default(""),
 });
 
 export const customsClearances = pgTable("customs_clearances", {
