@@ -198,8 +198,8 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
 
   const renderRow = (label: string, value: string, bold?: boolean, color?: string) => (
     <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", fontSize: "12pt" }}>
-      <span style={{ fontWeight: 600, color: "#555" }}>{label}:</span>
-      <span style={{ fontWeight: bold ? 700 : 500, color: color || "inherit", fontFamily: "monospace" }}>{value}</span>
+      <span style={{ fontWeight: 700, color: "#555" }}>{label}:</span>
+      <span style={{ fontWeight: 700, color: color || "inherit", fontFamily: "monospace" }}>{value}</span>
     </div>
   );
 
@@ -243,23 +243,23 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 16, fontSize: "12pt" }}>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
-                <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{payment.supplierName}</span>
+                <span style={{ fontWeight: 700, color: "#555" }}>{t("Supplier Name")}:</span>
+                <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.supplierName}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 600, color: "#555" }}>{t("Payment Source")}:</span>
-                <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{payment.paymentSourceName}</span>
+                <span style={{ fontWeight: 700, color: "#555" }}>{t("Payment Source")}:</span>
+                <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.paymentSourceName}</span>
               </div>
               {payment.reference && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Reference")}:</span>
-                  <span style={{ fontWeight: 500 }}>{payment.reference}</span>
+                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Reference")}:</span>
+                  <span style={{ fontWeight: 700 }}>{payment.reference}</span>
                 </div>
               )}
               {payment.note && (
                 <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
-                  <span style={{ fontWeight: 500 }}>{payment.note}</span>
+                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
+                  <span style={{ fontWeight: 700 }}>{payment.note}</span>
                 </div>
               )}
             </div>
