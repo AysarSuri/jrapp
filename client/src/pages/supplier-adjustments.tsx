@@ -532,12 +532,8 @@ export default function SupplierAdjustmentsPage() {
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>{t('Supplier')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Opening Balance USD')}</TableHead>
-                    <TableHead>{t('Opening Balance IQD')}</TableHead>
                     <TableHead>{t('Amount USD')}</TableHead>
                     <TableHead>{t('Amount IQD')}</TableHead>
-                    <TableHead>{t('Remaining USD')}</TableHead>
-                    <TableHead>{t('Remaining IQD')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Note')}</TableHead>
@@ -554,12 +550,8 @@ export default function SupplierAdjustmentsPage() {
                           {adj.type === "received" ? t("Received from Supplier") : t("Discount from Supplier")}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">{usd(adj.oldDebtUsd)}</TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">{parseFloat(adj.oldDebtIqd).toLocaleString()} IQD</TableCell>
                       <TableCell className="font-mono text-sm text-blue-600 font-bold">{usd(adj.amountUsd)}</TableCell>
                       <TableCell className="font-mono text-sm text-orange-600 font-bold">{parseFloat(adj.amountIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="font-mono text-sm">{usd(adj.remainingUsd)}</TableCell>
-                      <TableCell className="font-mono text-sm">{parseFloat(adj.remainingIqd).toLocaleString()} IQD</TableCell>
                       <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{adj.time}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{adj.note || "-"}</TableCell>
@@ -598,7 +590,7 @@ export default function SupplierAdjustmentsPage() {
                   ))}
                   {paginatedAdjustments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={13} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                         {t('No adjustments recorded yet')}
                       </TableCell>
                     </TableRow>
