@@ -132,6 +132,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
       return res.json();
     },
     enabled: !!invoiceId && open,
+    staleTime: 0,
   });
 
   const { data: units } = useUnits();

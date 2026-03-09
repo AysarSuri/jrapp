@@ -133,6 +133,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
       return res.json();
     },
     enabled: !!returnId && open,
+    staleTime: 0,
   });
 
   const resolveProductName = (item: ReturnItemData) => {

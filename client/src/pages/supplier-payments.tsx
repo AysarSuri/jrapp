@@ -150,6 +150,7 @@ export default function SupplierPaymentsPage() {
       return res.json();
     },
     enabled: !!supplierId && !!date && !!time,
+    staleTime: 0,
   });
 
   const handleDeletePayment = async () => {

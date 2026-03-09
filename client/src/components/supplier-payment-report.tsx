@@ -101,6 +101,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
       return res.json();
     },
     enabled: !!payment?.supplierId && !!payment?.date && open,
+    staleTime: 0,
   });
 
   const fieldColor = companyProfile?.primaryColor || "#333";

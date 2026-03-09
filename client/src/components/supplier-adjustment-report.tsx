@@ -99,6 +99,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
       return res.json();
     },
     enabled: !!adjustment?.supplierId && !!adjustment?.date && open,
+    staleTime: 0,
   });
 
   const fieldColor = companyProfile?.primaryColor || "#333";
