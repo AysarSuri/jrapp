@@ -740,10 +740,6 @@ export default function SupplierPaymentsPage() {
                     <TableHead>{t('IQD Amount')}</TableHead>
                     <TableHead>{t('Commission USD')}</TableHead>
                     <TableHead>{t('Commission IQD')}</TableHead>
-                    <TableHead>{t('Opening Balance USD')}</TableHead>
-                    <TableHead>{t('Opening Balance IQD')}</TableHead>
-                    <TableHead>{t('Remaining USD')}</TableHead>
-                    <TableHead>{t('Remaining IQD')}</TableHead>
                     <TableHead>{t('Reference')}</TableHead>
                     <TableHead>{t('Notes')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
@@ -772,18 +768,6 @@ export default function SupplierPaymentsPage() {
                       </TableCell>
                       <TableCell className="font-mono text-sm">
                         {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(p.oldDebtUsd) !== 0 ? usd(p.oldDebtUsd) : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(p.oldDebtIqd) !== 0 ? formatIQD(parseFloat(p.oldDebtIqd)) : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-emerald-600">
-                        {parseFloat(p.remainingUsd) !== 0 ? usd(p.remainingUsd) : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-emerald-600">
-                        {parseFloat(p.remainingIqd) !== 0 ? formatIQD(parseFloat(p.remainingIqd)) : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
@@ -822,7 +806,7 @@ export default function SupplierPaymentsPage() {
                   ))}
                   {paginatedPayments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={16} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
                         {t('No payments yet')}
                       </TableCell>
                     </TableRow>
