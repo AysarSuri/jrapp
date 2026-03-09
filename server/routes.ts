@@ -1264,31 +1264,46 @@ export async function registerRoutes(
     try {
       const suppliers = await db.select().from(clients).where(eq(clients.type, "supplier"));
       const allInvoices = await db.select().from(purchaseInvoices);
+      const allReturns = await db.select().from(purchaseReturns);
       const allPayments = await db.select().from(supplierPayments);
       const allAdjustments = await db.select().from(supplierAdjustments);
 
       const results = suppliers.map(supplier => {
         const sInvoices = allInvoices.filter(i => i.supplierId === supplier.id);
+        const sReturns = allReturns.filter(r => r.supplierId === supplier.id);
         const sPayments = allPayments.filter(p => p.supplierId === supplier.id);
         const sAdjustments = allAdjustments.filter(a => a.supplierId === supplier.id);
 
-        let totalDebitUsd = parseFloat(supplier.oldDebtUsd || "0");
-        let totalDebitIqd = parseFloat(supplier.oldDebtIqd || "0");
-        let totalCreditUsd = 0;
-        let totalCreditIqd = 0;
+        const oldDebtUsd = parseFloat(supplier.oldDebtUsd || "0");
+        const oldDebtIqd = parseFloat(supplier.oldDebtIqd || "0");
+
+        let totalDebitUsd = oldDebtUsd > 0 ? oldDebtUsd : 0;
+        let totalDebitIqd = oldDebtIqd > 0 ? oldDebtIqd : 0;
+        let totalCreditUsd = oldDebtUsd < 0 ? Math.abs(oldDebtUsd) : 0;
+        let totalCreditIqd = oldDebtIqd < 0 ? Math.abs(oldDebtIqd) : 0;
 
         for (const inv of sInvoices) {
           const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
           if (inv.currency === "USD") totalDebitUsd += amount;
           else totalDebitIqd += amount;
         }
+        for (const ret of sReturns) {
+          const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+          if (ret.currency === "USD") totalCreditUsd += amount;
+          else totalCreditIqd += amount;
+        }
         for (const pay of sPayments) {
           totalCreditUsd += parseFloat(pay.amountUsd || "0");
           totalCreditIqd += parseFloat(pay.amountIqd || "0");
         }
         for (const adj of sAdjustments) {
-          totalCreditUsd += parseFloat(adj.amountUsd || "0");
-          totalCreditIqd += parseFloat(adj.amountIqd || "0");
+          if (adj.type === "received") {
+            totalDebitUsd += parseFloat(adj.amountUsd || "0");
+            totalDebitIqd += parseFloat(adj.amountIqd || "0");
+          } else {
+            totalCreditUsd += parseFloat(adj.amountUsd || "0");
+            totalCreditIqd += parseFloat(adj.amountIqd || "0");
+          }
         }
 
         const remainingUsd = totalDebitUsd - totalCreditUsd;
