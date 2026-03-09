@@ -908,12 +908,12 @@ export async function registerRoutes(
       let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
 
       for (const inv of prevInvoices) {
-        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        const amount = parseFloat(inv.remaining || "0");
         if (inv.currency === "USD") openingBalanceUsd += amount;
         else openingBalanceIqd += amount;
       }
       for (const ret of prevReturns) {
-        const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+        const amount = parseFloat(ret.remaining || "0");
         if (ret.currency === "USD") openingBalanceUsd -= amount;
         else openingBalanceIqd -= amount;
       }
@@ -1154,12 +1154,12 @@ export async function registerRoutes(
       let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
 
       for (const inv of prevInvoices) {
-        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        const amount = parseFloat(inv.remaining || "0");
         if (inv.currency === "USD") openingBalanceUsd += amount;
         else openingBalanceIqd += amount;
       }
       for (const r of prevReturns) {
-        const amount = parseFloat(r.subtotal || "0") - parseFloat(r.discount || "0");
+        const amount = parseFloat(r.remaining || "0");
         if (r.currency === "USD") openingBalanceUsd -= amount;
         else openingBalanceIqd -= amount;
       }
@@ -1253,12 +1253,12 @@ export async function registerRoutes(
         let totalCreditIqd = oldDebtIqd < 0 ? Math.abs(oldDebtIqd) : 0;
 
         for (const inv of sInvoices) {
-          const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+          const amount = parseFloat(inv.remaining || "0");
           if (inv.currency === "USD") totalDebitUsd += amount;
           else totalDebitIqd += amount;
         }
         for (const ret of sReturns) {
-          const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+          const amount = parseFloat(ret.remaining || "0");
           if (ret.currency === "USD") totalCreditUsd += amount;
           else totalCreditIqd += amount;
         }
@@ -1296,7 +1296,7 @@ export async function registerRoutes(
         const lastPaymentIqd = sortedPayments.find(p => parseFloat(p.amountIqd || "0") > 0) || null;
 
         const calcInvAmount = (inv: typeof sortedInvoices[0] | null) =>
-          inv ? parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0") : null;
+          inv ? parseFloat(inv.remaining || "0") : null;
 
         return {
           id: supplier.id,
@@ -1350,12 +1350,12 @@ export async function registerRoutes(
         openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
 
         for (const inv of prevInvoices) {
-          const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+          const amount = parseFloat(inv.remaining || "0");
           if (inv.currency === "USD") openingBalanceUsd += amount;
           else openingBalanceIqd += amount;
         }
         for (const ret of prevReturns) {
-          const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+          const amount = parseFloat(ret.remaining || "0");
           if (ret.currency === "USD") openingBalanceUsd -= amount;
           else openingBalanceIqd -= amount;
         }
@@ -1430,7 +1430,7 @@ export async function registerRoutes(
       const entries: StatementEntry[] = [];
 
       for (const inv of invoices) {
-        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        const amount = parseFloat(inv.remaining || "0");
         entries.push({
           id: inv.id,
           date: inv.date,
@@ -1446,7 +1446,7 @@ export async function registerRoutes(
       }
 
       for (const ret of returns) {
-        const amount = parseFloat(ret.subtotal || "0") - parseFloat(ret.discount || "0");
+        const amount = parseFloat(ret.remaining || "0");
         entries.push({
           id: ret.id,
           date: ret.date,
@@ -2458,12 +2458,12 @@ export async function registerRoutes(
       let openingBalanceIqd = parseFloat(supplier.oldDebtIqd || "0");
 
       for (const inv of prevInvoices) {
-        const amount = parseFloat(inv.subtotal || "0") + parseFloat(inv.totalExpenses || "0") - parseFloat(inv.discount || "0");
+        const amount = parseFloat(inv.remaining || "0");
         if (inv.currency === "USD") openingBalanceUsd += amount;
         else openingBalanceIqd += amount;
       }
       for (const r of prevReturns) {
-        const amount = parseFloat(r.subtotal || "0") - parseFloat(r.discount || "0");
+        const amount = parseFloat(r.remaining || "0");
         if (r.currency === "USD") openingBalanceUsd -= amount;
         else openingBalanceIqd -= amount;
       }
