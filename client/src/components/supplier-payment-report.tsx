@@ -299,8 +299,8 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
               )}
             </div>
 
-            <div style={{ border: "2px solid #2563eb", borderRadius: 6, padding: 12, marginBottom: 16 }}>
-              <h3 style={{ color: "#2563eb", fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
+            <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 12, marginBottom: 16 }}>
+              <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Supplier Balance")}</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {currency === "USD" && (
                   <>
@@ -312,7 +312,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                       <span style={{ fontWeight: 700 }}>{t("Payment")}:</span>
                       <span style={{ fontWeight: 700, fontFamily: "monospace" }}>-${fmt(amountUsd)}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>${fmt((openingBalance?.openingBalanceUsd ?? 0) - amountUsd)}</span>
                     </div>
@@ -328,7 +328,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                       <span style={{ fontWeight: 700 }}>{t("Payment")}:</span>
                       <span style={{ fontWeight: 700, fontFamily: "monospace" }}>-{fmt(amountIqd)} IQD</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: "2px solid #2563eb", marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>{fmt((openingBalance?.openingBalanceIqd ?? 0) - amountIqd)} IQD</span>
                     </div>
