@@ -389,9 +389,9 @@ export default function SupplierStatementIqdPage() {
     const rows = entriesWithBalance.map((e, idx) => `
       <tr>
         <td>${idx + 1}</td>
+        <td>${e.description}</td>
         <td>${formatDate(e.date)}<br/><small>${e.time}</small></td>
         <td>${getTypeText(e.type)}</td>
-        <td>${e.description}</td>
         <td class="debit">${e.debitIqd > 0 ? fmt(e.debitIqd) + " IQD" : "-"}</td>
         <td class="credit">${e.creditIqd > 0 ? fmt(e.creditIqd) + " IQD" : "-"}</td>
         <td class="balance">${fmt(e.balanceIqd)} IQD</td>
@@ -433,9 +433,9 @@ export default function SupplierStatementIqdPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>${t("Invoice Number")}</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Invoice Number")}</th>
               <th>${t("Debit IQD")}</th>
               <th>${t("Credit IQD")}</th>
               <th>${t("Balance IQD")}</th>
@@ -444,12 +444,12 @@ export default function SupplierStatementIqdPage() {
           </thead>
           <tbody>
             <tr class="opening-row">
-              <td>-</td><td>-</td><td colspan="2">${t("Opening Balance")}</td>
+              <td>-</td><td>-</td><td>-</td><td>${t("Opening Balance")}</td>
               <td>-</td><td>-</td><td class="balance red">${fmt(openingBalanceVal)} IQD</td><td></td>
             </tr>
             ${rows}
             <tr class="total-row">
-              <td>-</td><td>-</td><td colspan="2">${t("Total")}</td>
+              <td>-</td><td>-</td><td>-</td><td>${t("Total")}</td>
               <td class="debit">${fmt(totalDebitIqd)} IQD</td>
               <td class="credit">${fmt(totalCreditIqd)} IQD</td>
               <td class="balance blue">${fmt(finalBalance)} IQD</td>
@@ -477,9 +477,9 @@ export default function SupplierStatementIqdPage() {
     const rows = entriesWithBalance.map((e, idx) => `
       <tr style="background:${idx % 2 === 0 ? "white" : "#f9f9f9"}">
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${idx + 1}</td>
+        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.description}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${formatDate(e.date)}<br/><small style="color:#999;font-size:7pt">${e.time}</small></td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${getTypeText(e.type)}</td>
-        <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt">${e.description}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#dc2626">${e.debitIqd > 0 ? fmt(e.debitIqd) + " IQD" : "-"}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;color:#16a34a">${e.creditIqd > 0 ? fmt(e.creditIqd) + " IQD" : "-"}</td>
         <td style="border:1px solid #ddd;padding:3px;text-align:center;font-size:9pt;font-weight:600">${fmt(e.balanceIqd)} IQD</td>
@@ -511,18 +511,18 @@ export default function SupplierStatementIqdPage() {
       <table style="width:100%;border-collapse:collapse;font-size:9pt">
         <thead><tr>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Invoice Number")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
-          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Invoice Number")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
         </tr></thead>
         <tbody>
-          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${fmt(openingBalanceVal)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          <tr style="background:#f5f5f5"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:500">${t("Opening Balance")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center;font-weight:700;color:#dc2626">${fmt(openingBalanceVal)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
           ${rows}
-          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td colspan="2" style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">${fmt(totalDebitIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">${fmt(totalCreditIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">${fmt(finalBalance)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
+          <tr style="background:#f0f0f0;font-weight:700;border-top:2px solid #333"><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">-</td><td style="border:1px solid #ddd;padding:3px;text-align:center">${t("Total")}</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#dc2626">${fmt(totalDebitIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#16a34a">${fmt(totalCreditIqd)} IQD</td><td style="border:1px solid #ddd;padding:3px;text-align:center;color:#2563eb">${fmt(finalBalance)} IQD</td><td style="border:1px solid #ddd;padding:3px"></td></tr>
         </tbody>
       </table>
     `;
@@ -739,9 +739,9 @@ export default function SupplierStatementIqdPage() {
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="text-center">#</TableHead>
+                        <TableHead>{t("Invoice Number")}</TableHead>
                         <TableHead>{t("Date")}</TableHead>
                         <TableHead>{t("Type")}</TableHead>
-                        <TableHead>{t("Note")}</TableHead>
                         <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit IQD")}</TableHead>
                         <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit IQD")}</TableHead>
                         <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance IQD")}</TableHead>
@@ -753,7 +753,8 @@ export default function SupplierStatementIqdPage() {
                       <TableRow className="bg-muted/30 font-medium italic">
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Opening Balance")}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>{t("Opening Balance")}</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center">-</TableCell>
                         <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{fmt(openingBalance)} IQD</TableCell>
@@ -763,6 +764,7 @@ export default function SupplierStatementIqdPage() {
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-iqd-${idx}`}>
                           <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-medium">{formatDate(entry.date)}</span>
@@ -770,7 +772,6 @@ export default function SupplierStatementIqdPage() {
                             </div>
                           </TableCell>
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
                           <TableCell className="text-center font-mono">
                             {entry.debitIqd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{fmt(entry.debitIqd)}</span> : "-"}
                           </TableCell>
@@ -819,7 +820,8 @@ export default function SupplierStatementIqdPage() {
                       <TableRow className="bg-muted/50 font-bold border-t-2">
                         <TableCell className="text-center">-</TableCell>
                         <TableCell>-</TableCell>
-                        <TableCell colSpan={2}>{t("Total")}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell>{t("Total")}</TableCell>
                         <TableCell className="text-center text-red-600 dark:text-red-400 font-mono">{fmt(totalDebitIqd)}</TableCell>
                         <TableCell className="text-center text-green-600 dark:text-green-400 font-mono">{fmt(totalCreditIqd)}</TableCell>
                         <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
