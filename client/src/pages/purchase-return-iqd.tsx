@@ -138,6 +138,7 @@ export default function PurchaseReturnIqdPage() {
         setAddress(returnData.address || "");
         setNote(returnData.note || "");
         setDiscount(returnData.discount || "");
+        setAmountPaid(returnData.amountPaid || "");
         setWarehouseId(returnData.warehouseId || null);
         setWarehouseName(returnData.warehouseName || "");
 
