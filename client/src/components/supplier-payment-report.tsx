@@ -317,6 +317,11 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>${fmt((openingBalance?.openingBalanceUsd ?? 0) - amountUsd)}</span>
                     </div>
+                    {((openingBalance?.openingBalanceUsd ?? 0) - amountUsd) !== 0 && (
+                      <div style={{ fontSize: "10pt", fontWeight: 700, color: ((openingBalance?.openingBalanceUsd ?? 0) - amountUsd) > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
+                        {t("Remaining with")} {((openingBalance?.openingBalanceUsd ?? 0) - amountUsd) > 0 ? (companyProfile?.name || "") : payment?.supplierName}
+                      </div>
+                    )}
                   </>
                 )}
                 {currency === "IQD" && (
@@ -333,6 +338,11 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>{fmt((openingBalance?.openingBalanceIqd ?? 0) - amountIqd)} IQD</span>
                     </div>
+                    {((openingBalance?.openingBalanceIqd ?? 0) - amountIqd) !== 0 && (
+                      <div style={{ fontSize: "10pt", fontWeight: 700, color: ((openingBalance?.openingBalanceIqd ?? 0) - amountIqd) > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
+                        {t("Remaining with")} {((openingBalance?.openingBalanceIqd ?? 0) - amountIqd) > 0 ? (companyProfile?.name || "") : payment?.supplierName}
+                      </div>
+                    )}
                   </>
                 )}
               </div>

@@ -382,6 +382,11 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                 <div style={{ fontSize: "9pt", fontWeight: 600, color: "#64748b", textAlign: isRtl ? "right" : "left", marginTop: 4, fontStyle: "italic", direction: isRtl ? "rtl" : "ltr" }}>
                   {numberToWords(Math.abs(totalBalance), i18n.language, currency === "USD" ? "USD" : "IQD")}
                 </div>
+                {totalBalance !== 0 && (
+                  <div style={{ fontSize: "10pt", fontWeight: 700, color: totalBalance > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
+                    {t("Remaining with")} {totalBalance > 0 ? (companyProfile?.name || "") : returnData.supplierName}
+                  </div>
+                )}
               </div>
 
               <div style={{

@@ -299,6 +299,11 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>${fmt(isReceived ? (openingBalance?.openingBalanceUsd ?? 0) + amountUsd : (openingBalance?.openingBalanceUsd ?? 0) - amountUsd)}</span>
                     </div>
+                    {(() => { const bal = isReceived ? (openingBalance?.openingBalanceUsd ?? 0) + amountUsd : (openingBalance?.openingBalanceUsd ?? 0) - amountUsd; return bal !== 0 ? (
+                      <div style={{ fontSize: "10pt", fontWeight: 700, color: bal > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
+                        {t("Remaining with")} {bal > 0 ? (companyProfile?.name || "") : adjustment?.supplierName}
+                      </div>
+                    ) : null; })()}
                   </>
                 )}
                 {amountIqd > 0 && amountUsd <= 0 && (
@@ -315,6 +320,11 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                       <span>{t("Total Balance")}:</span>
                       <span style={{ fontFamily: "monospace" }}>{fmt(isReceived ? (openingBalance?.openingBalanceIqd ?? 0) + amountIqd : (openingBalance?.openingBalanceIqd ?? 0) - amountIqd)} IQD</span>
                     </div>
+                    {(() => { const bal = isReceived ? (openingBalance?.openingBalanceIqd ?? 0) + amountIqd : (openingBalance?.openingBalanceIqd ?? 0) - amountIqd; return bal !== 0 ? (
+                      <div style={{ fontSize: "10pt", fontWeight: 700, color: bal > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
+                        {t("Remaining with")} {bal > 0 ? (companyProfile?.name || "") : adjustment?.supplierName}
+                      </div>
+                    ) : null; })()}
                   </>
                 )}
               </div>
