@@ -1020,8 +1020,15 @@ export async function registerRoutes(
         const remainingUsd = currentDebtUsd - usdAmount;
         const remainingIqd = currentDebtIqd - iqdAmount;
 
+        let receiptNumber = input.receiptNumber;
+        if (!receiptNumber) {
+          const [maxRow] = await tx.select({ maxId: sql<number>`COALESCE(MAX(id), 0)` }).from(supplierPayments);
+          receiptNumber = String((maxRow?.maxId || 0) + 1).padStart(6, "0");
+        }
+
         const [payment] = await tx.insert(supplierPayments).values({
           ...input,
+          receiptNumber,
           oldDebtUsd: String(currentDebtUsd),
           oldDebtIqd: String(currentDebtIqd),
           remainingUsd: String(remainingUsd),
@@ -1092,12 +1099,12 @@ export async function registerRoutes(
   app.patch('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { supplierId, supplierName, paymentSource, paymentSourceName, amountUsd, amountIqd, commissionUsd, commissionIqd, usdExchangeType, iqdExchangeType, usdEquivalentAmount, usdEquivalentCommission, iqdEquivalentAmount, iqdEquivalentCommission, note, reference, date, time } = req.body;
+      const { supplierId, supplierName, paymentSource, paymentSourceName, amountUsd, amountIqd, commissionUsd, commissionIqd, usdExchangeType, iqdExchangeType, usdEquivalentAmount, usdEquivalentCommission, iqdEquivalentAmount, iqdEquivalentCommission, note, reference, date, time, receiptNumber } = req.body;
       const [updated] = await db.update(supplierPayments).set({
         supplierId, supplierName, paymentSource, paymentSourceName,
         amountUsd, amountIqd, commissionUsd, commissionIqd,
         usdExchangeType, iqdExchangeType, usdEquivalentAmount, usdEquivalentCommission, iqdEquivalentAmount, iqdEquivalentCommission,
-        note, reference, date, time,
+        note, reference, date, time, receiptNumber,
       }).where(eq(supplierPayments.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Payment not found" });
       res.json(updated);
@@ -1467,7 +1474,7 @@ export async function registerRoutes(
           date: pay.date,
           time: pay.time || "00:00",
           type: "payment",
-          description: String(pay.id).padStart(6, "0"),
+          description: pay.receiptNumber || String(pay.id).padStart(6, "0"),
           debitUsd: 0,
           debitIqd: 0,
           creditUsd: parseFloat(pay.amountUsd || "0"),

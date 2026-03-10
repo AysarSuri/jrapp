@@ -194,6 +194,7 @@ export const purchaseInvoiceItems = pgTable("purchase_invoice_items", {
 
 export const supplierPayments = pgTable("supplier_payments", {
   id: serial("id").primaryKey(),
+  receiptNumber: text("receipt_number"),
   supplierId: integer("supplier_id").notNull(),
   supplierName: text("supplier_name").notNull(),
   paymentSource: text("payment_source").notNull(), // 'bank' | 'transfer_office'

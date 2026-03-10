@@ -64,6 +64,7 @@ export default function SupplierPaymentsPage() {
   const [usdEquivalentCommission, setUsdEquivalentCommission] = useState("");
   const [iqdEquivalentAmount, setIqdEquivalentAmount] = useState("");
   const [iqdEquivalentCommission, setIqdEquivalentCommission] = useState("");
+  const [receiptNumber, setReceiptNumber] = useState("");
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -99,6 +100,7 @@ export default function SupplierPaymentsPage() {
           setUsdEquivalentCommission(data.usdEquivalentCommission || "0");
           setIqdEquivalentAmount(data.iqdEquivalentAmount || "0");
           setIqdEquivalentCommission(data.iqdEquivalentCommission || "0");
+          setReceiptNumber(data.receiptNumber || "");
           setNote(data.note || "");
           setReference(data.reference || "");
           setDate(data.date || new Date().toISOString().split('T')[0]);
@@ -184,6 +186,7 @@ export default function SupplierPaymentsPage() {
     setUsdEquivalentCommission("");
     setIqdEquivalentAmount("");
     setIqdEquivalentCommission("");
+    setReceiptNumber("");
     setNote("");
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
@@ -221,6 +224,7 @@ export default function SupplierPaymentsPage() {
       usdEquivalentCommission: (isBank && usdExchangeType === "iqd") ? (usdEquivalentCommission || "0") : "0",
       iqdEquivalentAmount: (isBank && iqdExchangeType === "usd") ? (iqdEquivalentAmount || "0") : "0",
       iqdEquivalentCommission: (isBank && iqdExchangeType === "usd") ? (iqdEquivalentCommission || "0") : "0",
+      receiptNumber: receiptNumber || null,
       note: note || null,
       reference: reference || null,
       date,
@@ -296,7 +300,18 @@ export default function SupplierPaymentsPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+                <Input
+                  value={receiptNumber}
+                  onChange={(e) => setReceiptNumber(e.target.value)}
+                  placeholder={t('Auto')}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-receipt-number"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>{t('Supplier')}</Label>
                 <SupplierSearchSelect
@@ -724,6 +739,7 @@ export default function SupplierPaymentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Supplier')}</TableHead>
@@ -740,6 +756,7 @@ export default function SupplierPaymentsPage() {
                   {paginatedPayments.map((p, i) => (
                     <TableRow key={p.id} data-testid={`row-payment-${p.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold">{p.receiptNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                       <TableCell className="font-medium">{p.supplierName}</TableCell>
