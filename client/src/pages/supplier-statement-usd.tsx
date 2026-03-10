@@ -429,7 +429,7 @@ export default function SupplierStatementUsdPage() {
               <th>#</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Note")}</th>
+              <th>${t("Invoice Number")}</th>
               <th>${t("Debit USD")}</th>
               <th>${t("Credit USD")}</th>
               <th>${t("Balance USD")}</th>
@@ -506,7 +506,7 @@ export default function SupplierStatementUsdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
-          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Invoice Number")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit USD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit USD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance USD")}</th>

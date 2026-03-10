@@ -435,7 +435,7 @@ export default function SupplierStatementIqdPage() {
               <th>#</th>
               <th>${t("Date")}</th>
               <th>${t("Type")}</th>
-              <th>${t("Note")}</th>
+              <th>${t("Invoice Number")}</th>
               <th>${t("Debit IQD")}</th>
               <th>${t("Credit IQD")}</th>
               <th>${t("Balance IQD")}</th>
@@ -513,7 +513,7 @@ export default function SupplierStatementIqdPage() {
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Date")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Type")}</th>
-          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Note")}</th>
+          <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Invoice Number")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Debit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Credit IQD")}</th>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">${t("Balance IQD")}</th>
