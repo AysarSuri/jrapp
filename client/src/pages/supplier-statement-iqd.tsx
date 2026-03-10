@@ -412,11 +412,16 @@ export default function SupplierStatementIqdPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        ${companyHeaderHtml}
-        <div class="header">
-          <h1>${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
-          <p>${formatDate(new Date())}</p>
-          ${dateRangeHtml ? `<div class="date-range">${startDate || t("Beginning")} - ${endDate || t("Now")}</div>` : ""}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+          <div style="text-align:${isRtl ? 'right' : 'left'}">
+            <h1 style="font-size:16pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - IQD")}</h1>
+            <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+            ${dateRangeHtml ? `<p style="font-size:9pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
+            <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
+          </div>
         </div>
         <div class="entity-bar">${statement.supplier.name}</div>
         <div class="summary-cards">
@@ -486,11 +491,16 @@ export default function SupplierStatementIqdPage() {
     const tabLabel = getActiveTabLabel();
 
     tempDiv.innerHTML = `
-      ${companyHeaderInlineHtml}
-      <div style="text-align:center;margin-bottom:10px;border-bottom:2px solid ${fieldColor};padding-bottom:8px">
-        <h1 style="font-size:14pt;margin-bottom:2px">${t("Supplier Statement - IQD")} - ${tabLabel}</h1>
-        <p style="font-size:10pt;color:#666">${formatDate(new Date())}</p>
-        ${dateRangeHtml}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+        <div style="text-align:${isRtl ? 'right' : 'left'}">
+          <h1 style="font-size:14pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - IQD")}</h1>
+          <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+          ${dateRangeHtml}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
+          <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
+        </div>
       </div>
       <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
@@ -865,11 +875,16 @@ export default function SupplierStatementIqdPage() {
                       <style>${incomingPrintStyles}</style>
                     </head>
                     <body>
-                      ${companyHeaderHtml}
-                      <div class="header">
-                        <h1>${t("Incoming Report")} (IQD)</h1>
-                        <p>${formatDate(new Date())}</p>
-                        ${dateRangeHtml ? `<div class="date-range">${startDate || t("Beginning")} - ${endDate || t("Now")}</div>` : ""}
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+                        <div style="text-align:${isRtl ? 'right' : 'left'}">
+                          <h1 style="font-size:16pt;font-weight:800;color:${fieldColor};margin:0">${t("Incoming Report")} (IQD)</h1>
+                          <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+                          ${dateRangeHtml ? `<p style="font-size:9pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px">
+                          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
+                          <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
+                        </div>
                       </div>
                       <div class="entity-bar">${productsReport.supplier?.name || ""}</div>
                       <table>

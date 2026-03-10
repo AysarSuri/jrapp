@@ -406,17 +406,18 @@ export default function SupplierStatementUsdPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        <div class="report-banner">
-          <div class="banner-right">
-            <h1>${t("Supplier Statement - USD")}</h1>
-            <div class="supplier-name">${statement.supplier.name}</div>
-            <div class="date-range">${formatDate(new Date())}${dateRangeHtml ? ` | ${startDate || t("Beginning")} - ${endDate || t("Now")}` : ""}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+          <div style="text-align:${isRtl ? 'right' : 'left'}">
+            <h1 style="font-size:16pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - USD")}</h1>
+            <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+            ${dateRangeHtml ? `<p style="font-size:9pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
           </div>
-          <div class="banner-left">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}
-            <span class="company-name">${companyProfile?.name || ""}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
+            <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
           </div>
         </div>
+        <div class="entity-bar">${statement.supplier.name}</div>
         <div class="summary-cards">
           <div class="summary-card accent-red"><div class="label">${t("Opening Balance")}</div><div class="value red">${dollarFmt(openingBalanceVal)}</div></div>
           <div class="summary-card accent-green"><div class="label">${t("Total Payments USD")}</div><div class="value green">${dollarFmt(totalCreditUsd)}</div></div>
@@ -483,17 +484,18 @@ export default function SupplierStatementUsdPage() {
     const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #666;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
 
     tempDiv.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:14px 18px;border:2px solid ${fieldColor}30;border-radius:10px;background:linear-gradient(135deg,${fieldColor}05,${fieldColor}10)">
-        <div style="text-align:right">
-          <h1 style="font-size:14pt;font-weight:800;color:${fieldColor};margin-bottom:3px">${t("Supplier Statement - USD")}</h1>
-          <div style="font-size:12pt;font-weight:700;color:#333;margin-bottom:2px">${statement.supplier.name}</div>
-          <div style="font-size:9pt;color:#666">${formatDate(new Date())}${dateRangeHtml ? ` | ${startDate || t("Beginning")} - ${endDate || t("Now")}` : ""}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+        <div style="text-align:${isRtl ? 'right' : 'left'}">
+          <h1 style="font-size:14pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - USD")}</h1>
+          <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+          ${dateRangeHtml}
         </div>
-        <div style="display:flex;align-items:center;gap:10px;text-align:left">
-          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:8px" />` : ""}
+        <div style="display:flex;align-items:center;gap:10px">
+          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
           <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
         </div>
       </div>
+      <div style="background:${fieldColor};color:${textColor};text-align:center;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:600;font-size:11pt">${statement.supplier.name}</div>
       <div style="display:flex;gap:10px;margin-bottom:10px">
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Opening Balance")}</div><div style="font-size:12pt;font-weight:700;color:#dc2626">${dollarFmt(openingBalanceVal)}</div></div>
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments USD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${dollarFmt(totalCreditUsd)}</div></div>
@@ -869,17 +871,18 @@ export default function SupplierStatementUsdPage() {
                       <style>${incomingPrintStyles}</style>
                     </head>
                     <body>
-                      <div class="report-banner">
-                        <div class="banner-right">
-                          <h1>${t("Incoming Report")} (USD)</h1>
-                          <div class="supplier-name">${productsReport.supplier?.name || ""}</div>
-                          <div class="date-range">${formatDate(new Date())}${dateRangeHtml ? ` | ${startDate || t("Beginning")} - ${endDate || t("Now")}` : ""}</div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
+                        <div style="text-align:${isRtl ? 'right' : 'left'}">
+                          <h1 style="font-size:16pt;font-weight:800;color:${fieldColor};margin:0">${t("Incoming Report")} (USD)</h1>
+                          <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+                          ${dateRangeHtml ? `<p style="font-size:9pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
                         </div>
-                        <div class="banner-left">
-                          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" />` : ""}
-                          <span class="company-name">${companyProfile?.name || ""}</span>
+                        <div style="display:flex;align-items:center;gap:10px">
+                          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
+                          <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
                         </div>
                       </div>
+                      <div class="entity-bar">${productsReport.supplier?.name || ""}</div>
                       <table>
                         <thead><tr>
                           <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
