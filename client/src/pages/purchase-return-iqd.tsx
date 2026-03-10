@@ -428,6 +428,16 @@ export default function PurchaseReturnIqdPage() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
+              <AddressSearchSelect
+                addresses={addressesList || []}
+                value={address}
+                onValueChange={setAddress}
+                placeholder={t('Select Address')}
+                data-testid="select-purchase-return-iqd-address"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
               <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
                 const wh = warehousesList?.find(w => w.id === parseInt(v));
@@ -442,16 +452,6 @@ export default function PurchaseReturnIqdPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
-              <AddressSearchSelect
-                addresses={addressesList || []}
-                value={address}
-                onValueChange={setAddress}
-                placeholder={t('Select Address')}
-                data-testid="select-purchase-return-iqd-address"
-              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
