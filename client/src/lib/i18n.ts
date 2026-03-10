@@ -1627,7 +1627,7 @@ const resources = {
       "Purchase Invoice": "فاتورة شراء",
       "Payment": "دفعة",
       "Received": "واصل",
-      "Discount": "خصم الفاتورة",
+      "Discount": "خصم",
       "No transactions found": "لا توجد معاملات",
       "Total": "المجموع",
       "Supplier Adjustments": "تسويات الموردين",
