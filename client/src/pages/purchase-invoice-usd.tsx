@@ -519,7 +519,7 @@ export default function PurchaseInvoiceUsdPage() {
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); setHistoryOpen(false); }} data-testid={`btn-view-invoice-${inv.id}`}>
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setHistoryOpen(false); navigate(`/purchase-invoice-usd?edit=${inv.id}`); }} data-testid={`btn-edit-invoice-${inv.id}`}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setHistoryOpen(false); window.location.href = `/purchase-invoice-usd?edit=${inv.id}`; }} data-testid={`btn-edit-invoice-${inv.id}`}>
                                 <Pencil className="h-4 w-4 text-orange-600" />
                               </Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-invoice-${inv.id}`}>

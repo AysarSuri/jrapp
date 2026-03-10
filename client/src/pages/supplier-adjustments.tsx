@@ -570,7 +570,7 @@ export default function SupplierAdjustmentsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => navigate(`/supplier-adjustments?edit=${adj.id}`)}
+                            onClick={() => { window.location.href = `/supplier-adjustments?edit=${adj.id}`; }}
                             data-testid={`btn-edit-adjustment-${adj.id}`}
                           >
                             <Pencil className="h-4 w-4" />

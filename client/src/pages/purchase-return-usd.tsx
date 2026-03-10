@@ -736,7 +736,7 @@ export default function PurchaseReturnUsdPage() {
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-${ret.id}`}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => navigate(`/purchase-return-usd?edit=${ret.id}`)} data-testid={`btn-edit-return-${ret.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => { window.location.href = `/purchase-return-usd?edit=${ret.id}`; }} data-testid={`btn-edit-return-${ret.id}`}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteReturn({ id: ret.id, number: ret.returnNumber })} data-testid={`btn-delete-return-${ret.id}`}>

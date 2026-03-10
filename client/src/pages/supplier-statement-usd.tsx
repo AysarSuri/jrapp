@@ -1127,7 +1127,7 @@ export default function SupplierStatementUsdPage() {
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-vehicle-${idx}`}>
                                     <Eye className="h-3.5 w-3.5 text-blue-600" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/purchase-invoice-usd?edit=${row.invoiceId}`)} data-testid={`btn-edit-vehicle-${idx}`}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { window.location.href = `/purchase-invoice-usd?edit=${row.invoiceId}`; }} data-testid={`btn-edit-vehicle-${idx}`}>
                                     <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                   </Button>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: "purchase", description: row.invoiceNumber })} data-testid={`btn-delete-vehicle-${idx}`}>
