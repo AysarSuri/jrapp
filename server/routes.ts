@@ -1077,8 +1077,15 @@ export async function registerRoutes(
           remainingIqd = currentDebtIqd - iqdAmount;
         }
 
+        let receiptNumber = input.receiptNumber;
+        if (!receiptNumber) {
+          const [maxRow] = await tx.select({ maxId: sql<number>`COALESCE(MAX(id), 0)` }).from(supplierAdjustments);
+          receiptNumber = String((maxRow?.maxId || 0) + 1).padStart(6, "0");
+        }
+
         const [adj] = await tx.insert(supplierAdjustments).values({
           ...input,
+          receiptNumber,
           oldDebtUsd: String(currentDebtUsd),
           oldDebtIqd: String(currentDebtIqd),
           remainingUsd: String(remainingUsd),
@@ -1204,10 +1211,10 @@ export async function registerRoutes(
   app.patch('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { supplierId, supplierName, type, amountUsd, amountIqd, payTo, payToName, note, date, time } = req.body;
+      const { supplierId, supplierName, type, amountUsd, amountIqd, payTo, payToName, note, date, time, receiptNumber } = req.body;
       const [updated] = await db.update(supplierAdjustments).set({
         supplierId, supplierName, type, amountUsd, amountIqd,
-        payTo, payToName, note, date, time,
+        payTo, payToName, note, date, time, receiptNumber,
       }).where(eq(supplierAdjustments.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Adjustment not found" });
       res.json(updated);
@@ -1491,7 +1498,7 @@ export async function registerRoutes(
           date: adj.date,
           time: adj.time || "00:00",
           type: adj.type === "received" ? "adjustment_received" : "adjustment_discount",
-          description: String(adj.id).padStart(6, "0"),
+          description: adj.receiptNumber || String(adj.id).padStart(6, "0"),
           debitUsd: adj.type === "received" ? amtUsd : 0,
           debitIqd: adj.type === "received" ? amtIqd : 0,
           creditUsd: adj.type === "discount" ? amtUsd : 0,

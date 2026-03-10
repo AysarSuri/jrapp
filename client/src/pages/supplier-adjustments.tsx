@@ -55,6 +55,7 @@ export default function SupplierAdjustmentsPage() {
   const [adjustmentType, setAdjustmentType] = useState<string>("");
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
+  const [receiptNumber, setReceiptNumber] = useState("");
   const [note, setNote] = useState("");
   const [payTo, setPayTo] = useState<string>("");
   const [payToName, setPayToName] = useState("");
@@ -83,6 +84,7 @@ export default function SupplierAdjustmentsPage() {
           setAdjustmentType(data.type || "");
           setAmountUsd(data.amountUsd || "");
           setAmountIqd(data.amountIqd || "");
+          setReceiptNumber(data.receiptNumber || "");
           setNote(data.note || "");
           setDate(data.date || new Date().toISOString().split('T')[0]);
           setTime(data.time || new Date().toTimeString().slice(0, 5));
@@ -141,6 +143,7 @@ export default function SupplierAdjustmentsPage() {
     setAdjustmentType("");
     setAmountUsd("");
     setAmountIqd("");
+    setReceiptNumber("");
     setNote("");
     setPayTo("");
     setPayToName("");
@@ -166,6 +169,7 @@ export default function SupplierAdjustmentsPage() {
       type: adjustmentType,
       amountUsd: String(usd),
       amountIqd: String(iqd),
+      receiptNumber: receiptNumber || undefined,
       payTo: payTo || undefined,
       payToName: payToName || undefined,
       note: note || undefined,
@@ -248,7 +252,18 @@ export default function SupplierAdjustmentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+                <Input
+                  value={receiptNumber}
+                  onChange={(e) => setReceiptNumber(e.target.value)}
+                  placeholder={t('Auto')}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-adj-receipt-number"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>{t("Supplier")}</Label>
                 <SupplierSearchSelect
@@ -530,6 +545,7 @@ export default function SupplierAdjustmentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Supplier')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Amount USD')}</TableHead>
@@ -544,6 +560,7 @@ export default function SupplierAdjustmentsPage() {
                   {paginatedAdjustments.map((adj, i) => (
                     <TableRow key={adj.id} data-testid={`row-adjustment-${adj.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold">{adj.receiptNumber || "-"}</TableCell>
                       <TableCell className="font-medium">{adj.supplierName}</TableCell>
                       <TableCell>
                         <Badge variant={adj.type === "received" ? "default" : "secondary"}>

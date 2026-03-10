@@ -222,6 +222,7 @@ export const supplierPayments = pgTable("supplier_payments", {
 
 export const supplierAdjustments = pgTable("supplier_adjustments", {
   id: serial("id").primaryKey(),
+  receiptNumber: text("receipt_number"),
   supplierId: integer("supplier_id").notNull(),
   supplierName: text("supplier_name").notNull(),
   type: text("type").notNull(), // 'received' | 'discount'
