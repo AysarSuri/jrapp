@@ -72,7 +72,9 @@ export default function PurchaseInvoiceUsdPage() {
   const { data: invoicesList } = usePurchaseInvoices();
   const [, navigate] = useLocation();
 
-  const editId = new URLSearchParams(window.location.search).get("edit");
+  const urlEditId = new URLSearchParams(window.location.search).get("edit");
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
+  const editId = inlineEditId || urlEditId;
   const [isEditMode, setIsEditMode] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -301,6 +303,16 @@ export default function PurchaseInvoiceUsdPage() {
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
     setFormKey(k => k + 1);
+    setIsEditMode(false);
+    setInlineEditId(null);
+    if (urlEditId) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  };
+
+  const startEdit = (invoiceId: number) => {
+    setInlineEditId(String(invoiceId));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDeleteInvoice = async () => {
@@ -384,8 +396,6 @@ export default function PurchaseInvoiceUsdPage() {
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", editId] });
           resetForm();
-          setIsEditMode(false);
-          navigate("/purchase-invoice-usd");
         })
         .catch((err: any) => {
           toast({ title: t("Failed to update invoice"), description: err.message, variant: "destructive" });
@@ -971,7 +981,7 @@ export default function PurchaseInvoiceUsdPage() {
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-invoice-${inv.id}`}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => { window.location.href = `/purchase-invoice-usd?edit=${inv.id}`; }} data-testid={`btn-edit-invoice-${inv.id}`}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(inv.id)} data-testid={`btn-edit-invoice-${inv.id}`}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-invoice-${inv.id}`}>
