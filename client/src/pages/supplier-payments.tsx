@@ -568,17 +568,15 @@ export default function SupplierPaymentsPage() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Notes')}</Label>
-                <Textarea
-                  placeholder={t('Notes...')}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className="resize-none h-10"
-                  data-testid="input-payment-note"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>{t('Notes')}</Label>
+              <Textarea
+                placeholder={t('Notes...')}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="resize-none h-10"
+                data-testid="input-payment-note"
+              />
             </div>
           </CardContent>
         </Card>
