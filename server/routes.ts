@@ -1022,9 +1022,12 @@ export async function registerRoutes(
 
         let receiptNumber = input.receiptNumber;
         if (!receiptNumber) {
-          const [maxRow] = await tx.select({ maxId: sql<number>`COALESCE(MAX(id), 0)` }).from(supplierPayments);
-          receiptNumber = String((maxRow?.maxId || 0) + 1).padStart(6, "0");
+          const [maxRow] = await tx.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierPayments);
+          receiptNumber = String((parseInt(maxRow?.maxNum || "0", 10) || 0) + 1).padStart(6, "0");
         }
+
+        const [existing] = await tx.select({ id: supplierPayments.id }).from(supplierPayments).where(eq(supplierPayments.receiptNumber, receiptNumber));
+        if (existing) throw new Error("DUPLICATE_RECEIPT");
 
         const [payment] = await tx.insert(supplierPayments).values({
           ...input,
@@ -1041,6 +1044,9 @@ export async function registerRoutes(
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err instanceof Error && err.message === "DUPLICATE_RECEIPT") {
+        return res.status(400).json({ message: "Duplicate receipt number" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1079,9 +1085,12 @@ export async function registerRoutes(
 
         let receiptNumber = input.receiptNumber;
         if (!receiptNumber) {
-          const [maxRow] = await tx.select({ maxId: sql<number>`COALESCE(MAX(id), 0)` }).from(supplierAdjustments);
-          receiptNumber = String((maxRow?.maxId || 0) + 1).padStart(6, "0");
+          const [maxRow] = await tx.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierAdjustments);
+          receiptNumber = String((parseInt(maxRow?.maxNum || "0", 10) || 0) + 1).padStart(6, "0");
         }
+
+        const [existing] = await tx.select({ id: supplierAdjustments.id }).from(supplierAdjustments).where(eq(supplierAdjustments.receiptNumber, receiptNumber));
+        if (existing) throw new Error("DUPLICATE_RECEIPT");
 
         const [adj] = await tx.insert(supplierAdjustments).values({
           ...input,
@@ -1098,6 +1107,9 @@ export async function registerRoutes(
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err instanceof Error && err.message === "DUPLICATE_RECEIPT") {
+        return res.status(400).json({ message: "Duplicate receipt number" });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1197,6 +1209,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/supplier-payments/next-receipt-number', requireAuth, async (_req, res) => {
+    try {
+      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierPayments);
+      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
+      res.json({ receiptNumber: String(last + 1).padStart(6, "0") });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
@@ -1229,6 +1251,16 @@ export async function registerRoutes(
       await db.delete(supplierAdjustments).where(eq(supplierAdjustments.id, id));
       res.json({ success: true });
     } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/supplier-adjustments/next-receipt-number', requireAuth, async (_req, res) => {
+    try {
+      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierAdjustments);
+      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
+      res.json({ receiptNumber: String(last + 1).padStart(6, "0") });
+    } catch {
       res.status(500).json({ message: "Internal server error" });
     }
   });

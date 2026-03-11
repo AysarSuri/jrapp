@@ -83,6 +83,19 @@ export default function SupplierPaymentsPage() {
 
   const editId = new URLSearchParams(window.location.search).get("edit");
 
+  const fetchNextReceiptNumber = useCallback(() => {
+    fetch("/api/supplier-payments/next-receipt-number", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => setReceiptNumber(data.receiptNumber || ""))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!editId) {
+      fetchNextReceiptNumber();
+    }
+  }, [editId, fetchNextReceiptNumber]);
+
   useEffect(() => {
     if (editId) {
       fetch(`/api/supplier-payments/${editId}`, { credentials: "include" })
@@ -238,6 +251,7 @@ export default function SupplierPaymentsPage() {
         queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
         resetForm();
         setIsEditMode(false);
+        fetchNextReceiptNumber();
         navigate("/supplier-payments");
       } catch {
         toast({ title: t("Failed to update payment"), variant: "destructive" });
@@ -247,6 +261,7 @@ export default function SupplierPaymentsPage() {
         onSuccess: () => {
           toast({ title: t("Payment saved successfully") });
           resetForm();
+          fetchNextReceiptNumber();
         },
         onError: () => {
           toast({ title: t("Failed to save payment"), variant: "destructive" });
@@ -305,9 +320,8 @@ export default function SupplierPaymentsPage() {
                 <Label className="text-base font-bold">{t('Invoice Number')}</Label>
                 <Input
                   value={receiptNumber}
-                  onChange={(e) => setReceiptNumber(e.target.value)}
-                  placeholder={t('Auto')}
-                  className="h-11 text-base font-semibold"
+                  readOnly
+                  className="h-11 text-base font-semibold bg-muted cursor-not-allowed"
                   data-testid="input-receipt-number"
                 />
               </div>
