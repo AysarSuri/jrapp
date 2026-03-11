@@ -267,7 +267,7 @@ export default function SupplierAdjustmentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-bold">{t('Invoice Number')}</Label>
                 <Input
@@ -288,7 +288,9 @@ export default function SupplierAdjustmentsPage() {
                   data-testid="select-supplier"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("Adjustment Type")}</Label>
                 <Select value={adjustmentType} onValueChange={(val) => {
@@ -317,12 +319,8 @@ export default function SupplierAdjustmentsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            {adjustmentType !== "discount" && (
-              <>
-                <Separator />
-
+              {adjustmentType !== "discount" && (
                 <div className="space-y-2">
                   <Label>{t('Pay To')}</Label>
                   <Select value={payTo} onValueChange={selectPayTo}>
@@ -362,8 +360,8 @@ export default function SupplierAdjustmentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </>
-            )}
+              )}
+            </div>
 
             <Separator />
 
