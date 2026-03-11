@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDate, usd } from "@/lib/format-utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { playDeleteSound } from "@/lib/sounds";
+import { broadcastDataUpdate } from "@/lib/broadcast";
 import SupplierPaymentReport from "@/components/supplier-payment-report";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
@@ -176,6 +177,7 @@ export default function SupplierPaymentsPage() {
       playDeleteSound();
       toast({ title: t("Payment deleted successfully") });
       queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
+      broadcastDataUpdate("supplier-statement");
       setDeletePayment(null);
     } catch (err: any) {
       toast({ title: t("Failed to delete payment"), description: err.message, variant: "destructive" });
@@ -249,6 +251,7 @@ export default function SupplierPaymentsPage() {
         await apiRequest("PATCH", `/api/supplier-payments/${editId}`, payload);
         toast({ title: t("Payment updated successfully") });
         queryClient.invalidateQueries({ queryKey: ["/api/supplier-payments"] });
+        broadcastDataUpdate("supplier-statement");
         resetForm();
         setIsEditMode(false);
         fetchNextReceiptNumber();
@@ -260,6 +263,7 @@ export default function SupplierPaymentsPage() {
       createPayment(payload, {
         onSuccess: () => {
           toast({ title: t("Payment saved successfully") });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
           fetchNextReceiptNumber();
         },

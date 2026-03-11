@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
+import { broadcastDataUpdate } from "@/lib/broadcast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { fmtUsd, usd, formatDate } from "@/lib/format-utils";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
@@ -240,6 +241,7 @@ export default function PurchaseReturnUsdPage() {
       playDeleteSound();
       toast({ title: t("Return deleted successfully") });
       queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
+      broadcastDataUpdate("supplier-statement");
       setDeleteReturn(null);
     } catch (err: any) {
       toast({ title: t("Failed to delete return"), description: err.message, variant: "destructive" });
@@ -295,6 +297,7 @@ export default function PurchaseReturnUsdPage() {
         .then(() => {
           toast({ title: t("Purchase return updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-returns"] });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
           setIsEditMode(false);
           navigate("/purchase-return-usd");
@@ -306,6 +309,7 @@ export default function PurchaseReturnUsdPage() {
       createReturn({ returnData, items: itemsData }, {
         onSuccess: () => {
           toast({ title: t("Purchase return saved successfully") });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
         },
         onError: (err) => {

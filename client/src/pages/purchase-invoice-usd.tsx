@@ -31,6 +31,7 @@ import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { usd, formatDate } from "@/lib/format-utils";
+import { broadcastDataUpdate } from "@/lib/broadcast";
 import { useUnits } from "@/hooks/use-units";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
@@ -323,6 +324,7 @@ export default function PurchaseInvoiceUsdPage() {
       playDeleteSound();
       toast({ title: t("Invoice deleted successfully") });
       queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
+      broadcastDataUpdate("supplier-statement");
       setDeleteInvoice(null);
     } catch (err: any) {
       toast({ title: t("Failed to delete invoice"), description: err.message, variant: "destructive" });
@@ -395,6 +397,7 @@ export default function PurchaseInvoiceUsdPage() {
           toast({ title: t("Purchase invoice updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices"] });
           queryClient.invalidateQueries({ queryKey: ["/api/purchase-invoices", editId] });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
         })
         .catch((err: any) => {
@@ -407,6 +410,7 @@ export default function PurchaseInvoiceUsdPage() {
       createInvoice({ invoice: invoiceData, items: itemsData }, {
         onSuccess: () => {
           toast({ title: t("Purchase invoice saved successfully") });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
         },
         onError: (err) => {

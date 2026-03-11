@@ -27,6 +27,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
 import { playDeleteSound } from "@/lib/sounds";
+import { broadcastDataUpdate } from "@/lib/broadcast";
 import SupplierAdjustmentReport from "@/components/supplier-adjustment-report";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
@@ -142,6 +143,7 @@ export default function SupplierAdjustmentsPage() {
       playDeleteSound();
       toast({ title: t("Adjustment deleted successfully") });
       queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
+      broadcastDataUpdate("supplier-statement");
       setDeleteAdjustment(null);
     } catch (err: any) {
       toast({ title: t("Failed to delete adjustment"), description: err.message, variant: "destructive" });
@@ -195,6 +197,7 @@ export default function SupplierAdjustmentsPage() {
         .then(() => {
           toast({ title: t("Adjustment saved successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/supplier-adjustments"] });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
           setIsEditMode(false);
           fetchNextReceiptNumber();
@@ -207,6 +210,7 @@ export default function SupplierAdjustmentsPage() {
       createAdjustment(payload, {
         onSuccess: () => {
           toast({ title: t("Adjustment saved successfully") });
+          broadcastDataUpdate("supplier-statement");
           resetForm();
           fetchNextReceiptNumber();
         },

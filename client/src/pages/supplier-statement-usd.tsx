@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import { jsPDF } from "jspdf";
 import { usd, formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { onDataUpdate } from "@/lib/broadcast";
 import { useToast } from "@/hooks/use-toast";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
@@ -127,6 +128,14 @@ export default function SupplierStatementUsdPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    return onDataUpdate((type) => {
+      if (type === "supplier-statement" && selectedSupplierId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/supplier-statement/${selectedSupplierId}`] });
+      }
+    });
+  }, [selectedSupplierId]);
 
   const updateUrl = (supplierId: string, from: string, to: string, tab: string) => {
     const params = new URLSearchParams();
