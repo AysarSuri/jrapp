@@ -799,7 +799,7 @@ export default function SupplierStatementUsdPage() {
                                     <Eye className="h-3.5 w-3.5 text-blue-600" />
                                   </Button>
                                   {getEditRoute(entry) && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(getEditRoute(entry)!)} data-testid={`btn-edit-${entry.type}-${entry.id}`}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(getEditRoute(entry)!, "_blank")} data-testid={`btn-edit-${entry.type}-${entry.id}`}>
                                       <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                     </Button>
                                   )}
@@ -969,7 +969,7 @@ export default function SupplierStatementUsdPage() {
                                     }} data-testid={`btn-view-product-${idx}`}>
                                       <Eye className="h-3.5 w-3.5 text-blue-600" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(row.type === "purchase" ? `/purchase-invoice-usd?edit=${row.invoiceId}` : `/purchase-return-usd?edit=${row.invoiceId}`)} data-testid={`btn-edit-product-${idx}`}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(row.type === "purchase" ? `/purchase-invoice-usd?edit=${row.invoiceId}` : `/purchase-return-usd?edit=${row.invoiceId}`, "_blank")} data-testid={`btn-edit-product-${idx}`}>
                                       <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                     </Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: row.type, description: `${row.invoiceNumber} - ${row.productName}` })} data-testid={`btn-delete-product-${idx}`}>
@@ -1131,7 +1131,7 @@ export default function SupplierStatementUsdPage() {
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-vehicle-${idx}`}>
                                     <Eye className="h-3.5 w-3.5 text-blue-600" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { window.location.href = `/purchase-invoice-usd?edit=${row.invoiceId}`; }} data-testid={`btn-edit-vehicle-${idx}`}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(`/purchase-invoice-usd?edit=${row.invoiceId}`, "_blank")} data-testid={`btn-edit-vehicle-${idx}`}>
                                     <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                   </Button>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: "purchase", description: row.invoiceNumber })} data-testid={`btn-delete-vehicle-${idx}`}>

@@ -806,7 +806,7 @@ export default function SupplierStatementIqdPage() {
                                 <Eye className="h-3.5 w-3.5 text-blue-600" />
                               </Button>
                               {getEditRoute(entry) && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(getEditRoute(entry)!)} data-testid={`btn-edit-iqd-${entry.type}-${entry.id}`}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(getEditRoute(entry)!, "_blank")} data-testid={`btn-edit-iqd-${entry.type}-${entry.id}`}>
                                   <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                 </Button>
                               )}
@@ -974,7 +974,7 @@ export default function SupplierStatementIqdPage() {
                                     }} data-testid={`btn-view-product-iqd-${idx}`}>
                                       <Eye className="h-3.5 w-3.5 text-blue-600" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(row.type === "purchase" ? `/purchase-invoice-iqd?edit=${row.invoiceId}` : `/purchase-return-iqd?edit=${row.invoiceId}`)} data-testid={`btn-edit-product-iqd-${idx}`}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(row.type === "purchase" ? `/purchase-invoice-iqd?edit=${row.invoiceId}` : `/purchase-return-iqd?edit=${row.invoiceId}`, "_blank")} data-testid={`btn-edit-product-iqd-${idx}`}>
                                       <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                     </Button>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: row.type, description: `${row.invoiceNumber} - ${row.productName}` })} data-testid={`btn-delete-product-iqd-${idx}`}>
@@ -1136,7 +1136,7 @@ export default function SupplierStatementIqdPage() {
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReportInvoiceId(row.invoiceId); setReportOpen(true); }} data-testid={`btn-view-vehicle-iqd-${idx}`}>
                                     <Eye className="h-3.5 w-3.5 text-blue-600" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { window.location.href = `/purchase-invoice-iqd?edit=${row.invoiceId}`; }} data-testid={`btn-edit-vehicle-iqd-${idx}`}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(`/purchase-invoice-iqd?edit=${row.invoiceId}`, "_blank")} data-testid={`btn-edit-vehicle-iqd-${idx}`}>
                                     <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                   </Button>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteReportEntry({ id: row.invoiceId, type: "purchase", description: row.invoiceNumber })} data-testid={`btn-delete-vehicle-iqd-${idx}`}>
