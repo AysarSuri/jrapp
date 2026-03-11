@@ -480,6 +480,25 @@ export default function SupplierAdjustmentsPage() {
                     </p>
                   </div>
                 </div>
+                {(parseFloat(amountUsd || "0") > 0 || parseFloat(amountIqd || "0") > 0) && (
+                  <>
+                    <Separator />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t("Remaining USD")}</p>
+                        <p className="text-xl font-bold text-emerald-600">
+                          {usd(parseFloat(selectedSupplier.oldDebtUsd || "0") - parseFloat(amountUsd || "0"))}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t("Remaining IQD")}</p>
+                        <p className="text-xl font-bold text-emerald-600">
+                          {(parseFloat(selectedSupplier.oldDebtIqd || "0") - parseFloat(amountIqd || "0")).toLocaleString()} IQD
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}
