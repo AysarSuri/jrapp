@@ -399,26 +399,6 @@ export default function SupplierPaymentsPage() {
               </div>
             </div>
 
-            {selectedSupplier && (
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="pt-4 pb-4">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Supplier')}</p>
-                      <p className="font-bold">{selectedSupplier.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance')} USD</p>
-                      <p className="font-mono font-bold text-red-600">{usd(openingBalance?.openingBalanceUsd ?? 0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Opening Balance')} IQD</p>
-                      <p className="font-mono font-bold text-red-600">{formatIQD(openingBalance?.openingBalanceIqd ?? 0)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             <Separator />
 
