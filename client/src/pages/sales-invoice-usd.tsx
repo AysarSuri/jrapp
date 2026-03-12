@@ -127,6 +127,13 @@ export default function SalesInvoiceUsdPage() {
     }
   }, [nextNumber]);
 
+  useEffect(() => {
+    if (warehousesList?.length && !warehouseId) {
+      setWarehouseId(warehousesList[0].id);
+      setWarehouseName(warehousesList[0].name);
+    }
+  }, [warehousesList]);
+
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
@@ -243,8 +250,13 @@ export default function SalesInvoiceUsdPage() {
     setDriverMobile("");
     setVehicleNumber("");
     setInvoiceType("cash");
-    setWarehouseId(null);
-    setWarehouseName("");
+    if (warehousesList?.length) {
+      setWarehouseId(warehousesList[0].id);
+      setWarehouseName(warehousesList[0].name);
+    } else {
+      setWarehouseId(null);
+      setWarehouseName("");
+    }
     setDiscount("");
     setAmountPaid("");
     setItems([emptyItem()]);
