@@ -715,19 +715,19 @@ export default function SupplierStatementIqdPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="border-l-4 border-l-red-500">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Opening Balance")}</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-1">{t("Opening Balance")}</p>
                 <p className="text-xl font-bold text-red-600 dark:text-red-400" data-testid="text-opening-balance-iqd">{fmt(openingBalance)} IQD</p>
               </CardContent>
             </Card>
             <Card className="border-l-4 border-l-green-500">
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{t("Total Payments IQD")}</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-1">{t("Total Payments IQD")}</p>
                 <p className="text-xl font-bold text-green-600 dark:text-green-400">{fmt(totalCreditIqd)} IQD</p>
               </CardContent>
             </Card>
             <Card className={`border-l-4 ${finalBalance >= 0 ? 'border-l-green-500' : 'border-l-red-500'}`}>
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-muted-foreground mb-1">{finalBalanceLabel}</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-1">{finalBalanceLabel}</p>
                 <p className={`text-xl font-bold ${finalBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{fmt(Math.abs(finalBalance))} IQD</p>
               </CardContent>
             </Card>
@@ -747,52 +747,52 @@ export default function SupplierStatementIqdPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="text-center">#</TableHead>
-                        <TableHead>{t("Invoice Number")}</TableHead>
-                        <TableHead>{t("Date")}</TableHead>
-                        <TableHead>{t("Type")}</TableHead>
-                        <TableHead className="text-center bg-red-50 dark:bg-red-950/20">{t("Debit IQD")}</TableHead>
-                        <TableHead className="text-center bg-green-50 dark:bg-green-950/20">{t("Credit IQD")}</TableHead>
-                        <TableHead className="text-center bg-blue-50 dark:bg-blue-950/20">{t("Balance IQD")}</TableHead>
-                        <TableHead>{t("Note")}</TableHead>
-                        <TableHead className="text-center">{t("Actions")}</TableHead>
+                        <TableHead className="text-center text-sm font-bold">#</TableHead>
+                        <TableHead className="text-sm font-bold">{t("Invoice Number")}</TableHead>
+                        <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
+                        <TableHead className="text-sm font-bold">{t("Type")}</TableHead>
+                        <TableHead className="text-center text-sm font-bold bg-red-50 dark:bg-red-950/20">{t("Debit IQD")}</TableHead>
+                        <TableHead className="text-center text-sm font-bold bg-green-50 dark:bg-green-950/20">{t("Credit IQD")}</TableHead>
+                        <TableHead className="text-center text-sm font-bold bg-blue-50 dark:bg-blue-950/20">{t("Balance IQD")}</TableHead>
+                        <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
+                        <TableHead className="text-center text-sm font-bold">{t("Actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow className="bg-muted/30 font-medium italic">
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{t("Opening Balance")}</TableCell>
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400 font-bold">{fmt(openingBalance)} IQD</TableCell>
-                        <TableCell>-</TableCell>
+                        <TableCell className="text-center text-sm font-semibold">-</TableCell>
+                        <TableCell className="text-sm font-semibold">-</TableCell>
+                        <TableCell className="text-sm font-semibold">-</TableCell>
+                        <TableCell className="text-sm font-semibold">{t("Opening Balance")}</TableCell>
+                        <TableCell className="text-center text-sm font-semibold">-</TableCell>
+                        <TableCell className="text-center text-sm font-semibold">-</TableCell>
+                        <TableCell className="text-center text-red-600 dark:text-red-400 text-sm font-bold">{fmt(openingBalance)} IQD</TableCell>
+                        <TableCell className="text-sm font-semibold">-</TableCell>
                         <TableCell></TableCell>
                       </TableRow>
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-iqd-${idx}`}>
-                          <TableCell className="text-center text-muted-foreground font-mono text-xs">{idx + 1}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{entry.description}</TableCell>
+                          <TableCell className="text-center text-muted-foreground font-mono text-sm">{idx + 1}</TableCell>
+                          <TableCell className="max-w-[200px] truncate text-sm font-semibold">{entry.description}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-medium">{formatDate(entry.date)}</span>
+                              <span className="text-sm font-semibold">{formatDate(entry.date)}</span>
                               <span className="text-xs text-muted-foreground">{entry.time}</span>
                             </div>
                           </TableCell>
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
-                          <TableCell className="text-center font-mono">
-                            {entry.debitIqd > 0 ? <span className="text-red-600 dark:text-red-400 font-medium">{fmt(entry.debitIqd)}</span> : "-"}
+                          <TableCell className="text-center font-mono text-sm">
+                            {entry.debitIqd > 0 ? <span className="text-red-600 dark:text-red-400 font-semibold">{fmt(entry.debitIqd)}</span> : "-"}
                           </TableCell>
-                          <TableCell className="text-center font-mono">
-                            {entry.creditIqd > 0 ? <span className="text-green-600 dark:text-green-400 font-medium">{fmt(entry.creditIqd)}</span> : "-"}
+                          <TableCell className="text-center font-mono text-sm">
+                            {entry.creditIqd > 0 ? <span className="text-green-600 dark:text-green-400 font-semibold">{fmt(entry.creditIqd)}</span> : "-"}
                           </TableCell>
-                          <TableCell className="text-center font-mono font-bold">
+                          <TableCell className="text-center font-mono text-sm font-bold">
                             <span className={entry.balanceIqd >= 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
                               {fmt(entry.balanceIqd)} IQD
                             </span>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{entry.note || "-"}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground font-semibold max-w-[150px] truncate">{entry.note || "-"}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1 justify-center">
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
@@ -827,13 +827,13 @@ export default function SupplierStatementIqdPage() {
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold border-t-2">
-                        <TableCell className="text-center">-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>-</TableCell>
-                        <TableCell>{t("Total")}</TableCell>
-                        <TableCell className="text-center text-red-600 dark:text-red-400 font-mono">{fmt(totalDebitIqd)}</TableCell>
-                        <TableCell className="text-center text-green-600 dark:text-green-400 font-mono">{fmt(totalCreditIqd)}</TableCell>
-                        <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono">
+                        <TableCell className="text-center text-sm font-bold">-</TableCell>
+                        <TableCell className="text-sm font-bold">-</TableCell>
+                        <TableCell className="text-sm font-bold">-</TableCell>
+                        <TableCell className="text-sm font-bold">{t("Total")}</TableCell>
+                        <TableCell className="text-center text-red-600 dark:text-red-400 font-mono text-sm font-bold">{fmt(totalDebitIqd)}</TableCell>
+                        <TableCell className="text-center text-green-600 dark:text-green-400 font-mono text-sm font-bold">{fmt(totalCreditIqd)}</TableCell>
+                        <TableCell className="text-center text-blue-600 dark:text-blue-400 font-mono text-sm font-bold">
                           {fmt(finalBalance)} IQD
                         </TableCell>
                         <TableCell></TableCell>
