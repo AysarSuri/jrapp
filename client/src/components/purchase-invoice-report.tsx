@@ -425,7 +425,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", color: "#94a3b8", fontWeight: 700 }}>{idx + 1}</td>
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontFamily: "monospace", fontWeight: 700, color: "#334155" }}>{item.productCode}</td>
                     <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: isRtl ? "right" : "left", fontWeight: 700, color: "#1e293b" }}>{resolveProductName(item)}</td>
-                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#334155" }}>{item.quantity}</td>
+                    <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#334155" }}>{parseFloat(item.quantity || "0") + parseFloat(item.gift || "0")}</td>
                     {hasGifts && (
                       <td style={{ borderBottom: "1px solid #f1f5f9", padding: "6px 8px", textAlign: "center", fontWeight: 700, color: "#16a34a" }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>
                     )}
