@@ -42,6 +42,7 @@ interface InvoiceItem {
   productCode: string;
   productName: string;
   quantity: string;
+  gift: string;
   unit: string;
   weight: string;
   price: string;
@@ -53,6 +54,7 @@ const emptyItem = (): InvoiceItem => ({
   productCode: "",
   productName: "",
   quantity: "",
+  gift: "",
   unit: "",
   weight: "",
   price: "",
@@ -315,6 +317,7 @@ export default function SalesInvoiceIqdPage() {
       productCode: item.productCode,
       productName: item.productName,
       quantity: item.quantity,
+      gift: item.gift || "0",
       unit: item.unit,
       price: item.price,
       amount: item.amount,
@@ -683,6 +686,7 @@ export default function SalesInvoiceIqdPage() {
                   <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[70px] text-purple-200">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>
@@ -750,6 +754,18 @@ export default function SalesInvoiceIqdPage() {
                           <span className="text-lg font-bold">+</span>
                         </Button>
                       </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={item.gift}
+                        onChange={(e) => updateItem(index, "gift", e.target.value)}
+                        className="h-9 text-sm text-center font-mono w-16 text-purple-600"
+                        placeholder="0"
+                        data-testid={`input-sales-iqd-gift-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Select
