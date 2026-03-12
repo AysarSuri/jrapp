@@ -43,7 +43,7 @@ type SafeUser = {
 };
 
 export default function UserManagementPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -240,8 +240,9 @@ export default function UserManagementPage() {
       if (isNaN(d.getTime())) return "-";
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y} / ${m} / ${day}`;
+      const dy = String(d.getDate()).padStart(2, "0");
+      const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+      return isRtl ? `${y} / ${m} / ${dy}` : `${dy} / ${m} / ${y}`;
     } catch {
       return "-";
     }
@@ -254,9 +255,11 @@ export default function UserManagementPage() {
       if (isNaN(d.getTime())) return null;
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+      const dy = String(d.getDate()).padStart(2, "0");
       const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      return `${y} / ${m} / ${day} ${time}`;
+      const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+      const datePart = isRtl ? `${y} / ${m} / ${dy}` : `${dy} / ${m} / ${y}`;
+      return `${datePart} ${time}`;
     } catch {
       return null;
     }
