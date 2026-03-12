@@ -168,7 +168,7 @@ export default function PurchaseReturnIqdPage() {
 
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
-  const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0") + parseFloat(i.gift || "0"), 0);
+  const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - amountPaidVal;
 

@@ -349,7 +349,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{item.productCode}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left", fontWeight: 700 }}>{resolveProductName(item)}</td>
-                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{parseFloat(item.quantity || "0") + parseFloat(item.gift || "0")}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{item.quantity}</td>
                     {hasGifts && <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>}
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{resolveUnitName(item.unit, unitsList)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
