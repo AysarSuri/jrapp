@@ -326,7 +326,7 @@ export default function SupplierAdjustmentsPage() {
 
               {adjustmentType !== "discount" && (
                 <div className="space-y-2">
-                  <Label>{t('Pay To')}</Label>
+                  <Label>{t('Payment Source')}</Label>
                   <Select value={payTo} onValueChange={selectPayTo}>
                     <SelectTrigger data-testid="select-pay-to">
                       <SelectValue placeholder={t('Select bank or transfer office...')} />
