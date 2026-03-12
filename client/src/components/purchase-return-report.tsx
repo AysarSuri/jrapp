@@ -40,6 +40,7 @@ type ReturnItemData = {
   productCode: string;
   productName: string;
   quantity: string;
+  gift: string;
   unit: string;
   price: string;
   amount: string;
@@ -335,6 +336,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Product Code")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Product Name")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Quantity")}</th>
+                  <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Gift")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Unit")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Price")}</th>
                   <th style={{ background: fieldColor, color: textColor, padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: "12pt" }}>{t("Amount")}</th>
@@ -347,6 +349,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{item.productCode}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: isRtl ? "right" : "left", fontWeight: 700 }}>{resolveProductName(item)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{item.quantity}</td>
+                    <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{parseFloat(item.gift || "0") > 0 ? item.gift : "-"}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontWeight: 700 }}>{resolveUnitName(item.unit, unitsList)}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{currencyPrefix}{fmt(item.price)}{currencySuffix}</td>
                     <td style={{ border: "1px solid #ddd", padding: 4, textAlign: "center", fontFamily: "monospace", fontWeight: 700 }}>{currencyPrefix}{fmt(item.amount)}{currencySuffix}</td>

@@ -39,6 +39,7 @@ interface ReturnItem {
   productCode: string;
   productName: string;
   quantity: string;
+  gift: string;
   unit: string;
   price: string;
   amount: string;
@@ -49,6 +50,7 @@ const emptyItem = (): ReturnItem => ({
   productCode: "",
   productName: "",
   quantity: "",
+  gift: "0",
   unit: "",
   price: "",
   amount: "0",
@@ -148,6 +150,7 @@ export default function PurchaseReturnUsdPage() {
           productCode: item.productCode || "",
           productName: item.productName || "",
           quantity: String(item.quantity || ""),
+          gift: String(item.gift || "0"),
           unit: item.unit || "",
           price: String(item.price || ""),
           amount: String(item.amount || "0"),
@@ -287,6 +290,7 @@ export default function PurchaseReturnUsdPage() {
       productCode: item.productCode,
       productName: item.productName,
       quantity: item.quantity,
+      gift: item.gift || "0",
       unit: item.unit,
       price: item.price,
       amount: item.amount,
@@ -482,6 +486,7 @@ export default function PurchaseReturnUsdPage() {
                   <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[80px]">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
@@ -546,6 +551,14 @@ export default function PurchaseReturnUsdPage() {
                           data-testid={`button-purchase-return-qty-plus-${index}`}
                         >+</Button>
                       </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        value={item.gift}
+                        onChange={(e) => updateItem(index, "gift", e.target.value)}
+                        className="h-9 text-sm text-center w-16"
+                        data-testid={`input-purchase-return-gift-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Select

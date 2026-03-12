@@ -544,6 +544,7 @@ export const purchaseReturnItems = pgTable("purchase_return_items", {
   productCode: text("product_code").notNull(),
   productName: text("product_name").notNull(),
   quantity: numeric("quantity").notNull(),
+  gift: numeric("gift").notNull().default("0"),
   unit: text("unit").notNull(),
   price: numeric("price").notNull(),
   amount: numeric("amount").notNull(),
