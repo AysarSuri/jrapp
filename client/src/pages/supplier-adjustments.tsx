@@ -66,6 +66,7 @@ export default function SupplierAdjustmentsPage() {
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [searchNumber, setSearchNumber] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -233,6 +234,7 @@ export default function SupplierAdjustmentsPage() {
     if (historyFromDate && adjDate < historyFromDate) return false;
     if (historyToDate && adjDate > historyToDate) return false;
     if (searchNumber && !(adj.receiptNumber || "").toLowerCase().includes(searchNumber.toLowerCase())) return false;
+    if (typeFilter && typeFilter !== "all" && adj.type !== typeFilter) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredAdjustments.length / pageSize));
@@ -551,6 +553,18 @@ export default function SupplierAdjustmentsPage() {
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-adj-number" />
+              </div>
+              <div className="w-44">
+                <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger data-testid="select-filter-adj-type" className="h-9">
+                    <SelectValue placeholder={t('All Types')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Types')}</SelectItem>
+                    <SelectItem value="received">{t('Received from Supplier')}</SelectItem>
+                    <SelectItem value="discount">{t('Discount from Supplier')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
