@@ -1615,6 +1615,7 @@ export async function registerRoutes(
         unit: string;
         returnQuantity: number;
         price: number;
+        gift: number;
       };
 
       const rows: ReportRow[] = [];
@@ -1632,6 +1633,7 @@ export async function registerRoutes(
             unit: item.unit,
             returnQuantity: 0,
             price: parseFloat(item.price || "0"),
+            gift: parseFloat(item.gift || "0"),
           });
         }
       }
@@ -1649,6 +1651,7 @@ export async function registerRoutes(
             unit: item.unit,
             returnQuantity: parseFloat(item.quantity || "0"),
             price: parseFloat(item.price || "0"),
+            gift: parseFloat(item.gift || "0"),
           });
         }
       }
@@ -1658,6 +1661,7 @@ export async function registerRoutes(
       const totalQuantity = rows.reduce((s, r) => s + r.quantity, 0);
       const totalReturns = rows.reduce((s, r) => s + r.returnQuantity, 0);
       const totalAmount = rows.reduce((s, r) => s + (r.quantity * r.price) - (r.returnQuantity * r.price), 0);
+      const totalGifts = rows.reduce((s, r) => s + r.gift, 0);
 
       res.json({
         supplier,
@@ -1665,6 +1669,7 @@ export async function registerRoutes(
         totalQuantity,
         totalReturns,
         totalAmount,
+        totalGifts,
         currency: curr,
       });
     } catch (err) {

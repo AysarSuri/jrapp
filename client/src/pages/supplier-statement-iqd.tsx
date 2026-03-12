@@ -77,6 +77,7 @@ type ProductReportRow = {
   unit: string;
   returnQuantity: number;
   price: number;
+  gift: number;
 };
 
 type ProductReportResponse = {
@@ -85,6 +86,7 @@ type ProductReportResponse = {
   totalQuantity: number;
   totalReturns: number;
   totalAmount: number;
+  totalGifts: number;
   currency: string;
 };
 
@@ -905,6 +907,7 @@ export default function SupplierStatementIqdPage() {
                       <td>${row.quantity > 0 ? row.quantity : "-"}</td>
                       <td>${row.unit}</td>
                       <td class="return-col">${row.returnQuantity > 0 ? row.returnQuantity : "-"}</td>
+                      <td style="color:#9333ea;font-weight:700">${row.gift > 0 ? row.gift : "-"}</td>
                       <td>${fmt(row.price)} IQD</td>
                       <td class="amount">${fmt(purchaseAmount)} IQD</td>
                     </tr>`;
@@ -933,7 +936,7 @@ export default function SupplierStatementIqdPage() {
                       <table>
                         <thead><tr>
                           <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
-                          <th>${t("Quantity")}</th><th>${t("Unit")}</th><th>${t("Return")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
+                          <th>${t("Quantity")}</th><th>${t("Unit")}</th><th>${t("Return")}</th><th style="color:#9333ea">${t("Gift")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
                         </tr></thead>
                         <tbody>
                           ${rows}
@@ -941,6 +944,7 @@ export default function SupplierStatementIqdPage() {
                             <td colspan="5">${t("Total")}</td>
                             <td>${productsReport.totalQuantity}</td><td></td>
                             <td class="return-col">${productsReport.totalReturns}</td>
+                            <td style="color:#9333ea;font-weight:700">${productsReport.totalGifts || 0}</td>
                             <td>${fmt(productsReport.totalAmount)} IQD</td>
                             <td class="amount">${fmt(grandTotalAmount)} IQD</td>
                           </tr>
@@ -949,6 +953,7 @@ export default function SupplierStatementIqdPage() {
                       <div class="summary-footer">
                         <div>${t("Total Quantity")} - ${t("Returns")}: <span>${(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
                         <div>${t("Total Amount")}: <span>${fmt(grandTotalAmount)} IQD</span></div>
+                        ${(productsReport.totalGifts || 0) > 0 ? `<div>${t("Total Gifts")}: <span style="color:#9333ea">${productsReport.totalGifts}</span></div>` : ''}
                       </div>
                     </body></html>`);
                   printWindow.document.close();
@@ -981,6 +986,7 @@ export default function SupplierStatementIqdPage() {
                             <TableHead className="text-center">{t("Quantity")}</TableHead>
                             <TableHead>{t("Unit")}</TableHead>
                             <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
+                            <TableHead className="text-center text-purple-600">{t("Gift")}</TableHead>
                             <TableHead className="text-center">{t("Purchase Price")}</TableHead>
                             <TableHead className="text-center text-blue-600">{t("Purchase Amount")}</TableHead>
                             <TableHead className="text-center">{t("Actions")}</TableHead>
@@ -1005,6 +1011,7 @@ export default function SupplierStatementIqdPage() {
                                 <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
                                 <TableCell>{row.unit}</TableCell>
                                 <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono text-purple-600 font-bold">{row.gift > 0 ? row.gift : "-"}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(row.price)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(purchaseAmount)} IQD</TableCell>
                                 <TableCell className="text-center">
@@ -1034,6 +1041,7 @@ export default function SupplierStatementIqdPage() {
                                 <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
                                 <TableCell></TableCell>
                                 <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
+                                <TableCell className="text-center font-mono text-purple-600">{productsReport.totalGifts || 0}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(productsReport.totalAmount)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(grandTotal)} IQD</TableCell>
                                 <TableCell></TableCell>
