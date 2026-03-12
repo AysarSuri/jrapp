@@ -18,7 +18,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     body {
       font-family: 'Tajawal', 'Noto Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       padding: 24px;
-      font-size: 10pt;
+      font-size: 11pt;
       direction: ${opts.direction};
       color: #1a1a2e;
       background: #fff;
@@ -138,11 +138,11 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       background: linear-gradient(135deg, ${accent}, ${accent}dd);
       color: ${accentText};
       text-align: center;
-      padding: 8px 16px;
+      padding: 9px 16px;
       border-radius: 8px;
       margin-bottom: 14px;
       font-weight: 700;
-      font-size: 12pt;
+      font-size: 13pt;
       letter-spacing: 0.3px;
       box-shadow: 0 2px 8px ${accent}33;
     }
@@ -175,7 +175,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     .summary-card.accent-blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
     .summary-card.accent-orange::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .summary-card .label {
-      font-size: 7.5pt;
+      font-size: 8.5pt;
       color: #64748b;
       font-weight: 500;
       text-transform: uppercase;
@@ -183,7 +183,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       margin-bottom: 4px;
     }
     .summary-card .value {
-      font-size: 13pt;
+      font-size: 14pt;
       font-weight: 800;
     }
     .red { color: #dc2626; }
@@ -195,7 +195,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      font-size: 9pt;
+      font-size: 10pt;
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid #e2e8f0;
@@ -204,10 +204,10 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     th {
       background: linear-gradient(145deg, ${accent}, ${accent}ee);
       color: ${accentText};
-      padding: 7px 6px;
+      padding: 8px 7px;
       text-align: center;
-      font-weight: 600;
-      font-size: 8.5pt;
+      font-weight: 700;
+      font-size: 10pt;
       white-space: nowrap;
       letter-spacing: 0.2px;
       text-transform: uppercase;
@@ -216,12 +216,12 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     th:last-child { border-radius: ${opts.direction === "rtl" ? "8px 0 0 0" : "0 8px 0 0"}; }
     td {
       border-bottom: 1px solid #f1f5f9;
-      padding: 5px 6px;
+      padding: 6px 7px;
       text-align: center;
-      font-size: 9pt;
+      font-size: 10pt;
       color: #334155;
     }
-    td small { color: #94a3b8; font-size: 7pt; }
+    td small { color: #94a3b8; font-size: 8pt; }
     tr:nth-child(even) { background: #f8fafc; }
     tr:hover { background: #f1f5f9; }
     .debit { color: #dc2626; font-weight: 600; }
@@ -236,8 +236,8 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       border-top: 2px solid ${accent};
     }
     .total-row td {
-      padding: 8px 6px;
-      font-size: 9.5pt;
+      padding: 8px 7px;
+      font-size: 10.5pt;
       color: #1e293b;
       border-bottom: none;
     }
@@ -250,7 +250,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       margin-top: 14px;
       display: flex;
       gap: 24px;
-      font-size: 10pt;
+      font-size: 11pt;
       padding: 10px 16px;
       background: linear-gradient(145deg, #f8fafc, #f1f5f9);
       border-radius: 8px;
@@ -263,7 +263,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       grid-template-columns: 1fr 1fr;
       gap: 4px 24px;
       margin-bottom: 14px;
-      font-size: 10pt;
+      font-size: 11pt;
     }
     .info-item {
       display: flex;
@@ -271,7 +271,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       padding: 4px 0;
       border-bottom: 1px solid #f1f5f9;
     }
-    .info-label { font-weight: 600; color: #64748b; font-size: 9pt; }
+    .info-label { font-weight: 600; color: #64748b; font-size: 10pt; }
     .info-value { font-weight: 500; color: #1e293b; }
 
     .summary-section { margin-top: 14px; }
@@ -294,12 +294,12 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       display: flex;
       justify-content: space-between;
       padding: 3px 0;
-      font-size: 9.5pt;
+      font-size: 10.5pt;
       color: #334155;
     }
     .summary-row.total {
       font-weight: 800;
-      font-size: 11pt;
+      font-size: 12pt;
       border-top: 2px solid ${accent};
       padding-top: 6px;
       margin-top: 6px;
@@ -323,11 +323,11 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
       display: flex;
       justify-content: space-between;
       padding: 3px 0;
-      font-size: 9.5pt;
+      font-size: 10.5pt;
     }
     .debt-row.final {
       font-weight: 800;
-      font-size: 12pt;
+      font-size: 13pt;
       color: #dc2626;
       border-top: 2px solid #dc2626;
       padding-top: 6px;

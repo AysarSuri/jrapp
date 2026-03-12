@@ -408,7 +408,7 @@ export default function SupplierStatementIqdPage() {
       </tr>
     `).join("");
 
-    const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+    const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
     const tabLabel = getActiveTabLabel();
 
     const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
@@ -423,13 +423,13 @@ export default function SupplierStatementIqdPage() {
       <body>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid ${fieldColor}">
           <div style="text-align:${isRtl ? 'right' : 'left'}">
-            <h1 style="font-size:16pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - IQD")}</h1>
-            <p style="font-size:10pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
-            ${dateRangeHtml ? `<p style="font-size:9pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
+            <h1 style="font-size:18pt;font-weight:800;color:${fieldColor};margin:0">${t("Supplier Statement - IQD")}</h1>
+            <p style="font-size:11pt;color:#666;margin:4px 0 0 0">${formatDate(new Date())}</p>
+            ${dateRangeHtml ? `<p style="font-size:10pt;color:#444;margin:2px 0 0 0">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : ""}
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:55px;height:55px;object-fit:contain;border-radius:6px" />` : ""}
-            <span style="font-size:14pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
+            <span style="font-size:16pt;font-weight:800;color:${fieldColor}">${companyProfile?.name || ""}</span>
           </div>
         </div>
         <div class="entity-bar">${statement.supplier.name}</div>
@@ -861,7 +861,7 @@ export default function SupplierStatementIqdPage() {
                   if (!productsReport) return;
                   const printWindow = window.open("", "_blank", "width=794,height=1123");
                   if (!printWindow) return;
-                  const dateRangeHtml = startDate || endDate ? `<p style="font-size: 9pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
+                  const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
                   const rows = productsReport.rows.map((row, idx) => {
                     const purchaseAmount = (row.quantity - row.returnQuantity) * row.price;
                     return `<tr>
