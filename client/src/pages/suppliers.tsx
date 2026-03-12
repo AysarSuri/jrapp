@@ -25,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
 const supplierSchema = insertClientSchema.extend({
@@ -155,7 +155,7 @@ export default function SuppliersPage() {
     const companyLogo = companyProfile?.logo || "";
     const companyAddress = companyProfile?.address || "";
     const companyMobile = companyProfile?.mobile1 || "";
-    const today = new Date().toLocaleDateString("en-GB");
+    const today = formatDate(new Date());
     const title = t('Suppliers');
 
     const visibleSuppliers = filtered.filter(s => !s.hidden);

@@ -234,9 +234,14 @@ export default function UserManagementPage() {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedUsers = filteredUsers.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const formatDate = (dateStr: string) => {
+  const fmtDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString();
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "-";
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y} / ${m} / ${day}`;
     } catch {
       return "-";
     }
@@ -246,7 +251,12 @@ export default function UserManagementPage() {
     if (!dateStr) return null;
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (isNaN(d.getTime())) return null;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `${y} / ${m} / ${day} ${time}`;
     } catch {
       return null;
     }
@@ -693,7 +703,7 @@ export default function UserManagementPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
+                        <TableCell className="font-mono text-sm text-muted-foreground">{fmtDate(u.createdAt)}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button

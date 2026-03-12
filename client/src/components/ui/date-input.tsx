@@ -11,18 +11,11 @@ interface DateInputProps {
   disabled?: boolean;
 }
 
-function isRtlLang(lang: string): boolean {
-  return lang === "ar" || lang === "ckb";
-}
-
-function formatToDisplay(isoDate: string, lang: string): string {
+function formatToDisplay(isoDate: string): string {
   if (!isoDate) return "";
   const parts = isoDate.split("-");
   if (parts.length !== 3) return isoDate;
-  if (isRtlLang(lang)) {
-    return `${parts[0]}/${parts[1]}/${parts[2]}`;
-  }
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return `${parts[0]} / ${parts[1]} / ${parts[2]}`;
 }
 
 function isValidDate(day: number, month: number, year: number): boolean {
@@ -33,49 +26,25 @@ function isValidDate(day: number, month: number, year: number): boolean {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-function parseFromDisplay(displayDate: string, lang: string): string {
+function parseFromDisplay(displayDate: string): string {
   const cleaned = displayDate.replace(/[^0-9/]/g, "");
   const parts = cleaned.split("/");
 
-  if (isRtlLang(lang)) {
-    if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      if (!isValidDate(day, month, year)) return "";
-      return `${parts[0]}-${parts[1]}-${parts[2]}`;
-    }
-  } else {
-    if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      if (!isValidDate(day, month, year)) return "";
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
+  if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    if (!isValidDate(day, month, year)) return "";
+    return `${parts[0]}-${parts[1]}-${parts[2]}`;
   }
   return "";
 }
 
-function getPlaceholder(lang: string): string {
-  return isRtlLang(lang) ? "yyyy/mm/dd" : "dd/mm/yyyy";
-}
-
-function autoSlash(raw: string, lang: string): string {
-  if (isRtlLang(lang)) {
-    if (raw.length === 4 && !raw.includes("/")) {
-      return raw + "/";
-    } else if (raw.length === 7 && raw.charAt(4) === "/" && !raw.substring(5).includes("/")) {
-      return raw + "/";
-    }
-  } else {
-    if (raw.length === 2 && !raw.includes("/")) {
-      return raw + "/";
-    } else if (raw.length === 5 && raw.charAt(2) === "/" && !raw.substring(3).includes("/")) {
-      return raw + "/";
-    }
-  }
-  return raw;
+function autoFormat(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)} / ${digits.slice(4)}`;
+  return `${digits.slice(0, 4)} / ${digits.slice(4, 6)} / ${digits.slice(6, 8)}`;
 }
 
 const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
@@ -83,20 +52,20 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
     const { i18n } = useTranslation();
     const lang = i18n.language;
     const hiddenRef = React.useRef<HTMLInputElement>(null);
-    const [displayValue, setDisplayValue] = React.useState(() => formatToDisplay(value, lang));
+    const [displayValue, setDisplayValue] = React.useState(() => formatToDisplay(value));
 
     React.useEffect(() => {
-      setDisplayValue(formatToDisplay(value, lang));
-    }, [value, lang]);
+      setDisplayValue(formatToDisplay(value));
+    }, [value]);
 
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let raw = e.target.value.replace(/[^0-9/]/g, "");
-      raw = autoSlash(raw, lang);
-      if (raw.length > 10) raw = raw.substring(0, 10);
+      let raw = e.target.value;
+      const formatted = autoFormat(raw);
+      if (formatted.length > 14) return;
 
-      setDisplayValue(raw);
+      setDisplayValue(formatted);
 
-      const iso = parseFromDisplay(raw, lang);
+      const iso = parseFromDisplay(formatted);
       if (iso) {
         onChange({ target: { value: iso } });
       }
@@ -104,7 +73,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
 
     const handleCalendarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const iso = e.target.value;
-      setDisplayValue(formatToDisplay(iso, lang));
+      setDisplayValue(formatToDisplay(iso));
       onChange({ target: { value: iso } });
     };
 
@@ -115,16 +84,16 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
         <input
           type="text"
           inputMode="numeric"
-          placeholder={getPlaceholder(lang)}
+          placeholder="yyyy / mm / dd"
           value={displayValue}
           onChange={handleTextChange}
           disabled={disabled}
           data-testid={testId}
           className={cn(
-            "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-base font-bold shadow-sm transition-all duration-200 ring-offset-background placeholder:text-muted-foreground/60 placeholder:font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50 pr-9"
+            "flex h-10 w-full rounded-lg border border-input bg-background ps-10 pe-3 py-2 text-base font-bold shadow-sm transition-all duration-200 ring-offset-background placeholder:text-muted-foreground/60 placeholder:font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
           )}
         />
-        <div className="absolute right-0 top-0 h-full w-9 flex items-center justify-center">
+        <div className="absolute start-0 top-0 h-full w-9 flex items-center justify-center">
           <CalendarDays className="h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             ref={hiddenRef}

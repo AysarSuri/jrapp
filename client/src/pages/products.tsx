@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { formatDate } from "@/lib/format-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -210,7 +211,7 @@ export default function ProductsPage() {
     const companyLogo = companyProfile?.logo || "";
     const companyAddress = companyProfile?.address || "";
     const companyMobile = companyProfile?.mobile1 || "";
-    const today = new Date().toLocaleDateString("en-GB");
+    const today = formatDate(new Date());
 
     const categoryCounts = new Map<string, number>();
     filtered.forEach(p => categoryCounts.set(p.category, (categoryCounts.get(p.category) || 0) + 1));

@@ -19,11 +19,7 @@ export function formatDate(date: Date | string | number | null | undefined): str
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  const lang = i18n.language;
-  if (lang === "ar" || lang === "ckb") {
-    return `${year}/${month}/${day}`;
-  }
-  return `${day}/${month}/${year}`;
+  return `${year} / ${month} / ${day}`;
 }
 
 export function usd(n: number | string): string {
