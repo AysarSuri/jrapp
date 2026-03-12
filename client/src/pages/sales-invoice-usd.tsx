@@ -194,7 +194,7 @@ export default function SalesInvoiceUsdPage() {
 
   const handleBarcodeScan = useCallback((barcode: string) => {
     if (!barcode.trim()) return;
-    const product = products?.find(p => p.barcode === barcode.trim());
+    const product = products?.find(p => p.barcode === barcode.trim() && !p.hidden);
     if (!product) {
       toast({ title: t("Product not found for barcode") + ": " + barcode, variant: "destructive" });
       setBarcodeInput("");
@@ -681,7 +681,7 @@ export default function SalesInvoiceUsdPage() {
                   <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[70px] text-purple-200">{t('Gift')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[70px]">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>

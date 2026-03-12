@@ -33,8 +33,10 @@ export default function ProductSearchSelect({
   const selectedProduct = value ? products.find(p => p.id === value) : null;
   const displayText = selectedProduct ? getProductName(selectedProduct) : "";
 
+  const visibleProducts = products.filter(p => !p.hidden);
+
   const filtered = search.trim()
-    ? products.filter(p => {
+    ? visibleProducts.filter(p => {
         const q = search.toLowerCase();
         return (
           getProductName(p).toLowerCase().includes(q) ||
@@ -43,7 +45,7 @@ export default function ProductSearchSelect({
           p.name.toLowerCase().includes(q)
         );
       })
-    : products;
+    : visibleProducts;
 
   const updatePosition = useCallback(() => {
     if (containerRef.current) {
