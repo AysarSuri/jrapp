@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building, ArrowLeft,
-  Eye, Pencil, Trash2, ChevronLeft, ChevronRight,
+  Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +65,7 @@ export default function SupplierAdjustmentsPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [searchNumber, setSearchNumber] = useState("");
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -231,6 +232,7 @@ export default function SupplierAdjustmentsPage() {
     const adjDate = typeof adj.date === 'string' ? adj.date.split('T')[0] : new Date(adj.date).toISOString().split('T')[0];
     if (historyFromDate && adjDate < historyFromDate) return false;
     if (historyToDate && adjDate > historyToDate) return false;
+    if (searchNumber && !(adj.receiptNumber || "").toLowerCase().includes(searchNumber.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredAdjustments.length / pageSize));
@@ -546,6 +548,10 @@ export default function SupplierAdjustmentsPage() {
               <Badge variant="secondary" className="ml-2">{filteredAdjustments.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-adj-number" />
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-adj-history-from-date" />

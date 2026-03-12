@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, Banknote, FileText, RotateCcw,
-  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil,
+  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search,
 } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
@@ -124,6 +124,7 @@ export default function PurchaseInvoiceIqdPage() {
   const [historySupplierFilter, setHistorySupplierFilter] = useState<string>("all");
   const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
   const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [searchNumber, setSearchNumber] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [deleteInvoice, setDeleteInvoice] = useState<{ id: number; number: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -899,6 +900,7 @@ export default function PurchaseInvoiceIqdPage() {
                     const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
                     if (historyStartDate && invDate < historyStartDate) return false;
                     if (historyEndDate && invDate > historyEndDate) return false;
+                    if (searchNumber && !i.invoiceNumber.toLowerCase().includes(searchNumber.toLowerCase())) return false;
                     return true;
                   });
                   return filtered.length;
@@ -906,6 +908,10 @@ export default function PurchaseInvoiceIqdPage() {
               </Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-invoice-iqd-number" />
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Supplier')}</Label>
                 <div className="w-48">
@@ -939,6 +945,7 @@ export default function PurchaseInvoiceIqdPage() {
               const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
               if (historyStartDate && invDate < historyStartDate) return false;
               if (historyEndDate && invDate > historyEndDate) return false;
+              if (searchNumber && !i.invoiceNumber.toLowerCase().includes(searchNumber.toLowerCase())) return false;
               return true;
             }).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
             const totSubtotal = filteredInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);

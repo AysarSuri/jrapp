@@ -22,7 +22,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw, ArrowLeft,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
@@ -99,6 +99,7 @@ export default function PurchaseReturnUsdPage() {
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [searchNumber, setSearchNumber] = useState("");
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -356,6 +357,7 @@ export default function PurchaseReturnUsdPage() {
     const retDate = typeof ret.date === 'string' ? ret.date.split('T')[0] : new Date(ret.date).toISOString().split('T')[0];
     if (historyFromDate && retDate < historyFromDate) return false;
     if (historyToDate && retDate > historyToDate) return false;
+    if (searchNumber && !ret.returnNumber.toLowerCase().includes(searchNumber.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredReturns.length / pageSize));
@@ -686,6 +688,10 @@ export default function PurchaseReturnUsdPage() {
               <Badge variant="secondary" className="ml-2">{filteredReturns.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-return-usd-number" />
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-return-usd-history-from-date" />
