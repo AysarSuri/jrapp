@@ -30,6 +30,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
+import { formatDate } from "@/lib/format-utils";
 
 interface LoadItem {
   productId: number | null;
@@ -451,7 +452,7 @@ export default function AgentProductLoadPage() {
                     <TableRow key={ld.id} data-testid={`row-load-${ld.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{ld.loadNumber}</TableCell>
-                      <TableCell className="font-mono text-sm">{ld.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(ld.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{ld.time || "-"}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-indigo-600 border-indigo-300">{ld.agentName}</Badge>

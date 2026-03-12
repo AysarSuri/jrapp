@@ -29,6 +29,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDate } from "@/lib/format-utils";
 
 export default function CustomerReceiptIqdPage() {
   const { t } = useTranslation();
@@ -566,7 +567,7 @@ export default function CustomerReceiptIqdPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.customerName}</TableCell>
                       <TableCell>

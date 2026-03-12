@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function BankPaymentsPage() {
   const { t } = useTranslation();
@@ -409,7 +409,7 @@ export default function BankPaymentsPage() {
                   {paginatedPayments.map((p, i) => (
                     <TableRow key={p.id} data-testid={`row-bank-payment-${p.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{p.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                       <TableCell className="font-medium">{p.bankName}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">

@@ -734,7 +734,7 @@ export default function ExpensesPage() {
                     >
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{e.invoiceNumber || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm">{e.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(e.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
                       <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">

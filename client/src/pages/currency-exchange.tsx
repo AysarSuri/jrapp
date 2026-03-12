@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import type { CurrencyExchange } from "@shared/schema";
 
 export default function CurrencyExchangePage() {
@@ -307,7 +307,7 @@ export default function CurrencyExchangePage() {
                   {paginatedExchanges.map((ex: CurrencyExchange, i: number) => (
                     <TableRow key={ex.id} data-testid={`row-exchange-${ex.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{ex.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(ex.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{ex.time}</TableCell>
                       <TableCell>
                         <Badge variant={ex.fromCurrency === "USD" ? "default" : "secondary"}>

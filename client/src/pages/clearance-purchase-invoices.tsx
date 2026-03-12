@@ -560,7 +560,7 @@ export default function ClearancePurchaseInvoicesPage() {
                     <TableRow key={inv.id} data-testid={`row-invoice-${inv.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{inv.listNumber || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm">{inv.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(inv.date)}</TableCell>
                       <TableCell className="font-medium">{inv.clearanceName}</TableCell>
                       <TableCell className="text-sm">{inv.carNumber || "-"}</TableCell>
                       <TableCell className="text-sm">{inv.manifest || "-"}</TableCell>

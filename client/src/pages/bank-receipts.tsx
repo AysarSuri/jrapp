@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function BankReceiptsPage() {
   const { t } = useTranslation();
@@ -412,7 +412,7 @@ export default function BankReceiptsPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.bankName}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
@@ -538,7 +538,7 @@ export default function BankReceiptsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">{t('Date')}</p>
-                  <p className="font-mono font-medium">{viewReceipt.date}</p>
+                  <p className="font-mono font-medium">{formatDate(viewReceipt.date)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">{t('Time')}</p>

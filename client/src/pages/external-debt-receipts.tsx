@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function ExternalDebtReceiptsPage() {
   const { t } = useTranslation();
@@ -552,7 +552,7 @@ export default function ExternalDebtReceiptsPage() {
                     <TableRow key={r.id} data-testid={`row-ext-debt-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{r.receiptNumber || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.debtName}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">

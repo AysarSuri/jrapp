@@ -310,7 +310,7 @@ export default function ProductDamagePage() {
       return `<tr>
         <td>${i + 1}</td>
         <td style="font-weight:600;font-family:monospace">${dmg.damageNumber}</td>
-        <td>${dmg.date}</td>
+        <td>${formatDate(dmg.date)}</td>
         <td>${dmg.time || "-"}</td>
         <td>${dmg.warehouseName || "-"}</td>
         <td><span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:8pt">${reasonLabel(dmg.reason)}</span></td>
@@ -628,7 +628,7 @@ export default function ProductDamagePage() {
                     <TableRow key={dmg.id} data-testid={`row-damage-${dmg.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{dmg.damageNumber}</TableCell>
-                      <TableCell className="font-mono text-sm">{dmg.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(dmg.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{dmg.time || "-"}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{dmg.warehouseName || "-"}</Badge>

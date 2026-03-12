@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { Bank } from "@shared/schema";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -163,7 +163,7 @@ export default function BankStatementUsdPage() {
                   {entriesWithBalance.map((entry, i) => (
                     <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-bank-statement-usd-${entry.id}`}>
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{entry.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{entry.time}</TableCell>
                       <TableCell>{typeBadge(entry.type)}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>

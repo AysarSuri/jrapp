@@ -24,7 +24,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function AgentPaymentUsdPage() {
   const { t } = useTranslation();
@@ -184,7 +184,7 @@ export default function AgentPaymentUsdPage() {
                     {usdPayments.map((p, i) => (
                       <TableRow key={p.id} data-testid={`row-agent-payment-${p.id}`}>
                         <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{p.date}</TableCell>
+                        <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                         <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                         <TableCell className="font-medium">{p.agentName}</TableCell>
                         <TableCell>

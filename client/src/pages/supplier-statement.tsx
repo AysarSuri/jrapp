@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 
 type Client = {
@@ -208,7 +208,7 @@ export default function SupplierStatementPage() {
                       {entriesWithBalance.map((entry, idx) => (
                         <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-statement-${idx}`}>
                           <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
-                          <TableCell className="whitespace-nowrap">{entry.date}<br /><span className="text-xs text-muted-foreground">{entry.time}</span></TableCell>
+                          <TableCell className="whitespace-nowrap">{formatDate(entry.date)}<br /><span className="text-xs text-muted-foreground">{entry.time}</span></TableCell>
                           <TableCell>{getTypeBadge(entry.type)}</TableCell>
                           <TableCell className="text-sm">{entry.description}</TableCell>
                           <TableCell className="text-center">

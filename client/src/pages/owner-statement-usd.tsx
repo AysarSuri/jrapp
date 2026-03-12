@@ -347,7 +347,7 @@ export default function OwnerStatementUsdPage() {
                   {entriesWithBalance.map((entry, i) => (
                     <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-owner-stmt-usd-${entry.id}`}>
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{entry.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{entry.time}</TableCell>
                       <TableCell>{typeBadge(entry.type)}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>

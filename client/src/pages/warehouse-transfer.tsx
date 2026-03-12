@@ -34,6 +34,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
+import { formatDate } from "@/lib/format-utils";
 
 interface TransferItem {
   productId: number | null;
@@ -482,7 +483,7 @@ export default function WarehouseTransferPage() {
                     <TableRow key={tr.id} data-testid={`row-transfer-${tr.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{tr.transferNumber}</TableCell>
-                      <TableCell className="font-mono text-sm">{tr.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(tr.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{tr.time || "-"}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{tr.fromWarehouseName}</Badge>

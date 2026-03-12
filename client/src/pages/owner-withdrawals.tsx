@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd } from "@/lib/format-utils";
+import { usd, formatDate } from "@/lib/format-utils";
 
 export default function OwnerWithdrawalsPage() {
   const { t } = useTranslation();
@@ -443,7 +443,7 @@ export default function OwnerWithdrawalsPage() {
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-xs text-primary">{w.receiptNumber || "-"}</TableCell>
                       <TableCell className="text-sm font-medium">{w.ownerName}</TableCell>
-                      <TableCell className="font-mono text-sm">{w.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(w.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{w.time || "-"}</TableCell>
                       <TableCell className="font-mono text-sm text-red-600">
                         {parseFloat(w.amountUsd) > 0 ? usd(w.amountUsd) : "-"}

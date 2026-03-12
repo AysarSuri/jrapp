@@ -557,7 +557,7 @@ export default function ClearanceStatementIqdPage() {
                     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
                     const pdfBlob = pdf.output("blob");
                     const title = viewEntry.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
-                    const fileName = `${title}_${statement?.clearance?.name}_${viewEntry.date}.pdf`;
+                    const fileName = `${title}_${statement?.clearance?.name}_${formatDate(viewEntry.date)}.pdf`;
                     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
                     if (navigator.share && navigator.canShare?.({ files: [file] })) {
                       await navigator.share({ title: fileName, files: [file] });
@@ -567,7 +567,7 @@ export default function ClearanceStatementIqdPage() {
                       a.href = url; a.download = fileName; a.click();
                       URL.revokeObjectURL(url);
                       const amount = viewEntry.debitIqd > 0 ? viewEntry.debitIqd : viewEntry.creditIqd;
-                      const text = encodeURIComponent(`${title}\n${t("Customs Clearance")}: ${statement?.clearance?.name}\n${t("Date")}: ${viewEntry.date}\n${t("IQD Amount")}: ${fmtNum(amount)} IQD`);
+                      const text = encodeURIComponent(`${title}\n${t("Customs Clearance")}: ${statement?.clearance?.name}\n${t("Date")}: ${formatDate(viewEntry.date)}\n${t("IQD Amount")}: ${fmtNum(amount)} IQD`);
                       window.open(`https://wa.me/?text=${text}`, "_blank");
                     }
                   } finally { setSendingWhatsApp(false); }

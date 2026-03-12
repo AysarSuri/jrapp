@@ -563,7 +563,7 @@ export default function ClearanceReceiptsPage() {
                     <TableRow key={r.id} data-testid={`row-clearance-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-medium">{r.listNumber || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm">{r.date}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.clearanceName}</TableCell>
                       <TableCell className="font-mono text-sm text-green-600">
@@ -695,7 +695,7 @@ export default function ClearanceReceiptsPage() {
                     const pdf = new jsPDF("p", "mm", "a4");
                     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
                     const pdfBlob = pdf.output("blob");
-                    const fileName = `${t("Clearance Receipt")}_${viewReceipt.clearanceName}_${viewReceipt.date}.pdf`;
+                    const fileName = `${t("Clearance Receipt")}_${viewReceipt.clearanceName}_${formatDate(viewReceipt.date)}.pdf`;
                     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
                     if (navigator.share && navigator.canShare?.({ files: [file] })) {
                       await navigator.share({ title: fileName, files: [file] });
@@ -704,7 +704,7 @@ export default function ClearanceReceiptsPage() {
                       const a = document.createElement("a");
                       a.href = url; a.download = fileName; a.click();
                       URL.revokeObjectURL(url);
-                      const text = encodeURIComponent(`${t("Clearance Receipt")}\n${t("Customs Clearance")}: ${viewReceipt.clearanceName}\n${t("Date")}: ${viewReceipt.date}\n${parseFloat(viewReceipt.amountUsd) > 0 ? t("USD Amount") + ": $" + fmt(viewReceipt.amountUsd) : ""}${parseFloat(viewReceipt.amountIqd) > 0 ? "\n" + t("IQD Amount") + ": " + fmt(viewReceipt.amountIqd) + " IQD" : ""}`);
+                      const text = encodeURIComponent(`${t("Clearance Receipt")}\n${t("Customs Clearance")}: ${viewReceipt.clearanceName}\n${t("Date")}: ${formatDate(viewReceipt.date)}\n${parseFloat(viewReceipt.amountUsd) > 0 ? t("USD Amount") + ": $" + fmt(viewReceipt.amountUsd) : ""}${parseFloat(viewReceipt.amountIqd) > 0 ? "\n" + t("IQD Amount") + ": " + fmt(viewReceipt.amountIqd) + " IQD" : ""}`);
                       window.open(`https://wa.me/?text=${text}`, "_blank");
                     }
                   } finally { setSendingWhatsApp(false); }
