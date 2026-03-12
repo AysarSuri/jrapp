@@ -898,21 +898,24 @@ export default function SupplierStatementIqdPage() {
                   const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
                   const rows = productsReport.rows.map((row, idx) => {
                     const purchaseAmount = (row.quantity - row.returnQuantity) * row.price;
+                    const qtyWithGift = row.type === "purchase" ? row.quantity + row.gift : row.quantity;
+                    const retWithGift = row.type === "return" ? row.returnQuantity + row.gift : row.returnQuantity;
                     return `<tr>
                       <td>${idx + 1}</td>
                       <td>${row.invoiceNumber}</td>
                       <td>${row.type === "purchase" ? t("Purchase") : t("Return")}</td>
                       <td>${formatDate(row.date)}</td>
                       <td>${row.productName}</td>
-                      <td>${row.quantity > 0 ? row.quantity : "-"}</td>
+                      <td>${qtyWithGift > 0 ? qtyWithGift : "-"}</td>
                       <td>${row.unit}</td>
-                      <td class="return-col">${row.returnQuantity > 0 ? row.returnQuantity : "-"}</td>
-                      <td style="color:#9333ea;font-weight:700">${row.gift > 0 ? row.gift : "-"}</td>
+                      <td class="return-col">${retWithGift > 0 ? retWithGift : "-"}</td>
                       <td>${fmt(row.price)} IQD</td>
                       <td class="amount">${fmt(purchaseAmount)} IQD</td>
                     </tr>`;
                   }).join("");
                   const grandTotalAmount = productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0);
+                  const totalQtyWithGifts = productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0);
+                  const totalRetWithGifts = productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0);
                   const incomingPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
@@ -936,24 +939,22 @@ export default function SupplierStatementIqdPage() {
                       <table>
                         <thead><tr>
                           <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
-                          <th>${t("Quantity")}</th><th>${t("Unit")}</th><th>${t("Return")}</th><th style="color:#9333ea">${t("Gift")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
+                          <th>${t("Quantity")} + ${t("Gift")}</th><th>${t("Unit")}</th><th>${t("Return")} + ${t("Gift")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
                         </tr></thead>
                         <tbody>
                           ${rows}
                           <tr class="total-row">
                             <td colspan="5">${t("Total")}</td>
-                            <td>${productsReport.totalQuantity}</td><td></td>
-                            <td class="return-col">${productsReport.totalReturns}</td>
-                            <td style="color:#9333ea;font-weight:700">${productsReport.totalGifts || 0}</td>
+                            <td>${totalQtyWithGifts}</td><td></td>
+                            <td class="return-col">${totalRetWithGifts}</td>
                             <td>${fmt(productsReport.totalAmount)} IQD</td>
                             <td class="amount">${fmt(grandTotalAmount)} IQD</td>
                           </tr>
                         </tbody>
                       </table>
                       <div class="summary-footer">
-                        <div>${t("Total Quantity")} - ${t("Returns")}: <span>${(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
+                        <div>${t("Total Quantity")} + ${t("Gift")} - ${t("Returns")}: <span>${totalQtyWithGifts - totalRetWithGifts}</span></div>
                         <div>${t("Total Amount")}: <span>${fmt(grandTotalAmount)} IQD</span></div>
-                        ${(productsReport.totalGifts || 0) > 0 ? `<div>${t("Total Gifts")}: <span style="color:#9333ea">${productsReport.totalGifts}</span></div>` : ''}
                       </div>
                     </body></html>`);
                   printWindow.document.close();
@@ -983,10 +984,9 @@ export default function SupplierStatementIqdPage() {
                             <TableHead>{t("Type")}</TableHead>
                             <TableHead>{t("Date")}</TableHead>
                             <TableHead>{t("Product Name")}</TableHead>
-                            <TableHead className="text-center">{t("Quantity")}</TableHead>
+                            <TableHead className="text-center">{t("Quantity")} + {t("Gift")}</TableHead>
                             <TableHead>{t("Unit")}</TableHead>
-                            <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
-                            <TableHead className="text-center text-purple-600">{t("Gift")}</TableHead>
+                            <TableHead className="text-center text-red-600">{t("Return")} + {t("Gift")}</TableHead>
                             <TableHead className="text-center">{t("Purchase Price")}</TableHead>
                             <TableHead className="text-center text-blue-600">{t("Purchase Amount")}</TableHead>
                             <TableHead className="text-center">{t("Actions")}</TableHead>
@@ -1008,10 +1008,9 @@ export default function SupplierStatementIqdPage() {
                                 </TableCell>
                                 <TableCell>{formatDate(row.date)}</TableCell>
                                 <TableCell>{row.productName}</TableCell>
-                                <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono">{(() => { const v = row.quantity + (row.type === "purchase" ? row.gift : 0); return v > 0 ? v : "-"; })()}</TableCell>
                                 <TableCell>{row.unit}</TableCell>
-                                <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
-                                <TableCell className="text-center font-mono text-purple-600 font-bold">{row.gift > 0 ? row.gift : "-"}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{(() => { const v = row.returnQuantity + (row.type === "return" ? row.gift : 0); return v > 0 ? v : "-"; })()}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(row.price)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(purchaseAmount)} IQD</TableCell>
                                 <TableCell className="text-center">
@@ -1038,10 +1037,9 @@ export default function SupplierStatementIqdPage() {
                             return (
                               <TableRow className="bg-muted/50 font-bold border-t-2">
                                 <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
-                                <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
+                                <TableCell className="text-center font-mono">{productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0)}</TableCell>
                                 <TableCell></TableCell>
-                                <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
-                                <TableCell className="text-center font-mono text-purple-600">{productsReport.totalGifts || 0}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0)}</TableCell>
                                 <TableCell className="text-center font-mono">{fmt(productsReport.totalAmount)} IQD</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{fmt(grandTotal)} IQD</TableCell>
                                 <TableCell></TableCell>
@@ -1053,7 +1051,7 @@ export default function SupplierStatementIqdPage() {
                     </div>
                   )}
                   <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
-                    <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
+                    <div><span className="text-muted-foreground">{t("Total Quantity")} + {t("Gift")} - {t("Returns")}:</span> <span className="font-bold">{productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0) - productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0)}</span></div>
                     <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{fmt(productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0))} IQD</span></div>
                   </div>
                 </CardContent>
