@@ -165,6 +165,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
   const totalBalance = oldDebt + invoiceRemaining;
 
   const hasGifts = items?.some(item => parseFloat(item.gift || "0") > 0) || false;
+  const totalGifts = items?.reduce((sum, item) => sum + parseFloat(item.gift || "0"), 0) || 0;
 
   const fmt = (n: number | string) => {
     const num = typeof n === "string" ? parseFloat(n) : n;
@@ -480,6 +481,12 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                   <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
                     <span>{t("Total Expenses")}:</span>
                     <span>{fmtCurrency(invoice.totalExpenses)}</span>
+                  </div>
+                )}
+                {hasGifts && (
+                  <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
+                    <span>{t("Total Gifts")}:</span>
+                    <span>{totalGifts}</span>
                   </div>
                 )}
                 <div className="summary-row" style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>

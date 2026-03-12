@@ -260,6 +260,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
   };
 
   const hasGifts = items?.some(item => parseFloat(item.gift || "0") > 0) || false;
+  const totalGifts = items?.reduce((sum, item) => sum + parseFloat(item.gift || "0"), 0) || 0;
   const isLoading = returnLoading || itemsLoading;
 
   return (
@@ -406,6 +407,12 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
                   <span>{t("Total Quantity")}:</span>
                   <span>{returnData.totalQuantity}</span>
                 </div>
+                {hasGifts && (
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
+                    <span>{t("Total Gifts")}:</span>
+                    <span>{totalGifts}</span>
+                  </div>
+                )}
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "11pt", fontWeight: 700, color: "#334155", direction: isRtl ? "rtl" : "ltr" }}>
                   <span>{t("Subtotal")}:</span>
                   <span style={{ color: "#2563eb" }}>{fmtCurrency(returnData.subtotal)}</span>
