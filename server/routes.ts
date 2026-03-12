@@ -1546,11 +1546,35 @@ export async function registerRoutes(
         return a.time.localeCompare(b.time);
       });
 
+      const invoiceIds = invoices.map(inv => inv.id);
+      const returnIds = returns.map(ret => ret.id);
+
+      let totalPurchaseGifts = 0;
+      let totalReturnGifts = 0;
+
+      if (invoiceIds.length > 0) {
+        const invItems = await db.select().from(purchaseInvoiceItems)
+          .where(sql`${purchaseInvoiceItems.invoiceId} IN ${invoiceIds}`);
+        for (const item of invItems) {
+          totalPurchaseGifts += parseFloat(item.gift || "0");
+        }
+      }
+
+      if (returnIds.length > 0) {
+        const retItems = await db.select().from(purchaseReturnItems)
+          .where(sql`${purchaseReturnItems.returnId} IN ${returnIds}`);
+        for (const item of retItems) {
+          totalReturnGifts += parseFloat(item.gift || "0");
+        }
+      }
+
       res.json({
         supplier,
         entries,
         openingBalanceUsd,
         openingBalanceIqd,
+        totalPurchaseGifts,
+        totalReturnGifts,
       });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });

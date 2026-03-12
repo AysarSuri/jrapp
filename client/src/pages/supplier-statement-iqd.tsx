@@ -54,6 +54,8 @@ type StatementResponse = {
   supplier: Client;
   entries: StatementEntry[];
   openingBalanceIqd?: number;
+  totalPurchaseGifts?: number;
+  totalReturnGifts?: number;
 };
 
 type CompanyProfileData = {
@@ -438,6 +440,11 @@ export default function SupplierStatementIqdPage() {
           <div class="summary-card accent-green"><div class="label">${t("Total Payments IQD")}</div><div class="value green">${fmt(totalCreditIqd)} IQD</div></div>
           <div class="summary-card ${finalBalance >= 0 ? 'accent-green' : 'accent-red'}"><div class="label">${finalBalanceLabel}</div><div class="value ${finalBalance >= 0 ? 'green' : 'red'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
         </div>
+        ${((statement.totalPurchaseGifts || 0) > 0 || (statement.totalReturnGifts || 0) > 0) ? `
+        <div class="summary-cards">
+          ${(statement.totalPurchaseGifts || 0) > 0 ? `<div class="summary-card" style="border-top:3px solid #9333ea"><div class="label">${t("Purchase Gifts")}</div><div class="value" style="color:#9333ea">${statement.totalPurchaseGifts}</div></div>` : ''}
+          ${(statement.totalReturnGifts || 0) > 0 ? `<div class="summary-card" style="border-top:3px solid #ea580c"><div class="label">${t("Return Gifts")}</div><div class="value" style="color:#ea580c">${statement.totalReturnGifts}</div></div>` : ''}
+        </div>` : ''}
         <table>
           <thead>
             <tr>
@@ -517,6 +524,11 @@ export default function SupplierStatementIqdPage() {
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${t("Total Payments IQD")}</div><div style="font-size:12pt;font-weight:700;color:#16a34a">${fmt(totalCreditIqd)} IQD</div></div>
         <div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center"><div style="font-size:8pt;color:#666">${finalBalanceLabel}</div><div style="font-size:12pt;font-weight:700;color:${finalBalance >= 0 ? '#16a34a' : '#dc2626'}">${fmt(Math.abs(finalBalance))} IQD</div></div>
       </div>
+      ${((statement.totalPurchaseGifts || 0) > 0 || (statement.totalReturnGifts || 0) > 0) ? `
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        ${(statement.totalPurchaseGifts || 0) > 0 ? `<div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center;border-top:3px solid #9333ea"><div style="font-size:8pt;color:#666">${t("Purchase Gifts")}</div><div style="font-size:12pt;font-weight:700;color:#9333ea">${statement.totalPurchaseGifts}</div></div>` : ''}
+        ${(statement.totalReturnGifts || 0) > 0 ? `<div style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;text-align:center;border-top:3px solid #ea580c"><div style="font-size:8pt;color:#666">${t("Return Gifts")}</div><div style="font-size:12pt;font-weight:700;color:#ea580c">${statement.totalReturnGifts}</div></div>` : ''}
+      </div>` : ''}
       <table style="width:100%;border-collapse:collapse;font-size:9pt">
         <thead><tr>
           <th style="background:${fieldColor};color:${textColor};padding:4px 3px;text-align:center;font-size:9pt">#</th>
@@ -732,6 +744,26 @@ export default function SupplierStatementIqdPage() {
               </CardContent>
             </Card>
           </div>
+          {((statement?.totalPurchaseGifts || 0) > 0 || (statement?.totalReturnGifts || 0) > 0) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(statement?.totalPurchaseGifts || 0) > 0 && (
+                <Card className="border-l-4 border-l-purple-500">
+                  <CardContent className="pt-4 pb-3">
+                    <p className="text-sm font-semibold text-muted-foreground mb-1">{t("Purchase Gifts")}</p>
+                    <p className="text-xl font-bold text-purple-600 dark:text-purple-400" data-testid="text-purchase-gifts-iqd">{statement?.totalPurchaseGifts || 0}</p>
+                  </CardContent>
+                </Card>
+              )}
+              {(statement?.totalReturnGifts || 0) > 0 && (
+                <Card className="border-l-4 border-l-orange-500">
+                  <CardContent className="pt-4 pb-3">
+                    <p className="text-sm font-semibold text-muted-foreground mb-1">{t("Return Gifts")}</p>
+                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400" data-testid="text-return-gifts-iqd">{statement?.totalReturnGifts || 0}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           <Card>
             <CardHeader>
