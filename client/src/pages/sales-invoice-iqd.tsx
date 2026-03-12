@@ -230,6 +230,7 @@ export default function SalesInvoiceIqdPage() {
   };
 
   const resetForm = () => {
+    setInvoiceNumber("");
     setCustomerName("");
     setCustomerId(null);
     setAddress("");
@@ -539,7 +540,7 @@ export default function SalesInvoiceIqdPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Invoice #')}</Label>
-              <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} className="font-mono bg-muted/30" data-testid="input-sales-iqd-invoice-number" />
+              <Input value={invoiceNumber} readOnly className="font-mono bg-muted/50 cursor-not-allowed" data-testid="input-sales-iqd-invoice-number" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>

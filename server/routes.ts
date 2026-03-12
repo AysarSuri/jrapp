@@ -2313,6 +2313,11 @@ export async function registerRoutes(
       const isRep = serverRole === 'sales_rep';
       const serverStatus = isRep ? 'pending' : 'approved';
 
+      const [existingInvoice] = await db.select({ id: salesInvoices.id }).from(salesInvoices).where(eq(salesInvoices.invoiceNumber, invoice.invoiceNumber));
+      if (existingInvoice) {
+        return res.status(400).json({ message: "Invoice number already exists" });
+      }
+
       const invoiceWithServerData = {
         ...invoice,
         status: serverStatus,
