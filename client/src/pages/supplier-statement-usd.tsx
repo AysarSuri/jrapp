@@ -893,24 +893,26 @@ export default function SupplierStatementUsdPage() {
                   const dateRangeHtml = startDate || endDate ? `<p style="font-size: 10pt; color: #444;">${startDate || t("Beginning")} - ${endDate || t("Now")}</p>` : "";
                   const rows = productsReport.rows.map((row, idx) => {
                     const purchaseAmount = (row.quantity - row.returnQuantity) * row.price;
-                    const qtyWithGift = row.type === "purchase" ? row.quantity + row.gift : row.quantity;
-                    const retWithGift = row.type === "return" ? row.returnQuantity + row.gift : row.returnQuantity;
+                    const purchaseGift = row.type === "purchase" ? row.gift : 0;
+                    const returnGift = row.type === "return" ? row.gift : 0;
                     return `<tr>
                       <td>${idx + 1}</td>
                       <td>${row.invoiceNumber}</td>
                       <td>${row.type === "purchase" ? t("Purchase") : t("Return")}</td>
                       <td>${formatDate(row.date)}</td>
                       <td>${row.productName}</td>
-                      <td>${qtyWithGift > 0 ? qtyWithGift : "-"}</td>
+                      <td>${row.quantity > 0 ? row.quantity : "-"}</td>
+                      <td style="color:#9333ea;font-weight:700">${purchaseGift > 0 ? purchaseGift : "-"}</td>
                       <td>${row.unit}</td>
-                      <td class="return-col">${retWithGift > 0 ? retWithGift : "-"}</td>
+                      <td class="return-col">${row.returnQuantity > 0 ? row.returnQuantity : "-"}</td>
+                      <td style="color:#ea580c;font-weight:700">${returnGift > 0 ? returnGift : "-"}</td>
                       <td>${usd(row.price)}</td>
                       <td class="amount">${usd(purchaseAmount)}</td>
                     </tr>`;
                   }).join("");
                   const grandTotalAmount = productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0);
-                  const totalQtyWithGifts = productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0);
-                  const totalRetWithGifts = productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0);
+                  const totalPurchaseGifts = productsReport.rows.reduce((s, r) => s + (r.type === "purchase" ? r.gift : 0), 0);
+                  const totalReturnGifts = productsReport.rows.reduce((s, r) => s + (r.type === "return" ? r.gift : 0), 0);
                   const incomingPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
@@ -934,22 +936,27 @@ export default function SupplierStatementUsdPage() {
                       <table>
                         <thead><tr>
                           <th>#</th><th>${t("Invoice Number")}</th><th>${t("Type")}</th><th>${t("Date")}</th><th>${t("Product Name")}</th>
-                          <th>${t("Quantity")} + ${t("Gift")}</th><th>${t("Unit")}</th><th>${t("Return")} + ${t("Gift")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
+                          <th>${t("Quantity")}</th><th style="color:#9333ea">${t("Gift")}</th><th>${t("Unit")}</th><th>${t("Return")}</th><th style="color:#ea580c">${t("Return Gifts")}</th><th>${t("Purchase Price")}</th><th>${t("Purchase Amount")}</th>
                         </tr></thead>
                         <tbody>
                           ${rows}
                           <tr class="total-row">
                             <td colspan="5">${t("Total")}</td>
-                            <td>${totalQtyWithGifts}</td><td></td>
-                            <td class="return-col">${totalRetWithGifts}</td>
+                            <td>${productsReport.totalQuantity}</td>
+                            <td style="color:#9333ea;font-weight:700">${totalPurchaseGifts || 0}</td>
+                            <td></td>
+                            <td class="return-col">${productsReport.totalReturns}</td>
+                            <td style="color:#ea580c;font-weight:700">${totalReturnGifts || 0}</td>
                             <td>${usd(productsReport.totalAmount)}</td>
                             <td class="amount">${usd(grandTotalAmount)}</td>
                           </tr>
                         </tbody>
                       </table>
                       <div class="summary-footer">
-                        <div>${t("Total Quantity")} + ${t("Gift")} - ${t("Returns")}: <span>${totalQtyWithGifts - totalRetWithGifts}</span></div>
+                        <div>${t("Total Quantity")} - ${t("Returns")}: <span>${(productsReport.totalQuantity || 0) - (productsReport.totalReturns || 0)}</span></div>
                         <div>${t("Total Amount")}: <span>${usd(grandTotalAmount)}</span></div>
+                        ${totalPurchaseGifts > 0 ? `<div>${t("Purchase Gifts")}: <span style="color:#9333ea">${totalPurchaseGifts}</span></div>` : ''}
+                        ${totalReturnGifts > 0 ? `<div>${t("Return Gifts")}: <span style="color:#ea580c">${totalReturnGifts}</span></div>` : ''}
                       </div>
                     </body></html>`);
                   printWindow.document.close();
@@ -979,9 +986,11 @@ export default function SupplierStatementUsdPage() {
                             <TableHead>{t("Type")}</TableHead>
                             <TableHead>{t("Date")}</TableHead>
                             <TableHead>{t("Product Name")}</TableHead>
-                            <TableHead className="text-center">{t("Quantity")} + {t("Gift")}</TableHead>
+                            <TableHead className="text-center">{t("Quantity")}</TableHead>
+                            <TableHead className="text-center text-purple-600">{t("Gift")}</TableHead>
                             <TableHead>{t("Unit")}</TableHead>
-                            <TableHead className="text-center text-red-600">{t("Return")} + {t("Gift")}</TableHead>
+                            <TableHead className="text-center text-red-600">{t("Return")}</TableHead>
+                            <TableHead className="text-center text-orange-600">{t("Return Gifts")}</TableHead>
                             <TableHead className="text-center">{t("Purchase Price")}</TableHead>
                             <TableHead className="text-center text-blue-600">{t("Purchase Amount")}</TableHead>
                             <TableHead className="text-center">{t("Actions")}</TableHead>
@@ -1003,9 +1012,11 @@ export default function SupplierStatementUsdPage() {
                                 </TableCell>
                                 <TableCell>{formatDate(row.date)}</TableCell>
                                 <TableCell>{row.productName}</TableCell>
-                                <TableCell className="text-center font-mono">{(() => { const v = row.quantity + (row.type === "purchase" ? row.gift : 0); return v > 0 ? v : "-"; })()}</TableCell>
+                                <TableCell className="text-center font-mono">{row.quantity > 0 ? row.quantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono text-purple-600 font-bold">{row.type === "purchase" && row.gift > 0 ? row.gift : "-"}</TableCell>
                                 <TableCell>{row.unit}</TableCell>
-                                <TableCell className="text-center font-mono text-red-600">{(() => { const v = row.returnQuantity + (row.type === "return" ? row.gift : 0); return v > 0 ? v : "-"; })()}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{row.returnQuantity > 0 ? row.returnQuantity : "-"}</TableCell>
+                                <TableCell className="text-center font-mono text-orange-600 font-bold">{row.type === "return" && row.gift > 0 ? row.gift : "-"}</TableCell>
                                 <TableCell className="text-center font-mono">{usd(row.price)}</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{usd(purchaseAmount)}</TableCell>
                                 <TableCell className="text-center">
@@ -1032,9 +1043,11 @@ export default function SupplierStatementUsdPage() {
                             return (
                               <TableRow className="bg-muted/50 font-bold border-t-2">
                                 <TableCell colSpan={5} className="text-center">{t("Total")}</TableCell>
-                                <TableCell className="text-center font-mono">{productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0)}</TableCell>
+                                <TableCell className="text-center font-mono">{productsReport.totalQuantity}</TableCell>
+                                <TableCell className="text-center font-mono text-purple-600">{productsReport.rows.reduce((s, r) => s + (r.type === "purchase" ? r.gift : 0), 0) || 0}</TableCell>
                                 <TableCell></TableCell>
-                                <TableCell className="text-center font-mono text-red-600">{productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0)}</TableCell>
+                                <TableCell className="text-center font-mono text-red-600">{productsReport.totalReturns}</TableCell>
+                                <TableCell className="text-center font-mono text-orange-600">{productsReport.rows.reduce((s, r) => s + (r.type === "return" ? r.gift : 0), 0) || 0}</TableCell>
                                 <TableCell className="text-center font-mono">{usd(productsReport.totalAmount)}</TableCell>
                                 <TableCell className="text-center font-mono font-bold text-blue-600 dark:text-blue-400">{usd(grandTotal)}</TableCell>
                                 <TableCell></TableCell>
@@ -1046,7 +1059,7 @@ export default function SupplierStatementUsdPage() {
                     </div>
                   )}
                   <div className="p-4 border-t flex flex-col sm:flex-row gap-4 text-sm">
-                    <div><span className="text-muted-foreground">{t("Total Quantity")} + {t("Gift")} - {t("Returns")}:</span> <span className="font-bold">{productsReport.rows.reduce((s, r) => s + r.quantity + (r.type === "purchase" ? r.gift : 0), 0) - productsReport.rows.reduce((s, r) => s + r.returnQuantity + (r.type === "return" ? r.gift : 0), 0)}</span></div>
+                    <div><span className="text-muted-foreground">{t("Total Quantity")} - {t("Returns")}:</span> <span className="font-bold">{(productsReport?.totalQuantity || 0) - (productsReport?.totalReturns || 0)}</span></div>
                     <div><span className="text-muted-foreground">{t("Total Amount")}:</span> <span className="font-bold">{usd(productsReport.rows.reduce((sum, row) => sum + (row.quantity - row.returnQuantity) * row.price, 0))}</span></div>
                   </div>
                 </CardContent>
