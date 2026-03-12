@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
+import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
@@ -711,10 +712,10 @@ export default function SalesInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
+                      <ProductCodeSearchSelect
+                        products={products || []}
                         value={item.productCode}
-                        onChange={(e) => updateItem(index, "productCode", e.target.value)}
-                        className="h-9 text-sm font-mono"
+                        onSelect={(val) => selectProduct(index, val)}
                         data-testid={`input-sales-iqd-product-code-${index}`}
                       />
                     </TableCell>

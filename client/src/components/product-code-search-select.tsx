@@ -34,8 +34,10 @@ export default function ProductCodeSearchSelect({
     }
   }, []);
 
+  const visibleProducts = products.filter(p => !p.hidden);
+
   const filtered = search.trim()
-    ? products.filter(p => {
+    ? visibleProducts.filter(p => {
         const q = search.toLowerCase();
         return (
           p.barcode.toLowerCase().includes(q) ||
@@ -43,7 +45,7 @@ export default function ProductCodeSearchSelect({
           p.name.toLowerCase().includes(q)
         );
       })
-    : products;
+    : visibleProducts;
 
   useEffect(() => {
     if (open) updatePosition();

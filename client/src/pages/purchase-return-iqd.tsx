@@ -33,6 +33,7 @@ import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
 import { useUnits } from "@/hooks/use-units";
 import PurchaseReturnReport from "@/components/purchase-return-report";
+import ProductCodeSearchSelect from "@/components/product-code-search-select";
 
 interface ReturnItem {
   productId: number | null;
@@ -522,10 +523,10 @@ export default function PurchaseReturnIqdPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
+                      <ProductCodeSearchSelect
+                        products={products || []}
                         value={item.productCode}
-                        onChange={(e) => updateItem(index, "productCode", e.target.value)}
-                        className="h-9 text-sm font-mono"
+                        onSelect={(val) => selectProduct(index, val)}
                         data-testid={`input-purchase-return-iqd-product-code-${index}`}
                       />
                     </TableCell>

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
+import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { useUnits } from "@/hooks/use-units";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
@@ -541,10 +542,10 @@ export default function SalesReturnIqdPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
+                      <ProductCodeSearchSelect
+                        products={products || []}
                         value={item.productCode}
-                        onChange={(e) => updateItem(index, "productCode", e.target.value)}
-                        className="h-9 text-sm font-mono"
+                        onSelect={(val) => selectProduct(index, val)}
                         data-testid={`input-return-iqd-product-code-${index}`}
                       />
                     </TableCell>

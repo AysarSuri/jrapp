@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
+import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
 
@@ -124,8 +125,8 @@ export default function ProductDamagePage() {
     });
   }, []);
 
-  const selectProduct = useCallback((index: number, barcode: string) => {
-    const product = productsList?.find(p => p.barcode === barcode);
+  const selectProduct = useCallback((index: number, productId: string) => {
+    const product = productsList?.find(p => p.id === parseInt(productId));
     if (product) {
       setItems(prev => {
         const updated = [...prev];
@@ -473,19 +474,12 @@ export default function ProductDamagePage() {
                     <TableRow key={index}>
                       <TableCell className="font-mono text-xs">{index + 1}</TableCell>
                       <TableCell>
-                        <Select
-                          value={item.productCode || undefined}
-                          onValueChange={(val) => selectProduct(index, val)}
-                        >
-                          <SelectTrigger data-testid={`select-product-code-${index}`} className="font-mono">
-                            <SelectValue placeholder={t('Select')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {prods.map(p => (
-                              <SelectItem key={p.id} value={p.barcode}>{p.barcode}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <ProductCodeSearchSelect
+                          products={productsList || []}
+                          value={item.productCode}
+                          onSelect={(val) => selectProduct(index, val)}
+                          data-testid={`select-product-code-${index}`}
+                        />
                       </TableCell>
                       <TableCell>
                         <Select
