@@ -22,7 +22,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw, ArrowLeft,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search, ScanBarcode,
 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
@@ -216,6 +216,43 @@ export default function PurchaseReturnUsdPage() {
       if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
     }, 100);
   }, [products]);
+
+  const [barcodeInput, setBarcodeInput] = useState("");
+
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    if (!barcode.trim()) return;
+    const product = products?.find(p => p.barcode === barcode.trim() && !p.hidden);
+    if (!product) {
+      toast({ title: t("Product not found for barcode") + ": " + barcode, variant: "destructive" });
+      setBarcodeInput("");
+      return;
+    }
+    setItems(prev => {
+      const updated = [...prev];
+      let emptyIndex = updated.findIndex(row => row.productId === null);
+      if (emptyIndex === -1) {
+        updated.push(emptyItem());
+        emptyIndex = updated.length - 1;
+      }
+      const qty = 1;
+      updated[emptyIndex] = {
+        ...updated[emptyIndex],
+        productId: product.id,
+        productCode: product.barcode,
+        productName: getProductName(product),
+        quantity: String(qty),
+        unit: product.bigUnit,
+        price: product.bigUnitPriceUsd,
+        amount: (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2),
+      };
+      const lastRow = updated[updated.length - 1];
+      if (lastRow.productId !== null) {
+        updated.push(emptyItem());
+      }
+      return updated;
+    });
+    setBarcodeInput("");
+  }, [products, t, toast]);
 
   const addRow = () => {
     setItems(prev => [...prev, emptyItem()]);
@@ -481,9 +518,27 @@ export default function PurchaseReturnUsdPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">{t('Products')}</CardTitle>
-          <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-return-add-row">
-            <Plus className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <ScanBarcode className="absolute start-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleBarcodeScan(barcodeInput);
+                  }
+                }}
+                placeholder={t('Scan barcode...')}
+                className="h-9 w-48 ps-9 text-sm font-mono"
+                data-testid="input-purchase-return-barcode"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-return-add-row">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">

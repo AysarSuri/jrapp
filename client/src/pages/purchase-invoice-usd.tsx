@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search,
+  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search, ScanBarcode,
 } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
@@ -272,6 +272,44 @@ export default function PurchaseInvoiceUsdPage() {
       if (el) { el.focus(); el.select(); }
     }, 50);
   }, [products]);
+
+  const [barcodeInput, setBarcodeInput] = useState("");
+
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    if (!barcode.trim()) return;
+    const product = products?.find(p => p.barcode === barcode.trim() && !p.hidden);
+    if (!product) {
+      toast({ title: t("Product not found for barcode") + ": " + barcode, variant: "destructive" });
+      setBarcodeInput("");
+      return;
+    }
+    setItems(prev => {
+      const updated = [...prev];
+      let emptyIndex = updated.findIndex(row => row.productId === null);
+      if (emptyIndex === -1) {
+        updated.push(emptyItem());
+        emptyIndex = updated.length - 1;
+      }
+      const qty = 1;
+      updated[emptyIndex] = {
+        ...updated[emptyIndex],
+        productId: product.id,
+        productCode: product.barcode,
+        productName: getProductName(product),
+        quantity: String(qty),
+        unit: product.bigUnit,
+        price: product.bigUnitPriceUsd,
+        weight: product.weight || "0",
+        amount: (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2),
+      };
+      const lastRow = updated[updated.length - 1];
+      if (lastRow.productId !== null) {
+        updated.push(emptyItem());
+      }
+      return updated;
+    });
+    setBarcodeInput("");
+  }, [products, t, toast]);
 
   const addRow = () => {
     setItems(prev => [...prev, emptyItem()]);
@@ -607,6 +645,22 @@ export default function PurchaseInvoiceUsdPage() {
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">{t('Products')}</CardTitle>
           <div className="flex items-center gap-3">
+            <div className="relative">
+              <ScanBarcode className="absolute start-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleBarcodeScan(barcodeInput);
+                  }
+                }}
+                placeholder={t('Scan barcode...')}
+                className="h-9 w-48 ps-9 text-sm font-mono"
+                data-testid="input-purchase-barcode"
+              />
+            </div>
             <label className="flex items-center gap-1.5 cursor-pointer select-none" data-testid="label-toggle-dates">
               <input
                 type="checkbox"
