@@ -50,7 +50,7 @@ const emptyItem = (): ReturnItem => ({
   productCode: "",
   productName: "",
   quantity: "",
-  gift: "0",
+  gift: "",
   unit: "",
   price: "",
   amount: "0",
