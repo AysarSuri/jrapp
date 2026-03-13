@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, UserCog, Users } from "lucide-react";
 
 const PRINTER_SETTINGS_KEY = "erp_printer_settings";
+const GENERAL_SETTINGS_KEY = "erp_general_settings";
 
 interface PrinterSettings {
   invoicePrinter: string;
@@ -18,10 +19,20 @@ interface PrinterSettings {
   barcodePrinter: string;
 }
 
+interface GeneralSettings {
+  adminSalesPrintMode: string;
+  agentSalesPrintMode: string;
+}
+
 const defaultPrinterSettings: PrinterSettings = {
   invoicePrinter: "",
   reportsPrinter: "",
   barcodePrinter: "",
+};
+
+const defaultGeneralSettings: GeneralSettings = {
+  adminSalesPrintMode: "thermal_80mm",
+  agentSalesPrintMode: "thermal_80mm",
 };
 
 function loadPrinterSettings(): PrinterSettings {
@@ -36,7 +47,19 @@ function savePrinterSettings(settings: PrinterSettings) {
   localStorage.setItem(PRINTER_SETTINGS_KEY, JSON.stringify(settings));
 }
 
-type SettingsTab = "printers";
+function loadGeneralSettings(): GeneralSettings {
+  try {
+    const saved = localStorage.getItem(GENERAL_SETTINGS_KEY);
+    if (saved) return { ...defaultGeneralSettings, ...JSON.parse(saved) };
+  } catch {}
+  return defaultGeneralSettings;
+}
+
+function saveGeneralSettings(settings: GeneralSettings) {
+  localStorage.setItem(GENERAL_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+type SettingsTab = "printers" | "general";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -44,13 +67,20 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("printers");
 
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>(loadPrinterSettings);
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
 
   const tabs: { key: SettingsTab; label: string; icon: typeof Printer }[] = [
     { key: "printers", label: t("Printer Settings"), icon: Printer },
+    { key: "general", label: t("General Settings"), icon: Cog },
   ];
 
   const handleSavePrinterSettings = () => {
     savePrinterSettings(printerSettings);
+    toast({ title: t("Settings saved successfully") });
+  };
+
+  const handleSaveGeneralSettings = () => {
+    saveGeneralSettings(generalSettings);
     toast({ title: t("Settings saved successfully") });
   };
 
@@ -148,6 +178,67 @@ export default function SettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleSavePrinterSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-printers">
+                    <Save className="h-4 w-4" />
+                    {t('Save Settings')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "general" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cog className="h-5 w-5 text-blue-600" />
+                  {t('General Settings')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-base font-bold flex items-center gap-2">
+                      <UserCog className="h-4 w-4 text-blue-500" />
+                      {t('Sales Print Mode (Admin/User)')}
+                    </Label>
+                    <Select
+                      value={generalSettings.adminSalesPrintMode}
+                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, adminSalesPrintMode: val }))}
+                    >
+                      <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-admin-sales-print">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="thermal_80mm">{t('Thermal Print 80mm')}</SelectItem>
+                        <SelectItem value="a4">{t('A4 Print')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">{t('Print format when admin or user creates a sales invoice')}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-base font-bold flex items-center gap-2">
+                      <Users className="h-4 w-4 text-orange-500" />
+                      {t('Sales Print Mode (Agent)')}
+                    </Label>
+                    <Select
+                      value={generalSettings.agentSalesPrintMode}
+                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, agentSalesPrintMode: val }))}
+                    >
+                      <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-agent-sales-print">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="thermal_80mm">{t('Thermal Print 80mm')}</SelectItem>
+                        <SelectItem value="no_print">{t('No Print')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">{t('Print format when agent creates a sales invoice')}</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSaveGeneralSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-general">
                     <Save className="h-4 w-4" />
                     {t('Save Settings')}
                   </Button>
