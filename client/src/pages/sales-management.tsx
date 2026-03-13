@@ -7,6 +7,7 @@ import {
   DollarSign,
   Banknote,
   FileText,
+  Grid3X3,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -42,6 +43,24 @@ export default function SalesManagementPage() {
       bg: "bg-orange-50 dark:bg-orange-900/20",
       iconColor: "text-orange-600 dark:text-orange-400",
       hoverBorder: "hover:border-orange-300 dark:hover:border-orange-700",
+    },
+    {
+      href: "/sales-by-category",
+      icon: Grid3X3,
+      label: "POS USD",
+      gradient: "from-lime-500 to-lime-600",
+      bg: "bg-lime-50 dark:bg-lime-900/20",
+      iconColor: "text-lime-600 dark:text-lime-400",
+      hoverBorder: "hover:border-lime-300 dark:hover:border-lime-700",
+    },
+    {
+      href: "/pos-iqd",
+      icon: Grid3X3,
+      label: "POS IQD",
+      gradient: "from-pink-500 to-pink-600",
+      bg: "bg-pink-50 dark:bg-pink-900/20",
+      iconColor: "text-pink-600 dark:text-pink-400",
+      hoverBorder: "hover:border-pink-300 dark:hover:border-pink-700",
     },
     {
       href: "/sales-return-usd",
