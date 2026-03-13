@@ -796,14 +796,14 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
-                    <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap items-end gap-4">
+                  <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[140px]">
+                      <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
+                      <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                   <FormField control={form.control} name="minStock" render={({ field }) => (
                     <FormItem className="flex-1 min-w-[120px]">
                       <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
