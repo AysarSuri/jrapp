@@ -679,12 +679,12 @@ export default function SalesInvoiceUsdPage() {
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
                   <TableHead className="text-primary-foreground text-center w-12">#</TableHead>
-                  <TableHead className="text-primary-foreground min-w-[140px]">{t('Product')}</TableHead>
+                  <TableHead className="text-primary-foreground min-w-[120px]">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px]">{t('Product Code')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[110px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px]">{t('Quantity')}</TableHead>
                   <TableHead className="text-primary-foreground w-[70px]">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[80px]">{t('Unit')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[110px]">{t('Weight')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[130px]">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
