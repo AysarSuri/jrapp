@@ -65,6 +65,11 @@ export default function AgentPaymentIqdPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   const selectAgent = useCallback((id: string) => {
+    if (!id) {
+      setAgentId("");
+      setAgentName("");
+      return;
+    }
     setAgentId(id);
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {

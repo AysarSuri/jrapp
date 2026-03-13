@@ -420,6 +420,15 @@ export default function SalesInvoiceIqdPage() {
   };
 
   const selectCustomer = (clientId: string) => {
+    if (!clientId) {
+      setCustomerId(null);
+      setCustomerName("");
+      setAddress("");
+      setMobile("");
+      setRepresentativeName("");
+      setRepresentativeMobile("");
+      return;
+    }
     const client = customersList.find(c => c.id === parseInt(clientId));
     if (client) {
       setCustomerId(client.id);

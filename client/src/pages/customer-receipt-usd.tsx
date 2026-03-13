@@ -98,6 +98,11 @@ export default function CustomerReceiptUsdPage() {
   const paginatedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const selectCustomer = useCallback((id: string) => {
+    if (!id) {
+      setCustomerId("");
+      setCustomerName("");
+      return;
+    }
     setCustomerId(id);
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {

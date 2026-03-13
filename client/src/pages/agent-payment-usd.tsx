@@ -63,6 +63,11 @@ export default function AgentPaymentUsdPage() {
   const usdPayments = payments?.filter(p => p.currency === "USD") || [];
 
   const selectAgent = useCallback((id: string) => {
+    if (!id) {
+      setAgentId("");
+      setAgentName("");
+      return;
+    }
     setAgentId(id);
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {

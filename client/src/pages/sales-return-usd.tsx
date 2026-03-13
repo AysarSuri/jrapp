@@ -251,6 +251,13 @@ export default function SalesReturnUsdPage() {
   };
 
   const selectCustomer = (clientId: string) => {
+    if (!clientId) {
+      setCustomerId(null);
+      setCustomerName("");
+      setAddress("");
+      setMobile("");
+      return;
+    }
     const client = customersList.find(c => c.id === parseInt(clientId));
     if (client) {
       setCustomerId(client.id);

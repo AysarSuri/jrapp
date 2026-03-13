@@ -90,6 +90,11 @@ export default function CustomerReceiptIqdPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   const selectCustomer = useCallback((id: string) => {
+    if (!id) {
+      setCustomerId("");
+      setCustomerName("");
+      return;
+    }
     setCustomerId(id);
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {
