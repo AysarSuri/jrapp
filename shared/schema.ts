@@ -402,6 +402,7 @@ export const salesInvoiceItems = pgTable("sales_invoice_items", {
   unit: text("unit").notNull(),
   price: numeric("price").notNull(),
   amount: numeric("amount").notNull(),
+  weight: numeric("weight").default("0"),
 });
 
 export const salesReturns = pgTable("sales_returns", {

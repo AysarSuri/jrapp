@@ -385,6 +385,7 @@ export default function SalesInvoiceIqdPage() {
       unit: item.unit,
       price: item.price,
       amount: item.amount,
+      weight: item.weight || "0",
     }));
 
     if (isEditMode && inlineEditId) {
