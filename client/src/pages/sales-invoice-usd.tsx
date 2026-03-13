@@ -118,6 +118,7 @@ export default function SalesInvoiceUsdPage() {
   const [warehouseId, setWarehouseId] = useState<number | null>(null);
   const [warehouseName, setWarehouseName] = useState("");
   const [discount, setDiscount] = useState("");
+  const [discountPercent, setDiscountPercent] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -261,6 +262,7 @@ export default function SalesInvoiceUsdPage() {
       setWarehouseName("");
     }
     setDiscount("");
+    setDiscountPercent("");
     setAmountPaid("");
     setItems([emptyItem()]);
     setBarcodeInput("");
@@ -889,7 +891,7 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <Separator />
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Amount Paid')}</span>
+              <span className="text-sm font-medium">{t('Amount Received')}</span>
               <Input
                 type="number"
                 step="0.01"
@@ -901,12 +903,37 @@ export default function SalesInvoiceUsdPage() {
               />
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Discount')}</span>
+              <span className="text-sm font-medium">{t('Discount %')}</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={discountPercent}
+                onChange={(e) => {
+                  const pct = e.target.value;
+                  setDiscountPercent(pct);
+                  const pctVal = parseFloat(pct) || 0;
+                  setDiscount((subtotal * pctVal * 0.01).toFixed(2));
+                }}
+                className="w-32 text-right font-mono"
+                placeholder="0"
+                data-testid="input-sales-discount-percent"
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">{t('Invoice Discount')}</span>
               <Input
                 type="number"
                 step="0.01"
                 value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
+                onChange={(e) => {
+                  setDiscount(e.target.value);
+                  const discVal = parseFloat(e.target.value) || 0;
+                  if (subtotal > 0) {
+                    setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
+                  }
+                }}
                 className="w-32 text-right font-mono"
                 placeholder="0.00"
                 data-testid="input-sales-discount"
