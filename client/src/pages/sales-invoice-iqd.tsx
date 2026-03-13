@@ -769,26 +769,39 @@ export default function SalesInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Select
-                        value={item.unit}
-                        onValueChange={(val) => updateItem(index, "unit", val)}
-                      >
-                        <SelectTrigger className="h-9 text-sm" data-testid={`select-sales-iqd-unit-${index}`}>
-                          <SelectValue placeholder={t('Unit')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {item.productId && products?.find(p => p.id === item.productId) ? (
-                            <>
-                              <SelectItem value={products.find(p => p.id === item.productId)!.bigUnit}>
-                                {resolveUnitName(products.find(p => p.id === item.productId)!.bigUnit, unitsList)}
-                              </SelectItem>
-                              <SelectItem value={products.find(p => p.id === item.productId)!.smallUnit}>
-                                {resolveUnitName(products.find(p => p.id === item.productId)!.smallUnit, unitsList)}
-                              </SelectItem>
-                            </>
-                          ) : null}
-                        </SelectContent>
-                      </Select>
+                      {(() => {
+                        const prod = item.productId ? products?.find(p => p.id === item.productId) : null;
+                        const sameUnit = prod && prod.bigUnit === prod.smallUnit;
+                        if (sameUnit) {
+                          return (
+                            <div className="flex items-center justify-center h-9 px-2 rounded bg-muted/50 text-sm font-semibold" data-testid={`select-sales-iqd-unit-${index}`}>
+                              {resolveUnitName(prod.bigUnit, unitsList)}
+                            </div>
+                          );
+                        }
+                        return (
+                          <Select
+                            value={item.unit}
+                            onValueChange={(val) => updateItem(index, "unit", val)}
+                          >
+                            <SelectTrigger className="h-9 text-sm" data-testid={`select-sales-iqd-unit-${index}`}>
+                              <SelectValue placeholder={t('Unit')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {prod ? (
+                                <>
+                                  <SelectItem value={prod.bigUnit}>
+                                    {resolveUnitName(prod.bigUnit, unitsList)}
+                                  </SelectItem>
+                                  <SelectItem value={prod.smallUnit}>
+                                    {resolveUnitName(prod.smallUnit, unitsList)}
+                                  </SelectItem>
+                                </>
+                              ) : null}
+                            </SelectContent>
+                          </Select>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="p-1">
                       <Input
