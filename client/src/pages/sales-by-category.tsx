@@ -598,90 +598,94 @@ export default function SalesByCategoryPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} data-testid="input-sales-category-note" />
             </div>
-            <div className="space-y-1.5 md:col-span-1 lg:col-span-1">
-              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <ScanBarcode className="w-4 h-4 text-purple-600" />
-                {t('Scan Barcode')}
-              </Label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <ScanBarcode className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    ref={barcodeRef}
-                    value={barcodeInput}
-                    onChange={(e) => setBarcodeInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleBarcodeScan(barcodeInput);
-                      }
-                    }}
-                    placeholder={t('Scan a barcode to add products')}
-                    className="h-11 text-base font-mono ps-11"
-                    autoFocus
-                    data-testid="input-sales-category-barcode"
-                  />
-                </div>
-                <Button onClick={() => handleBarcodeScan(barcodeInput)} className="h-11 bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-sales-category-barcode-add">
-                  <Search className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-1.5 md:col-span-1 lg:col-span-1">
-              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-green-600" />
-                {t('Product Name')}
-              </Label>
-              <div className="relative" ref={productSearchRef}>
-                <div className="relative">
-                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    value={productNameSearch}
-                    onChange={(e) => {
-                      setProductNameSearch(e.target.value);
-                      setShowProductDropdown(e.target.value.trim().length > 0);
-                    }}
-                    onFocus={() => {
-                      if (productNameSearch.trim().length > 0) setShowProductDropdown(true);
-                    }}
-                    placeholder={t('Search product name...')}
-                    className="h-11 text-base ps-11"
-                    data-testid="input-sales-category-product-name-search"
-                  />
-                </div>
-                {showProductDropdown && productNameSearch.trim() && (() => {
-                  const q = productNameSearch.toLowerCase();
-                  const matches = (products || []).filter(p => !p.hidden && (
-                    getProductName(p).toLowerCase().includes(q) ||
-                    p.name.toLowerCase().includes(q) ||
-                    (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
-                    p.barcode.toLowerCase().includes(q)
-                  )).slice(0, 10);
-                  return matches.length > 0 ? (
-                    <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
-                      {matches.map(p => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          className="w-full text-start px-3 py-2 hover:bg-accent text-sm flex items-center justify-between gap-2"
-                          onClick={() => {
-                            addProductToItems(p);
-                            setProductNameSearch("");
-                            setShowProductDropdown(false);
-                          }}
-                          data-testid={`product-name-result-${p.id}`}
-                        >
-                          <span className="font-semibold truncate">{getProductName(p)}</span>
-                          <span className="text-xs text-muted-foreground shrink-0">{p.barcode}</span>
-                        </button>
-                      ))}
+            <div className="md:col-span-2 lg:col-span-2">
+              <div className="flex items-end gap-3">
+                <div className="space-y-1.5 flex-1">
+                  <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <ScanBarcode className="w-4 h-4 text-purple-600" />
+                    {t('Scan Barcode')}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <ScanBarcode className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        ref={barcodeRef}
+                        value={barcodeInput}
+                        onChange={(e) => setBarcodeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleBarcodeScan(barcodeInput);
+                          }
+                        }}
+                        placeholder={t('Scan a barcode to add products')}
+                        className="h-11 text-base font-mono ps-11"
+                        autoFocus
+                        data-testid="input-sales-category-barcode"
+                      />
                     </div>
-                  ) : (
-                    <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-md shadow-lg p-3 text-sm text-muted-foreground text-center">
-                      {t('No products found')}
+                    <Button onClick={() => handleBarcodeScan(barcodeInput)} className="h-11 bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-sales-category-barcode-add">
+                      <Search className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Package className="w-4 h-4 text-green-600" />
+                    {t('Product Name')}
+                  </Label>
+                  <div className="relative" ref={productSearchRef}>
+                    <div className="relative">
+                      <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        value={productNameSearch}
+                        onChange={(e) => {
+                          setProductNameSearch(e.target.value);
+                          setShowProductDropdown(e.target.value.trim().length > 0);
+                        }}
+                        onFocus={() => {
+                          if (productNameSearch.trim().length > 0) setShowProductDropdown(true);
+                        }}
+                        placeholder={t('Search product name...')}
+                        className="h-11 text-base ps-11"
+                        data-testid="input-sales-category-product-name-search"
+                      />
                     </div>
-                  );
-                })()}
+                    {showProductDropdown && productNameSearch.trim() && (() => {
+                      const q = productNameSearch.toLowerCase();
+                      const matches = (products || []).filter(p => !p.hidden && (
+                        getProductName(p).toLowerCase().includes(q) ||
+                        p.name.toLowerCase().includes(q) ||
+                        (p.nameEn && p.nameEn.toLowerCase().includes(q)) ||
+                        p.barcode.toLowerCase().includes(q)
+                      )).slice(0, 10);
+                      return matches.length > 0 ? (
+                        <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                          {matches.map(p => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className="w-full text-start px-3 py-2 hover:bg-accent text-sm flex items-center justify-between gap-2"
+                              onClick={() => {
+                                addProductToItems(p);
+                                setProductNameSearch("");
+                                setShowProductDropdown(false);
+                              }}
+                              data-testid={`product-name-result-${p.id}`}
+                            >
+                              <span className="font-semibold truncate">{getProductName(p)}</span>
+                              <span className="text-xs text-muted-foreground shrink-0">{p.barcode}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="absolute z-50 top-full mt-1 w-full bg-background border border-border rounded-md shadow-lg p-3 text-sm text-muted-foreground text-center">
+                          {t('No products found')}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
