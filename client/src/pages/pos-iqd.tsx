@@ -642,49 +642,75 @@ export default function PosIqdPage() {
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 max-h-[500px] overflow-y-auto">
-                {categoryProducts.map(product => {
-                  const inCart = items.find(i => i.productId === product.id);
-                  const cartQty = inCart ? parseFloat(inCart.quantity || "0") : 0;
-                  return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => addProductToItems(product)}
-                      className={`relative rounded-md border p-2 text-start transition-colors hover:bg-muted/50 ${
-                        cartQty > 0
-                          ? "border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-950/30"
-                          : "border-border"
-                      }`}
-                      data-testid={`button-sales-category-product-${product.id}`}
-                    >
-                      {product.image ? (
-                        <div className="w-full aspect-square mb-1.5 rounded overflow-hidden bg-muted/30">
-                          <img src={product.image} alt={getProductName(product)} className="w-full h-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="w-full aspect-square mb-1.5 rounded bg-muted/30 flex items-center justify-center">
-                          <Package className="w-6 h-6 text-muted-foreground/50" />
-                        </div>
-                      )}
-                      <p className="text-xs font-semibold leading-tight truncate" data-testid={`text-sales-category-product-name-${product.id}`}>
-                        {getProductName(product)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{product.barcode}</p>
-                      <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">{fmtIqd(product.bigUnitPriceIqd)} IQD</p>
-                      {cartQty > 0 && (
-                        <Badge className="absolute top-1 end-1 bg-purple-600 text-white text-xs" data-testid={`badge-sales-category-qty-${product.id}`}>
-                          {cartQty}
-                        </Badge>
-                      )}
-                    </button>
+              <div className="max-h-[500px] overflow-y-auto space-y-3">
+                {(() => {
+                  const grouped = new Map<string, typeof categoryProducts>();
+                  categoryProducts.forEach(p => {
+                    const g = p.groupName || "";
+                    if (!grouped.has(g)) grouped.set(g, []);
+                    grouped.get(g)!.push(p);
+                  });
+                  const entries = Array.from(grouped.entries()).sort((a, b) => {
+                    if (!a[0] && b[0]) return 1;
+                    if (a[0] && !b[0]) return -1;
+                    return a[0].localeCompare(b[0]);
+                  });
+                  if (entries.length === 0) return (
+                    <div className="text-center py-8 text-muted-foreground">
+                      {t('No products found in this category')}
+                    </div>
                   );
-                })}
-                {categoryProducts.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-muted-foreground">
-                    {t('No products found in this category')}
-                  </div>
-                )}
+                  return entries.map(([groupName, groupProducts]) => (
+                    <div key={groupName || "__none__"}>
+                      {groupName && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-bold text-purple-700 dark:text-purple-400">{groupName}</span>
+                          <Badge variant="secondary" className="text-xs">{groupProducts.length}</Badge>
+                          <div className="flex-1 border-t border-border/50" />
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2">
+                        {groupProducts.map(product => {
+                          const inCart = items.find(i => i.productId === product.id);
+                          const cartQty = inCart ? parseFloat(inCart.quantity || "0") : 0;
+                          return (
+                            <button
+                              key={product.id}
+                              type="button"
+                              onClick={() => addProductToItems(product)}
+                              className={`relative rounded-md border p-2 text-start transition-colors hover:bg-muted/50 ${
+                                cartQty > 0
+                                  ? "border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-950/30"
+                                  : "border-border"
+                              }`}
+                              data-testid={`button-sales-category-product-${product.id}`}
+                            >
+                              {product.image ? (
+                                <div className="w-full aspect-square mb-1.5 rounded overflow-hidden bg-muted/30">
+                                  <img src={product.image} alt={getProductName(product)} className="w-full h-full object-cover" />
+                                </div>
+                              ) : (
+                                <div className="w-full aspect-square mb-1.5 rounded bg-muted/30 flex items-center justify-center">
+                                  <Package className="w-6 h-6 text-muted-foreground/50" />
+                                </div>
+                              )}
+                              <p className="text-xs font-semibold leading-tight truncate" data-testid={`text-sales-category-product-name-${product.id}`}>
+                                {getProductName(product)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{product.barcode}</p>
+                              <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">{fmtIqd(product.bigUnitPriceIqd)} IQD</p>
+                              {cartQty > 0 && (
+                                <Badge className="absolute top-1 end-1 bg-purple-600 text-white text-xs" data-testid={`badge-sales-category-qty-${product.id}`}>
+                                  {cartQty}
+                                </Badge>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
               </div>
             </CardContent>
           </Card>
