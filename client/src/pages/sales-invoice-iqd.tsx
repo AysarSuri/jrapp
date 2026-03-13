@@ -739,7 +739,7 @@ export default function SalesInvoiceIqdPage() {
                           min="0"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                          className="h-9 text-sm text-center w-14"
+                          className="h-9 text-sm text-center w-20"
                           data-testid={`input-sales-iqd-quantity-${index}`}
                         />
                         <Button

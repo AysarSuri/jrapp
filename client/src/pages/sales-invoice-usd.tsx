@@ -741,7 +741,7 @@ export default function SalesInvoiceUsdPage() {
                               if (el) el.focus();
                             }
                           }}
-                          className="h-9 text-sm text-center w-14"
+                          className="h-9 text-sm text-center w-20"
                           data-testid={`input-sales-quantity-${index}`}
                         />
                         <Button
