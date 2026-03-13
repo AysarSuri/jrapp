@@ -755,71 +755,65 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-bold">{t('Big Unit Price (IQD)')}</FormLabel>
-                      <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-iqd" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
+                <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Big Unit Price (IQD)')}</FormLabel>
+                    <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-iqd" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Small Unit Price (USD)')}</FormLabel>
+                    <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-usd" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
+                    <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap items-end gap-4">
                   <FormField control={form.control} name="minStock" render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1 min-w-[120px]">
                       <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
                       <FormControl><Input type="number" className="h-11 text-base font-semibold" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                </div>
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                  <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-bold">{t('Small Unit Price (USD)')}</FormLabel>
-                      <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-usd" /></FormControl>
-                      <FormMessage />
+                  <FormField control={form.control} name="hidden" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0 pb-1">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-product-hidden"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        {t('Hide')}
+                      </FormLabel>
                     </FormItem>
                   )} />
-                  <div className="flex items-center gap-5 pb-2">
-                    <FormField control={form.control} name="hidden" render={({ field }) => (
-                      <FormItem className="flex items-center gap-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-product-hidden"
-                            className="h-5 w-5"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          {t('Hide')}
-                        </FormLabel>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="favorite" render={({ field }) => (
-                      <FormItem className="flex items-center gap-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-product-favorite"
-                            className="h-5 w-5"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                          <Star className="h-4 w-4 text-yellow-500" />
-                          {t('Favorite')}
-                        </FormLabel>
-                      </FormItem>
-                    )} />
-                  </div>
-                </div>
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
-                      <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
-                      <FormMessage />
+                  <FormField control={form.control} name="favorite" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0 pb-1">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-product-favorite"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        {t('Favorite')}
+                      </FormLabel>
                     </FormItem>
                   )} />
                   <div className="space-y-1.5">
