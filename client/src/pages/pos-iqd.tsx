@@ -574,18 +574,6 @@ export default function PosIqdPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
               <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} readOnly className="bg-muted/50" data-testid="input-sales-category-rep-mobile" />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Name')}</Label>
-              <Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder={t('Driver name...')} data-testid="input-sales-category-driver-name" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Mobile')}</Label>
-              <Input value={driverMobile} onChange={(e) => setDriverMobile(e.target.value)} placeholder={t('Driver mobile...')} data-testid="input-sales-category-driver-mobile" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">{t('Vehicle Number')}</Label>
-              <Input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} placeholder={t('Vehicle number...')} data-testid="input-sales-category-vehicle-number" />
-            </div>
             <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} data-testid="input-sales-category-note" />
