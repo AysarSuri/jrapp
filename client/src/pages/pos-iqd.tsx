@@ -578,22 +578,11 @@ export default function PosIqdPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('Notes...')} data-testid="input-sales-category-note" />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* POS Layout: Left = Barcode + Categories + Product Grid | Right = Selected Items + Totals */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* LEFT SIDE: Barcode Scanner + Category Product Grid */}
-        <div className="space-y-4">
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ScanBarcode className="w-5 h-5 text-purple-600" />
+            <div className="space-y-1.5 md:col-span-2 lg:col-span-2">
+              <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                <ScanBarcode className="w-4 h-4 text-purple-600" />
                 {t('Scan Barcode')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </Label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <ScanBarcode className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -608,17 +597,24 @@ export default function PosIqdPage() {
                       }
                     }}
                     placeholder={t('Scan a barcode to add products')}
-                    className="h-12 text-lg font-mono ps-11"
+                    className="h-11 text-base font-mono ps-11"
                     autoFocus
                     data-testid="input-sales-category-barcode"
                   />
                 </div>
-                <Button onClick={() => handleBarcodeScan(barcodeInput)} className="h-12 bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-sales-category-barcode-add">
+                <Button onClick={() => handleBarcodeScan(barcodeInput)} className="h-11 bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-sales-category-barcode-add">
                   <Search className="w-5 h-5" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* POS Layout: Left = Categories + Product Grid | Right = Selected Items + Totals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* LEFT SIDE: Category Product Grid */}
+        <div className="space-y-4">
 
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
