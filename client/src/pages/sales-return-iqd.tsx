@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -436,16 +437,13 @@ export default function SalesReturnIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
-              <Select onValueChange={selectCustomer}>
-                <SelectTrigger data-testid="select-return-iqd-customer">
-                  <SelectValue placeholder={t('Select Customer')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customersList.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CustomerSearchSelect
+                customers={customersList}
+                value={customerId ? String(customerId) : ""}
+                onValueChange={selectCustomer}
+                placeholder={t('Select Customer')}
+                data-testid="select-return-iqd-customer"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -561,16 +562,14 @@ export default function PosIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
-              <Select key={`cust-${formKey}`} value={customerId ? String(customerId) : undefined} onValueChange={selectCustomer}>
-                <SelectTrigger data-testid="select-sales-category-customer">
-                  <SelectValue placeholder={t('Select Customer')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customersList.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CustomerSearchSelect
+                key={`cust-${formKey}`}
+                customers={customersList}
+                value={customerId ? String(customerId) : ""}
+                onValueChange={selectCustomer}
+                placeholder={t('Select Customer')}
+                data-testid="select-sales-category-customer"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Address')}</Label>
@@ -1045,17 +1044,18 @@ export default function PosIqdPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Customer')}</Label>
-                <Select value={historyCustomerFilter} onValueChange={setHistoryCustomerFilter}>
-                  <SelectTrigger className="w-48 h-9" data-testid="select-sales-category-history-customer-filter">
-                    <SelectValue placeholder={t('All Customers')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Customers')}</SelectItem>
-                    {customersList.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="w-48">
+                  <CustomerSearchSelect
+                    customers={customersList}
+                    value={historyCustomerFilter}
+                    onValueChange={(v) => setHistoryCustomerFilter(v || "all")}
+                    showAllOption
+                    allOptionLabel={t('All Customers')}
+                    placeholder={t('All Customers')}
+                    inputClassName="h-9 text-sm"
+                    data-testid="select-sales-category-history-customer-filter"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>

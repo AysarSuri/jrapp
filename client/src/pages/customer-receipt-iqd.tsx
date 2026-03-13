@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -268,16 +269,13 @@ export default function CustomerReceiptIqdPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Customer')}</Label>
-                <Select value={customerId} onValueChange={selectCustomer}>
-                  <SelectTrigger data-testid="select-receipt-customer">
-                    <SelectValue placeholder={t('Select customer...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers?.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <CustomerSearchSelect
+                  customers={customers || []}
+                  value={customerId}
+                  onValueChange={selectCustomer}
+                  placeholder={t('Select customer...')}
+                  data-testid="select-receipt-customer"
+                />
               </div>
 
               <div className="space-y-2">
@@ -525,17 +523,16 @@ export default function CustomerReceiptIqdPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-receipt-history" className="h-9">
-                    <SelectValue placeholder={t('All Customers')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Customers')}</SelectItem>
-                    {customers?.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <CustomerSearchSelect
+                  customers={customers || []}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  showAllOption
+                  allOptionLabel={t('All Customers')}
+                  placeholder={t('All Customers')}
+                  inputClassName="h-9 text-sm"
+                  data-testid="select-filter-receipt-history"
+                />
               </div>
             </div>
           </div>
@@ -683,20 +680,17 @@ export default function CustomerReceiptIqdPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('Customer')}</Label>
-              <Select value={editCustomerId} onValueChange={(id) => {
-                setEditCustomerId(id);
-                const customer = customers?.find(c => c.id === parseInt(id));
-                if (customer) setEditCustomerName(customer.name);
-              }}>
-                <SelectTrigger data-testid="select-edit-receipt-customer">
-                  <SelectValue placeholder={t('Select customer...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers?.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CustomerSearchSelect
+                customers={customers || []}
+                value={editCustomerId}
+                onValueChange={(id) => {
+                  setEditCustomerId(id);
+                  const customer = customers?.find(c => c.id === parseInt(id));
+                  if (customer) setEditCustomerName(customer.name);
+                }}
+                placeholder={t('Select customer...')}
+                data-testid="select-edit-receipt-customer"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

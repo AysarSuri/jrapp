@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -233,16 +234,13 @@ export default function AgentPaymentIqdPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Customer')}</Label>
-                <Select value={agentId} onValueChange={selectAgent}>
-                  <SelectTrigger data-testid="select-customer">
-                    <SelectValue placeholder={t('Select customer...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers?.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <CustomerSearchSelect
+                  customers={customers || []}
+                  value={agentId}
+                  onValueChange={selectAgent}
+                  placeholder={t('Select customer...')}
+                  data-testid="select-customer"
+                />
               </div>
 
               <div className="space-y-2">
