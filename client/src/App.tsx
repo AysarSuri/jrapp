@@ -65,6 +65,7 @@ import OwnerStatementIqdPage from "@/pages/owner-statement-iqd";
 import SalesInvoiceUsdPage from "@/pages/sales-invoice-usd";
 import SalesInvoiceIqdPage from "@/pages/sales-invoice-iqd";
 import SalesByCategoryPage from "@/pages/sales-by-category";
+import PosIqdPage from "@/pages/pos-iqd";
 
 import SalesReturnUsdPage from "@/pages/sales-return-usd";
 import SalesReturnIqdPage from "@/pages/sales-return-iqd";
@@ -308,6 +309,9 @@ function Router() {
       </Route>
       <Route path="/sales-by-category">
         <ProtectedRoute component={SalesByCategoryPage} />
+      </Route>
+      <Route path="/pos-iqd">
+        <ProtectedRoute component={PosIqdPage} />
       </Route>
 
       <Route path="/sales-return-usd">

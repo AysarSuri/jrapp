@@ -242,6 +242,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/sales-invoice-usd",
     "/sales-invoice-iqd",
     "/sales-by-category",
+    "/pos-iqd",
     "/sales-return-usd",
     "/sales-return-iqd",
     "/customer-receipt-usd",
@@ -402,7 +403,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/customers", icon: Users, label: "Customers" },
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
     { href: "/sales-invoice-iqd", icon: Receipt, label: "Sales Invoice IQD" },
-    { href: "/sales-by-category", icon: Grid3X3, label: "Sales by Categories" },
+    { href: "/sales-by-category", icon: Grid3X3, label: "POS USD" },
+    { href: "/pos-iqd", icon: Grid3X3, label: "POS IQD" },
 
     { href: "/sales-return-usd", icon: Undo2, label: "Sales Return USD" },
     { href: "/sales-return-iqd", icon: Undo2, label: "Sales Return IQD" },

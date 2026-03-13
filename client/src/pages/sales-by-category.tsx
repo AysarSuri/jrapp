@@ -472,9 +472,9 @@ export default function SalesByCategoryPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-category-title">
             <Grid3X3 className="h-8 w-8 text-purple-600" />
-            {isEditMode ? t('Edit Sales Invoice') : t('Sales by Categories')}
+            {isEditMode ? t('Edit Sales Invoice') : t('POS USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice') : t('Create sales invoice by selecting products from categories')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice') : t('Point of sale - USD currency')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-category-form">
