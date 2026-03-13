@@ -716,17 +716,16 @@ export default function SupplierPaymentsPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-payment-history" className="h-9">
-                    <SelectValue placeholder={t('All Suppliers')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Suppliers')}</SelectItem>
-                    {suppliers?.map(s => (
-                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SupplierSearchSelect
+                  suppliers={suppliers || []}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  showAllOption
+                  allOptionLabel={t('All Suppliers')}
+                  placeholder={t('All Suppliers')}
+                  inputClassName="h-9 text-sm"
+                  data-testid="select-filter-payment-history"
+                />
               </div>
             </div>
           </div>
