@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronDown } from "lucide-react";
 
 interface Supplier {
   id: number;
@@ -31,7 +31,8 @@ export function SupplierSearchSelect({
   showAllOption = false,
   allOptionLabel,
 }: SupplierSearchSelectProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
   const [searchText, setSearchText] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +74,7 @@ export function SupplierSearchSelect({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Search className={`absolute ${isRtl ? "right-2.5" : "left-2.5"} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none`} />
         <Input
           ref={inputRef}
           data-testid={testId}
@@ -94,16 +95,18 @@ export function SupplierSearchSelect({
               handleSelect(String(filtered[0].id));
             }
           }}
-          className={`pl-8 pr-8 ${inputClassName}`}
+          className={`${isRtl ? "pr-8 pl-8" : "pl-8 pr-8"} ${inputClassName}`}
         />
-        {(value && value !== "") && (
+        {(value && value !== "" && value !== "all") ? (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground`}
           >
             <X className="h-4 w-4" />
           </button>
+        ) : (
+          <ChevronDown className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-transform ${isOpen ? "rotate-180" : ""}`} />
         )}
       </div>
       {isOpen && (
