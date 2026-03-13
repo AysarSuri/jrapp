@@ -96,6 +96,7 @@ export const products = pgTable("products", {
   name: text("name").notNull().unique(),
   nameEn: text("name_en").notNull().default(""),
   category: text("category").notNull(),
+  groupName: text("group_name"),
   bigUnitPriceUsd: numeric("big_unit_price_usd").notNull(),
   bigUnitPriceIqd: numeric("big_unit_price_iqd").notNull(),
   smallUnitPriceUsd: numeric("small_unit_price_usd").notNull(),

@@ -9,7 +9,7 @@ type Product = typeof products.$inferSelect;
 import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
-import { useCategories } from "@/hooks/use-categories";
+import { useCategories, useCategoryGroups } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,6 +59,7 @@ const defaultValues: FormValues = {
   nameEn: "",
   barcode: "",
   category: "",
+  groupName: null,
   bigUnit: "",
   smallUnit: "",
   conversionFactor: 1,
@@ -83,6 +84,7 @@ export default function ProductsPage() {
   const { data: unitsData } = useUnits();
   const unitsList = unitsData || [];
   const { data: categoriesList } = useCategories();
+  const { data: allGroups } = useCategoryGroups();
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
   const { mutate: deleteProduct } = useDeleteProduct();
@@ -128,6 +130,7 @@ export default function ProductsPage() {
       nameEn: product.nameEn || "",
       barcode: product.barcode,
       category: product.category,
+      groupName: product.groupName || null,
       bigUnit: product.bigUnit,
       smallUnit: product.smallUnit,
       conversionFactor: product.conversionFactor,
@@ -683,7 +686,7 @@ export default function ProductsPage() {
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-category">
                           <SelectValue placeholder={t('Select Category')} />
@@ -698,6 +701,30 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="groupName" render={({ field }) => {
+                  const selectedCategory = form.watch("category");
+                  const selectedCatObj = categoriesList?.find(c => c.name === selectedCategory);
+                  const filteredGroups = selectedCatObj ? (allGroups || []).filter((g: any) => g.categoryId === selectedCatObj.id) : [];
+                  return (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Group')}</FormLabel>
+                      <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-group">
+                            <SelectValue placeholder={t('Select Group')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__">{t('No Group')}</SelectItem>
+                          {filteredGroups.map((g: any) => (
+                            <SelectItem key={g.id} value={g.name} data-testid={`option-group-${g.id}`}>{g.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }} />
                 <FormField control={form.control} name="bigUnit" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Big Unit')}</FormLabel>
@@ -904,6 +931,7 @@ export default function ProductsPage() {
                       <TableHead className="font-bold text-sm">{t('Barcode')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Name')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Category')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Group')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Units')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Weight (KG)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
@@ -923,6 +951,7 @@ export default function ProductsPage() {
                         <TableCell>
                           <Badge variant="secondary" className="font-bold">{product.category}</Badge>
                         </TableCell>
+                        <TableCell className="text-sm font-bold">{product.groupName || "-"}</TableCell>
                         <TableCell className="text-center text-sm font-bold">
                           1 {resolveUnitName(product.bigUnit, unitsList)} = {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
                         </TableCell>
