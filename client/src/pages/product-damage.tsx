@@ -15,6 +15,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -409,16 +410,13 @@ export default function ProductDamagePage() {
             </div>
             <div className="space-y-2">
               <Label>{t('Warehouse')}</Label>
-              <Select value={warehouseId} onValueChange={selectWarehouse}>
-                <SelectTrigger data-testid="select-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {whs.map(wh => (
-                    <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={whs.map(wh => ({ id: wh.id, name: wh.name }))}
+                value={warehouseId}
+                onValueChange={selectWarehouse}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-warehouse"
+              />
             </div>
           </div>
 
@@ -482,19 +480,13 @@ export default function ProductDamagePage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={item.productName || undefined}
-                          onValueChange={(val) => selectProductByName(index, val)}
-                        >
-                          <SelectTrigger data-testid={`select-product-name-${index}`}>
-                            <SelectValue placeholder={t('Select')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {prods.map(p => (
-                              <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchSelect
+                          items={prods.map(p => ({ id: p.id, name: getProductName(p) }))}
+                          value={item.productId ? String(item.productId) : ""}
+                          onValueChange={(val) => selectProduct(index, val)}
+                          placeholder={t('Select')}
+                          data-testid={`select-product-name-${index}`}
+                        />
                       </TableCell>
                       <TableCell>
                         <Input

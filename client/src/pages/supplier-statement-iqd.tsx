@@ -4,7 +4,6 @@ import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft, RotateCcw, Eye, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -21,6 +20,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { onDataUpdate } from "@/lib/broadcast";
 import { useToast } from "@/hooks/use-toast";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
+import { SearchSelect } from "@/components/search-select";
 import { playSuccessSound, playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import { logExport } from "@/lib/export-log";
@@ -688,21 +688,16 @@ export default function SupplierStatementIqdPage() {
             </button>
           ))}
           {activeTab === "adjustments" && agentNames.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                <SelectTrigger className="w-[200px]" data-testid="select-agent-filter">
-                  <SelectValue placeholder={t("Select Agent")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" data-testid="select-agent-all">{t("All Agents")}</SelectItem>
-                  {agentNames.map((name) => (
-                    <SelectItem key={name} value={name} data-testid={`select-agent-${name}`}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <SearchSelect
+              items={agentNames.map(name => ({ id: name, name }))}
+              value={selectedAgent}
+              onValueChange={(v) => setSelectedAgent(v || "all")}
+              placeholder={t("Select Agent")}
+              data-testid="select-agent-filter"
+              showAllOption
+              allOptionLabel={t("All Agents")}
+              className="w-[200px]"
+            />
           )}
         </div>
       )}

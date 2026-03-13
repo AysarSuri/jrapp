@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { Bank } from "@shared/schema";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -88,18 +86,7 @@ export default function BankStatementIqdPage() {
           <CardTitle className="text-lg">{t('Select Bank')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedBankId} onValueChange={setSelectedBankId}>
-            <SelectTrigger data-testid="select-bank-statement-iqd" className="max-w-md">
-              <SelectValue placeholder={t('Select bank...')} />
-            </SelectTrigger>
-            <SelectContent>
-              {banks.map((b) => (
-                <SelectItem key={b.id} value={String(b.id)} data-testid={`select-bank-iqd-${b.id}`}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchSelect items={banks} value={selectedBankId} onValueChange={setSelectedBankId} placeholder={t('Select bank...')} data-testid="select-bank-statement-iqd" />
         </CardContent>
       </Card>
 

@@ -6,9 +6,7 @@ import type { TransferOffice, TransferOfficeTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -217,16 +215,7 @@ export default function OfficeReceiptsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>
-                <Select value={officeId} onValueChange={selectOffice}>
-                  <SelectTrigger data-testid="select-office-receipt-office">
-                    <SelectValue placeholder={t('Select office...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {offices.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={offices} value={officeId} onValueChange={selectOffice} placeholder={t('Select office...')} data-testid="select-office-receipt-office" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -372,17 +361,7 @@ export default function OfficeReceiptsPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-office-receipt-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-office-receipt-history" className="h-9">
-                    <SelectValue placeholder={t('All Offices')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Offices')}</SelectItem>
-                    {offices.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={offices} value={historyFilter === "all" ? "" : historyFilter} onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }} placeholder={t('All Offices')} showAllOption allOptionLabel={t('All Offices')} data-testid="select-filter-office-receipt-history" />
               </div>
             </div>
           </div>
@@ -527,20 +506,11 @@ export default function OfficeReceiptsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>
-                <Select value={editOfficeId} onValueChange={(v) => {
+                <SearchSelect items={offices} value={editOfficeId} onValueChange={(v) => {
                   setEditOfficeId(v);
                   const office = offices.find(b => b.id === parseInt(v));
                   if (office) setEditOfficeName(office.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-office-receipt-office">
-                    <SelectValue placeholder={t('Select office...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {offices.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                }} placeholder={t('Select office...')} data-testid="select-edit-office-receipt-office" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>

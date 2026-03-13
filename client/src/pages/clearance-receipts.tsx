@@ -6,9 +6,7 @@ import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/sche
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -361,16 +359,7 @@ export default function ClearanceReceiptsPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('Customs Clearance')}</Label>
-                <Select value={clearanceId} onValueChange={selectClearance}>
-                  <SelectTrigger data-testid="select-clearance-receipt-clearance">
-                    <SelectValue placeholder={t('Select clearance...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clearances.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={clearances} value={clearanceId} onValueChange={selectClearance} placeholder={t('Select clearance...')} data-testid="select-clearance-receipt-clearance" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -518,17 +507,7 @@ export default function ClearanceReceiptsPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-receipt-history" className="h-9">
-                    <SelectValue placeholder={t('All Clearances')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Clearances')}</SelectItem>
-                    {clearances.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={clearances} value={historyFilter === "all" ? "" : historyFilter} onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }} placeholder={t('All Clearances')} showAllOption allOptionLabel={t('All Clearances')} data-testid="select-filter-receipt-history" />
               </div>
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-receipt-report">
                 <Printer className="h-4 w-4" />

@@ -6,9 +6,7 @@ import type { Bank, BankTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -217,16 +215,7 @@ export default function BankPaymentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>
-                <Select value={bankId} onValueChange={selectBank}>
-                  <SelectTrigger data-testid="select-bank-payment-bank">
-                    <SelectValue placeholder={t('Select bank...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {banks.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={banks} value={bankId} onValueChange={selectBank} placeholder={t('Select bank...')} data-testid="select-bank-payment-bank" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
@@ -370,17 +359,7 @@ export default function BankPaymentsPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-bank-payment-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-bank-payment-history" className="h-9">
-                    <SelectValue placeholder={t('All Banks')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Banks')}</SelectItem>
-                    {banks.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect items={banks} value={historyFilter === "all" ? "" : historyFilter} onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }} placeholder={t('All Banks')} showAllOption allOptionLabel={t('All Banks')} data-testid="select-filter-bank-payment-history" />
               </div>
             </div>
           </div>
@@ -525,20 +504,11 @@ export default function BankPaymentsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>
-                <Select value={editBankId} onValueChange={(v) => {
+                <SearchSelect items={banks} value={editBankId} onValueChange={(v) => {
                   setEditBankId(v);
                   const bank = banks.find(b => b.id === parseInt(v));
                   if (bank) setEditBankName(bank.name);
-                }}>
-                  <SelectTrigger data-testid="select-edit-bank-payment-bank">
-                    <SelectValue placeholder={t('Select bank...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {banks.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                }} placeholder={t('Select bank...')} data-testid="select-edit-bank-payment-bank" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>

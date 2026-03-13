@@ -30,6 +30,7 @@ import { playDeleteSound } from "@/lib/sounds";
 import { broadcastDataUpdate } from "@/lib/broadcast";
 import SupplierAdjustmentReport from "@/components/supplier-adjustment-report";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
+import { SearchSelect } from "@/components/search-select";
 
 export default function SupplierAdjustmentsPage() {
   const { t } = useTranslation();
@@ -331,42 +332,17 @@ export default function SupplierAdjustmentsPage() {
               {adjustmentType !== "discount" && (
                 <div className="space-y-2">
                   <Label>{t('Received Source')}</Label>
-                  <Select value={payTo} onValueChange={selectPayTo}>
-                    <SelectTrigger data-testid="select-pay-to">
-                      <SelectValue placeholder={t('Select bank or transfer office...')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <HandCoins className="h-3 w-3" /> {t('By Hand')}
-                      </div>
-                      <SelectItem value="byhand:0">{t('By Hand')}</SelectItem>
-
-                      {banks.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                            <Landmark className="h-3 w-3" /> {t('Banks')}
-                          </div>
-                          {banks.map(b => (
-                            <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                      {transferOffices.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                            <Building className="h-3 w-3" /> {t('Transfer Offices')}
-                          </div>
-                          {transferOffices.map(o => (
-                            <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>
-                              {o.name}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <SearchSelect
+                    items={[
+                      { id: "byhand:0", name: t('By Hand') },
+                      ...(banksList || []).map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                      ...(transferOfficesList || []).map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                    ]}
+                    value={payTo}
+                    onValueChange={selectPayTo}
+                    placeholder={t('Select bank or transfer office...')}
+                    data-testid="select-pay-to"
+                  />
                 </div>
               )}
             </div>

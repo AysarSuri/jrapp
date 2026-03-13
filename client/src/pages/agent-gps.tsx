@@ -7,11 +7,9 @@ import type { AgentLocation } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -350,17 +348,16 @@ export default function AgentGpsPage() {
               <Badge variant="secondary" className="ml-2">{filteredLocations.length}</Badge>
             </CardTitle>
             <div className="w-56">
-              <Select value={agentFilter} onValueChange={setAgentFilter}>
-                <SelectTrigger data-testid="select-filter-agent-location" className="h-9">
-                  <SelectValue placeholder={t('All Agents')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('All Agents')}</SelectItem>
-                  {agents.map(a => (
-                    <SelectItem key={a.id} value={a.id}>{a.fullName || a.username}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={agents.map(a => ({ id: a.id, name: a.fullName || a.username }))}
+                value={agentFilter}
+                onValueChange={(v) => setAgentFilter(v || "all")}
+                placeholder={t('All Agents')}
+                data-testid="select-filter-agent-location"
+                showAllOption
+                allOptionLabel={t('All Agents')}
+                inputClassName="h-9"
+              />
             </div>
           </div>
         </CardHeader>

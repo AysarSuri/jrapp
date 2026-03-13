@@ -35,6 +35,7 @@ import { broadcastDataUpdate } from "@/lib/broadcast";
 import { useUnits } from "@/hooks/use-units";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
+import { SearchSelect } from "@/components/search-select";
 
 interface InvoiceItem {
   productId: number | null;
@@ -561,19 +562,17 @@ export default function PurchaseInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Warehouse')}</Label>
-              <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
-                const wh = warehousesList?.find(w => w.id === parseInt(v));
-                if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
-              }}>
-                <SelectTrigger className="font-bold text-base h-11" data-testid="select-purchase-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {warehousesList?.map(w => (
-                    <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={warehousesList || []}
+                value={warehouseId ? String(warehouseId) : ""}
+                onValueChange={(v) => {
+                  const wh = warehousesList?.find(w => w.id === parseInt(v));
+                  if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
+                }}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-purchase-warehouse"
+                inputClassName="font-bold text-base h-11"
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label className="text-sm font-bold">{t('Note')}</Label>
@@ -582,16 +581,14 @@ export default function PurchaseInvoiceUsdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Customs Clearance')}</Label>
-              <Select value={customsClearance} onValueChange={setCustomsClearance}>
-                <SelectTrigger className="font-bold text-base h-11" data-testid="select-purchase-customs-clearance">
-                  <SelectValue placeholder={t('Select Clearance')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customsClearancesList?.map(cc => (
-                    <SelectItem key={cc.id} value={cc.name}>{cc.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={(customsClearancesList || []).map(cc => ({ id: cc.name, name: cc.name }))}
+                value={customsClearance}
+                onValueChange={setCustomsClearance}
+                placeholder={t('Select Clearance')}
+                data-testid="select-purchase-customs-clearance"
+                inputClassName="font-bold text-base h-11"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Car Number')}</Label>

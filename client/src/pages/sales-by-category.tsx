@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -554,19 +555,16 @@ export default function SalesByCategoryPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
-              <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
-                const wh = warehousesList?.find(w => w.id === parseInt(v));
-                if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
-              }}>
-                <SelectTrigger data-testid="select-sales-category-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {warehousesList?.map(w => (
-                    <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={warehousesList || []}
+                value={warehouseId ? String(warehouseId) : ""}
+                onValueChange={(v) => {
+                  const wh = warehousesList?.find(w => w.id === parseInt(v));
+                  if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
+                }}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-sales-category-warehouse"
+              />
             </div>
 
             <div className="space-y-1.5">

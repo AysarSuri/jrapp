@@ -4,11 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { ExternalDebt } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText } from "lucide-react";
@@ -87,18 +85,14 @@ export default function ExternalDebtStatementPage() {
           <CardTitle className="text-lg">{t('Select External Debt')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedDebtId} onValueChange={setSelectedDebtId}>
-            <SelectTrigger data-testid="select-external-debt-statement" className="max-w-md">
-              <SelectValue placeholder={t('Select external debt...')} />
-            </SelectTrigger>
-            <SelectContent>
-              {debts.map((b) => (
-                <SelectItem key={b.id} value={String(b.id)} data-testid={`select-external-debt-${b.id}`}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            items={debts.map(b => ({ id: b.id, name: b.name }))}
+            value={selectedDebtId}
+            onValueChange={setSelectedDebtId}
+            placeholder={t('Select external debt...')}
+            data-testid="select-external-debt-statement"
+            className="max-w-md"
+          />
         </CardContent>
       </Card>
 

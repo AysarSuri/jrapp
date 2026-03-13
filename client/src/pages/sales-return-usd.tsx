@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -29,6 +30,7 @@ import {
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
+import ProductSearchSelect from "@/components/product-search-select";
 import { useUnits } from "@/hooks/use-units";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
@@ -268,6 +270,7 @@ export default function SalesReturnUsdPage() {
   };
 
   const selectRepresentative = (repId: string) => {
+    if (!repId) { setRepresentativeId(0); setRepresentativeName(""); setRepresentativeMobile(""); return; }
     const rep = representativesList?.find(r => r.id === parseInt(repId));
     if (rep) {
       setRepresentativeId(rep.id);
@@ -425,19 +428,16 @@ export default function SalesReturnUsdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
-              <Select value={warehouseId ? String(warehouseId) : ""} onValueChange={(v) => {
-                const wh = warehousesList?.find(w => w.id === parseInt(v));
-                if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
-              }}>
-                <SelectTrigger data-testid="select-return-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {warehousesList?.map(w => (
-                    <SelectItem key={w.id} value={String(w.id)}>{w.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={warehousesList || []}
+                value={warehouseId ? String(warehouseId) : ""}
+                onValueChange={(v) => {
+                  const wh = warehousesList?.find(w => w.id === parseInt(v));
+                  if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
+                }}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-return-warehouse"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -466,16 +466,13 @@ export default function SalesReturnUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Name')}</Label>
-              <Select onValueChange={selectRepresentative}>
-                <SelectTrigger data-testid="select-return-representative">
-                  <SelectValue placeholder={t('Select Representative')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {representativesList?.map(r => (
-                    <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={representativesList || []}
+                value={representativeId ? String(representativeId) : ""}
+                onValueChange={selectRepresentative}
+                placeholder={t('Select Representative')}
+                data-testid="select-return-representative"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
@@ -528,21 +525,12 @@ export default function SalesReturnUsdPage() {
                   <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-return-item-${index}`}>
                     <TableCell className="text-center font-mono text-xs text-muted-foreground">{index + 1}</TableCell>
                     <TableCell className="p-1">
-                      <Select
-                        value={item.productId ? String(item.productId) : ""}
-                        onValueChange={(val) => selectProduct(index, val)}
-                      >
-                        <SelectTrigger className="h-9 text-sm" data-testid={`select-return-product-${index}`}>
-                          <SelectValue placeholder={t('Select product...')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products?.map(p => (
-                            <SelectItem key={p.id} value={String(p.id)}>
-                              {getProductName(p)} ({p.barcode})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ProductSearchSelect
+                        products={products || []}
+                        value={item.productId}
+                        onSelect={(val) => selectProduct(index, val)}
+                        data-testid={`select-return-product-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <ProductCodeSearchSelect

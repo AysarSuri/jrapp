@@ -21,6 +21,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import { Plus, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,14 +83,15 @@ export default function InvoicesPage() {
                 <FormField control={form.control} name="clientId" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('Client')}</FormLabel>
-                    <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
-                      <FormControl><SelectTrigger data-testid="select-invoice-client"><SelectValue placeholder={t('Select client')} /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {clients?.map(c => (
-                          <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchSelect
+                        items={(clients || []).map(c => ({ id: c.id, name: c.name }))}
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                        placeholder={t('Select client')}
+                        data-testid="select-invoice-client"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

@@ -10,11 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -286,16 +284,13 @@ export default function WarehouseTransferPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-end">
             <div className="space-y-2">
               <Label>{t('From Warehouse')}</Label>
-              <Select value={fromWarehouseId} onValueChange={selectFromWarehouse}>
-                <SelectTrigger data-testid="select-from-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {whList.map(wh => (
-                    <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={whList.map(wh => ({ id: wh.id, name: wh.name }))}
+                value={fromWarehouseId}
+                onValueChange={selectFromWarehouse}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-from-warehouse"
+              />
             </div>
 
             <div className="flex justify-center pb-2">
@@ -304,16 +299,13 @@ export default function WarehouseTransferPage() {
 
             <div className="space-y-2">
               <Label>{t('To Warehouse')}</Label>
-              <Select value={toWarehouseId} onValueChange={selectToWarehouse}>
-                <SelectTrigger data-testid="select-to-warehouse">
-                  <SelectValue placeholder={t('Select Warehouse')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {whList.map(wh => (
-                    <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={whList.map(wh => ({ id: wh.id, name: wh.name }))}
+                value={toWarehouseId}
+                onValueChange={selectToWarehouse}
+                placeholder={t('Select Warehouse')}
+                data-testid="select-to-warehouse"
+              />
             </div>
           </div>
 
@@ -362,19 +354,13 @@ export default function WarehouseTransferPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={item.productName || undefined}
-                          onValueChange={(val) => selectProductByName(index, val)}
-                        >
-                          <SelectTrigger data-testid={`select-product-name-${index}`}>
-                            <SelectValue placeholder={t('Select')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {prodList.map(p => (
-                              <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchSelect
+                          items={prodList.map(p => ({ id: p.id, name: getProductName(p) }))}
+                          value={item.productId ? String(item.productId) : ""}
+                          onValueChange={(val) => selectProduct(index, val)}
+                          placeholder={t('Select')}
+                          data-testid={`select-product-name-${index}`}
+                        />
                       </TableCell>
                       <TableCell>
                         <Input
@@ -444,17 +430,16 @@ export default function WarehouseTransferPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-transfer-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-transfer-history" className="h-9">
-                    <SelectValue placeholder={t('All Warehouses')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Warehouses')}</SelectItem>
-                    {whList.map(wh => (
-                      <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={whList.map(wh => ({ id: wh.id, name: wh.name }))}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  placeholder={t('All Warehouses')}
+                  data-testid="select-filter-transfer-history"
+                  showAllOption
+                  allOptionLabel={t('All Warehouses')}
+                  inputClassName="h-9"
+                />
               </div>
             </div>
           </div>

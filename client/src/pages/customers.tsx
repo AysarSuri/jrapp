@@ -20,12 +20,10 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { SearchSelect } from "@/components/search-select";
 import { Plus, Search, Users, Loader2, MapPin, Pencil, Trash2, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -248,17 +246,13 @@ export default function CustomersPage() {
                     <UserCheck className="h-3.5 w-3.5" />
                     {t('Agent')}
                   </Label>
-                  <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
-                    <SelectTrigger data-testid="select-customer-agent">
-                      <SelectValue placeholder={t('Select agent (optional)...')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t('No Agent')}</SelectItem>
-                      {agents.map(a => (
-                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchSelect
+                    items={agents}
+                    value={selectedAgentId}
+                    onValueChange={(v) => setSelectedAgentId(v || "")}
+                    placeholder={t('Select agent (optional)...')}
+                    data-testid="select-customer-agent"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (

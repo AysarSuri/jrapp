@@ -3,11 +3,9 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { Representative } from "@shared/schema";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Banknote } from "lucide-react";
@@ -88,18 +86,14 @@ export default function AgentStatementIqdPage() {
           <CardTitle className="text-lg">{t('Select Agent')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
-            <SelectTrigger data-testid="select-agent-statement" className="max-w-md">
-              <SelectValue placeholder={t('Select agent...')} />
-            </SelectTrigger>
-            <SelectContent>
-              {agents.map((a) => (
-                <SelectItem key={a.id} value={String(a.id)} data-testid={`select-agent-${a.id}`}>
-                  {a.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            items={agents.map(a => ({ id: a.id, name: a.name }))}
+            value={selectedAgentId}
+            onValueChange={setSelectedAgentId}
+            placeholder={t('Select agent...')}
+            data-testid="select-agent-statement"
+            className="max-w-md"
+          />
         </CardContent>
       </Card>
 

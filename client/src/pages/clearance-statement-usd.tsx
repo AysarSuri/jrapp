@@ -12,9 +12,7 @@ import { getModernPrintStyles } from "@/lib/print-styles";
 import { useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -370,18 +368,7 @@ export default function ClearanceStatementUsdPage() {
         <CardContent>
           <div className="flex flex-wrap items-end gap-4">
             <div className="w-full sm:w-auto sm:min-w-[250px]">
-              <Select value={selectedClearanceId} onValueChange={setSelectedClearanceId}>
-                <SelectTrigger data-testid="select-clearance-statement-usd">
-                  <SelectValue placeholder={t('Select clearance...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {clearances.map((b) => (
-                    <SelectItem key={b.id} value={String(b.id)} data-testid={`select-clearance-usd-${b.id}`}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect items={clearances} value={selectedClearanceId} onValueChange={setSelectedClearanceId} placeholder={t('Select clearance...')} data-testid="select-clearance-statement-usd" />
             </div>
             <div className="flex items-end gap-3">
               <div>

@@ -5,9 +5,7 @@ import type { CustomsClearance, ClearancePurchaseInvoice } from "@shared/schema"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -365,16 +363,13 @@ export default function ClearancePurchaseInvoicesPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('Customs Clearance')}</Label>
-                <Select value={clearanceId} onValueChange={selectClearance}>
-                  <SelectTrigger data-testid="select-clearance">
-                    <SelectValue placeholder={t('Select clearance...')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clearances.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={clearances.map(c => ({ id: c.id, name: c.name }))}
+                  value={clearanceId}
+                  onValueChange={selectClearance}
+                  placeholder={t('Select clearance...')}
+                  data-testid="select-clearance"
+                />
               </div>
             </div>
 
@@ -506,17 +501,15 @@ export default function ClearancePurchaseInvoicesPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-clearance" className="h-9">
-                    <SelectValue placeholder={t('All Clearances')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Clearances')}</SelectItem>
-                    {clearances.map(c => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={clearances.map(c => ({ id: c.id, name: c.name }))}
+                  value={historyFilter === "all" ? "" : historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  placeholder={t('All Clearances')}
+                  showAllOption
+                  allOptionLabel={t('All Clearances')}
+                  data-testid="select-filter-clearance"
+                />
               </div>
               <div className="w-36">
                 <Input

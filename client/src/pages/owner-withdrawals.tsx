@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -248,16 +246,13 @@ export default function OwnerWithdrawalsPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('Select Owner')}</Label>
-                <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
-                  <SelectTrigger data-testid="select-withdrawal-owner">
-                    <SelectValue placeholder={t('Please select an owner')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {owners.map((o: Owner) => (
-                      <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={owners.map((o: Owner) => ({ id: o.id, name: o.name }))}
+                  value={selectedOwnerId}
+                  onValueChange={setSelectedOwnerId}
+                  placeholder={t('Please select an owner')}
+                  data-testid="select-withdrawal-owner"
+                />
               </div>
             </div>
 
@@ -401,17 +396,16 @@ export default function OwnerWithdrawalsPage() {
                 />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-withdrawal-history" className="h-9">
-                    <SelectValue placeholder={t('All Owners')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Owners')}</SelectItem>
-                    {owners.map((o: Owner) => (
-                      <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={owners.map((o: Owner) => ({ id: o.id, name: o.name }))}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  placeholder={t('All Owners')}
+                  data-testid="select-filter-withdrawal-history"
+                  showAllOption
+                  allOptionLabel={t('All Owners')}
+                  inputClassName="h-9"
+                />
               </div>
             </div>
           </div>

@@ -3,9 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { TransferOffice } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -87,18 +85,7 @@ export default function OfficeStatementPage() {
           <CardTitle className="text-lg">{t('Select Office')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedOfficeId} onValueChange={setSelectedOfficeId}>
-            <SelectTrigger data-testid="select-office-statement" className="max-w-md">
-              <SelectValue placeholder={t('Select office...')} />
-            </SelectTrigger>
-            <SelectContent>
-              {offices.map((b) => (
-                <SelectItem key={b.id} value={String(b.id)} data-testid={`select-office-${b.id}`}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchSelect items={offices} value={selectedOfficeId} onValueChange={setSelectedOfficeId} placeholder={t('Select office...')} data-testid="select-office-statement" />
         </CardContent>
       </Card>
 

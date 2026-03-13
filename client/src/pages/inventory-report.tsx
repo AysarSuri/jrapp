@@ -6,11 +6,9 @@ type Warehouse = typeof warehouses.$inferSelect;
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ClipboardList, Search, ArrowLeft } from "lucide-react";
@@ -102,17 +100,15 @@ export default function InventoryReportPage() {
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-2 min-w-[220px]">
               <Label>{t('Warehouse')}</Label>
-              <Select value={warehouseId} onValueChange={setWarehouseId}>
-                <SelectTrigger data-testid="select-warehouse">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('All (Total)')}</SelectItem>
-                  {whs.map(wh => (
-                    <SelectItem key={wh.id} value={String(wh.id)}>{wh.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={whs.map(wh => ({ id: wh.id, name: wh.name }))}
+                value={warehouseId}
+                onValueChange={(v) => setWarehouseId(v || "all")}
+                placeholder={t('All (Total)')}
+                data-testid="select-warehouse"
+                showAllOption
+                allOptionLabel={t('All (Total)')}
+              />
             </div>
           </div>
         </CardContent>

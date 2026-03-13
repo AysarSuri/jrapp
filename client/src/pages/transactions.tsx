@@ -21,6 +21,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { SearchSelect } from "@/components/search-select";
 import { Plus, ArrowRightLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,30 +112,30 @@ export default function TransactionsPage() {
                   <FormField control={form.control} name="fromAccountId" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('From Account')}</FormLabel>
-                      <Select onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))} value={field.value ? String(field.value) : "none"}>
-                        <FormControl><SelectTrigger data-testid="select-tx-from"><SelectValue placeholder={t('None')} /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">{t('None')}</SelectItem>
-                          {accounts?.map(a => (
-                            <SelectItem key={a.id} value={String(a.id)}>{a.name} ({a.currency})</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchSelect
+                          items={(accounts || []).map(a => ({ id: a.id, name: `${a.name} (${a.currency})` }))}
+                          value={field.value ? String(field.value) : ""}
+                          onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                          placeholder={t('None')}
+                          data-testid="select-tx-from"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="toAccountId" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('To Account')}</FormLabel>
-                      <Select onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))} value={field.value ? String(field.value) : "none"}>
-                        <FormControl><SelectTrigger data-testid="select-tx-to"><SelectValue placeholder={t('None')} /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">{t('None')}</SelectItem>
-                          {accounts?.map(a => (
-                            <SelectItem key={a.id} value={String(a.id)}>{a.name} ({a.currency})</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SearchSelect
+                          items={(accounts || []).map(a => ({ id: a.id, name: `${a.name} (${a.currency})` }))}
+                          value={field.value ? String(field.value) : ""}
+                          onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                          placeholder={t('None')}
+                          data-testid="select-tx-to"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />

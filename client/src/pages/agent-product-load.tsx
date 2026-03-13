@@ -9,11 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -255,16 +253,13 @@ export default function AgentProductLoadPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('Agent')}</Label>
-              <Select value={agentId} onValueChange={selectAgent}>
-                <SelectTrigger data-testid="select-agent">
-                  <SelectValue placeholder={t('Select agent...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map(a => (
-                    <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={agents}
+                value={agentId}
+                onValueChange={selectAgent}
+                placeholder={t('Select agent...')}
+                data-testid="select-agent"
+              />
             </div>
             <div className="space-y-2">
               <Label>{t('Date')}</Label>
@@ -330,19 +325,13 @@ export default function AgentProductLoadPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={item.productName || undefined}
-                          onValueChange={(val) => selectProductByName(index, val)}
-                        >
-                          <SelectTrigger data-testid={`select-load-product-name-${index}`}>
-                            <SelectValue placeholder={t('Select')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {prodList.map(p => (
-                              <SelectItem key={p.id} value={p.name}>{getProductName(p)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchSelect
+                          items={prodList.map(p => ({ id: p.id, name: getProductName(p) }))}
+                          value={item.productId ? String(item.productId) : ""}
+                          onValueChange={(val) => selectProduct(index, val)}
+                          placeholder={t('Select')}
+                          data-testid={`select-load-product-name-${index}`}
+                        />
                       </TableCell>
                       <TableCell>
                         <Input
@@ -412,17 +401,16 @@ export default function AgentProductLoadPage() {
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-load-history-to-date" />
               </div>
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-load-history" className="h-9">
-                    <SelectValue placeholder={t('All Agents')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Agents')}</SelectItem>
-                    {agents.map(a => (
-                      <SelectItem key={a.id} value={a.name}>{a.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={agents.map(a => ({ id: a.name, name: a.name }))}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  placeholder={t('All Agents')}
+                  data-testid="select-filter-load-history"
+                  showAllOption
+                  allOptionLabel={t('All Agents')}
+                  inputClassName="h-9"
+                />
               </div>
             </div>
           </div>

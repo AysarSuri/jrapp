@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -322,33 +320,16 @@ export default function CustomerReceiptUsdPage() {
 
             <div className="space-y-2">
               <Label>{t('Amount Received At')}</Label>
-              <Select value={paymentSource} onValueChange={selectPaymentSource}>
-                <SelectTrigger data-testid="select-receipt-source">
-                  <SelectValue placeholder={t('Select account where amount was received...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {banks.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Landmark className="h-3 w-3" /> {t('Banks')}
-                      </div>
-                      {banks.map(b => (
-                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>{b.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {transferOffices.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
-                      </div>
-                      {transferOffices.map(o => (
-                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>{o.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={[
+                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                ]}
+                value={paymentSource}
+                onValueChange={(v) => selectPaymentSource(v || "")}
+                placeholder={t('Select account where amount was received...')}
+                data-testid="select-receipt-source"
+              />
             </div>
 
             <Separator />
@@ -709,43 +690,27 @@ export default function CustomerReceiptUsdPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('Payment Source')}</Label>
-              <Select value={editPaymentSource} onValueChange={(v) => {
-                setEditPaymentSource(v);
-                const [type, id] = v.split(":");
-                if (type === "bank") {
-                  const bank = banksList?.find(b => b.id === parseInt(id));
-                  if (bank) setEditPaymentSourceName(`${t("Bank")} - ${bank.name}`);
-                } else {
-                  const office = transferOfficesList?.find(o => o.id === parseInt(id));
-                  if (office) setEditPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
-                }
-              }}>
-                <SelectTrigger data-testid="select-edit-receipt-source">
-                  <SelectValue placeholder={t('Select payment source...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {banks.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Landmark className="h-3 w-3" /> {t('Banks')}
-                      </div>
-                      {banks.map(b => (
-                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>{b.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {transferOffices.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
-                      </div>
-                      {transferOffices.map(o => (
-                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>{o.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={[
+                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                ]}
+                value={editPaymentSource}
+                onValueChange={(v) => {
+                  if (!v) { setEditPaymentSource(""); setEditPaymentSourceName(""); return; }
+                  setEditPaymentSource(v);
+                  const [type, id] = v.split(":");
+                  if (type === "bank") {
+                    const bank = banksList?.find(b => b.id === parseInt(id));
+                    if (bank) setEditPaymentSourceName(`${t("Bank")} - ${bank.name}`);
+                  } else {
+                    const office = transferOfficesList?.find(o => o.id === parseInt(id));
+                    if (office) setEditPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
+                  }
+                }}
+                placeholder={t('Select payment source...')}
+                data-testid="select-edit-receipt-source"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

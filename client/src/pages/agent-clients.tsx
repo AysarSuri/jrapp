@@ -6,9 +6,6 @@ import type { AgentClient } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle,
 } from "lucide-react";
+import { SearchSelect } from "@/components/search-select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -343,16 +341,13 @@ ${clicheHtml}
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>{t('Agent')}</Label>
-              <Select value={selectedAgentId} onValueChange={(v) => { selectAgent(v); }}>
-                <SelectTrigger data-testid="select-agent">
-                  <SelectValue placeholder={t('Select agent...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map(a => (
-                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={agents}
+                value={selectedAgentId}
+                onValueChange={(v) => { selectAgent(v); }}
+                placeholder={t('Select agent...')}
+                data-testid="select-agent"
+              />
             </div>
 
             {selectedAgentId && (
@@ -515,17 +510,16 @@ ${clicheHtml}
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="w-48">
-                <Select value={historyFilter} onValueChange={(v) => { setHistoryFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger data-testid="select-filter-assignments" className="h-9">
-                    <SelectValue placeholder={t('All Agents')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('All Agents')}</SelectItem>
-                    {agents.map(a => (
-                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  items={agents}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  placeholder={t('All Agents')}
+                  data-testid="select-filter-assignments"
+                  showAllOption
+                  allOptionLabel={t('All Agents')}
+                  inputClassName="h-9"
+                />
               </div>
               <div className="w-48">
                 <AddressSearchSelect

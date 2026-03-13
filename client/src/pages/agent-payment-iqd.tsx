@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -289,37 +287,17 @@ export default function AgentPaymentIqdPage() {
 
             <div className="space-y-2">
               <Label>{t('Payment Source')}</Label>
-              <Select value={paymentSource} onValueChange={selectPaymentSource}>
-                <SelectTrigger data-testid="select-agent-payment-source">
-                  <SelectValue placeholder={t('Select bank or transfer office...')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <HandCoins className="h-3 w-3" /> {t('By Hand')}
-                  </div>
-                  <SelectItem value="hand:0">{t('By Hand')}</SelectItem>
-                  {banks.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Landmark className="h-3 w-3" /> {t('Banks')}
-                      </div>
-                      {banks.map(b => (
-                        <SelectItem key={`bank:${b.id}`} value={`bank:${b.id}`}>{b.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {transferOffices.length > 0 && (
-                    <>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Building className="h-3 w-3" /> {t('Transfer Offices')}
-                      </div>
-                      {transferOffices.map(o => (
-                        <SelectItem key={`transfer_office:${o.id}`} value={`transfer_office:${o.id}`}>{o.name}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                items={[
+                  { id: "hand:0", name: t('By Hand') },
+                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                ]}
+                value={paymentSource}
+                onValueChange={(v) => selectPaymentSource(v || "")}
+                placeholder={t('Select bank or transfer office...')}
+                data-testid="select-agent-payment-source"
+              />
             </div>
 
             <Separator />
