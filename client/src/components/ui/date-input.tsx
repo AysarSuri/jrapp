@@ -1,7 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CalendarDays } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface DateInputProps {
   value: string;
@@ -11,17 +10,10 @@ interface DateInputProps {
   disabled?: boolean;
 }
 
-function isRtl(lang: string): boolean {
-  return lang === "ar" || lang === "ckb";
-}
-
-function formatToDisplay(isoDate: string, lang: string): string {
+function formatToDisplay(isoDate: string): string {
   if (!isoDate) return "";
   const parts = isoDate.split("-");
   if (parts.length !== 3) return isoDate;
-  if (isRtl(lang)) {
-    return `${parts[0]} / ${parts[1]} / ${parts[2]}`;
-  }
   return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
 }
 
@@ -33,67 +25,45 @@ function isValidDate(day: number, month: number, year: number): boolean {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-function parseFromDisplay(displayDate: string, lang: string): string {
+function parseFromDisplay(displayDate: string): string {
   const cleaned = displayDate.replace(/[^0-9/]/g, "");
   const parts = cleaned.split("/");
   if (parts.length !== 3) return "";
 
-  if (isRtl(lang)) {
-    if (parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
-      if (!isValidDate(day, month, year)) return "";
-      return `${parts[0]}-${parts[1]}-${parts[2]}`;
-    }
-  } else {
-    if (parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      if (!isValidDate(day, month, year)) return "";
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
+  if (parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    if (!isValidDate(day, month, year)) return "";
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
   return "";
 }
 
-function autoFormat(raw: string, lang: string): string {
+function autoFormat(raw: string): string {
   const digits = raw.replace(/[^0-9]/g, "");
-  if (isRtl(lang)) {
-    if (digits.length <= 4) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 4)} / ${digits.slice(4)}`;
-    return `${digits.slice(0, 4)} / ${digits.slice(4, 6)} / ${digits.slice(6, 8)}`;
-  } else {
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) return `${digits.slice(0, 2)} / ${digits.slice(2)}`;
-    return `${digits.slice(0, 2)} / ${digits.slice(2, 4)} / ${digits.slice(4, 8)}`;
-  }
-}
-
-function getPlaceholder(lang: string): string {
-  return isRtl(lang) ? "yyyy / mm / dd" : "dd / mm / yyyy";
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)} / ${digits.slice(2)}`;
+  return `${digits.slice(0, 2)} / ${digits.slice(2, 4)} / ${digits.slice(4, 8)}`;
 }
 
 const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
   ({ value, onChange, className, disabled, ...props }, ref) => {
-    const { i18n } = useTranslation();
-    const lang = i18n.language;
     const hiddenRef = React.useRef<HTMLInputElement>(null);
-    const [displayValue, setDisplayValue] = React.useState(() => formatToDisplay(value, lang));
+    const [displayValue, setDisplayValue] = React.useState(() => formatToDisplay(value));
 
     React.useEffect(() => {
-      setDisplayValue(formatToDisplay(value, lang));
-    }, [value, lang]);
+      setDisplayValue(formatToDisplay(value));
+    }, [value]);
 
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let raw = e.target.value;
-      const formatted = autoFormat(raw, lang);
+      const formatted = autoFormat(raw);
       if (formatted.length > 14) return;
 
       setDisplayValue(formatted);
 
-      const iso = parseFromDisplay(formatted, lang);
+      const iso = parseFromDisplay(formatted);
       if (iso) {
         onChange({ target: { value: iso } });
       }
@@ -101,7 +71,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
 
     const handleCalendarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const iso = e.target.value;
-      setDisplayValue(formatToDisplay(iso, lang));
+      setDisplayValue(formatToDisplay(iso));
       onChange({ target: { value: iso } });
     };
 
@@ -112,7 +82,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
         <input
           type="text"
           inputMode="numeric"
-          placeholder={getPlaceholder(lang)}
+          placeholder="dd / mm / yyyy"
           value={displayValue}
           onChange={handleTextChange}
           disabled={disabled}

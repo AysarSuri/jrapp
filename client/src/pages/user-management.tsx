@@ -241,8 +241,7 @@ export default function UserManagementPage() {
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const dy = String(d.getDate()).padStart(2, "0");
-      const isRtl = i18n.language === "ar" || i18n.language === "ckb";
-      return isRtl ? `${y} / ${m} / ${dy}` : `${dy} / ${m} / ${y}`;
+      return `${dy} / ${m} / ${y}`;
     } catch {
       return "-";
     }
@@ -257,9 +256,7 @@ export default function UserManagementPage() {
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const dy = String(d.getDate()).padStart(2, "0");
       const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const isRtl = i18n.language === "ar" || i18n.language === "ckb";
-      const datePart = isRtl ? `${y} / ${m} / ${dy}` : `${dy} / ${m} / ${y}`;
-      return `${datePart} ${time}`;
+      return `${dy} / ${m} / ${y} ${time}`;
     } catch {
       return null;
     }
