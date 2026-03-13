@@ -40,7 +40,7 @@ import {
   Building2,
   Boxes,
   Grid3X3,
-  ScanBarcode,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -241,6 +241,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/customers",
     "/sales-invoice-usd",
     "/sales-invoice-iqd",
+    "/sales-by-category",
     "/sales-return-usd",
     "/sales-return-iqd",
     "/customer-receipt-usd",
@@ -402,7 +403,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/sales-invoice-usd", icon: Receipt, label: "Sales Invoice USD" },
     { href: "/sales-invoice-iqd", icon: Receipt, label: "Sales Invoice IQD" },
     { href: "/sales-by-category", icon: Grid3X3, label: "Sales by Categories" },
-    { href: "/sales-by-barcode", icon: ScanBarcode, label: "Sales by Barcode" },
+
     { href: "/sales-return-usd", icon: Undo2, label: "Sales Return USD" },
     { href: "/sales-return-iqd", icon: Undo2, label: "Sales Return IQD" },
     { href: "/customer-receipt-usd", icon: DollarSign, label: "Customer Receipt USD" },

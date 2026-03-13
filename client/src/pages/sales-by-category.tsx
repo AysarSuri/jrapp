@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNextSalesInvoiceNumber, useCreateSalesInvoice, useSalesInvoices, useApproveSalesInvoice, useDeleteSalesInvoice } from "@/hooks/use-sales-invoices";
 import { useQuery } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Pencil, Search, Grid3X3, Eye, Package,
+  ListOrdered, CheckCircle, Clock, Pencil, Search, Grid3X3, Eye, Package, ScanBarcode,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -72,6 +72,8 @@ export default function SalesByCategoryPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const barcodeRef = useRef<HTMLInputElement>(null);
 
   const { data: units } = useUnits();
   const unitsList = units || [];
@@ -267,6 +269,20 @@ export default function SalesByCategoryPage() {
     });
   }, []);
 
+  const handleBarcodeScan = useCallback((barcode: string) => {
+    if (!barcode.trim()) return;
+    const product = products?.find(p => p.barcode === barcode.trim() && !p.hidden);
+    if (!product) {
+      toast({ title: t("Product not found for barcode") + ": " + barcode, variant: "destructive" });
+      setBarcodeInput("");
+      barcodeRef.current?.focus();
+      return;
+    }
+    addProductToItems(product);
+    setBarcodeInput("");
+    barcodeRef.current?.focus();
+  }, [products, t, toast, addProductToItems]);
+
   const removeRow = (index: number) => {
     setItems(prev => prev.filter((_, i) => i !== index));
   };
@@ -298,9 +314,11 @@ export default function SalesByCategoryPage() {
     setDiscountPercent("");
     setAmountPaid("");
     setItems([]);
+    setBarcodeInput("");
     setFormKey(k => k + 1);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+    setTimeout(() => barcodeRef.current?.focus(), 100);
   };
 
   const handleSave = () => {
@@ -576,332 +594,319 @@ export default function SalesByCategoryPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Grid3X3 className="w-5 h-5 text-purple-600" />
-            {t('Products by Category')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
-              {categories?.map(cat => (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.name ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.name)}
-                  className={selectedCategory === cat.name ? "bg-purple-600 hover:bg-purple-700 text-white shrink-0" : "shrink-0"}
-                  data-testid={`button-sales-category-tab-${cat.id}`}
-                >
-                  {cat.name}
+      {/* POS Layout: Left = Barcode + Categories + Product Grid | Right = Selected Items + Totals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* LEFT SIDE: Barcode Scanner + Category Product Grid */}
+        <div className="space-y-4">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ScanBarcode className="w-5 h-5 text-purple-600" />
+                {t('Scan Barcode')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <ScanBarcode className="absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    ref={barcodeRef}
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleBarcodeScan(barcodeInput);
+                      }
+                    }}
+                    placeholder={t('Scan a barcode to add products')}
+                    className="h-12 text-lg font-mono ps-11"
+                    autoFocus
+                    data-testid="input-sales-category-barcode"
+                  />
+                </div>
+                <Button onClick={() => handleBarcodeScan(barcodeInput)} className="h-12 bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-sales-category-barcode-add">
+                  <Search className="w-5 h-5" />
                 </Button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {categoryProducts.map(product => {
-              const inCart = items.find(i => i.productId === product.id);
-              const cartQty = inCart ? parseFloat(inCart.quantity || "0") : 0;
-              return (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => addProductToItems(product)}
-                  className={`relative rounded-md border p-3 text-start transition-colors hover-elevate ${
-                    cartQty > 0
-                      ? "border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-950/30"
-                      : "border-border"
-                  }`}
-                  data-testid={`button-sales-category-product-${product.id}`}
-                >
-                  {product.image ? (
-                    <div className="w-full aspect-square mb-2 rounded-md overflow-hidden bg-muted/30">
-                      <img src={product.image} alt={getProductName(product)} className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-full aspect-square mb-2 rounded-md bg-muted/30 flex items-center justify-center">
-                      <Package className="w-8 h-8 text-muted-foreground/50" />
-                    </div>
-                  )}
-                  <p className="text-sm font-semibold leading-tight truncate" data-testid={`text-sales-category-product-name-${product.id}`}>
-                    {getProductName(product)}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-mono mt-0.5">{product.barcode}</p>
-                  <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-1">{usd(product.bigUnitPriceUsd)}</p>
-                  {cartQty > 0 && (
-                    <Badge className="absolute top-1.5 end-1.5 bg-purple-600 text-white" data-testid={`badge-sales-category-qty-${product.id}`}>
-                      {cartQty}
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-            {categoryProducts.length === 0 && (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                {t('No products found in this category')}
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {items.length > 0 && (
-        <Card className="border-border/50 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ListOrdered className="w-5 h-5" />
-              {t('Selected Products')}
-              <Badge variant="secondary" className="ml-1">{items.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-purple-600 text-white hover:bg-purple-600">
-                    <TableHead className="text-white text-center w-12">#</TableHead>
-                    <TableHead className="text-white">{t('Product')}</TableHead>
-                    <TableHead className="text-white w-[90px]">{t('Product Code')}</TableHead>
-                    <TableHead className="text-white w-[150px]">{t('Quantity')}</TableHead>
-                    <TableHead className="text-white w-[70px]">{t('Gift')}</TableHead>
-                    <TableHead className="text-white w-[80px]">{t('Unit')}</TableHead>
-                    <TableHead className="text-white w-[100px]">{t('Weight')}</TableHead>
-                    <TableHead className="text-white w-[110px]">{t('Selling Price')}</TableHead>
-                    <TableHead className="text-white w-[120px]">{t('Amount')}</TableHead>
-                    <TableHead className="text-white w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item, index) => (
-                    <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-sales-category-item-${index}`}>
-                      <TableCell className="text-center font-mono text-xs text-muted-foreground">{index + 1}</TableCell>
-                      <TableCell className="text-sm font-semibold">{item.productName}</TableCell>
-                      <TableCell className="text-sm font-mono">{item.productCode}</TableCell>
-                      <TableCell className="p-1">
-                        <div className="flex items-center gap-0.5">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-8 shrink-0"
-                            onClick={() => {
-                              const cur = parseFloat(item.quantity || "0");
-                              if (cur > 1) {
-                                updateItem(index, "quantity", String(cur - 1));
-                              } else if (cur <= 1) {
-                                removeRow(index);
-                              }
-                            }}
-                            data-testid={`button-sales-category-decrease-qty-${index}`}
-                          >
-                            <span className="text-lg font-bold">-</span>
-                          </Button>
-                          <Input
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={item.quantity}
-                            onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                            className="h-9 text-sm text-center w-20"
-                            data-testid={`input-sales-category-quantity-${index}`}
-                          />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-8 shrink-0"
-                            onClick={() => {
-                              const cur = parseFloat(item.quantity || "0");
-                              updateItem(index, "quantity", String(cur + 1));
-                            }}
-                            data-testid={`button-sales-category-increase-qty-${index}`}
-                          >
-                            <span className="text-lg font-bold">+</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={item.gift}
-                          onChange={(e) => updateItem(index, "gift", e.target.value)}
-                          className="h-9 text-sm text-center font-mono w-16 text-purple-600"
-                          placeholder="0"
-                          data-testid={`input-sales-category-gift-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell className="p-1">
-                        {(() => {
-                          const prod = item.productId ? products?.find(p => p.id === item.productId) : null;
-                          const sameUnit = prod && prod.bigUnit === prod.smallUnit;
-                          if (sameUnit) {
-                            return (
-                              <div className="flex items-center justify-center h-9 px-2 rounded bg-muted/50 text-sm font-semibold" data-testid={`select-sales-category-unit-${index}`}>
-                                {resolveUnitName(prod.bigUnit, unitsList)}
-                              </div>
-                            );
-                          }
-                          return (
-                            <Select
-                              value={item.unit}
-                              onValueChange={(val) => updateItem(index, "unit", val)}
-                            >
-                              <SelectTrigger className="h-9 text-sm" data-testid={`select-sales-category-unit-${index}`}>
-                                <SelectValue placeholder={t('Unit')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {prod ? (
-                                  <>
-                                    <SelectItem value={prod.bigUnit}>
-                                      {resolveUnitName(prod.bigUnit, unitsList)}
-                                    </SelectItem>
-                                    <SelectItem value={prod.smallUnit}>
-                                      {resolveUnitName(prod.smallUnit, unitsList)}
-                                    </SelectItem>
-                                  </>
-                                ) : null}
-                              </SelectContent>
-                            </Select>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.weight}
-                          readOnly
-                          className="h-9 text-sm text-center font-mono bg-muted/50"
-                          placeholder="0"
-                          data-testid={`input-sales-category-weight-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={item.price}
-                          onChange={(e) => updateItem(index, "price", e.target.value)}
-                          className="h-9 text-sm text-center font-mono"
-                          data-testid={`input-sales-category-price-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell className="p-1">
-                        <div className="flex items-center justify-center h-9 px-2 rounded bg-purple-50 dark:bg-purple-950/30 font-mono text-sm font-bold text-purple-700 dark:text-purple-400">
-                          ${item.amount || "0.00"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeRow(index)}
-                          data-testid={`button-remove-sales-category-row-${index}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Grid3X3 className="w-5 h-5 text-purple-600" />
+                {t('Products by Category')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ScrollArea className="w-full">
+                <div className="flex gap-2 pb-2">
+                  {categories?.map(cat => (
+                    <Button
+                      key={cat.id}
+                      variant={selectedCategory === cat.name ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(cat.name)}
+                      className={selectedCategory === cat.name ? "bg-purple-600 hover:bg-purple-700 text-white shrink-0" : "shrink-0"}
+                      data-testid={`button-sales-category-tab-${cat.id}`}
+                    >
+                      {cat.name}
+                    </Button>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border p-2 text-center">
-                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Products')}</p>
-                <p className="text-xl font-bold text-primary" data-testid="text-sales-category-total-items">{totalItems}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 max-h-[500px] overflow-y-auto">
+                {categoryProducts.map(product => {
+                  const inCart = items.find(i => i.productId === product.id);
+                  const cartQty = inCart ? parseFloat(inCart.quantity || "0") : 0;
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => addProductToItems(product)}
+                      className={`relative rounded-md border p-2 text-start transition-colors hover:bg-muted/50 ${
+                        cartQty > 0
+                          ? "border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-950/30"
+                          : "border-border"
+                      }`}
+                      data-testid={`button-sales-category-product-${product.id}`}
+                    >
+                      {product.image ? (
+                        <div className="w-full aspect-square mb-1.5 rounded overflow-hidden bg-muted/30">
+                          <img src={product.image} alt={getProductName(product)} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-full aspect-square mb-1.5 rounded bg-muted/30 flex items-center justify-center">
+                          <Package className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <p className="text-xs font-semibold leading-tight truncate" data-testid={`text-sales-category-product-name-${product.id}`}>
+                        {getProductName(product)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{product.barcode}</p>
+                      <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">{usd(product.bigUnitPriceUsd)}</p>
+                      {cartQty > 0 && (
+                        <Badge className="absolute top-1 end-1 bg-purple-600 text-white text-xs" data-testid={`badge-sales-category-qty-${product.id}`}>
+                          {cartQty}
+                        </Badge>
+                      )}
+                    </button>
+                  );
+                })}
+                {categoryProducts.length === 0 && (
+                  <div className="col-span-full text-center py-8 text-muted-foreground">
+                    {t('No products found in this category')}
+                  </div>
+                )}
               </div>
-              <div className="rounded-lg border p-2 text-center">
-                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Quantity')}</p>
-                <p className="text-xl font-bold text-primary" data-testid="text-sales-category-total-quantity">{totalQuantity}</p>
-              </div>
-              <div className="rounded-lg border p-2 text-center">
-                <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Weight')}</p>
-                <p className="text-xl font-bold text-primary" data-testid="text-sales-category-total-weight">{totalWeight}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="border-border/50 shadow-sm border-purple-200 dark:border-purple-900">
-          <CardContent className="pt-6 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Invoice Total')}</span>
-              <span className="font-mono font-bold text-lg" data-testid="text-sales-category-subtotal">{usd(subtotal)}</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Amount Received')}</span>
-              <Input
-                type="number"
-                step="0.01"
-                value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
-                className="w-32 text-right font-mono"
-                placeholder="0.00"
-                data-testid="input-sales-category-amount-paid"
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Discount %')}</span>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-                value={discountPercent}
-                onChange={(e) => {
-                  const pct = e.target.value;
-                  setDiscountPercent(pct);
-                  const pctVal = parseFloat(pct) || 0;
-                  setDiscount((subtotal * pctVal * 0.01).toFixed(2));
-                }}
-                className="w-32 text-right font-mono"
-                placeholder="0"
-                data-testid="input-sales-category-discount-percent"
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Invoice Discount')}</span>
-              <Input
-                type="number"
-                step="0.01"
-                value={discount}
-                onChange={(e) => {
-                  setDiscount(e.target.value);
-                  const discVal = parseFloat(e.target.value) || 0;
-                  if (subtotal > 0) {
-                    setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
-                  }
-                }}
-                className="w-32 text-right font-mono"
-                placeholder="0.00"
-                data-testid="input-sales-category-discount"
-              />
-            </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
-              <span className="font-mono font-bold text-xl text-red-600" data-testid="text-sales-category-remaining">
-                {usd(remaining)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* RIGHT SIDE: Selected Items + Summary */}
+        <div className="space-y-4">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ListOrdered className="w-5 h-5" />
+                {t('Selected Products')}
+                {items.length > 0 && <Badge variant="secondary" className="ml-1">{items.length}</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Package className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="text-sm">{t('Scan a barcode to add products')}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-purple-600 text-white hover:bg-purple-600">
+                        <TableHead className="text-white text-center w-8">#</TableHead>
+                        <TableHead className="text-white">{t('Product')}</TableHead>
+                        <TableHead className="text-white w-[120px]">{t('Quantity')}</TableHead>
+                        <TableHead className="text-white w-[80px]">{t('Price')}</TableHead>
+                        <TableHead className="text-white w-[90px]">{t('Amount')}</TableHead>
+                        <TableHead className="text-white w-[40px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item, index) => (
+                        <TableRow key={index} className="hover:bg-muted/30" data-testid={`row-sales-category-item-${index}`}>
+                          <TableCell className="text-center font-mono text-xs text-muted-foreground p-1">{index + 1}</TableCell>
+                          <TableCell className="p-1">
+                            <div>
+                              <p className="text-sm font-semibold truncate max-w-[150px]">{item.productName}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{item.productCode}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <div className="flex items-center gap-0.5">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => {
+                                  const cur = parseFloat(item.quantity || "0");
+                                  if (cur > 1) {
+                                    updateItem(index, "quantity", String(cur - 1));
+                                  } else {
+                                    removeRow(index);
+                                  }
+                                }}
+                                data-testid={`button-sales-category-decrease-qty-${index}`}
+                              >
+                                <span className="text-base font-bold">-</span>
+                              </Button>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={item.quantity}
+                                onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                                className="h-7 text-sm text-center w-14"
+                                data-testid={`input-sales-category-quantity-${index}`}
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7 shrink-0"
+                                onClick={() => {
+                                  const cur = parseFloat(item.quantity || "0");
+                                  updateItem(index, "quantity", String(cur + 1));
+                                }}
+                                data-testid={`button-sales-category-increase-qty-${index}`}
+                              >
+                                <span className="text-base font-bold">+</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.price}
+                              onChange={(e) => updateItem(index, "price", e.target.value)}
+                              className="h-7 text-sm text-center font-mono w-20"
+                              data-testid={`input-sales-category-price-${index}`}
+                            />
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <div className="flex items-center justify-center h-7 px-1 rounded bg-purple-50 dark:bg-purple-950/30 font-mono text-xs font-bold text-purple-700 dark:text-purple-400">
+                              ${item.amount || "0.00"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={() => removeRow(index)}
+                              data-testid={`button-remove-sales-category-row-${index}`}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm">
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="rounded-lg border p-2 text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Products')}</p>
+                  <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-items">{totalItems}</p>
+                </div>
+                <div className="rounded-lg border p-2 text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Quantity')}</p>
+                  <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-quantity">{totalQuantity}</p>
+                </div>
+                <div className="rounded-lg border p-2 text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Weight')}</p>
+                  <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-weight">{totalWeight}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200 dark:border-purple-900 shadow-sm">
+            <CardContent className="pt-4 space-y-2.5">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{t('Invoice Total')}</span>
+                <span className="font-mono font-bold text-lg" data-testid="text-sales-category-subtotal">{usd(subtotal)}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{t('Amount Received')}</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={amountPaid}
+                  onChange={(e) => setAmountPaid(e.target.value)}
+                  className="w-28 text-right font-mono h-8"
+                  placeholder="0.00"
+                  data-testid="input-sales-category-amount-paid"
+                />
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{t('Discount %')}</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={discountPercent}
+                  onChange={(e) => {
+                    const pct = e.target.value;
+                    setDiscountPercent(pct);
+                    const pctVal = parseFloat(pct) || 0;
+                    setDiscount((subtotal * pctVal * 0.01).toFixed(2));
+                  }}
+                  className="w-28 text-right font-mono h-8"
+                  placeholder="0"
+                  data-testid="input-sales-category-discount-percent"
+                />
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{t('Invoice Discount')}</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={discount}
+                  onChange={(e) => {
+                    setDiscount(e.target.value);
+                    const discVal = parseFloat(e.target.value) || 0;
+                    if (subtotal > 0) {
+                      setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
+                    }
+                  }}
+                  className="w-28 text-right font-mono h-8"
+                  placeholder="0.00"
+                  data-testid="input-sales-category-discount"
+                />
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
+                <span className="font-mono font-bold text-xl text-red-600" data-testid="text-sales-category-remaining">
+                  {usd(remaining)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Card className="border-border/50 shadow-sm">
