@@ -71,7 +71,7 @@ export default function PosIqdPage() {
   const [inlineEditId, setInlineEditId] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("__favorites__");
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [barcodeInput, setBarcodeInput] = useState("");
   const barcodeRef = useRef<HTMLInputElement>(null);
@@ -111,7 +111,8 @@ export default function PosIqdPage() {
 
   const selectedCategoryId = categories?.find(c => c.name === selectedCategory)?.id;
   const groupsForCategory = categoryGroups?.filter(g => g.categoryId === selectedCategoryId) || [];
-  const categoryProducts = products?.filter(p => !p.hidden && (selectedCategory ? p.category === selectedCategory : p.favorite) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
+  const isFavoritesMode = selectedCategory === "__favorites__";
+  const categoryProducts = products?.filter(p => !p.hidden && (isFavoritesMode ? p.favorite : p.category === selectedCategory) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
 
   const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -633,10 +634,10 @@ export default function PosIqdPage() {
               <ScrollArea className="w-full">
                 <div className="flex gap-2 pb-2">
                   <Button
-                    variant={selectedCategory === "" ? "default" : "outline"}
+                    variant={isFavoritesMode ? "default" : "outline"}
                     size="sm"
-                    onClick={() => { setSelectedCategory(""); setSelectedGroup(""); }}
-                    className={selectedCategory === "" ? "bg-yellow-500 hover:bg-yellow-600 text-white shrink-0" : "shrink-0"}
+                    onClick={() => { setSelectedCategory("__favorites__"); setSelectedGroup(""); }}
+                    className={isFavoritesMode ? "bg-yellow-500 hover:bg-yellow-600 text-white shrink-0" : "shrink-0"}
                     data-testid="button-sales-category-favorites"
                   >
                     <Star className="w-4 h-4 me-1 fill-current" />
