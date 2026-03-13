@@ -776,95 +776,97 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="minStock" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
-                    <FormControl><Input type="number" className="h-11 text-base font-semibold" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="hidden" render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0 pt-8">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-product-hidden"
-                        className="h-5 w-5"
-                      />
-                    </FormControl>
-                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      {t('Hide')}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap items-end gap-4">
+                  <FormField control={form.control} name="minStock" render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[120px]">
+                      <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
+                      <FormControl><Input type="number" className="h-11 text-base font-semibold" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="hidden" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0 pb-1">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-product-hidden"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        {t('Hide')}
+                      </FormLabel>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="favorite" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0 pb-1">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-product-favorite"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        {t('Favorite')}
+                      </FormLabel>
+                    </FormItem>
+                  )} />
+                  <div className="space-y-1.5">
+                    <FormLabel className="flex items-center gap-1.5 text-base font-bold">
+                      <ImageIcon className="w-4 h-4" />
+                      {t('Product Image')}
                     </FormLabel>
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="favorite" render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0 pt-8">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-product-favorite"
-                        className="h-5 w-5"
-                      />
-                    </FormControl>
-                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      {t('Favorite')}
-                    </FormLabel>
-                  </FormItem>
-                )} />
-                <div className="space-y-1.5">
-                  <FormLabel className="flex items-center gap-1.5 text-base font-bold">
-                    <ImageIcon className="w-4 h-4" />
-                    {t('Product Image')}
-                  </FormLabel>
-                  {form.watch("image") ? (
-                    <div className="relative group inline-block">
-                      <img
-                        src={form.watch("image")!}
-                        alt={t('Product Image')}
-                        className="max-h-24 object-contain rounded-lg border bg-white p-2"
-                        data-testid="img-product-image"
-                      />
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        type="button"
-                        className="absolute top-0 right-0 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => form.setValue("image", null)}
-                        data-testid="button-remove-product-image"
+                    {form.watch("image") ? (
+                      <div className="relative group inline-block">
+                        <img
+                          src={form.watch("image")!}
+                          alt={t('Product Image')}
+                          className="max-h-24 object-contain rounded-lg border bg-white p-2"
+                          data-testid="img-product-image"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          type="button"
+                          className="absolute top-0 right-0 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => form.setValue("image", null)}
+                          data-testid="button-remove-product-image"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div
+                        className="inline-flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg px-4 py-2 cursor-pointer hover:bg-muted/30 transition-colors h-11"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (!file) return;
+                            if (file.size > 2 * 1024 * 1024) {
+                              toast({ title: t("Image size must be less than 2MB"), variant: "destructive" });
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => form.setValue("image", reader.result as string);
+                            reader.readAsDataURL(file);
+                          };
+                          input.click();
+                        }}
+                        data-testid="upload-product-image-area"
                       >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div
-                      className="inline-flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg px-4 py-2 cursor-pointer hover:bg-muted/30 transition-colors h-11"
-                      onClick={() => {
-                        const input = document.createElement("input");
-                        input.type = "file";
-                        input.accept = "image/*";
-                        input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) {
-                            toast({ title: t("Image size must be less than 2MB"), variant: "destructive" });
-                            return;
-                          }
-                          const reader = new FileReader();
-                          reader.onload = () => form.setValue("image", reader.result as string);
-                          reader.readAsDataURL(file);
-                        };
-                        input.click();
-                      }}
-                      data-testid="upload-product-image-area"
-                    >
-                      <Upload className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">{t('Click to upload product image')}</span>
-                    </div>
-                  )}
+                        <Upload className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-[10px] text-muted-foreground">{t('Click to upload product image')}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
