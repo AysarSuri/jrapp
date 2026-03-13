@@ -20,14 +20,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode,
+  ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Search,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
@@ -121,9 +118,14 @@ export default function SalesInvoiceUsdPage() {
   const [discountPercent, setDiscountPercent] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [historyCustomerFilter, setHistoryCustomerFilter] = useState<string>("all");
+  const [historyStartDate, setHistoryStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [historyEndDate, setHistoryEndDate] = useState(new Date().toISOString().split("T")[0]);
+  const [searchNumber, setSearchNumber] = useState("");
+  const [deleteInvoiceData, setDeleteInvoiceData] = useState<{ id: number; number: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -380,20 +382,22 @@ export default function SalesInvoiceUsdPage() {
     });
   };
 
-  const handleDeleteInvoice = (invoiceId: number) => {
-    deleteInvoice(invoiceId, {
-      onSuccess: () => {
-        toast({ title: t("Invoice deleted successfully") });
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to delete invoice"), description: err.message, variant: "destructive" });
-      },
-    });
-  };
-
-  const handleEditInvoice = (inv: SalesInvoice) => {
-    setReportInvoiceId(inv.id);
-    setReportOpen(true);
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoiceData) return;
+    setIsDeleting(true);
+    try {
+      await deleteInvoice(deleteInvoiceData.id, {
+        onSuccess: () => {
+          toast({ title: t("Invoice deleted successfully") });
+          setDeleteInvoiceData(null);
+        },
+        onError: (err: any) => {
+          toast({ title: t("Failed to delete invoice"), description: err.message, variant: "destructive" });
+        },
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const userRole = user?.role || 'user';
@@ -409,128 +413,6 @@ export default function SalesInvoiceUsdPage() {
           <p className="text-muted-foreground mt-1">{t('Create sales invoice in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-sales-invoice-history">
-                <ListOrdered className="w-4 h-4 mr-2" />
-                {t('Invoice History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-7xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Sales Invoice History')}</DialogTitle>
-              </DialogHeader>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Invoice #')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Time')}</TableHead>
-                    <TableHead>{t('Customer')}</TableHead>
-                    <TableHead>{t('Representative')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Total')}</TableHead>
-                    <TableHead>{t('Amount Paid')}</TableHead>
-                    <TableHead>{t('Discount')}</TableHead>
-                    <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Status')}</TableHead>
-                    <TableHead className="text-center">{t('Actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(invoicesList as SalesInvoice[] || []).filter(i => i.currency === 'USD').map((inv: SalesInvoice) => (
-                    <TableRow key={inv.id} data-testid={`row-sales-history-${inv.id}`}>
-                      <TableCell>{inv.id}</TableCell>
-                      <TableCell className="font-mono">{inv.invoiceNumber}</TableCell>
-                      <TableCell>{formatDate(inv.date)}</TableCell>
-                      <TableCell className="font-mono text-sm">{inv.time || '-'}</TableCell>
-                      <TableCell>{inv.customerName}</TableCell>
-                      <TableCell>{inv.representativeName || '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'}>
-                          {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">${inv.subtotal}</TableCell>
-                      <TableCell className="font-mono text-green-600">${inv.amountPaid || '0'}</TableCell>
-                      <TableCell className="font-mono text-orange-600">${inv.discount || '0'}</TableCell>
-                      <TableCell className="font-mono text-red-600">${inv.remaining}</TableCell>
-                      <TableCell>
-                        {inv.status === 'approved' ? (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            {t('Approved')}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {t('Pending')}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }}
-                            data-testid={`button-view-sales-invoice-${inv.id}`}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => handleEditInvoice(inv)}
-                            data-testid={`button-edit-sales-invoice-${inv.id}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                data-testid={`button-delete-sales-invoice-${inv.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
-                                <AlertDialogDescription>{t('This will permanently delete this invoice and all its items.')}</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{t('No')}</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteInvoice(inv.id)}>{t('Yes')}</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => handleApprove(inv.id)}
-                              disabled={isApproving}
-                              data-testid={`button-approve-invoice-${inv.id}`}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              {t('Approve')}
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-form">
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
@@ -950,12 +832,186 @@ export default function SalesInvoiceUsdPage() {
         </Card>
       </div>
 
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-green-600" />
+              {t('Invoice History')}
+              <Badge variant="secondary" className="ml-2">
+                {(() => {
+                  const filtered = (invoicesList as SalesInvoice[] || []).filter(i => {
+                    if (i.currency !== 'USD') return false;
+                    if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
+                    const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
+                    if (historyStartDate && invDate < historyStartDate) return false;
+                    if (historyEndDate && invDate > historyEndDate) return false;
+                    if (searchNumber && !i.invoiceNumber.toLowerCase().includes(searchNumber.toLowerCase())) return false;
+                    return true;
+                  });
+                  return filtered.length;
+                })()}
+              </Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-sales-invoice-number" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('Customer')}</Label>
+                <Select value={historyCustomerFilter} onValueChange={setHistoryCustomerFilter}>
+                  <SelectTrigger className="w-48 h-9" data-testid="select-history-customer-filter">
+                    <SelectValue placeholder={t('All Customers')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Customers')}</SelectItem>
+                    {customersList.map(c => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} className="w-36 h-9" data-testid="input-sales-history-start-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} className="w-36 h-9" data-testid="input-sales-history-end-date" />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const filteredInvoices = (invoicesList as SalesInvoice[] || []).filter(i => {
+              if (i.currency !== 'USD') return false;
+              if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
+              const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
+              if (historyStartDate && invDate < historyStartDate) return false;
+              if (historyEndDate && invDate > historyEndDate) return false;
+              if (searchNumber && !i.invoiceNumber.toLowerCase().includes(searchNumber.toLowerCase())) return false;
+              return true;
+            }).sort((a, b) => b.invoiceNumber.localeCompare(a.invoiceNumber));
+            const totSubtotal = filteredInvoices.reduce((s, i) => s + Number(i.subtotal || 0), 0);
+            const totDiscount = filteredInvoices.reduce((s, i) => s + Number(i.discount || 0), 0);
+            const totAmountPaid = filteredInvoices.reduce((s, i) => s + Number(i.amountPaid || 0), 0);
+            const totRemaining = filteredInvoices.reduce((s, i) => s + Number(i.remaining || 0), 0);
+            return (
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>{t('Invoice #')}</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Customer')}</TableHead>
+                      <TableHead>{t('Type')}</TableHead>
+                      <TableHead>{t('Status')}</TableHead>
+                      <TableHead className="text-right">{t('Total')}</TableHead>
+                      <TableHead className="text-right">{t('Amount Paid')}</TableHead>
+                      <TableHead className="text-right">{t('Discount')}</TableHead>
+                      <TableHead className="text-right">{t('Remaining')}</TableHead>
+                      <TableHead className="text-center">{t('Actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInvoices.map((inv: SalesInvoice, idx) => (
+                      <TableRow key={inv.id} data-testid={`row-sales-history-${inv.id}`}>
+                        <TableCell className="text-sm font-bold">{idx + 1}</TableCell>
+                        <TableCell className="text-sm font-bold font-mono">{inv.invoiceNumber}</TableCell>
+                        <TableCell className="text-sm font-bold">{formatDate(inv.date)}</TableCell>
+                        <TableCell className="text-sm font-bold">{inv.customerName}</TableCell>
+                        <TableCell>
+                          <Badge variant={inv.invoiceType === 'cash' ? 'default' : 'secondary'} className="text-sm">
+                            {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {inv.status === 'approved' ? (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              {t('Approved')}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {t('Pending')}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold">{usd(inv.subtotal)}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-green-600">{usd(inv.amountPaid)}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{usd(inv.discount)}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-red-600">{usd(inv.remaining)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-sales-invoice-${inv.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoiceData({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-sales-invoice-${inv.id}`}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(inv.id)} disabled={isApproving} data-testid={`btn-approve-sales-invoice-${inv.id}`}>
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                {t('Approve')}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredInvoices.length > 0 && (
+                      <TableRow className="bg-muted/50 font-bold border-t-2">
+                        <TableCell colSpan={6} className="text-right font-bold text-base">{t('Total')}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base">{usd(totSubtotal)}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-green-600">{usd(totAmountPaid)}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-orange-600">{usd(totDiscount)}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-red-600">{usd(totRemaining)}</TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    )}
+                    {filteredInvoices.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                          {t('No invoices found')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
       <SalesInvoiceReport
         invoiceId={reportInvoiceId}
         open={reportOpen}
         onOpenChange={setReportOpen}
         currency="USD"
       />
+
+      <AlertDialog open={!!deleteInvoiceData} onOpenChange={(open) => { if (!open) setDeleteInvoiceData(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete invoice")} #{deleteInvoiceData?.number}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-sales-invoice">
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
