@@ -2376,6 +2376,38 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/sales-invoices/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const user = await storage.getUser(userId);
+      if (!user || (user.role !== 'admin' && user.role !== 'user')) {
+        return res.status(403).json({ message: "Only admin or user can edit invoices" });
+      }
+      const { invoice, items } = req.body;
+      const { createdBy, createdByRole, status, id: _ignoreId, ...safeInvoice } = invoice || {};
+      const result = await db.transaction(async (tx) => {
+        const [existing] = await tx.select().from(salesInvoices).where(eq(salesInvoices.id, id));
+        if (!existing) throw new Error("NOT_FOUND");
+        const [updated] = await tx.update(salesInvoices).set(safeInvoice).where(eq(salesInvoices.id, id)).returning();
+        await tx.delete(salesInvoiceItems).where(eq(salesInvoiceItems.invoiceId, id));
+        if (items && items.length > 0) {
+          const itemsWithInvoiceId = items.map((item: any) => ({ ...item, invoiceId: id }));
+          await tx.insert(salesInvoiceItems).values(itemsWithInvoiceId);
+        }
+        return updated;
+      });
+      res.json(result);
+    } catch (err) {
+      if (err instanceof Error && err.message === "NOT_FOUND") {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      console.error("Error updating sales invoice:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete('/api/sales-invoices/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);

@@ -29,6 +29,7 @@ import {
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
@@ -68,6 +69,10 @@ export default function SalesInvoiceIqdPage() {
   const { mutate: approveInvoice, isPending: isApproving } = useApproveSalesInvoice();
   const { mutate: deleteInvoice } = useDeleteSalesInvoice();
   const { data: invoicesList } = useSalesInvoices();
+
+  const [inlineEditId, setInlineEditId] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const { data: units } = useUnits();
   const unitsList = units || [];
@@ -128,17 +133,69 @@ export default function SalesInvoiceIqdPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (nextNumber?.number) {
+    if (nextNumber?.number && !isEditMode) {
       setInvoiceNumber(nextNumber.number);
     }
-  }, [nextNumber]);
+  }, [nextNumber, isEditMode]);
 
   useEffect(() => {
-    if (warehousesList?.length && !warehouseId) {
+    if (warehousesList?.length && !warehouseId && !isEditMode) {
       setWarehouseId(warehousesList[0].id);
       setWarehouseName(warehousesList[0].name);
     }
-  }, [warehousesList]);
+  }, [warehousesList, isEditMode]);
+
+  const startEdit = async (invoiceId: number) => {
+    try {
+      const [invRes, itemsRes] = await Promise.all([
+        fetch(`/api/sales-invoices/${invoiceId}`, { credentials: "include" }),
+        fetch(`/api/sales-invoices/${invoiceId}/items`, { credentials: "include" }),
+      ]);
+      if (!invRes.ok || !itemsRes.ok) return;
+      const inv = await invRes.json();
+      const fetchedItems = await itemsRes.json();
+      setInlineEditId(invoiceId);
+      setIsEditMode(true);
+      setInvoiceNumber(inv.invoiceNumber || "");
+      setDate(typeof inv.date === "string" ? inv.date.split("T")[0] : new Date(inv.date).toISOString().split("T")[0]);
+      setTime(inv.time || "");
+      setCustomerId(inv.customerId || null);
+      setCustomerName(inv.customerName || "");
+      setAddress(inv.address || "");
+      setMobile(inv.mobile || "");
+      setRepresentativeId(inv.representativeId || null);
+      setRepresentativeName(inv.representativeName || "");
+      setRepresentativeMobile(inv.representativeMobile || "");
+      setNote(inv.note || "");
+      setDriverName(inv.driverName || "");
+      setDriverMobile(inv.driverMobile || "");
+      setVehicleNumber(inv.vehicleNumber || "");
+      setInvoiceType(inv.invoiceType || "cash");
+      setWarehouseId(inv.warehouseId || null);
+      setWarehouseName(inv.warehouseName || "");
+      setDiscount(inv.discount || "");
+      setDiscountPercent("");
+      setAmountPaid(inv.amountPaid || "");
+      const mappedItems = fetchedItems.map((item: any) => ({
+        productId: item.productId,
+        productCode: item.productCode || "",
+        productName: item.productName || "",
+        quantity: item.quantity || "",
+        gift: item.gift || "0",
+        unit: item.unit || "",
+        price: item.price || "",
+        amount: item.amount || "0",
+        weight: item.weight || "0",
+        productionDate: "",
+        expiryDate: "",
+      }));
+      setItems([...mappedItems, emptyItem()]);
+      setFormKey(k => k + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      toast({ title: t("Failed to load invoice for editing"), variant: "destructive" });
+    }
+  };
 
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
@@ -243,6 +300,8 @@ export default function SalesInvoiceIqdPage() {
   };
 
   const resetForm = () => {
+    setInlineEditId(null);
+    setIsEditMode(false);
     setInvoiceNumber("");
     setCustomerName("");
     setCustomerId(null);
@@ -328,19 +387,34 @@ export default function SalesInvoiceIqdPage() {
       amount: item.amount,
     }));
 
-    createInvoice({ invoice: invoiceData, items: itemsData }, {
-      onSuccess: () => {
-        if (isRep) {
-          toast({ title: t("Sales invoice sent for approval") });
-        } else {
-          toast({ title: t("Sales invoice saved successfully") });
-        }
-        resetForm();
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (isEditMode && inlineEditId) {
+      setIsUpdating(true);
+      apiRequest("PATCH", `/api/sales-invoices/${inlineEditId}`, { invoice: invoiceData, items: itemsData })
+        .then(() => {
+          toast({ title: t("Sales invoice updated successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices", inlineEditId] });
+          resetForm();
+        })
+        .catch((err: any) => {
+          toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
+        })
+        .finally(() => setIsUpdating(false));
+    } else {
+      createInvoice({ invoice: invoiceData, items: itemsData }, {
+        onSuccess: () => {
+          if (isRep) {
+            toast({ title: t("Sales invoice sent for approval") });
+          } else {
+            toast({ title: t("Sales invoice saved successfully") });
+          }
+          resetForm();
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to save invoice"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const selectCustomer = (clientId: string) => {
@@ -413,18 +487,18 @@ export default function SalesInvoiceIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-invoice-iqd-title">
             <Banknote className="h-8 w-8 text-blue-600" />
-            {t('Sales Invoice - IQD')}
+            {isEditMode ? t('Edit Sales Invoice - IQD') : t('Sales Invoice - IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create sales invoice in Iraqi Dinar')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice in Iraqi Dinar') : t('Create sales invoice in Iraqi Dinar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-iqd-form">
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-save-sales-invoice-iqd">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            {userRole === 'sales_rep' ? t('Send for Approval') : t('Save Invoice')}
+          <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-save-sales-invoice-iqd">
+            {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {isEditMode ? t('Update Invoice') : (userRole === 'sales_rep' ? t('Send for Approval') : t('Save Invoice'))}
           </Button>
         </div>
       </div>
@@ -939,6 +1013,9 @@ export default function SalesInvoiceIqdPage() {
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-sales-iqd-invoice-${inv.id}`}>
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(inv.id)} data-testid={`btn-edit-sales-iqd-invoice-${inv.id}`}>
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoiceData({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-sales-iqd-invoice-${inv.id}`}>
                               <Trash2 className="h-4 w-4" />
