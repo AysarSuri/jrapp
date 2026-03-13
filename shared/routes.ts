@@ -3,6 +3,7 @@ import {
   insertAddressSchema, addresses,
   insertUnitSchema, units,
   insertCategorySchema, categories,
+  insertCategoryGroupSchema, categoryGroups,
   insertTransferOfficeSchema, transferOffices,
   insertBankSchema, banks,
   insertCustomsClearanceSchema, customsClearances,
@@ -181,6 +182,45 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/categories/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
+    }
+  },
+  categoryGroups: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/category-groups' as const,
+      responses: {
+        200: z.array(z.custom<typeof categoryGroups.$inferSelect>()),
+      }
+    },
+    listByCategory: {
+      method: 'GET' as const,
+      path: '/api/categories/:categoryId/groups' as const,
+      responses: {
+        200: z.array(z.custom<typeof categoryGroups.$inferSelect>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/category-groups' as const,
+      input: insertCategoryGroupSchema,
+      responses: {
+        201: z.custom<typeof categoryGroups.$inferSelect>(),
+      }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/category-groups/:id' as const,
+      input: insertCategoryGroupSchema,
+      responses: {
+        200: z.custom<typeof categoryGroups.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/category-groups/:id' as const,
       responses: {
         200: z.object({ message: z.string() }),
       }

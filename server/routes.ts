@@ -161,6 +161,7 @@ export async function registerRoutes(
     '/api/products': 'material_management',
     '/api/units': 'material_management',
     '/api/categories': 'material_management',
+    '/api/category-groups': 'material_management',
     '/api/inventory': 'material_management',
     '/api/banks': 'bank_management',
     '/api/bank-transactions': 'bank_management',
@@ -544,6 +545,55 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id as string, 10);
       await storage.deleteCategory(id);
+      res.json({ message: "Deleted" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Category Groups CRUD
+  app.get(api.categoryGroups.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getCategoryGroups();
+    res.json(data);
+  });
+
+  app.get('/api/categories/:categoryId/groups', requireAuth, async (req, res) => {
+    const categoryId = parseInt(req.params.categoryId as string, 10);
+    const data = await storage.getCategoryGroupsByCategoryId(categoryId);
+    res.json(data);
+  });
+
+  app.post(api.categoryGroups.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.categoryGroups.create.input.parse(req.body);
+      const data = await storage.createCategoryGroup(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/category-groups/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.categoryGroups.update.input.parse(req.body);
+      const data = await storage.updateCategoryGroup(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/category-groups/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteCategoryGroup(id);
       res.json({ message: "Deleted" });
     } catch {
       res.status(500).json({ message: "Internal server error" });

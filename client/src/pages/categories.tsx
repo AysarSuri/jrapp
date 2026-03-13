@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCategorySchema } from "@shared/schema";
-import { categories } from "@shared/schema";
+import { insertCategorySchema, insertCategoryGroupSchema } from "@shared/schema";
+import { categories, categoryGroups } from "@shared/schema";
 type Category = typeof categories.$inferSelect;
+type CategoryGroup = typeof categoryGroups.$inferSelect;
 import { z } from "zod";
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/use-categories";
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useCategoryGroups, useCreateCategoryGroup, useUpdateCategoryGroup, useDeleteCategoryGroup } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,14 +20,15 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, FolderOpen, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, FolderOpen, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Layers, ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 10;
-const defaultVals = { name: "", nameEn: "", nameKu: "", nameTr: "" };
+const defaultCatVals = { name: "", nameEn: "", nameKu: "", nameTr: "" };
+const defaultGroupVals = { categoryId: 0, name: "", nameEn: "", nameKu: "", nameTr: "" };
 
 export default function CategoriesPage() {
   const { t } = useTranslation();
@@ -34,8 +36,15 @@ export default function CategoriesPage() {
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
   const { mutate: deleteCategory } = useDeleteCategory();
+  const { data: groupsList } = useCategoryGroups();
+  const { mutate: createGroup, isPending: isCreatingGroup } = useCreateCategoryGroup();
+  const { mutate: updateGroup, isPending: isUpdatingGroup } = useUpdateCategoryGroup();
+  const { mutate: deleteGroup } = useDeleteCategoryGroup();
   const { toast } = useToast();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingGroup, setEditingGroup] = useState<CategoryGroup | null>(null);
+  const [groupFormCategoryId, setGroupFormCategoryId] = useState<number | null>(null);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -51,26 +60,54 @@ export default function CategoriesPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const form = useForm<z.infer<typeof insertCategorySchema>>({
+  const catForm = useForm<z.infer<typeof insertCategorySchema>>({
     resolver: zodResolver(insertCategorySchema),
-    defaultValues: defaultVals,
+    defaultValues: defaultCatVals,
   });
 
-  const startEdit = (cat: Category) => {
+  const groupForm = useForm<z.infer<typeof insertCategoryGroupSchema>>({
+    resolver: zodResolver(insertCategoryGroupSchema),
+    defaultValues: defaultGroupVals,
+  });
+
+  const startEditCategory = (cat: Category) => {
     setEditingCategory(cat);
-    form.reset({ name: cat.name, nameEn: cat.nameEn || "", nameKu: cat.nameKu || "", nameTr: cat.nameTr || "" });
+    catForm.reset({ name: cat.name, nameEn: cat.nameEn || "", nameKu: cat.nameKu || "", nameTr: cat.nameTr || "" });
+    cancelGroupEdit();
   };
 
-  const cancelEdit = () => {
+  const cancelCategoryEdit = () => {
     setEditingCategory(null);
-    form.reset(defaultVals);
+    catForm.reset(defaultCatVals);
   };
 
-  const onSubmit = (values: z.infer<typeof insertCategorySchema>) => {
+  const startGroupAdd = (categoryId: number) => {
+    setGroupFormCategoryId(categoryId);
+    setEditingGroup(null);
+    groupForm.reset({ categoryId, name: "", nameEn: "", nameKu: "", nameTr: "" });
+    setExpandedCategoryId(categoryId);
+    cancelCategoryEdit();
+  };
+
+  const startGroupEdit = (group: CategoryGroup) => {
+    setEditingGroup(group);
+    setGroupFormCategoryId(group.categoryId);
+    groupForm.reset({ categoryId: group.categoryId, name: group.name, nameEn: group.nameEn || "", nameKu: group.nameKu || "", nameTr: group.nameTr || "" });
+    setExpandedCategoryId(group.categoryId);
+    cancelCategoryEdit();
+  };
+
+  const cancelGroupEdit = () => {
+    setEditingGroup(null);
+    setGroupFormCategoryId(null);
+    groupForm.reset(defaultGroupVals);
+  };
+
+  const onCategorySubmit = (values: z.infer<typeof insertCategorySchema>) => {
     if (editingCategory) {
       updateCategory({ id: editingCategory.id, data: values }, {
         onSuccess: () => {
-          cancelEdit();
+          cancelCategoryEdit();
           toast({ title: t("Category updated successfully") });
         },
         onError: (err) => toast({ title: t("Failed to update category"), description: t(err.message), variant: "destructive" }),
@@ -78,7 +115,7 @@ export default function CategoriesPage() {
     } else {
       createCategory(values, {
         onSuccess: () => {
-          form.reset(defaultVals);
+          catForm.reset(defaultCatVals);
           toast({ title: t("Category added successfully") });
         },
         onError: (err) => toast({ title: t("Failed to add category"), description: t(err.message), variant: "destructive" }),
@@ -86,17 +123,49 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const onGroupSubmit = (values: z.infer<typeof insertCategoryGroupSchema>) => {
+    if (editingGroup) {
+      updateGroup({ id: editingGroup.id, data: values }, {
+        onSuccess: () => {
+          cancelGroupEdit();
+          toast({ title: t("Group updated successfully") });
+        },
+        onError: (err) => toast({ title: t("Failed to update group"), description: t(err.message), variant: "destructive" }),
+      });
+    } else {
+      createGroup(values, {
+        onSuccess: () => {
+          groupForm.reset({ ...defaultGroupVals, categoryId: values.categoryId });
+          toast({ title: t("Group added successfully") });
+        },
+        onError: (err) => toast({ title: t("Failed to add group"), description: t(err.message), variant: "destructive" }),
+      });
+    }
+  };
+
+  const handleDeleteCategory = (id: number) => {
     deleteCategory(id, {
       onSuccess: () => {
         toast({ title: t("Category deleted successfully") });
-        if (editingCategory?.id === id) cancelEdit();
+        if (editingCategory?.id === id) cancelCategoryEdit();
+        if (expandedCategoryId === id) setExpandedCategoryId(null);
       },
       onError: (err) => toast({ title: t("Failed to delete category"), description: t(err.message), variant: "destructive" }),
     });
   };
 
+  const handleDeleteGroup = (id: number) => {
+    deleteGroup(id, {
+      onSuccess: () => {
+        toast({ title: t("Group deleted successfully") });
+        if (editingGroup?.id === id) cancelGroupEdit();
+      },
+      onError: (err) => toast({ title: t("Failed to delete group"), description: t(err.message), variant: "destructive" }),
+    });
+  };
+
   const allCategories = categoriesList || [];
+  const allGroups: CategoryGroup[] = groupsList || [];
   const filtered = allCategories.filter((c) => {
     const term = searchTerm.toLowerCase();
     return c.name.toLowerCase().includes(term) ||
@@ -110,6 +179,10 @@ export default function CategoriesPage() {
   const paginatedData = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   const isSaving = isCreating || isUpdating;
+  const isSavingGroup = isCreatingGroup || isUpdatingGroup;
+
+  const getGroupCount = (categoryId: number) => allGroups.filter(g => g.categoryId === categoryId).length;
+  const getGroupsForCategory = (categoryId: number) => allGroups.filter(g => g.categoryId === categoryId);
 
   return (
     <div className="space-y-6">
@@ -137,6 +210,15 @@ export default function CategoriesPage() {
             <div className="text-2xl font-bold">{allCategories.length}</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('Total Groups')}</CardTitle>
+            <Layers className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{allGroups.length}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="border-primary/20 shadow-md">
@@ -150,31 +232,31 @@ export default function CategoriesPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+          <Form {...catForm}>
+            <form onSubmit={catForm.handleSubmit(onCategorySubmit)}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
+                <FormField control={catForm.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name')}</FormLabel>
                     <FormControl><Input className="h-11 text-base font-semibold" placeholder={t('e.g. Electronics, Food')} {...field} data-testid="input-category-name" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="nameEn" render={({ field }) => (
+                <FormField control={catForm.control} name="nameEn" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name (English)')}</FormLabel>
                     <FormControl><Input className="h-11 text-base font-semibold" placeholder="e.g. Electronics, Food" {...field} value={field.value ?? ""} data-testid="input-category-name-en" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="nameKu" render={({ field }) => (
+                <FormField control={catForm.control} name="nameKu" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name (Kurdish)')}</FormLabel>
                     <FormControl><Input className="h-11 text-base font-semibold" placeholder="ئەلیکترۆنیات، خواردن" {...field} value={field.value ?? ""} data-testid="input-category-name-ku" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="nameTr" render={({ field }) => (
+                <FormField control={catForm.control} name="nameTr" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name (Turkish)')}</FormLabel>
                     <FormControl><Input className="h-11 text-base font-semibold" placeholder="Elektronik, Gıda" {...field} value={field.value ?? ""} data-testid="input-category-name-tr" /></FormControl>
@@ -186,7 +268,7 @@ export default function CategoriesPage() {
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {editingCategory ? t('Update') : t('Save')}
                   </Button>
-                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
+                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelCategoryEdit} data-testid="button-reset-form">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </div>
@@ -195,6 +277,63 @@ export default function CategoriesPage() {
           </Form>
         </CardContent>
       </Card>
+
+      {groupFormCategoryId && (
+        <Card className="border-blue-200 dark:border-blue-900 shadow-md">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <Layers className="h-5 w-5 text-blue-600" />
+              {editingGroup ? t('Edit Group') : t('Add New Group')}
+              <Badge variant="secondary">{allCategories.find(c => c.id === groupFormCategoryId)?.name}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...groupForm}>
+              <form onSubmit={groupForm.handleSubmit(onGroupSubmit)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <FormField control={groupForm.control} name="name" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Group Name')}</FormLabel>
+                      <FormControl><Input className="h-11 text-base font-semibold" placeholder={t('Group name...')} {...field} data-testid="input-group-name" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={groupForm.control} name="nameEn" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Group Name (English)')}</FormLabel>
+                      <FormControl><Input className="h-11 text-base font-semibold" placeholder="Group name..." {...field} value={field.value ?? ""} data-testid="input-group-name-en" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={groupForm.control} name="nameKu" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Group Name (Kurdish)')}</FormLabel>
+                      <FormControl><Input className="h-11 text-base font-semibold" placeholder="ناوی گروپ..." {...field} value={field.value ?? ""} data-testid="input-group-name-ku" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={groupForm.control} name="nameTr" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Group Name (Turkish)')}</FormLabel>
+                      <FormControl><Input className="h-11 text-base font-semibold" placeholder="Grup adı..." {...field} value={field.value ?? ""} data-testid="input-group-name-tr" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <div className="flex items-end gap-2">
+                    <Button type="submit" disabled={isSavingGroup} size="lg" className="text-base font-bold h-11 flex-1 bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-save-group">
+                      {isSavingGroup ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      {editingGroup ? t('Update') : t('Save')}
+                    </Button>
+                    <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelGroupEdit} data-testid="button-reset-group-form">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
@@ -250,57 +389,145 @@ export default function CategoriesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
+                      <TableHead className="font-bold text-sm w-10"></TableHead>
                       <TableHead className="font-bold text-sm">#</TableHead>
                       <TableHead className="font-bold text-sm">{t('Category Name')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('English')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Kurdish')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Turkish')}</TableHead>
+                      <TableHead className="font-bold text-sm text-center">{t('Groups')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.map((cat) => (
-                      <TableRow key={cat.id} data-testid={`row-category-${cat.id}`} className={editingCategory?.id === cat.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
-                        <TableCell className="font-bold font-mono text-sm">{cat.id}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="gap-1 font-bold">
-                            <FolderOpen className="h-3 w-3" />
-                            {cat.name}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-bold text-sm">{cat.nameEn || "-"}</TableCell>
-                        <TableCell className="font-bold text-sm">{cat.nameKu || "-"}</TableCell>
-                        <TableCell className="font-bold text-sm">{cat.nameTr || "-"}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEdit(cat)} data-testid={`button-edit-category-${cat.id}`}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-category-${cat.id}`}>
-                                  <Trash2 className="h-4 w-4" />
+                    {paginatedData.map((cat) => {
+                      const catGroups = getGroupsForCategory(cat.id);
+                      const isExpanded = expandedCategoryId === cat.id;
+                      return (
+                        <>
+                          <TableRow key={cat.id} data-testid={`row-category-${cat.id}`} className={editingCategory?.id === cat.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
+                            <TableCell className="p-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => setExpandedCategoryId(isExpanded ? null : cat.id)}
+                                data-testid={`button-expand-category-${cat.id}`}
+                              >
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="font-bold font-mono text-sm">{cat.id}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="gap-1 font-bold">
+                                <FolderOpen className="h-3 w-3" />
+                                {cat.name}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-bold text-sm">{cat.nameEn || "-"}</TableCell>
+                            <TableCell className="font-bold text-sm">{cat.nameKu || "-"}</TableCell>
+                            <TableCell className="font-bold text-sm">{cat.nameTr || "-"}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="secondary" className="font-bold" data-testid={`badge-group-count-${cat.id}`}>
+                                <Layers className="h-3 w-3 mr-1" />
+                                {getGroupCount(cat.id)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => startGroupAdd(cat.id)} data-testid={`button-add-group-${cat.id}`}>
+                                  <Plus className="h-4 w-4" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>{t('Delete Category')}</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {t('Are you sure you want to delete this category?')} ({cat.name})
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDelete(cat.id)} data-testid={`button-confirm-delete-category-${cat.id}`}>
-                                    {t('Delete')}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                <Button variant="ghost" size="icon" onClick={() => startEditCategory(cat)} data-testid={`button-edit-category-${cat.id}`}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-category-${cat.id}`}>
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>{t('Delete Category')}</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {t('Are you sure you want to delete this category?')} ({cat.name})
+                                        {catGroups.length > 0 && (
+                                          <span className="block mt-1 text-red-600 font-semibold">
+                                            {t('This will also delete')} {catGroups.length} {t('Groups')}
+                                          </span>
+                                        )}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteCategory(cat.id)} data-testid={`button-confirm-delete-category-${cat.id}`}>
+                                        {t('Delete')}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {isExpanded && (
+                            <>
+                              {catGroups.length > 0 ? catGroups.map((group) => (
+                                <TableRow key={`group-${group.id}`} className="bg-blue-50/50 dark:bg-blue-950/20" data-testid={`row-group-${group.id}`}>
+                                  <TableCell></TableCell>
+                                  <TableCell className="font-mono text-xs text-muted-foreground ps-6">↳</TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="gap-1 font-bold border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400">
+                                      <Layers className="h-3 w-3" />
+                                      {group.name}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="font-bold text-sm">{group.nameEn || "-"}</TableCell>
+                                  <TableCell className="font-bold text-sm">{group.nameKu || "-"}</TableCell>
+                                  <TableCell className="font-bold text-sm">{group.nameTr || "-"}</TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startGroupEdit(group)} data-testid={`button-edit-group-${group.id}`}>
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" data-testid={`button-delete-group-${group.id}`}>
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>{t('Delete Group')}</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              {t('Are you sure you want to delete this group?')} ({group.name})
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteGroup(group.id)} data-testid={`button-confirm-delete-group-${group.id}`}>
+                                              {t('Delete')}
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )) : (
+                                <TableRow className="bg-blue-50/30 dark:bg-blue-950/10">
+                                  <TableCell></TableCell>
+                                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-3">
+                                    {t('No groups in this category')}
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </>
+                          )}
+                        </>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

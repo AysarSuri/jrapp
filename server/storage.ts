@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  addresses, units, categories, transferOffices, banks, customsClearances, warehouses, representatives,
+  addresses, units, categories, categoryGroups, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, clearancePurchaseInvoices, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
@@ -9,6 +9,7 @@ import {
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
   type Category, type InsertCategory,
+  type CategoryGroup, type InsertCategoryGroup,
   type TransferOffice, type InsertTransferOffice,
   type Bank, type InsertBank,
   type CustomsClearance, type InsertCustomsClearance,
@@ -70,6 +71,12 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: InsertCategory): Promise<Category>;
   deleteCategory(id: number): Promise<void>;
+
+  getCategoryGroups(): Promise<CategoryGroup[]>;
+  getCategoryGroupsByCategoryId(categoryId: number): Promise<CategoryGroup[]>;
+  createCategoryGroup(group: InsertCategoryGroup): Promise<CategoryGroup>;
+  updateCategoryGroup(id: number, group: InsertCategoryGroup): Promise<CategoryGroup>;
+  deleteCategoryGroup(id: number): Promise<void>;
 
   getTransferOffices(): Promise<TransferOffice[]>;
   createTransferOffice(office: InsertTransferOffice): Promise<TransferOffice>;
@@ -290,7 +297,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCategory(id: number): Promise<void> {
+    await db.delete(categoryGroups).where(eq(categoryGroups.categoryId, id));
     await db.delete(categories).where(eq(categories.id, id));
+  }
+
+  async getCategoryGroups(): Promise<CategoryGroup[]> {
+    return await db.select().from(categoryGroups);
+  }
+
+  async getCategoryGroupsByCategoryId(categoryId: number): Promise<CategoryGroup[]> {
+    return await db.select().from(categoryGroups).where(eq(categoryGroups.categoryId, categoryId));
+  }
+
+  async createCategoryGroup(group: InsertCategoryGroup): Promise<CategoryGroup> {
+    const [created] = await db.insert(categoryGroups).values(group).returning();
+    return created;
+  }
+
+  async updateCategoryGroup(id: number, group: InsertCategoryGroup): Promise<CategoryGroup> {
+    const [updated] = await db.update(categoryGroups).set(group).where(eq(categoryGroups.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCategoryGroup(id: number): Promise<void> {
+    await db.delete(categoryGroups).where(eq(categoryGroups.id, id));
   }
 
   async getTransferOffices(): Promise<TransferOffice[]> {

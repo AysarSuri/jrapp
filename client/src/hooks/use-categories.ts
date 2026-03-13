@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertCategory } from "@shared/routes";
+import { api } from "@shared/routes";
+import type { InsertCategory, InsertCategoryGroup } from "@shared/schema";
 
 export function useCategories() {
   return useQuery({
@@ -63,6 +64,73 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.categories.list.path] });
+      queryClient.invalidateQueries({ queryKey: ["/api/category-groups"] });
+    },
+  });
+}
+
+export function useCategoryGroups() {
+  return useQuery({
+    queryKey: ["/api/category-groups"],
+    queryFn: async () => {
+      const res = await fetch("/api/category-groups");
+      if (!res.ok) throw new Error("Failed to fetch category groups");
+      return res.json();
+    },
+  });
+}
+
+export function useCreateCategoryGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (group: InsertCategoryGroup) => {
+      const res = await fetch("/api/category-groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(group),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to create group");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/category-groups"] });
+    },
+  });
+}
+
+export function useUpdateCategoryGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: InsertCategoryGroup }) => {
+      const res = await fetch(`/api/category-groups/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to update group");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/category-groups"] });
+    },
+  });
+}
+
+export function useDeleteCategoryGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/category-groups/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete group");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/category-groups"] });
     },
   });
 }
