@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -404,8 +404,8 @@ export default function CategoriesPage() {
                       const catGroups = getGroupsForCategory(cat.id);
                       const isExpanded = expandedCategoryId === cat.id;
                       return (
-                        <>
-                          <TableRow key={cat.id} data-testid={`row-category-${cat.id}`} className={editingCategory?.id === cat.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
+                        <Fragment key={cat.id}>
+                          <TableRow data-testid={`row-category-${cat.id}`} className={editingCategory?.id === cat.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
                             <TableCell className="p-1">
                               <Button
                                 variant="ghost"
@@ -525,7 +525,7 @@ export default function CategoriesPage() {
                               )}
                             </>
                           )}
-                        </>
+                        </Fragment>
                       );
                     })}
                   </TableBody>
