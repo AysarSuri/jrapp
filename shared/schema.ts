@@ -96,6 +96,7 @@ export const products = pgTable("products", {
   conversionFactor: integer("conversion_factor").notNull(), // e.g. 24
   image: text("image"),
   hidden: boolean("hidden").notNull().default(false),
+  favorite: boolean("favorite").notNull().default(false),
 });
 
 export const inventory = pgTable("inventory", {

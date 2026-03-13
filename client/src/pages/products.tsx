@@ -26,7 +26,7 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer, EyeOff } from "lucide-react";
+import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer, EyeOff, Star } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +70,7 @@ const defaultValues: FormValues = {
   minStock: 0,
   image: null,
   hidden: false,
+  favorite: false,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -138,6 +139,7 @@ export default function ProductsPage() {
       minStock: product.minStock,
       image: product.image || null,
       hidden: product.hidden ?? false,
+      favorite: product.favorite ?? false,
     });
   };
 
@@ -797,6 +799,22 @@ export default function ProductsPage() {
                     </FormLabel>
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="favorite" render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-8">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-product-favorite"
+                        className="h-5 w-5"
+                      />
+                    </FormControl>
+                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      {t('Favorite')}
+                    </FormLabel>
+                  </FormItem>
+                )} />
                 <div className="space-y-1.5">
                   <FormLabel className="flex items-center gap-1.5 text-base font-bold">
                     <ImageIcon className="w-4 h-4" />
@@ -891,6 +909,7 @@ export default function ProductsPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
+                      <TableHead className="text-center font-bold text-sm">{t('Favorite')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -915,6 +934,14 @@ export default function ProductsPage() {
                             <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 font-bold" data-testid={`badge-product-hidden-${product.id}`}>
                               <EyeOff className="h-3 w-3 mr-1" />
                               {t('Hide')}
+                            </Badge>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {product.favorite ? (
+                            <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 font-bold" data-testid={`badge-product-favorite-${product.id}`}>
+                              <Star className="h-3 w-3 mr-1 fill-yellow-500 text-yellow-500" />
+                              {t('Favorite')}
                             </Badge>
                           ) : null}
                         </TableCell>
