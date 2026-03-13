@@ -556,7 +556,7 @@ export default function SalesInvoiceIqdPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
-              <Select key={`cust-${formKey}`} onValueChange={selectCustomer}>
+              <Select key={`cust-${formKey}`} value={customerId ? String(customerId) : undefined} onValueChange={selectCustomer}>
                 <SelectTrigger data-testid="select-iqd-customer">
                   <SelectValue placeholder={t('Select Customer')} />
                 </SelectTrigger>
