@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Pencil, Search, Grid3X3, Eye, Package, ScanBarcode,
+  ListOrdered, CheckCircle, Clock, Pencil, Search, Grid3X3, Eye, Package, ScanBarcode, Star,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -111,7 +111,7 @@ export default function SalesByCategoryPage() {
 
   const selectedCategoryId = categories?.find(c => c.name === selectedCategory)?.id;
   const groupsForCategory = categoryGroups?.filter(g => g.categoryId === selectedCategoryId) || [];
-  const categoryProducts = products?.filter(p => !p.hidden && (selectedCategory ? p.category === selectedCategory : true) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
+  const categoryProducts = products?.filter(p => !p.hidden && (selectedCategory ? p.category === selectedCategory : p.favorite) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
 
   const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -632,6 +632,16 @@ export default function SalesByCategoryPage() {
             <CardContent className="space-y-3">
               <ScrollArea className="w-full">
                 <div className="flex gap-2 pb-2">
+                  <Button
+                    variant={selectedCategory === "" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => { setSelectedCategory(""); setSelectedGroup(""); }}
+                    className={selectedCategory === "" ? "bg-yellow-500 hover:bg-yellow-600 text-white shrink-0" : "shrink-0"}
+                    data-testid="button-sales-category-favorites"
+                  >
+                    <Star className="w-4 h-4 me-1 fill-current" />
+                    {t('Favorites')}
+                  </Button>
                   {categories?.map(cat => (
                     <Button
                       key={cat.id}
