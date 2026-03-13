@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNextSalesInvoiceNumber, useCreateSalesInvoice, useSalesInvoices, useApproveSalesInvoice, useDeleteSalesInvoice } from "@/hooks/use-sales-invoices";
 import { useQuery } from "@tanstack/react-query";
-import type { Product, Client, SalesInvoice, Category } from "@shared/schema";
+import type { Product, Client, SalesInvoice, Category, CategoryGroup } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -72,6 +72,7 @@ export default function SalesByCategoryPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [barcodeInput, setBarcodeInput] = useState("");
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -86,6 +87,9 @@ export default function SalesByCategoryPage() {
   });
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
+  });
+  const { data: categoryGroups } = useQuery<CategoryGroup[]>({
+    queryKey: ["/api/category-groups"],
   });
   const { data: representativesList } = useQuery<{ id: number; name: string; mobile: string | null }[]>({
     queryKey: ["/api/representatives"],
@@ -105,7 +109,9 @@ export default function SalesByCategoryPage() {
 
   const customersList = clients?.filter(c => c.type === "customer") || [];
 
-  const categoryProducts = products?.filter(p => !p.hidden && (selectedCategory ? p.category === selectedCategory : true)) || [];
+  const selectedCategoryId = categories?.find(c => c.name === selectedCategory)?.id;
+  const groupsForCategory = categoryGroups?.filter(g => g.categoryId === selectedCategoryId) || [];
+  const categoryProducts = products?.filter(p => !p.hidden && (selectedCategory ? p.category === selectedCategory : true) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
 
   const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -631,7 +637,7 @@ export default function SalesByCategoryPage() {
                       key={cat.id}
                       variant={selectedCategory === cat.name ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedCategory(cat.name)}
+                      onClick={() => { setSelectedCategory(cat.name); setSelectedGroup(""); }}
                       className={selectedCategory === cat.name ? "bg-purple-600 hover:bg-purple-700 text-white shrink-0" : "shrink-0"}
                       data-testid={`button-sales-category-tab-${cat.id}`}
                     >
@@ -642,35 +648,44 @@ export default function SalesByCategoryPage() {
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>
 
+              {groupsForCategory.length > 0 && (
+                <ScrollArea className="w-full">
+                  <div className="flex gap-2 pb-2">
+                    <Button
+                      variant={selectedGroup === "" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedGroup("")}
+                      className={selectedGroup === "" ? "bg-orange-500 hover:bg-orange-600 text-white shrink-0" : "shrink-0"}
+                      data-testid="button-sales-group-all"
+                    >
+                      {t('All')}
+                    </Button>
+                    {groupsForCategory.map(grp => (
+                      <Button
+                        key={grp.id}
+                        variant={selectedGroup === grp.name ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedGroup(grp.name)}
+                        className={selectedGroup === grp.name ? "bg-orange-500 hover:bg-orange-600 text-white shrink-0" : "shrink-0"}
+                        data-testid={`button-sales-group-tab-${grp.id}`}
+                      >
+                        {grp.name}
+                        <Badge variant="secondary" className="ms-1.5 text-xs">{products?.filter(p => !p.hidden && p.category === selectedCategory && p.groupName === grp.name).length || 0}</Badge>
+                      </Button>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              )}
+
               <div className="max-h-[500px] overflow-y-auto space-y-3">
-                {(() => {
-                  const grouped = new Map<string, typeof categoryProducts>();
-                  categoryProducts.forEach(p => {
-                    const g = p.groupName || "";
-                    if (!grouped.has(g)) grouped.set(g, []);
-                    grouped.get(g)!.push(p);
-                  });
-                  const entries = Array.from(grouped.entries()).sort((a, b) => {
-                    if (!a[0] && b[0]) return 1;
-                    if (a[0] && !b[0]) return -1;
-                    return a[0].localeCompare(b[0]);
-                  });
-                  if (entries.length === 0) return (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {t('No products found in this category')}
-                    </div>
-                  );
-                  return entries.map(([groupName, groupProducts]) => (
-                    <div key={groupName || "__none__"}>
-                      {groupName && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-bold text-purple-700 dark:text-purple-400">{groupName}</span>
-                          <Badge variant="secondary" className="text-xs">{groupProducts.length}</Badge>
-                          <div className="flex-1 border-t border-border/50" />
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2">
-                        {groupProducts.map(product => {
+                {categoryProducts.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {t('No products found in this category')}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2">
+                    {categoryProducts.map(product => {
                           const inCart = items.find(i => i.productId === product.id);
                           const cartQty = inCart ? parseFloat(inCart.quantity || "0") : 0;
                           return (
@@ -707,10 +722,8 @@ export default function SalesByCategoryPage() {
                             </button>
                           );
                         })}
-                      </div>
-                    </div>
-                  ));
-                })()}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
