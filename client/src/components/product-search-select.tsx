@@ -118,8 +118,9 @@ export default function ProductSearchSelect({
         {value ? (
           <button
             type="button"
-            onClick={handleClear}
-            className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground`}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleClear(); }}
+            className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10`}
             data-testid={testId ? `${testId}-clear` : undefined}
           >
             <X className="h-3.5 w-3.5" />

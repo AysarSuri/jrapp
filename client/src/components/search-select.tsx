@@ -111,8 +111,9 @@ export function SearchSelect({
         {(value && value !== "" && value !== "all" && !disabled) ? (
           <button
             type="button"
-            onClick={handleClear}
-            className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground`}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleClear(); }}
+            className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10`}
           >
             <X className="h-4 w-4" />
           </button>
