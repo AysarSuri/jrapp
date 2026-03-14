@@ -280,9 +280,12 @@ export default function SalesReturnUsdPage() {
         setRepresentativeName(assignment.agentName);
         const agent = agentsList?.find(a => a.id === assignment.agentUserId);
         setRepresentativeMobile(agent?.mobile || "");
+        const matchedRep = representativesList?.find(r => r.name === assignment.agentName);
+        setRepresentativeId(matchedRep?.id || null);
       } else {
         setRepresentativeName("");
         setRepresentativeMobile("");
+        setRepresentativeId(null);
       }
     }
   };
