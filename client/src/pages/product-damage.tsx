@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useProductDamages, useNextDamageNumber, useCreateProductDamage, useUpdateProductDamage, useDeleteProductDamage, useProductDamageItems } from "@/hooks/use-product-damages";
 import { useQuery } from "@tanstack/react-query";
@@ -104,13 +104,15 @@ export default function ProductDamagePage() {
     }
   }, [nextNumber]);
 
+  const warehouseInitRef = useRef(false);
   useEffect(() => {
-    if (warehousesList?.length && !warehouseId) {
+    if (warehousesList?.length && !warehouseInitRef.current) {
+      warehouseInitRef.current = true;
       const first = warehousesList[0];
       setWarehouseId(String(first.id));
       setWarehouseName(first.name);
     }
-  }, [warehousesList, warehouseId]);
+  }, [warehousesList]);
 
   const selectWarehouse = useCallback((id: string) => {
     if (!id) { setWarehouseId(""); setWarehouseName(""); return; }

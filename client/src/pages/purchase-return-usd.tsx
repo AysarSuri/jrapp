@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, Link } from "wouter";
 import { useNextPurchaseReturnNumber, useCreatePurchaseReturn, usePurchaseReturns, useApprovePurchaseReturn } from "@/hooks/use-purchase-returns";
@@ -124,12 +124,14 @@ export default function PurchaseReturnUsdPage() {
     }
   }, [nextNumber, editId]);
 
+  const whInitRef = useRef(false);
   useEffect(() => {
-    if (!editId && warehousesList && warehousesList.length > 0 && !warehouseId) {
+    if (!editId && warehousesList && warehousesList.length > 0 && !whInitRef.current) {
+      whInitRef.current = true;
       setWarehouseId(warehousesList[0].id);
       setWarehouseName(warehousesList[0].name);
     }
-  }, [warehousesList, editId, warehouseId]);
+  }, [warehousesList, editId]);
 
   useEffect(() => {
     if (!editId) return;
@@ -500,6 +502,7 @@ export default function PurchaseReturnUsdPage() {
                 items={warehousesList || []}
                 value={warehouseId ? String(warehouseId) : ""}
                 onValueChange={(v) => {
+                  if (!v) { setWarehouseId(null); setWarehouseName(""); return; }
                   const wh = warehousesList?.find(w => w.id === parseInt(v));
                   if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
                 }}

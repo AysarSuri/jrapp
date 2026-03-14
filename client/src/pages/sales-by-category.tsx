@@ -559,6 +559,7 @@ export default function SalesByCategoryPage() {
                 items={warehousesList || []}
                 value={warehouseId ? String(warehouseId) : ""}
                 onValueChange={(v) => {
+                  if (!v) { setWarehouseId(null); setWarehouseName(""); return; }
                   const wh = warehousesList?.find(w => w.id === parseInt(v));
                   if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
                 }}

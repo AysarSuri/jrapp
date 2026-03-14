@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useNextPurchaseInvoiceNumber, useCreatePurchaseInvoice, usePurchaseInvoices } from "@/hooks/use-purchase-invoices";
@@ -141,12 +141,14 @@ export default function PurchaseInvoiceUsdPage() {
     }
   }, [nextNumber, editId]);
 
+  const whInitRef = useRef(false);
   useEffect(() => {
-    if (warehousesList?.length && !warehouseId && !editId) {
+    if (warehousesList?.length && !whInitRef.current && !editId) {
+      whInitRef.current = true;
       setWarehouseId(warehousesList[0].id);
       setWarehouseName(warehousesList[0].name);
     }
-  }, [warehousesList, warehouseId, editId]);
+  }, [warehousesList, editId]);
 
   useEffect(() => {
     if (!editId) return;
@@ -567,6 +569,7 @@ export default function PurchaseInvoiceUsdPage() {
                 items={warehousesList || []}
                 value={warehouseId ? String(warehouseId) : ""}
                 onValueChange={(v) => {
+                  if (!v) { setWarehouseId(null); setWarehouseName(""); return; }
                   const wh = warehousesList?.find(w => w.id === parseInt(v));
                   if (wh) { setWarehouseId(wh.id); setWarehouseName(wh.name); }
                 }}
