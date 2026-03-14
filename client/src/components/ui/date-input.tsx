@@ -25,26 +25,17 @@ function isValidDate(day: number, month: number, year: number): boolean {
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-function getSectionAtCursor(pos: number): "day" | "month" | "year" {
-  if (pos <= 2) return "day";
-  if (pos <= 7) return "month";
-  return "year";
-}
-
-function getSectionRange(section: "day" | "month" | "year"): [number, number] {
-  if (section === "day") return [0, 2];
-  if (section === "month") return [5, 7];
-  return [10, 14];
-}
-
 const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
   ({ value, onChange, className, disabled, ...props }, ref) => {
     const hiddenRef = React.useRef<HTMLInputElement>(null);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [displayValue, setDisplayValue] = React.useState(() => formatToDisplay(value));
+    const composingRef = React.useRef(false);
 
     React.useEffect(() => {
-      setDisplayValue(formatToDisplay(value));
+      if (!composingRef.current) {
+        setDisplayValue(formatToDisplay(value));
+      }
     }, [value]);
 
     const emitIfValid = (dd: string, mm: string, yyyy: string) => {
@@ -56,10 +47,68 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
       }
     };
 
+    const handleBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
+      const ev = e.nativeEvent as InputEvent;
+      const input = inputRef.current;
+      if (!input) return;
+
+      const start = input.selectionStart ?? 0;
+      const end = input.selectionEnd ?? 0;
+      const current = displayValue;
+
+      if (ev.inputType === "insertText" && ev.data && /^[0-9]$/.test(ev.data)) {
+        if (current.length === 14 && start !== end) {
+          e.preventDefault();
+          composingRef.current = true;
+
+          const digit = ev.data;
+          const chars = current.split("");
+          const digitPositions = [0, 1, 5, 6, 10, 11, 12, 13];
+
+          let replacedAny = false;
+          for (let i = start; i < end; i++) {
+            if (digitPositions.includes(i)) {
+              chars[i] = "0";
+              replacedAny = true;
+            }
+          }
+
+          if (!replacedAny) {
+            composingRef.current = false;
+            return;
+          }
+
+          const firstDigitInRange = digitPositions.find(p => p >= start && p < end);
+          if (firstDigitInRange !== undefined) {
+            chars[firstDigitInRange] = digit;
+          }
+
+          const newDisplay = chars.join("");
+          setDisplayValue(newDisplay);
+
+          const parts = newDisplay.split(" / ");
+          if (parts.length === 3) {
+            emitIfValid(parts[0], parts[1], parts[2]);
+          }
+
+          const nextPos = (firstDigitInRange !== undefined ? firstDigitInRange : start) + 1;
+          let cursorTarget = nextPos;
+          if (cursorTarget === 2 || cursorTarget === 3 || cursorTarget === 4) cursorTarget = 5;
+          if (cursorTarget === 7 || cursorTarget === 8 || cursorTarget === 9) cursorTarget = 10;
+
+          requestAnimationFrame(() => {
+            if (inputRef.current) {
+              inputRef.current.setSelectionRange(cursorTarget, cursorTarget);
+            }
+            composingRef.current = false;
+          });
+          return;
+        }
+      }
+    };
+
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
-      const cursorPos = e.target.selectionStart || 0;
-
       const digits = raw.replace(/[^0-9]/g, "");
 
       let formatted: string;
@@ -81,31 +130,17 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
         const yyyy = digits.slice(4, 8);
         emitIfValid(dd, mm, yyyy);
       }
-
-      requestAnimationFrame(() => {
-        if (inputRef.current) {
-          let newPos = cursorPos;
-          if (digits.length === 2 && raw.length < formatted.length) newPos = 5;
-          else if (digits.length === 4 && raw.length < formatted.length) newPos = 10;
-          if (newPos > formatted.length) newPos = formatted.length;
-          inputRef.current.setSelectionRange(newPos, newPos);
-        }
-      });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       const input = inputRef.current;
-      if (!input) return;
+      if (!input || displayValue.length < 14) return;
 
-      const start = input.selectionStart || 0;
-      const end = input.selectionEnd || 0;
-      const current = displayValue;
+      const start = input.selectionStart ?? 0;
 
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        if (current.length < 14) return;
         e.preventDefault();
-        const section = getSectionAtCursor(start);
-        const parts = current.split(" / ");
+        const parts = displayValue.split(" / ");
         if (parts.length !== 3) return;
 
         let dd = parseInt(parts[0], 10);
@@ -113,16 +148,20 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
         let yyyy = parseInt(parts[2], 10);
         const delta = e.key === "ArrowUp" ? 1 : -1;
 
-        if (section === "day") {
+        let sStart: number, sEnd: number;
+        if (start <= 2) {
           dd += delta;
           if (dd < 1) dd = 31;
           if (dd > 31) dd = 1;
-        } else if (section === "month") {
+          sStart = 0; sEnd = 2;
+        } else if (start <= 7) {
           mm += delta;
           if (mm < 1) mm = 12;
           if (mm > 12) mm = 1;
+          sStart = 5; sEnd = 7;
         } else {
           yyyy += delta;
+          sStart = 10; sEnd = 14;
         }
 
         const newDD = String(dd).padStart(2, "0");
@@ -132,77 +171,10 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
         setDisplayValue(newDisplay);
         emitIfValid(newDD, newMM, newYYYY);
 
-        const [sStart, sEnd] = getSectionRange(section);
         requestAnimationFrame(() => {
           input.setSelectionRange(sStart, sEnd);
         });
-        return;
       }
-
-      if (/^[0-9]$/.test(e.key) && start !== end && current.length === 14) {
-        e.preventDefault();
-        const section = getSectionAtCursor(start);
-        const [sStart, sEnd] = getSectionRange(section);
-        const parts = current.split(" / ");
-        if (parts.length !== 3) return;
-
-        let sectionValue: string;
-        if (section === "day") sectionValue = parts[0];
-        else if (section === "month") sectionValue = parts[1];
-        else sectionValue = parts[2];
-
-        const maxLen = section === "year" ? 4 : 2;
-
-        let newSectionValue: string;
-        if (start === sStart && end === sEnd) {
-          newSectionValue = e.key.padStart(maxLen, "0").slice(-maxLen);
-          if (maxLen === 2) {
-            newSectionValue = e.key;
-          } else {
-            newSectionValue = e.key;
-          }
-        } else {
-          const localStart = start - sStart;
-          const localEnd = end - sStart;
-          newSectionValue = sectionValue.slice(0, localStart) + e.key + sectionValue.slice(localEnd);
-        }
-
-        if (newSectionValue.length > maxLen) {
-          newSectionValue = newSectionValue.slice(-maxLen);
-        }
-        newSectionValue = newSectionValue.padStart(maxLen, "0");
-
-        if (section === "day") parts[0] = newSectionValue;
-        else if (section === "month") parts[1] = newSectionValue;
-        else parts[2] = newSectionValue;
-
-        const newDisplay = `${parts[0]} / ${parts[1]} / ${parts[2]}`;
-        setDisplayValue(newDisplay);
-
-        const dd = parts[0];
-        const mm = parts[1];
-        const yyyy = parts[2];
-        emitIfValid(dd, mm, yyyy);
-
-        const newCursorPos = sStart + Math.min(newSectionValue.replace(/^0+/, "").length || 1, maxLen);
-        requestAnimationFrame(() => {
-          input.setSelectionRange(newCursorPos, newCursorPos);
-        });
-        return;
-      }
-    };
-
-    const handleDoubleClick = () => {
-      const input = inputRef.current;
-      if (!input || displayValue.length < 14) return;
-
-      const pos = input.selectionStart || 0;
-      const section = getSectionAtCursor(pos);
-      const [sStart, sEnd] = getSectionRange(section);
-
-      requestAnimationFrame(() => {
-        input.setSelectionRange(sStart, sEnd);
-      });
     };
 
     const handleCalendarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,9 +193,9 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
           inputMode="numeric"
           placeholder="dd / mm / yyyy"
           value={displayValue}
+          onBeforeInput={handleBeforeInput}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
-          onDoubleClick={handleDoubleClick}
           disabled={disabled}
           data-testid={testId}
           className={cn(
