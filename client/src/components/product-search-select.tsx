@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import type { Product } from "@shared/schema";
 import { getProductName } from "@/lib/language-utils";
-import { Search } from "lucide-react";
+import { Search, X, ChevronDown } from "lucide-react";
 
 interface ProductSearchSelectProps {
   products: Product[];
@@ -23,7 +23,8 @@ export default function ProductSearchSelect({
   placeholder,
   "data-testid": testId,
 }: ProductSearchSelectProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,10 +81,16 @@ export default function ProductSearchSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleClear = () => {
+    onSelect("");
+    setSearch("");
+    setOpen(false);
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
-        <Search className="absolute start-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+        <Search className={`absolute ${isRtl ? "right-2" : "left-2"} top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none`} />
         <Input
           value={open ? search : displayText}
           onChange={(e) => {
@@ -104,10 +111,22 @@ export default function ProductSearchSelect({
             }
           }}
           placeholder={placeholder || t("Select product...")}
-          className="h-9 text-sm ps-7 truncate"
+          className={`h-9 text-sm ${isRtl ? "pr-7 pl-7" : "pl-7 pr-7"} truncate`}
           autoComplete="off"
           data-testid={testId}
         />
+        {value ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground`}
+            data-testid={testId ? `${testId}-clear` : undefined}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <ChevronDown className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none transition-transform ${open ? "rotate-180" : ""}`} />
+        )}
       </div>
       {open && createPortal(
         <div

@@ -110,6 +110,7 @@ export default function WarehouseTransferPage() {
   }, []);
 
   const selectProduct = useCallback((index: number, productId: string) => {
+    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "" }; return u; }); return; }
     const product = productsList?.find(p => p.id === parseInt(productId));
     if (product) {
       setItems(prev => {

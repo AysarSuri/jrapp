@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import type { Product } from "@shared/schema";
 import { getProductName } from "@/lib/language-utils";
+import { X, ChevronDown } from "lucide-react";
 
 interface ProductCodeSearchSelectProps {
   products: Product[];
   value: string;
   onSelect: (productId: string) => void;
+  onClear?: () => void;
   placeholder?: string;
   "data-testid"?: string;
 }
@@ -17,10 +19,12 @@ export default function ProductCodeSearchSelect({
   products,
   value,
   onSelect,
+  onClear,
   placeholder,
   "data-testid": testId,
 }: ProductCodeSearchSelectProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,32 +75,56 @@ export default function ProductCodeSearchSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleClear = () => {
+    if (onClear) {
+      onClear();
+    } else {
+      onSelect("");
+    }
+    setSearch("");
+    setOpen(false);
+  };
+
   return (
     <div ref={containerRef} className="relative">
-      <Input
-        value={open ? search : value}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          if (!open) setOpen(true);
-        }}
-        onFocus={() => {
-          setOpen(true);
-          setSearch("");
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && open && filtered.length > 0) {
-            e.preventDefault();
-            e.stopPropagation();
-            onSelect(String(filtered[0].id));
+      <div className="relative">
+        <Input
+          value={open ? search : value}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            if (!open) setOpen(true);
+          }}
+          onFocus={() => {
+            setOpen(true);
             setSearch("");
-            setOpen(false);
-          }
-        }}
-        placeholder={placeholder || t("Product Code")}
-        className="h-11 text-base font-bold font-mono"
-        autoComplete="off"
-        data-testid={testId}
-      />
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && open && filtered.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(String(filtered[0].id));
+              setSearch("");
+              setOpen(false);
+            }
+          }}
+          placeholder={placeholder || t("Product Code")}
+          className={`h-9 text-sm font-mono ${isRtl ? "pl-7" : "pr-7"}`}
+          autoComplete="off"
+          data-testid={testId}
+        />
+        {value ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground`}
+            data-testid={testId ? `${testId}-clear` : undefined}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <ChevronDown className={`absolute ${isRtl ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none transition-transform ${open ? "rotate-180" : ""}`} />
+        )}
+      </div>
       {open && createPortal(
         <div
           ref={dropdownRef}

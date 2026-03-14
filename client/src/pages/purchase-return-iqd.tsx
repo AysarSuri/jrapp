@@ -193,6 +193,7 @@ export default function PurchaseReturnIqdPage() {
   }, []);
 
   const selectProduct = useCallback((index: number, productId: string) => {
+    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", weight: "0", amount: "0" }; return u; }); return; }
     const product = products?.find(p => p.id === parseInt(productId));
     if (!product) return;
     setItems(prev => {
