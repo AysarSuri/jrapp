@@ -303,23 +303,6 @@ export default function CustomerReceiptIqdPage() {
               </div>
             </div>
 
-            {selectedCustomer && (
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="pt-4 pb-4">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
-                      <p className="font-bold">{selectedCustomer.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Debt IQD')}</p>
-                      <p className="font-mono font-bold text-red-600">{formatIQD(parseFloat(selectedCustomer.oldDebtIqd))}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
