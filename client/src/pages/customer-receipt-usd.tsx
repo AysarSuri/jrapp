@@ -510,7 +510,7 @@ export default function CustomerReceiptUsdPage() {
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-to-date" />
               </div>
-              <div className="w-48">
+              <div className="w-64">
                 <CustomerSearchSelect
                   customers={customers || []}
                   value={historyFilter}
