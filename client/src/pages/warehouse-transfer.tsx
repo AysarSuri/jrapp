@@ -90,12 +90,14 @@ export default function WarehouseTransferPage() {
   }, [nextNumber]);
 
   const selectFromWarehouse = useCallback((id: string) => {
+    if (!id) { setFromWarehouseId(""); setFromWarehouseName(""); return; }
     setFromWarehouseId(id);
     const wh = warehousesList?.find(w => w.id === parseInt(id));
     if (wh) setFromWarehouseName(wh.name);
   }, [warehousesList]);
 
   const selectToWarehouse = useCallback((id: string) => {
+    if (!id) { setToWarehouseId(""); setToWarehouseName(""); return; }
     setToWarehouseId(id);
     const wh = warehousesList?.find(w => w.id === parseInt(id));
     if (wh) setToWarehouseName(wh.name);

@@ -113,6 +113,7 @@ export default function ProductDamagePage() {
   }, [warehousesList, warehouseId]);
 
   const selectWarehouse = useCallback((id: string) => {
+    if (!id) { setWarehouseId(""); setWarehouseName(""); return; }
     setWarehouseId(id);
     const wh = warehousesList?.find(w => w.id === parseInt(id));
     if (wh) setWarehouseName(wh.name);
