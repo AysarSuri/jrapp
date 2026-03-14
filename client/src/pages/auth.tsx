@@ -32,7 +32,7 @@ type LoginUser = {
 function getRoleIcon(role: string) {
   switch (role) {
     case "admin": return Shield;
-    case "sales_rep": return Truck;
+    case "sales_rep": return IconSupplierList;
     default: return User;
   }
 }
