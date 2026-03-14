@@ -245,7 +245,7 @@ export default function AgentPaymentUsdPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Payment Number')}</Label>
                 <Input
@@ -266,7 +266,9 @@ export default function AgentPaymentUsdPage() {
                   data-testid="select-customer"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Date')}</Label>
                 <DateInput
@@ -285,40 +287,21 @@ export default function AgentPaymentUsdPage() {
                   data-testid="input-agent-payment-time"
                 />
               </div>
-            </div>
 
-            {selectedAgent && (
-              <Card className="bg-muted/30 border-dashed">
-                <CardContent className="pt-4 pb-4">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
-                      <p className="font-bold">{selectedAgent.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Debt USD')}</p>
-                      <p className="font-mono font-bold text-red-600">{usd(selectedAgent.oldDebtUsd)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label>{t('Payment Source')}</Label>
-              <SearchSelect
-                items={[
-                  { id: "hand:0", name: t('By Hand') },
-                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
-                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
-                ]}
-                value={paymentSource}
-                onValueChange={(v) => selectPaymentSource(v || "")}
-                placeholder={t('Select bank or transfer office...')}
-                data-testid="select-agent-payment-source"
-              />
+              <div className="space-y-2">
+                <Label>{t('Payment Source')}</Label>
+                <SearchSelect
+                  items={[
+                    { id: "hand:0", name: t('By Hand') },
+                    ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                    ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                  ]}
+                  value={paymentSource}
+                  onValueChange={(v) => selectPaymentSource(v || "")}
+                  placeholder={t('Select bank or transfer office...')}
+                  data-testid="select-agent-payment-source"
+                />
+              </div>
             </div>
 
             <Separator />
