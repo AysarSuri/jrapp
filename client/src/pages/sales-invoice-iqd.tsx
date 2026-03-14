@@ -687,7 +687,7 @@ export default function SalesInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5" dir="ltr">
                         <Button
                           variant="outline"
                           size="icon"
