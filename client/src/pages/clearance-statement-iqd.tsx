@@ -433,7 +433,7 @@ export default function ClearanceStatementIqdPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg">{t('Statement')}</CardTitle>
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-clearance-statement-iqd">
-                <Printer className="w-4 h-4" />
+                <Printer className="w-5 h-5" />
                 {t('Print')}
               </Button>
             </CardHeader>
@@ -558,7 +558,7 @@ export default function ClearanceStatementIqdPage() {
                     }
                   } finally { setSendingWhatsApp(false); }
                 }} disabled={sendingWhatsApp} data-testid="button-whatsapp-statement-iqd" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
-                  {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                  {sendingWhatsApp ? <Loader2 className="w-5 h-5 mr-1 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-1" />}
                   {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => {
@@ -572,7 +572,7 @@ export default function ClearanceStatementIqdPage() {
                   printWindow.document.close();
                   const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-statement-iqd">
-                  <Printer className="w-4 h-4 mr-1" />
+                  <Printer className="w-5 h-5 mr-1" />
                   {t("Print")}
                 </Button>
               </div>
@@ -693,7 +693,7 @@ export default function ClearanceStatementIqdPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditEntry(null)}>{t('Cancel')}</Button>
             <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-green-600 hover:bg-green-700 text-white" data-testid="button-update-statement-iqd">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {t('Save')}
             </Button>
           </DialogFooter>

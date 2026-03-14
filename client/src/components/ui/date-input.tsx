@@ -222,7 +222,7 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(
           )}
         />
         <div className="absolute start-0 top-0 h-full w-9 flex items-center justify-center">
-          <CalendarDays className="h-4 w-4 text-muted-foreground pointer-events-none" />
+          <CalendarDays className="h-5 w-5 text-muted-foreground pointer-events-none" />
           <input
             ref={hiddenRef}
             type="date"

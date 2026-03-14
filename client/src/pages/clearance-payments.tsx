@@ -323,7 +323,7 @@ export default function ClearancePaymentsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-clearance-payment">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -334,7 +334,7 @@ export default function ClearancePaymentsPage() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                {editPayment && <Pencil className="h-4 w-4 text-orange-600" />}
+                {editPayment && <Pencil className="h-5 w-5 text-orange-600" />}
                 {editPayment ? t('Edit Payment') : t('Payment Details')}
               </CardTitle>
               {editPayment && (
@@ -396,7 +396,7 @@ export default function ClearancePaymentsPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDollar className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-5 w-5 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -412,7 +412,7 @@ export default function ClearancePaymentsPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-5 w-5 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -506,7 +506,7 @@ export default function ClearancePaymentsPage() {
                 <SearchSelect items={clearances} value={historyFilter === "all" ? "" : historyFilter} onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }} placeholder={t('All Clearances')} showAllOption allOptionLabel={t('All Clearances')} data-testid="select-filter-payment-history" />
               </div>
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-payment-report">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Report')}
               </Button>
             </div>
@@ -558,7 +558,7 @@ export default function ClearancePaymentsPage() {
                             onClick={() => setViewPayment(p)}
                             data-testid={`button-view-clearance-payment-${p.id}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -567,7 +567,7 @@ export default function ClearancePaymentsPage() {
                             onClick={() => openEdit(p)}
                             data-testid={`button-edit-clearance-payment-${p.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -577,7 +577,7 @@ export default function ClearancePaymentsPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-clearance-payment-${p.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -619,7 +619,7 @@ export default function ClearancePaymentsPage() {
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     data-testid="button-payment-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <Button
@@ -641,7 +641,7 @@ export default function ClearancePaymentsPage() {
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     data-testid="button-payment-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -684,7 +684,7 @@ export default function ClearancePaymentsPage() {
                     }
                   } finally { setSendingWhatsApp(false); }
                 }} disabled={sendingWhatsApp} data-testid="button-whatsapp-clearance-payment" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
-                  {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                  {sendingWhatsApp ? <Loader2 className="w-5 h-5 mr-1 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-1" />}
                   {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => {
@@ -697,7 +697,7 @@ export default function ClearancePaymentsPage() {
                   printWindow.document.close();
                   const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-clearance-payment">
-                  <Printer className="w-4 h-4 mr-1" />
+                  <Printer className="w-5 h-5 mr-1" />
                   {t("Print")}
                 </Button>
               </div>

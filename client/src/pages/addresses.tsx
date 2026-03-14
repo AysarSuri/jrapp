@@ -108,7 +108,7 @@ export default function AddressesPage() {
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingAddress(null); }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-address" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Address')}
             </Button>
           </DialogTrigger>
@@ -129,7 +129,7 @@ export default function AddressesPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingAddress(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-address">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -143,7 +143,7 @@ export default function AddressesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Addresses')}</CardTitle>
-            <IconAddress className="h-4 w-4 text-muted-foreground" />
+            <IconAddress className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{addresses?.length || 0}</div>
@@ -190,12 +190,12 @@ export default function AddressesPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(addr)} data-testid={`button-edit-address-${addr.id}`}>
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-address-${addr.id}`}>
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

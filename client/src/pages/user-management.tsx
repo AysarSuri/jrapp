@@ -356,7 +356,7 @@ export default function UserManagementPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     data-testid="button-toggle-password"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </Button>
                 </div>
                 {editUser && (
@@ -372,19 +372,19 @@ export default function UserManagementPage() {
                   <SelectContent>
                     <SelectItem value="admin">
                       <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-purple-600" />
+                        <Shield className="h-5 w-5 text-purple-600" />
                         {t('Admin')}
                       </div>
                     </SelectItem>
                     <SelectItem value="user">
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-blue-600" />
+                        <User className="h-5 w-5 text-blue-600" />
                         {t('User')}
                       </div>
                     </SelectItem>
                     <SelectItem value="sales_rep">
                       <div className="flex items-center gap-2">
-                        <IconSupplierList className="h-4 w-4 text-emerald-600" />
+                        <IconSupplierList className="h-5 w-5 text-emerald-600" />
                         {t('Representative')}
                       </div>
                     </SelectItem>
@@ -401,13 +401,13 @@ export default function UserManagementPage() {
                     <SelectContent>
                       <SelectItem value="1">
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <CheckCircle className="h-5 w-5 text-green-600" />
                           {t('Active')}
                         </div>
                       </SelectItem>
                       <SelectItem value="0">
                         <div className="flex items-center gap-2">
-                          <XCircle className="h-4 w-4 text-red-600" />
+                          <XCircle className="h-5 w-5 text-red-600" />
                           {t('Inactive')}
                         </div>
                       </SelectItem>
@@ -420,7 +420,7 @@ export default function UserManagementPage() {
               <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
+                    <Shield className="h-5 w-5" />
                     {t('Permissions')}
                   </Label>
                   {role === "user" && (
@@ -448,7 +448,7 @@ export default function UserManagementPage() {
                 </div>
                 {role === "admin" && (
                   <p className="text-sm text-green-600 dark:text-green-400 font-medium" data-testid="text-admin-full-access">
-                    <CheckCircle className="h-4 w-4 inline me-1" />
+                    <CheckCircle className="h-5 w-5 inline me-1" />
                     {t('Full access to all modules')}
                   </p>
                 )}
@@ -508,16 +508,16 @@ export default function UserManagementPage() {
                 data-testid={editUser ? "button-update-user" : "button-create-user"}
               >
                 {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : editUser ? (
-                  <Save className="h-4 w-4" />
+                  <Save className="h-5 w-5" />
                 ) : (
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5" />
                 )}
                 {editUser ? t('Update') : t('Add User')}
               </Button>
               <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-user-form">
-                <RotateCcw className="h-4 w-4" />
+                <RotateCcw className="h-5 w-5" />
                 {editUser ? t('Cancel') : t('Reset')}
               </Button>
             </div>
@@ -532,14 +532,14 @@ export default function UserManagementPage() {
             <div className="grid grid-cols-1 gap-3">
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <IconCustomers className="h-4 w-4 text-muted-foreground" />
+                  <IconCustomers className="h-5 w-5 text-muted-foreground" />
                   <span className="text-sm font-medium">{t('Total Users')}</span>
                 </div>
                 <span className="font-bold text-lg" data-testid="text-total-users">{allUsers.length}</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-purple-600" />
+                  <Shield className="h-5 w-5 text-purple-600" />
                   <span className="text-sm font-medium">{t('Admin')}</span>
                 </div>
                 <span className="font-bold text-lg text-purple-600" data-testid="text-admin-count">
@@ -548,7 +548,7 @@ export default function UserManagementPage() {
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-blue-600" />
+                  <User className="h-5 w-5 text-blue-600" />
                   <span className="text-sm font-medium">{t('User')}</span>
                 </div>
                 <span className="font-bold text-lg text-blue-600" data-testid="text-user-count">
@@ -557,7 +557,7 @@ export default function UserManagementPage() {
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <IconSupplierList className="h-4 w-4 text-emerald-600" />
+                  <IconSupplierList className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm font-medium">{t('Representative')}</span>
                 </div>
                 <span className="font-bold text-lg text-emerald-600" data-testid="text-rep-count">
@@ -566,7 +566,7 @@ export default function UserManagementPage() {
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium">{t('Active')}</span>
                 </div>
                 <span className="font-bold text-lg text-green-600" data-testid="text-active-count">
@@ -711,7 +711,7 @@ export default function UserManagementPage() {
                               title={isEditing ? t('Cancel') : t('Edit User')}
                               data-testid={`button-edit-user-${u.id}`}
                             >
-                              {isEditing ? <XCircle className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+                              {isEditing ? <XCircle className="h-5 w-5" /> : <Pencil className="h-5 w-5" />}
                             </Button>
                             <Button
                               variant="ghost"
@@ -721,7 +721,7 @@ export default function UserManagementPage() {
                               title={t('Change Password')}
                               data-testid={`button-change-password-${u.id}`}
                             >
-                              <KeyRound className="h-4 w-4" />
+                              <KeyRound className="h-5 w-5" />
                             </Button>
                             {u.role !== 'admin' && (
                               <AlertDialog>
@@ -733,7 +733,7 @@ export default function UserManagementPage() {
                                     title={t('Force Logout')}
                                     data-testid={`button-force-logout-${u.id}`}
                                   >
-                                    <LogOut className="h-4 w-4" />
+                                    <LogOut className="h-5 w-5" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -763,7 +763,7 @@ export default function UserManagementPage() {
                                   className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                   data-testid={`button-delete-user-${u.id}`}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -813,7 +813,7 @@ export default function UserManagementPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-users-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -835,7 +835,7 @@ export default function UserManagementPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-users-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -856,7 +856,7 @@ export default function UserManagementPage() {
           <div className="space-y-4">
             <div className="p-3 rounded-lg bg-muted/50 border">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
+                <User className="h-5 w-5 text-muted-foreground" />
                 <span className="font-semibold">{passwordUser?.fullName || passwordUser?.username}</span>
                 <span className="text-muted-foreground text-sm">({passwordUser?.username})</span>
               </div>
@@ -880,7 +880,7 @@ export default function UserManagementPage() {
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   data-testid="button-toggle-new-password"
                 >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </Button>
               </div>
             </div>
@@ -893,7 +893,7 @@ export default function UserManagementPage() {
               className="gap-2 bg-blue-600 hover:bg-blue-700 text-[#ffffff]"
               data-testid="button-save-password"
             >
-              {changePasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              {changePasswordMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <KeyRound className="h-5 w-5" />}
               {t('Change Password')}
             </Button>
           </DialogFooter>

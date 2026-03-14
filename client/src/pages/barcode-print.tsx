@@ -343,7 +343,7 @@ export default function BarcodePrintPage() {
             onClick={() => setShowSettings(!showSettings)}
             data-testid="button-toggle-settings"
           >
-            <Settings2 className="w-4 h-4 ltr:mr-1 rtl:ml-1" />
+            <Settings2 className="w-5 h-5 ltr:mr-1 rtl:ml-1" />
             {t('Print Settings')}
           </Button>
           <Button
@@ -352,7 +352,7 @@ export default function BarcodePrintPage() {
             onClick={() => setShowPreview(!showPreview)}
             data-testid="button-toggle-preview"
           >
-            <Eye className="w-4 h-4 ltr:mr-1 rtl:ml-1" />
+            <Eye className="w-5 h-5 ltr:mr-1 rtl:ml-1" />
             {t('Preview')}
           </Button>
           <Button
@@ -361,7 +361,7 @@ export default function BarcodePrintPage() {
             onClick={handlePrint}
             data-testid="button-print"
           >
-            <Printer className="w-4 h-4 ltr:mr-1 rtl:ml-1" />
+            <Printer className="w-5 h-5 ltr:mr-1 rtl:ml-1" />
             {t('Print')} ({totalLabels})
           </Button>
         </div>
@@ -372,7 +372,7 @@ export default function BarcodePrintPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Settings2 className="w-4 h-4" />
+                <Settings2 className="w-5 h-5" />
                 {t('Print Settings')}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -889,7 +889,7 @@ export default function BarcodePrintPage() {
                           onClick={() => removeItem(item.product.id)}
                           data-testid={`button-remove-${item.product.id}`}
                         >
-                          <Trash2 className="w-4 h-4 text-destructive" />
+                          <Trash2 className="w-5 h-5 text-destructive" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -906,11 +906,11 @@ export default function BarcodePrintPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
+                <Eye className="w-5 h-5" />
                 {t('Print Preview')} — {totalLabels} {t('Labels')}
               </div>
               <Button size="sm" onClick={handlePrint} data-testid="button-print-preview">
-                <Printer className="w-4 h-4 ltr:mr-1 rtl:ml-1" />
+                <Printer className="w-5 h-5 ltr:mr-1 rtl:ml-1" />
                 {t('Print')}
               </Button>
             </CardTitle>

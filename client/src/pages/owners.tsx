@@ -114,12 +114,12 @@ export default function OwnersPage() {
           <CardTitle className="text-lg flex items-center gap-2">
             {editingId ? (
               <>
-                <Pencil className="h-4 w-4 text-orange-500" />
+                <Pencil className="h-5 w-5 text-orange-500" />
                 {t('Edit Owner')}
               </>
             ) : (
               <>
-                <IconOwner className="h-4 w-4" />
+                <IconOwner className="h-5 w-5" />
                 {t('Add New Owner')}
               </>
             )}
@@ -161,17 +161,17 @@ export default function OwnersPage() {
           </div>
           <div className="flex items-center gap-2 pt-2">
             <Button onClick={handleSave} disabled={isSaving} data-testid="button-save-owner" className="gap-2">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {editingId ? t('Update') : t('Save')}
             </Button>
             {editingId ? (
               <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-cancel-edit-owner">
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
                 {t('Cancel')}
               </Button>
             ) : (
               <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-owner">
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-5 h-5" />
                 {t('Reset')}
               </Button>
             )}
@@ -183,7 +183,7 @@ export default function OwnersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Owners')}</CardTitle>
-            <IconOwner className="h-4 w-4 text-indigo-600" />
+            <IconOwner className="h-5 w-5 text-indigo-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{ownersList?.length || 0}</div>
@@ -242,12 +242,12 @@ export default function OwnersPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => startEdit(item)} data-testid={`button-edit-owner-${item.id}`}>
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-owner-${item.id}`}>
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

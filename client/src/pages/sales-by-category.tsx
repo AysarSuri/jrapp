@@ -507,11 +507,11 @@ export default function SalesByCategoryPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-category-form">
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-purple-600 hover:bg-purple-700 text-white" data-testid="button-save-sales-category-invoice">
-            {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {(isSaving || isUpdating) ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {isEditMode ? t('Update Invoice') : (userRole === 'sales_rep' ? t('Send for Approval') : t('Save Invoice'))}
           </Button>
         </div>
@@ -607,7 +607,7 @@ export default function SalesByCategoryPage() {
               <div className="flex items-end gap-3">
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <ScanBarcode className="w-4 h-4 text-purple-600" />
+                    <ScanBarcode className="w-5 h-5 text-purple-600" />
                     {t('Scan Barcode')}
                   </Label>
                   <div className="flex items-center gap-2">
@@ -636,7 +636,7 @@ export default function SalesByCategoryPage() {
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <IconProduct className="w-4 h-4 text-green-600" />
+                    <IconProduct className="w-5 h-5 text-green-600" />
                     {t('Product Name')}
                   </Label>
                   <div className="relative" ref={productSearchRef}>
@@ -719,7 +719,7 @@ export default function SalesByCategoryPage() {
                     className={isFavoritesMode ? "bg-yellow-500 hover:bg-yellow-600 text-white shrink-0" : "shrink-0"}
                     data-testid="button-sales-category-favorites"
                   >
-                    <Star className="w-4 h-4 me-1 fill-current" />
+                    <Star className="w-5 h-5 me-1 fill-current" />
                     {t('Favorites')}
                   </Button>
                   {categories?.map(cat => (
@@ -1045,7 +1045,7 @@ export default function SalesByCategoryPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-sales-category-invoice-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -1139,13 +1139,13 @@ export default function SalesByCategoryPage() {
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-sales-category-invoice-${inv.id}`}>
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(inv.id)} data-testid={`btn-edit-sales-category-invoice-${inv.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoiceData({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-sales-category-invoice-${inv.id}`}>
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-5 w-5" />
                             </Button>
                             {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
                               <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => handleApprove(inv.id)} disabled={isApproving} data-testid={`btn-approve-sales-category-invoice-${inv.id}`}>
@@ -1200,7 +1200,7 @@ export default function SalesByCategoryPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-sales-category-invoice">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

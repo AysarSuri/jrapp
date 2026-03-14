@@ -165,7 +165,7 @@ export default function CompanyProfilePage() {
           disabled={saveMutation.isPending}
           data-testid="button-save-profile"
         >
-          <Save className="w-4 h-4 ltr:mr-1.5 rtl:ml-1.5" />
+          <Save className="w-5 h-5 ltr:mr-1.5 rtl:ml-1.5" />
           {saveMutation.isPending ? t('Saving...') : t('Save')}
         </Button>
       </div>
@@ -175,7 +175,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <IconCompany className="w-4 h-4" />
+                <IconCompany className="w-5 h-5" />
                 {t('Company Information')}
               </CardTitle>
             </CardHeader>
@@ -318,7 +318,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <IconBarcode className="w-4 h-4" />
+                <IconBarcode className="w-5 h-5" />
                 {t('QR Code Address')}
               </CardTitle>
             </CardHeader>
@@ -344,7 +344,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Globe className="w-4 h-4" />
+                <Globe className="w-5 h-5" />
                 {t('Social Media & Links')}
               </CardTitle>
             </CardHeader>
@@ -426,7 +426,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Image className="w-4 h-4" />
+                <Image className="w-5 h-5" />
                 {t('Logo')}
               </CardTitle>
             </CardHeader>
@@ -491,7 +491,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Stamp className="w-4 h-4" />
+                <Stamp className="w-5 h-5" />
                 {t('Stamp')}
               </CardTitle>
             </CardHeader>
@@ -559,7 +559,7 @@ export default function CompanyProfilePage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Image className="w-4 h-4" />
+            <Image className="w-5 h-5" />
             {t('Cliché')}
           </CardTitle>
         </CardHeader>

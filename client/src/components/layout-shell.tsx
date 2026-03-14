@@ -599,7 +599,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
             <p className="text-xs text-muted-foreground truncate capitalize">{user?.role}</p>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </div>

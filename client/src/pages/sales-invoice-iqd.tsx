@@ -503,11 +503,11 @@ export default function SalesInvoiceIqdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-iqd-form">
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving || isUpdating} className="bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-save-sales-invoice-iqd">
-            {(isSaving || isUpdating) ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {(isSaving || isUpdating) ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {isEditMode ? t('Update Invoice') : (userRole === 'sales_rep' ? t('Send for Approval') : t('Save Invoice'))}
           </Button>
         </div>
@@ -637,7 +637,7 @@ export default function SalesInvoiceIqdPage() {
                 />
               </div>
               <Button variant="outline" size="sm" onClick={addRow} data-testid="button-sales-iqd-add-row">
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -925,7 +925,7 @@ export default function SalesInvoiceIqdPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-sales-iqd-invoice-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -1019,13 +1019,13 @@ export default function SalesInvoiceIqdPage() {
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-sales-iqd-invoice-${inv.id}`}>
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(inv.id)} data-testid={`btn-edit-sales-iqd-invoice-${inv.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoiceData({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-sales-iqd-invoice-${inv.id}`}>
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-5 w-5" />
                             </Button>
                             {(userRole === 'admin' || userRole === 'user') && inv.status === 'pending' && (
                               <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(inv.id)} disabled={isApproving} data-testid={`btn-approve-sales-iqd-invoice-${inv.id}`}>
@@ -1080,7 +1080,7 @@ export default function SalesInvoiceIqdPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-sales-iqd-invoice">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

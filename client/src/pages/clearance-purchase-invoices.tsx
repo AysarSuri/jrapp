@@ -333,7 +333,7 @@ export default function ClearancePurchaseInvoicesPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-form">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -343,7 +343,7 @@ export default function ClearancePurchaseInvoicesPage() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                {editInvoice && <Pencil className="h-4 w-4 text-orange-600" />}
+                {editInvoice && <Pencil className="h-5 w-5 text-orange-600" />}
                 {editInvoice ? t('Edit Invoice') : t('Invoice Details')}
               </CardTitle>
               {editInvoice && (
@@ -396,7 +396,7 @@ export default function ClearancePurchaseInvoicesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <IconDollar className="h-4 w-4 text-blue-600" />
+                  <IconDollar className="h-5 w-5 text-blue-600" />
                   {t('Customs USD')}
                 </Label>
                 <Input
@@ -411,7 +411,7 @@ export default function ClearancePurchaseInvoicesPage() {
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <IconDinar className="h-4 w-4 text-orange-600" />
+                  <IconDinar className="h-5 w-5 text-orange-600" />
                   {t('Customs IQD')}
                 </Label>
                 <Input
@@ -519,7 +519,7 @@ export default function ClearancePurchaseInvoicesPage() {
                 />
               </div>
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-report">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Report')}
               </Button>
             </div>
@@ -571,7 +571,7 @@ export default function ClearancePurchaseInvoicesPage() {
                             onClick={() => openEdit(inv)}
                             data-testid={`button-edit-invoice-${inv.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -581,7 +581,7 @@ export default function ClearancePurchaseInvoicesPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-invoice-${inv.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -616,7 +616,7 @@ export default function ClearancePurchaseInvoicesPage() {
                 </p>
                 <div className="flex items-center gap-1">
                   <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} data-testid="button-prev-page">
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <Button key={page} variant={page === safePage ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setCurrentPage(page)} data-testid={`button-page-${page}`}>
@@ -624,7 +624,7 @@ export default function ClearancePurchaseInvoicesPage() {
                     </Button>
                   ))}
                   <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} data-testid="button-next-page">
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

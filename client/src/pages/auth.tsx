@@ -184,7 +184,7 @@ export default function AuthPage() {
                             {user.username} — {getRoleLabel(user.role)}
                           </p>
                         </div>
-                        <LogIn className="h-4 w-4 text-muted-foreground" />
+                        <LogIn className="h-5 w-5 text-muted-foreground" />
                       </button>
                     );
                   })}

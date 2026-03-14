@@ -110,7 +110,7 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.key)}
                     data-testid={`button-settings-tab-${tab.key}`}
                   >
-                    <tab.icon className="h-4 w-4" />
+                    <tab.icon className="h-5 w-5" />
                     {tab.label}
                   </Button>
                 ))}
@@ -132,7 +132,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-orange-500" />
+                      <FileText className="h-5 w-5 text-orange-500" />
                       {t('Invoice Printer')}
                       <span className="text-xs font-normal text-muted-foreground">(ACM)</span>
                     </Label>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-green-500" />
+                      <BarChart3 className="h-5 w-5 text-green-500" />
                       {t('Reports Printer')}
                       <span className="text-xs font-normal text-muted-foreground">(A4)</span>
                     </Label>
@@ -164,7 +164,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <StickyNote className="h-4 w-4 text-purple-500" />
+                      <StickyNote className="h-5 w-5 text-purple-500" />
                       {t('Barcode Printer')}
                       <span className="text-xs font-normal text-muted-foreground">(STICKER)</span>
                     </Label>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleSavePrinterSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-printers">
-                    <Save className="h-4 w-4" />
+                    <Save className="h-5 w-5" />
                     {t('Save Settings')}
                   </Button>
                 </div>
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <IconOwner className="h-4 w-4 text-blue-500" />
+                      <IconOwner className="h-5 w-5 text-blue-500" />
                       {t('Sales Print Mode (Admin/User)')}
                     </Label>
                     <Select
@@ -221,7 +221,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <IconCustomers className="h-4 w-4 text-orange-500" />
+                      <IconCustomers className="h-5 w-5 text-orange-500" />
                       {t('Sales Print Mode (Agent)')}
                     </Label>
                     <Select
@@ -242,7 +242,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label className="text-base font-bold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-green-500" />
+                    <FileText className="h-5 w-5 text-green-500" />
                     {t('Invoice Footer Text')}
                   </Label>
                   <Input
@@ -263,7 +263,7 @@ export default function SettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleSaveGeneralSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-general">
-                    <Save className="h-4 w-4" />
+                    <Save className="h-5 w-5" />
                     {t('Save Settings')}
                   </Button>
                 </div>

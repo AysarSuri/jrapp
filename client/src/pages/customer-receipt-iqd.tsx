@@ -268,7 +268,7 @@ export default function CustomerReceiptIqdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-receipt">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -344,7 +344,7 @@ export default function CustomerReceiptIqdPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-5 w-5 text-orange-600" />
                     {t('Amount')} (IQD)
                   </CardTitle>
                 </CardHeader>
@@ -365,7 +365,7 @@ export default function CustomerReceiptIqdPage() {
               <Card className="border-green-200 dark:border-green-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Percent className="h-4 w-4 text-green-600" />
+                    <Percent className="h-5 w-5 text-green-600" />
                     {t('Discount')} (IQD)
                   </CardTitle>
                 </CardHeader>
@@ -505,7 +505,7 @@ export default function CustomerReceiptIqdPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-receipt-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -588,7 +588,7 @@ export default function CustomerReceiptIqdPage() {
                             onClick={() => openEdit(r)}
                             data-testid={`button-edit-receipt-${r.id}`}
                           >
-                            <Pencil className="h-4 w-4 text-orange-600" />
+                            <Pencil className="h-5 w-5 text-orange-600" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -597,7 +597,7 @@ export default function CustomerReceiptIqdPage() {
                                 size="icon"
                                 data-testid={`button-delete-receipt-${r.id}`}
                               >
-                                <Trash2 className="h-4 w-4 text-red-600" />
+                                <Trash2 className="h-5 w-5 text-red-600" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -638,7 +638,7 @@ export default function CustomerReceiptIqdPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-receipt-history-prev"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <Button
@@ -658,7 +658,7 @@ export default function CustomerReceiptIqdPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-receipt-history-next"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -744,7 +744,7 @@ export default function CustomerReceiptIqdPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditReceipt(null)} data-testid="button-cancel-edit-receipt">{t('Cancel')}</Button>
             <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-edit-receipt">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {t('Save')}
             </Button>
           </DialogFooter>

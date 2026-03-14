@@ -82,7 +82,7 @@ export default function TransactionsPage() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-transaction">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Transaction')}
             </Button>
           </DialogTrigger>
@@ -173,7 +173,7 @@ export default function TransactionsPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isPending} data-testid="button-save-transaction">
-                    {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>

@@ -204,7 +204,7 @@ export default function CustomersPage() {
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditingClient(null); setSelectedAgentId(""); } }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-customer" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Customer')}
             </Button>
           </DialogTrigger>
@@ -274,7 +274,7 @@ export default function CustomersPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditingClient(null); setSelectedAgentId(""); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-customer">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -288,7 +288,7 @@ export default function CustomersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Customers')}</CardTitle>
-            <IconCustomers className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
@@ -386,12 +386,12 @@ export default function CustomersPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(client)} data-testid={`button-edit-customer-${client.id}`}>
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-customer-${client.id}`}>
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

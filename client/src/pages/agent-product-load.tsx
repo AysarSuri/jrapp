@@ -294,7 +294,7 @@ export default function AgentProductLoadPage() {
             <div className="flex items-center justify-between">
               <Label className="text-base font-semibold">{t('Load Items')}</Label>
               <Button variant="outline" size="sm" onClick={addItem} className="gap-1" data-testid="button-add-load-item">
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 {t('Add Item')}
               </Button>
             </div>
@@ -359,7 +359,7 @@ export default function AgentProductLoadPage() {
                           className="text-destructive hover:text-destructive"
                           data-testid={`button-remove-load-item-${index}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -371,11 +371,11 @@ export default function AgentProductLoadPage() {
 
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSubmit} disabled={isSaving} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white" data-testid="button-save-load">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {t('Save')}
             </Button>
             <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-load">
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-5 h-5" />
               {t('Reset')}
             </Button>
           </div>
@@ -456,7 +456,7 @@ export default function AgentProductLoadPage() {
                             onClick={() => setDetailLoadId(detailLoadId === ld.id ? null : ld.id)}
                             data-testid={`button-detail-load-${ld.id}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -466,7 +466,7 @@ export default function AgentProductLoadPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-load-${ld.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -537,7 +537,7 @@ export default function AgentProductLoadPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-load-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -559,7 +559,7 @@ export default function AgentProductLoadPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-load-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

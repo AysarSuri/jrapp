@@ -163,7 +163,7 @@ export default function SupplierDebtsPage() {
         <>
           <div className="flex justify-end">
             <Button onClick={handlePrint} variant="outline" size="sm" data-testid="button-print-debts">
-              <Printer className="w-4 h-4 me-2" />
+              <Printer className="w-5 h-5 me-2" />
               {t("Print")}
             </Button>
           </div>

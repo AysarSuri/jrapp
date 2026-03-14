@@ -292,7 +292,7 @@ export default function SupplierPaymentsPage() {
     <div className="space-y-6">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>
@@ -308,7 +308,7 @@ export default function SupplierPaymentsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-payment">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -678,7 +678,7 @@ export default function SupplierPaymentsPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-payment-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -762,7 +762,7 @@ export default function SupplierPaymentsPage() {
                             onClick={() => { setReportPaymentId(p.id); setReportCurrency(parseFloat(p.amountUsd || "0") > 0 ? "USD" : "IQD"); setReportOpen(true); }}
                             data-testid={`btn-view-payment-${p.id}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -771,7 +771,7 @@ export default function SupplierPaymentsPage() {
                             onClick={() => { window.location.href = `/supplier-payments?edit=${p.id}`; }}
                             data-testid={`btn-edit-payment-${p.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -780,7 +780,7 @@ export default function SupplierPaymentsPage() {
                             onClick={() => setDeletePayment({ id: p.id })}
                             data-testid={`btn-delete-payment-${p.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       </TableCell>
@@ -810,7 +810,7 @@ export default function SupplierPaymentsPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-payment-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -832,7 +832,7 @@ export default function SupplierPaymentsPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-payment-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -860,7 +860,7 @@ export default function SupplierPaymentsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeletePayment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-payment">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

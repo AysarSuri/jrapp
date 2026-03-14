@@ -116,7 +116,7 @@ export default function UnitsPage() {
     <div className="space-y-6">
       <Link href="/material-management" data-testid="link-back-material">
         <Button variant="outline" size="sm" className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Material Management")}
         </Button>
       </Link>
@@ -132,7 +132,7 @@ export default function UnitsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Units')}</CardTitle>
-            <IconUnit className="h-4 w-4 text-muted-foreground" />
+            <IconUnit className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{allUnits.length}</div>
@@ -184,11 +184,11 @@ export default function UnitsPage() {
                 )} />
                 <div className="flex items-end gap-2">
                   <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11 flex-1" data-testid="button-save-unit">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {editingUnit ? t('Update') : t('Save')}
                   </Button>
                   <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -275,12 +275,12 @@ export default function UnitsPage() {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(unit)} data-testid={`button-edit-unit-${unit.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-unit-${unit.id}`}>
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -313,7 +313,7 @@ export default function UnitsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)} data-testid="button-prev-page">
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-5 w-5" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <Button
@@ -328,7 +328,7 @@ export default function UnitsPage() {
                       </Button>
                     ))}
                     <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)} data-testid="button-next-page">
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

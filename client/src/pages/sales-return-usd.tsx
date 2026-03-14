@@ -354,11 +354,11 @@ export default function SalesReturnUsdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-return-form">
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-sales-return">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {userRole === 'sales_rep' ? t('Send for Approval') : t('Save Return')}
           </Button>
         </div>
@@ -475,7 +475,7 @@ export default function SalesReturnUsdPage() {
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">{t('Products')}</CardTitle>
           <Button variant="outline" size="sm" onClick={addRow} data-testid="button-return-add-row">
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -764,7 +764,7 @@ export default function SalesReturnUsdPage() {
                             disabled={isApproving}
                             data-testid={`button-approve-return-${ret.id}`}
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-5 w-5" />
                           </Button>
                         )}
                         <AlertDialog>
@@ -775,7 +775,7 @@ export default function SalesReturnUsdPage() {
                               className="text-red-600"
                               data-testid={`button-delete-return-${ret.id}`}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-5 w-5" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -810,7 +810,7 @@ export default function SalesReturnUsdPage() {
               </p>
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="icon" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                   <Button key={p} variant={p === safePage ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(p)}>
@@ -818,7 +818,7 @@ export default function SalesReturnUsdPage() {
                   </Button>
                 ))}
                 <Button variant="outline" size="icon" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)}>
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
             </div>

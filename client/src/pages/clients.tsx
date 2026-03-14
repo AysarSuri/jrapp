@@ -70,7 +70,7 @@ export default function ClientsPage() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-client">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Client')}
             </Button>
           </DialogTrigger>
@@ -111,7 +111,7 @@ export default function ClientsPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isPending} data-testid="button-save-client">
-                    {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -125,7 +125,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Customers')}</CardTitle>
-            <IconCustomers className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
@@ -134,7 +134,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Suppliers')}</CardTitle>
-            <IconCustomers className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{suppliers.length}</div>

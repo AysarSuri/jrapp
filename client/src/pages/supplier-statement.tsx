@@ -71,10 +71,10 @@ export default function SupplierStatementPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "purchase_invoice": return <IconExpenseEntry className="w-4 h-4" />;
-      case "payment": return <IconDinar className="w-4 h-4" />;
-      case "adjustment_received": return <ArrowDownToLine className="w-4 h-4" />;
-      case "adjustment_discount": return <Tag className="w-4 h-4" />;
+      case "purchase_invoice": return <IconExpenseEntry className="w-5 h-5" />;
+      case "payment": return <IconDinar className="w-5 h-5" />;
+      case "adjustment_received": return <ArrowDownToLine className="w-5 h-5" />;
+      case "adjustment_discount": return <Tag className="w-5 h-5" />;
       default: return null;
     }
   };
@@ -98,7 +98,7 @@ export default function SupplierStatementPage() {
     <div className="space-y-6">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>

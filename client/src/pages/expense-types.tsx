@@ -124,12 +124,12 @@ export default function ExpenseTypesPage() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={isSaving} className="gap-2" data-testid="button-save-expense-type">
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {editingId ? t('Update') : t('Add')}
               </Button>
               {editingId && (
                 <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-cancel-edit-expense-type">
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-5 h-5" />
                   {t('Cancel')}
                 </Button>
               )}
@@ -196,7 +196,7 @@ export default function ExpenseTypesPage() {
                             onClick={() => startEdit(item)}
                             data-testid={`button-edit-expense-type-${item.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -205,7 +205,7 @@ export default function ExpenseTypesPage() {
                             onClick={() => setDeleteItem(item)}
                             data-testid={`button-delete-expense-type-${item.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       </TableCell>

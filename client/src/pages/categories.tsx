@@ -189,7 +189,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <Link href="/material-management" data-testid="link-back-material">
         <Button variant="outline" size="sm" className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Material Management")}
         </Button>
       </Link>
@@ -205,7 +205,7 @@ export default function CategoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Categories')}</CardTitle>
-            <IconCategory className="h-4 w-4 text-muted-foreground" />
+            <IconCategory className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{allCategories.length}</div>
@@ -214,7 +214,7 @@ export default function CategoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Groups')}</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
+            <Layers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{allGroups.length}</div>
@@ -266,11 +266,11 @@ export default function CategoriesPage() {
                 )} />
                 <div className="flex items-end gap-2">
                   <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11 flex-1" data-testid="button-save-category">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {editingCategory ? t('Update') : t('Save')}
                   </Button>
                   <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelCategoryEdit} data-testid="button-reset-form">
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -322,11 +322,11 @@ export default function CategoriesPage() {
                   )} />
                   <div className="flex items-end gap-2">
                     <Button type="submit" disabled={isSavingGroup} size="lg" className="text-base font-bold h-11 flex-1 bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-save-group">
-                      {isSavingGroup ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      {isSavingGroup ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                       {editingGroup ? t('Update') : t('Save')}
                     </Button>
                     <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelGroupEdit} data-testid="button-reset-group-form">
-                      <RotateCcw className="h-4 w-4" />
+                      <RotateCcw className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
@@ -415,7 +415,7 @@ export default function CategoriesPage() {
                                 onClick={() => setExpandedCategoryId(isExpanded ? null : cat.id)}
                                 data-testid={`button-expand-category-${cat.id}`}
                               >
-                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                               </Button>
                             </TableCell>
                             <TableCell className="font-bold font-mono text-sm">{cat.id}</TableCell>
@@ -437,15 +437,15 @@ export default function CategoriesPage() {
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => startGroupAdd(cat.id)} data-testid={`button-add-group-${cat.id}`}>
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="h-5 w-5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" onClick={() => startEditCategory(cat)} data-testid={`button-edit-category-${cat.id}`}>
-                                  <Pencil className="h-4 w-4" />
+                                  <Pencil className="h-5 w-5" />
                                 </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-category-${cat.id}`}>
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className="h-5 w-5" />
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
@@ -540,7 +540,7 @@ export default function CategoriesPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)} data-testid="button-prev-page">
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-5 w-5" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <Button
@@ -555,7 +555,7 @@ export default function CategoriesPage() {
                       </Button>
                     ))}
                     <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)} data-testid="button-next-page">
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

@@ -56,7 +56,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Sales')}</CardTitle>
-            <IconDollar className="h-4 w-4 text-muted-foreground" />
+            <IconDollar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
@@ -72,7 +72,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Active Clients')}</CardTitle>
-            <IconCustomers className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
@@ -88,7 +88,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Products')}</CardTitle>
-            <IconProduct className="h-4 w-4 text-muted-foreground" />
+            <IconProduct className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>
@@ -104,7 +104,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Net Profit')}</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+            <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$12,234.00</div>
@@ -238,7 +238,7 @@ export default function Dashboard() {
               {invoices?.slice(0, 3).map((inv, i) => (
                 <div key={i} className="flex items-center">
                   <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex items-center justify-center font-bold">
-                    <FileText className="h-4 w-4" />
+                    <FileText className="h-5 w-5" />
                   </div>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{inv.type} #{inv.id}</p>

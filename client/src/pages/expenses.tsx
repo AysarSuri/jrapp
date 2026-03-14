@@ -473,7 +473,7 @@ export default function ExpensesPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-expense">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -524,7 +524,7 @@ export default function ExpensesPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDollar className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-5 w-5 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -540,7 +540,7 @@ export default function ExpensesPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-5 w-5 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -622,7 +622,7 @@ export default function ExpensesPage() {
                     className="h-12 gap-2"
                     data-testid="button-cancel-edit-expense"
                   >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-5 w-5" />
                     {t('Cancel')}
                   </Button>
                 )}
@@ -696,7 +696,7 @@ export default function ExpensesPage() {
                 />
               </div>
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-expense-report">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Print Report')}
               </Button>
             </div>
@@ -752,7 +752,7 @@ export default function ExpensesPage() {
                             onClick={() => handlePrintReceipt(e)}
                             data-testid={`button-receipt-expense-${e.id}`}
                           >
-                            <FileText className="h-4 w-4" />
+                            <FileText className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -761,7 +761,7 @@ export default function ExpensesPage() {
                             onClick={() => startEdit(e)}
                             data-testid={`button-edit-expense-${e.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -770,7 +770,7 @@ export default function ExpensesPage() {
                             onClick={() => setDeleteItem(e)}
                             data-testid={`button-delete-expense-${e.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       </TableCell>
@@ -800,7 +800,7 @@ export default function ExpensesPage() {
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     data-testid="button-expense-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <Button
@@ -822,7 +822,7 @@ export default function ExpensesPage() {
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     data-testid="button-expense-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

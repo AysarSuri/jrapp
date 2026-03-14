@@ -218,12 +218,12 @@ export default function ExternalDebtsPage() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={isSaving} data-testid="button-save-external-debt" className="gap-2">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                 {editingId ? t('Update') : t('Save')}
               </Button>
               {editingId && (
                 <Button variant="outline" onClick={resetForm} data-testid="button-cancel-edit-external-debt" className="gap-2">
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-5 w-5" />
                   {t('Cancel')}
                 </Button>
               )}
@@ -236,7 +236,7 @@ export default function ExternalDebtsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total External Debts')}</CardTitle>
-            <IconExternalDebt className="h-4 w-4 text-purple-600" />
+            <IconExternalDebt className="h-5 w-5 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{debtsList?.length || 0}</div>
@@ -333,7 +333,7 @@ export default function ExternalDebtsPage() {
                             onClick={() => startEdit(item)}
                             data-testid={`button-edit-external-debt-${item.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -342,7 +342,7 @@ export default function ExternalDebtsPage() {
                             onClick={() => setDeleteItem(item)}
                             data-testid={`button-delete-external-debt-${item.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       </TableCell>

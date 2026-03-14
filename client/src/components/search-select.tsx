@@ -115,7 +115,7 @@ export function SearchSelect({
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleClear(); }}
             className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10`}
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         ) : (
           <ChevronDown className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-transform ${isOpen ? "rotate-180" : ""}`} />

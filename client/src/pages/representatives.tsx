@@ -109,7 +109,7 @@ export default function RepresentativesPage() {
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-representative" onClick={openCreateDialog}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Representative')}
             </Button>
           </DialogTrigger>
@@ -154,7 +154,7 @@ export default function RepresentativesPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-representative">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -168,7 +168,7 @@ export default function RepresentativesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Representatives')}</CardTitle>
-            <IconAgent className="h-4 w-4 text-muted-foreground" />
+            <IconAgent className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{reps?.length || 0}</div>
@@ -232,12 +232,12 @@ export default function RepresentativesPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-representative-${item.id}`}>
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-representative-${item.id}`}>
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

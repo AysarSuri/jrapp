@@ -585,7 +585,7 @@ export default function ProductsPage() {
         <div className="relative min-w-[180px] max-w-[220px]">
           <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val === "__all__" ? "" : val); setCurrentPage(1); }}>
             <SelectTrigger className="h-10 text-sm font-semibold" data-testid="select-filter-category">
-              <Filter className="h-4 w-4 text-muted-foreground shrink-0 mr-1" />
+              <Filter className="h-5 w-5 text-muted-foreground shrink-0 mr-1" />
               <SelectValue placeholder={t('All Categories')} />
             </SelectTrigger>
             <SelectContent>
@@ -598,14 +598,14 @@ export default function ProductsPage() {
         </div>
         {categoryFilter && (
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => { setCategoryFilter(""); setCurrentPage(1); }} data-testid="button-clear-category-filter">
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         )}
       </div>
       <div className="flex items-center gap-3">
         {activeTab !== "products" && (
           <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint} data-testid="button-print">
-            <Printer className="h-4 w-4" />
+            <Printer className="h-5 w-5" />
             {t('Print')}
           </Button>
         )}
@@ -625,7 +625,7 @@ export default function ProductsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)} data-testid="button-prev-page">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <Button
@@ -640,7 +640,7 @@ export default function ProductsPage() {
             </Button>
           ))}
           <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)} data-testid="button-next-page">
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
       </div>
@@ -823,7 +823,7 @@ export default function ProductsPage() {
                         />
                       </FormControl>
                       <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-muted-foreground" />
                         {t('Hide')}
                       </FormLabel>
                     </FormItem>
@@ -839,14 +839,14 @@ export default function ProductsPage() {
                         />
                       </FormControl>
                       <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                        <Star className="h-4 w-4 text-yellow-500" />
+                        <Star className="h-5 w-5 text-yellow-500" />
                         {t('Favorite')}
                       </FormLabel>
                     </FormItem>
                   )} />
                   <div className="space-y-1.5">
                     <FormLabel className="flex items-center gap-1.5 text-base font-bold">
-                      <ImageIcon className="w-4 h-4" />
+                      <ImageIcon className="w-5 h-5" />
                       {t('Product Image')}
                     </FormLabel>
                     {form.watch("image") ? (
@@ -890,7 +890,7 @@ export default function ProductsPage() {
                         }}
                         data-testid="upload-product-image-area"
                       >
-                        <Upload className="w-4 h-4 text-muted-foreground" />
+                        <Upload className="w-5 h-5 text-muted-foreground" />
                         <span className="text-[10px] text-muted-foreground">{t('Click to upload product image')}</span>
                       </div>
                     )}
@@ -900,11 +900,11 @@ export default function ProductsPage() {
 
               <div className="flex items-center gap-2 mt-4">
                 <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11" data-testid="button-save-product">
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                   {editingProduct ? t('Update') : t('Save')}
                 </Button>
                 <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
             </form>
@@ -980,12 +980,12 @@ export default function ProductsPage() {
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(product)} data-testid={`button-edit-product-${product.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-product-${product.id}`}>
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -1142,7 +1142,7 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <Link href="/material-management" data-testid="link-back-material">
         <Button variant="outline" size="sm" className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Material Management")}
         </Button>
       </Link>
@@ -1158,7 +1158,7 @@ export default function ProductsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Products')}</CardTitle>
-            <IconProduct className="h-4 w-4 text-muted-foreground" />
+            <IconProduct className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-total-products">{allProducts.length}</div>
@@ -1185,15 +1185,15 @@ export default function ProductsPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
-            <IconDollar className="h-4 w-4" />
+            <IconDollar className="h-5 w-5" />
             {t('Price List')}
           </TabsTrigger>
           <TabsTrigger value="report" className="gap-2 font-bold" data-testid="tab-report">
-            <FileText className="h-4 w-4" />
+            <FileText className="h-5 w-5" />
             {t('Material Report')}
           </TabsTrigger>
           <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
-            <IconProduct className="h-4 w-4" />
+            <IconProduct className="h-5 w-5" />
             {t('Products')}
           </TabsTrigger>
         </TabsList>

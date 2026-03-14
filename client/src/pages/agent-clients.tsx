@@ -326,7 +326,7 @@ ${clicheHtml}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-clients">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -480,7 +480,7 @@ ${clicheHtml}
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <IconAgent className="h-4 w-4 text-violet-600" />
+                  <IconAgent className="h-5 w-5 text-violet-600" />
                   {t('Currently Assigned')}
                   <Badge variant="secondary" className="ml-1">{assignedToAgent.length}</Badge>
                 </CardTitle>
@@ -533,7 +533,7 @@ ${clicheHtml}
                 />
               </div>
               <Button variant="outline" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-assignments">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Print')}
               </Button>
               <Button
@@ -543,7 +543,7 @@ ${clicheHtml}
                 className="gap-2 h-9 bg-green-600 hover:bg-green-700 text-white border-green-600"
                 data-testid="button-whatsapp-assignments"
               >
-                {sendingWhatsApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                {sendingWhatsApp ? <Loader2 className="h-5 w-5 animate-spin" /> : <MessageCircle className="h-5 w-5" />}
                 {sendingWhatsApp ? t('Preparing PDF...') : t('WhatsApp')}
               </Button>
             </div>
@@ -584,7 +584,7 @@ ${clicheHtml}
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-assignment-${a.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -626,7 +626,7 @@ ${clicheHtml}
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-assignment-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -648,7 +648,7 @@ ${clicheHtml}
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-assignment-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

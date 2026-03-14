@@ -125,7 +125,7 @@ export default function CustomsClearancesPage() {
             {editingId ? t('Edit Customs Clearance') : t('Add New Customs Clearance')}
             {editingId && (
               <Button variant="ghost" size="sm" onClick={resetForm} className="ms-2 text-muted-foreground" data-testid="button-cancel-edit">
-                <RotateCcw className="w-4 h-4 me-1" />
+                <RotateCcw className="w-5 h-5 me-1" />
                 {t('Cancel')}
               </Button>
             )}
@@ -168,11 +168,11 @@ export default function CustomsClearancesPage() {
 
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSubmit} disabled={isSaving} className="gap-2" data-testid="button-save-customs-clearance">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {editingId ? t('Update') : t('Save')}
             </Button>
             <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-5 h-5" />
               {t('Reset')}
             </Button>
           </div>
@@ -245,7 +245,7 @@ export default function CustomsClearancesPage() {
                             onClick={() => { handleEdit(item); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                             data-testid={`button-edit-customs-clearance-${item.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -255,7 +255,7 @@ export default function CustomsClearancesPage() {
                                 className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                 data-testid={`button-delete-customs-clearance-${item.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

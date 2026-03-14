@@ -69,7 +69,7 @@ export default function InvoicesPage() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-invoice">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               {t('Add Invoice')}
             </Button>
           </DialogTrigger>
@@ -146,7 +146,7 @@ export default function InvoicesPage() {
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isPending} data-testid="button-save-invoice">
-                    {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {t('Save')}
                   </Button>
                 </DialogFooter>
@@ -160,14 +160,14 @@ export default function InvoicesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Sales Invoices')}</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{sales.length}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Purchase Invoices')}</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{purchases.length}</div></CardContent>
         </Card>

@@ -202,7 +202,7 @@ export default function AgentGpsPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {(() => { const DevIcon = getDeviceIcon(detectDeviceType()); return <DevIcon className="h-4 w-4" />; })()}
+                    {(() => { const DevIcon = getDeviceIcon(detectDeviceType()); return <DevIcon className="h-5 w-5" />; })()}
                     <span>{t(detectDeviceType() === "mobile" ? "Mobile" : detectDeviceType() === "tablet" ? "Tablet" : "Desktop")}</span>
                   </div>
                   {myLocation && (
@@ -244,7 +244,7 @@ export default function AgentGpsPage() {
                   className="h-10 gap-2"
                   data-testid="button-send-location"
                 >
-                  {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <IconAddress className="h-4 w-4" />}
+                  {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <IconAddress className="h-5 w-5" />}
                   {t('Send Location Once')}
                 </Button>
               </div>
@@ -270,15 +270,15 @@ export default function AgentGpsPage() {
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 text-muted-foreground" />
+                <Smartphone className="h-5 w-5 text-muted-foreground" />
                 <span>{t('Mobile')}: {allLocations.filter(l => l.deviceType === "mobile").length}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Tablet className="h-4 w-4 text-muted-foreground" />
+                <Tablet className="h-5 w-5 text-muted-foreground" />
                 <span>{t('Tablet')}: {allLocations.filter(l => l.deviceType === "tablet").length}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-muted-foreground" />
+                <Monitor className="h-5 w-5 text-muted-foreground" />
                 <span>{t('Desktop')}: {allLocations.filter(l => l.deviceType === "desktop").length}</span>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function AgentGpsPage() {
                   onClick={() => openInMaps(selectedLocation.latitude, selectedLocation.longitude)}
                   data-testid="button-open-google-maps"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-5 w-5" />
                   {t('Open in Google Maps')}
                 </Button>
                 <Button
@@ -387,7 +387,7 @@ export default function AgentGpsPage() {
                         <TableCell className="font-medium">{loc.agentName}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <DevIcon className="h-4 w-4 text-muted-foreground" />
+                            <DevIcon className="h-5 w-5 text-muted-foreground" />
                             <span className="text-sm capitalize">{t(loc.deviceType === "mobile" ? "Mobile" : loc.deviceType === "tablet" ? "Tablet" : "Desktop")}</span>
                           </div>
                         </TableCell>
@@ -409,7 +409,7 @@ export default function AgentGpsPage() {
                               data-testid={`button-map-agent-location-${loc.id}`}
                               title={t('View on Map')}
                             >
-                              <IconAddress className="h-4 w-4" />
+                              <IconAddress className="h-5 w-5" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -419,7 +419,7 @@ export default function AgentGpsPage() {
                               data-testid={`button-external-map-agent-location-${loc.id}`}
                               title={t('Open in Google Maps')}
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-5 w-5" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -429,7 +429,7 @@ export default function AgentGpsPage() {
                                   className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                   data-testid={`button-delete-agent-location-${loc.id}`}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

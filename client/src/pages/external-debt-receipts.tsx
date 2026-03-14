@@ -239,7 +239,7 @@ export default function ExternalDebtReceiptsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-external-debt-receipt">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -337,7 +337,7 @@ export default function ExternalDebtReceiptsPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDollar className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-5 w-5 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -353,7 +353,7 @@ export default function ExternalDebtReceiptsPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-5 w-5 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -419,7 +419,7 @@ export default function ExternalDebtReceiptsPage() {
               <div className="flex gap-2">
                 {editingId && (
                   <Button variant="outline" onClick={() => resetForm()} className="h-12 gap-2" data-testid="button-cancel-edit-receipt">
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-5 w-5" />
                     {t('Cancel')}
                   </Button>
                 )}
@@ -570,7 +570,7 @@ export default function ExternalDebtReceiptsPage() {
                             onClick={() => startEdit(r)}
                             data-testid={`button-edit-ext-debt-receipt-${r.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -580,7 +580,7 @@ export default function ExternalDebtReceiptsPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-ext-debt-receipt-${r.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -622,7 +622,7 @@ export default function ExternalDebtReceiptsPage() {
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     data-testid="button-ext-debt-receipt-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <Button
@@ -644,7 +644,7 @@ export default function ExternalDebtReceiptsPage() {
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     data-testid="button-ext-debt-receipt-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

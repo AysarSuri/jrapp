@@ -325,7 +325,7 @@ export default function WarehouseTransferPage() {
             <div className="flex items-center justify-between">
               <Label className="text-base font-semibold">{t('Transfer Items')}</Label>
               <Button variant="outline" size="sm" onClick={addItem} className="gap-1" data-testid="button-add-item">
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 {t('Add Item')}
               </Button>
             </div>
@@ -390,7 +390,7 @@ export default function WarehouseTransferPage() {
                           className="text-destructive hover:text-destructive"
                           data-testid={`button-remove-item-${index}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -402,11 +402,11 @@ export default function WarehouseTransferPage() {
 
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSubmit} disabled={isSaving} className="gap-2" data-testid="button-save">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {t('Save')}
             </Button>
             <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-5 h-5" />
               {t('Reset')}
             </Button>
           </div>
@@ -487,7 +487,7 @@ export default function WarehouseTransferPage() {
                             onClick={() => setDetailTransferId(detailTransferId === tr.id ? null : tr.id)}
                             data-testid={`button-detail-${tr.id}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -497,7 +497,7 @@ export default function WarehouseTransferPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-transfer-${tr.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -568,7 +568,7 @@ export default function WarehouseTransferPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-transfer-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -590,7 +590,7 @@ export default function WarehouseTransferPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-transfer-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

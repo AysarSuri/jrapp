@@ -244,7 +244,7 @@ export default function SupplierAdjustmentsPage() {
     <div className="space-y-8">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>
@@ -259,7 +259,7 @@ export default function SupplierAdjustmentsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -313,13 +313,13 @@ export default function SupplierAdjustmentsPage() {
                   <SelectContent>
                     <SelectItem value="received">
                       <span className="flex items-center gap-2">
-                        <ArrowDownToLine className="h-4 w-4 text-green-600" />
+                        <ArrowDownToLine className="h-5 w-5 text-green-600" />
                         {t("Received from Supplier")}
                       </span>
                     </SelectItem>
                     <SelectItem value="discount">
                       <span className="flex items-center gap-2">
-                        <Percent className="h-4 w-4 text-purple-600" />
+                        <Percent className="h-5 w-5 text-purple-600" />
                         {t("Discount from Supplier")}
                       </span>
                     </SelectItem>
@@ -429,7 +429,7 @@ export default function SupplierAdjustmentsPage() {
                 className="gap-2"
                 data-testid="button-save"
               >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                 {t("Save")}
               </Button>
             </div>
@@ -525,7 +525,7 @@ export default function SupplierAdjustmentsPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-adj-number" />
               </div>
               <div className="w-44">
@@ -609,7 +609,7 @@ export default function SupplierAdjustmentsPage() {
                             onClick={() => { setReportAdjustmentId(adj.id); setReportOpen(true); }}
                             data-testid={`btn-view-adjustment-${adj.id}`}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -618,7 +618,7 @@ export default function SupplierAdjustmentsPage() {
                             onClick={() => { window.location.href = `/supplier-adjustments?edit=${adj.id}`; }}
                             data-testid={`btn-edit-adjustment-${adj.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -627,7 +627,7 @@ export default function SupplierAdjustmentsPage() {
                             onClick={() => setDeleteAdjustment({ id: adj.id })}
                             data-testid={`btn-delete-adjustment-${adj.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       </TableCell>
@@ -657,7 +657,7 @@ export default function SupplierAdjustmentsPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-adj-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -679,7 +679,7 @@ export default function SupplierAdjustmentsPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-adj-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -707,7 +707,7 @@ export default function SupplierAdjustmentsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAdjustment} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-adjustment">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

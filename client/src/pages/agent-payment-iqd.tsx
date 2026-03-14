@@ -196,7 +196,7 @@ export default function AgentPaymentIqdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-payment">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -272,7 +272,7 @@ export default function AgentPaymentIqdPage() {
             <Card className="border-orange-200 dark:border-orange-900">
               <CardHeader className="pb-3 pt-4">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <IconDinar className="h-4 w-4 text-orange-600" />
+                  <IconDinar className="h-5 w-5 text-orange-600" />
                   {t('Amount')} (IQD)
                 </CardTitle>
               </CardHeader>
@@ -398,7 +398,7 @@ export default function AgentPaymentIqdPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-payment-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ export default function AgentPaymentIqdPage() {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-red-600" data-testid={`button-delete-payment-${p.id}`}>
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -499,7 +499,7 @@ export default function AgentPaymentIqdPage() {
                   </p>
                   <div className="flex items-center gap-1">
                     <Button variant="outline" size="icon" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-5 w-5" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                       <Button key={pg} variant={pg === safePage ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(pg)}>
@@ -507,7 +507,7 @@ export default function AgentPaymentIqdPage() {
                       </Button>
                     ))}
                     <Button variant="outline" size="icon" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)}>
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

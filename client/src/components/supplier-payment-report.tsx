@@ -214,11 +214,11 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
             <span>{t("Supplier Payment Receipt")}</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleWhatsApp} disabled={isLoading || sendingWhatsApp} data-testid="button-whatsapp-payment" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
-                {sendingWhatsApp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MessageCircle className="w-4 h-4 mr-1" />}
+                {sendingWhatsApp ? <Loader2 className="w-5 h-5 mr-1 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-1" />}
                 {sendingWhatsApp ? t("Preparing PDF...") : t("WhatsApp")}
               </Button>
               <Button variant="outline" size="sm" onClick={handlePrint} disabled={isLoading} data-testid="button-print-payment">
-                <Printer className="w-4 h-4 mr-1" />
+                <Printer className="w-5 h-5 mr-1" />
                 {t("Print")}
               </Button>
             </div>

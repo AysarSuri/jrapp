@@ -409,7 +409,7 @@ export default function PurchaseReturnUsdPage() {
     <div className="space-y-6">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>
@@ -423,11 +423,11 @@ export default function PurchaseReturnUsdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-return-form">
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving} className="bg-red-600 hover:bg-red-700 text-[#ffffff]" data-testid="button-save-purchase-return">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {t('Save Return')}
           </Button>
         </div>
@@ -537,7 +537,7 @@ export default function PurchaseReturnUsdPage() {
               />
             </div>
             <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-return-add-row">
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
             </Button>
           </div>
         </CardHeader>
@@ -700,7 +700,7 @@ export default function PurchaseReturnUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Subtotal')}</Label>
               <div className="text-lg font-bold flex items-center gap-1" data-testid="text-purchase-return-subtotal">
-                <IconDollar className="w-4 h-4" />
+                <IconDollar className="w-5 h-5" />
                 {fmtUsd(subtotal)}
               </div>
             </div>
@@ -737,7 +737,7 @@ export default function PurchaseReturnUsdPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-return-usd-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -810,13 +810,13 @@ export default function PurchaseReturnUsdPage() {
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-${ret.id}`}>
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-5 w-5" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => { setInlineEditId(String(ret.id)); window.scrollTo({ top: 0, behavior: "smooth" }); }} data-testid={`btn-edit-return-${ret.id}`}>
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-5 w-5" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteReturn({ id: ret.id, number: ret.returnNumber })} data-testid={`btn-delete-return-${ret.id}`}>
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-5 w-5" />
                         </Button>
                         {(userRole === 'admin' || userRole === 'user') && ret.status === 'pending' && (
                           <Button
@@ -858,7 +858,7 @@ export default function PurchaseReturnUsdPage() {
                   onClick={() => setCurrentPage(safePage - 1)}
                   data-testid="button-return-usd-prev-page"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                   <Button
@@ -880,7 +880,7 @@ export default function PurchaseReturnUsdPage() {
                   onClick={() => setCurrentPage(safePage + 1)}
                   data-testid="button-return-usd-next-page"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -907,7 +907,7 @@ export default function PurchaseReturnUsdPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteReturn} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-return">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

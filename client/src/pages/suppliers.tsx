@@ -440,7 +440,7 @@ export default function SuppliersPage() {
     <div className="space-y-6">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>
@@ -456,7 +456,7 @@ export default function SuppliersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Suppliers')}</CardTitle>
-            <IconSupplierList className="h-4 w-4 text-muted-foreground" />
+            <IconSupplierList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{suppliers.length}</div>
@@ -547,18 +547,18 @@ export default function SuppliersPage() {
                       />
                     </FormControl>
                     <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="h-5 w-5 text-muted-foreground" />
                       {t('Hide')}
                     </FormLabel>
                   </FormItem>
                 )} />
                 <div className="flex items-end gap-2">
                   <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11 flex-1" data-testid="button-save-supplier">
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {editingClient ? t('Update') : t('Save')}
                   </Button>
                   <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -611,7 +611,7 @@ export default function SuppliersPage() {
                 {filtered.length} {t('Total Suppliers')}
               </div>
               <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5" data-testid="button-print-suppliers">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Print')}
               </Button>
             </div>
@@ -673,12 +673,12 @@ export default function SuppliersPage() {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-supplier-${client.id}`}>
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-5 w-5" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -717,7 +717,7 @@ export default function SuppliersPage() {
                       onClick={() => setCurrentPage(safePage - 1)}
                       data-testid="button-prev-page"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-5 w-5" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                       <Button
@@ -738,7 +738,7 @@ export default function SuppliersPage() {
                       onClick={() => setCurrentPage(safePage + 1)}
                       data-testid="button-next-page"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

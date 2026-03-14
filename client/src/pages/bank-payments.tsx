@@ -198,7 +198,7 @@ export default function BankPaymentsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-bank-payment">
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
         </div>
@@ -250,7 +250,7 @@ export default function BankPaymentsPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDollar className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-5 w-5 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -266,7 +266,7 @@ export default function BankPaymentsPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-5 w-5 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -406,7 +406,7 @@ export default function BankPaymentsPage() {
                             onClick={() => openEdit(p)}
                             data-testid={`button-edit-bank-payment-${p.id}`}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -416,7 +416,7 @@ export default function BankPaymentsPage() {
                                 className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 data-testid={`button-delete-bank-payment-${p.id}`}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -458,7 +458,7 @@ export default function BankPaymentsPage() {
                     onClick={() => setCurrentPage(safePage - 1)}
                     data-testid="button-bank-payment-prev-page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
                     <Button
@@ -480,7 +480,7 @@ export default function BankPaymentsPage() {
                     onClick={() => setCurrentPage(safePage + 1)}
                     data-testid="button-bank-payment-next-page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -549,7 +549,7 @@ export default function BankPaymentsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditPayment(null)}>{t('Cancel')}</Button>
             <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-red-600 hover:bg-red-700 text-white" data-testid="button-update-bank-payment">
-              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {t('Save')}
             </Button>
           </DialogFooter>

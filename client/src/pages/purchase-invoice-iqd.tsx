@@ -472,7 +472,7 @@ export default function PurchaseInvoiceIqdPage() {
     <div className="space-y-6">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
           {t("Supplier Management")}
         </Button>
       </Link>
@@ -486,11 +486,11 @@ export default function PurchaseInvoiceIqdPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-iqd-form">
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-purchase-iqd-invoice">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {t('Save Invoice')}
           </Button>
         </div>
@@ -663,13 +663,13 @@ export default function PurchaseInvoiceIqdPage() {
                 type="checkbox"
                 checked={showDates}
                 onChange={(e) => setShowDates(e.target.checked)}
-                className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+                className="w-5 h-5 rounded border-border accent-primary cursor-pointer"
                 data-testid="checkbox-toggle-iqd-dates"
               />
               <span className="text-xs text-muted-foreground">{t('Production Date')} / {t('Expiry Date')}</span>
             </label>
             <Button variant="outline" size="sm" onClick={addRow} data-testid="button-purchase-iqd-add-row">
-              <Plus className="w-4 h-4 mr-1" />
+              <Plus className="w-5 h-5 mr-1" />
               {t('Add Row')}
             </Button>
           </div>
@@ -962,7 +962,7 @@ export default function PurchaseInvoiceIqdPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-invoice-iqd-number" />
               </div>
               <div className="flex items-center gap-2">
@@ -1042,13 +1042,13 @@ export default function PurchaseInvoiceIqdPage() {
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-iqd-invoice-${inv.id}`}>
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(inv.id)} data-testid={`btn-edit-iqd-invoice-${inv.id}`}>
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-5 w-5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteInvoice({ id: inv.id, number: inv.invoiceNumber })} data-testid={`btn-delete-iqd-invoice-${inv.id}`}>
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-5 w-5" />
                             </Button>
                           </div>
                         </TableCell>
@@ -1097,7 +1097,7 @@ export default function PurchaseInvoiceIqdPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>{t("No")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteInvoice} disabled={isDeleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-iqd-invoice">
-              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              {isDeleting ? <Loader2 className="w-5 h-5 animate-spin mr-1" /> : null}
               {t("Yes")}
             </AlertDialogAction>
           </AlertDialogFooter>

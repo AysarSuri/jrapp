@@ -278,7 +278,7 @@ export default function ExternalDebtStatementUsdPage() {
             </div>
             {selectedDebtId && statement && !statementLoading && (
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-debt-statement-usd">
-                <Printer className="h-4 w-4" />
+                <Printer className="h-5 w-5" />
                 {t('Print Report')}
               </Button>
             )}
