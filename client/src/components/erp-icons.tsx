@@ -1,5 +1,5 @@
 const c1 = "currentColor";
-const c2 = "#3b82f6";
+const c2 = "hsl(var(--primary))";
 
 type P = { className?: string };
 
