@@ -2571,6 +2571,18 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/sales-returns/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await db.delete(salesReturnItems).where(eq(salesReturnItems.returnId, id));
+      await db.delete(salesReturns).where(eq(salesReturns.id, id));
+      res.json({ message: "Deleted" });
+    } catch (err) {
+      console.error("Error deleting sales return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Purchase Returns
   app.get('/api/purchase-returns/next-number', requireAuth, async (_req, res) => {
     const number = await storage.getNextPurchaseReturnNumber();

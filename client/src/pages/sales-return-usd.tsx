@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNextSalesReturnNumber, useCreateSalesReturn, useSalesReturns, useApproveSalesReturn } from "@/hooks/use-sales-returns";
+import { useNextSalesReturnNumber, useCreateSalesReturn, useSalesReturns, useApproveSalesReturn, useDeleteSalesReturn } from "@/hooks/use-sales-returns";
 import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesReturn } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -22,11 +22,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2,
+  ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
@@ -61,6 +62,7 @@ export default function SalesReturnUsdPage() {
   const { data: nextNumber } = useNextSalesReturnNumber();
   const { mutate: createReturn, isPending: isSaving } = useCreateSalesReturn();
   const { mutate: approveReturn, isPending: isApproving } = useApproveSalesReturn();
+  const { mutate: deleteReturn } = useDeleteSalesReturn();
   const { data: returnsList } = useSalesReturns();
 
   const { data: units } = useUnits();
@@ -109,7 +111,8 @@ export default function SalesReturnUsdPage() {
   const [warehouseName, setWarehouseName] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -312,7 +315,22 @@ export default function SalesReturnUsdPage() {
     });
   };
 
+  const handleDelete = (returnId: number) => {
+    deleteReturn(returnId, {
+      onSuccess: () => {
+        toast({ title: t("Return deleted successfully") });
+      },
+      onError: (err) => {
+        toast({ title: t("Failed to delete return"), description: err.message, variant: "destructive" });
+      },
+    });
+  };
+
   const userRole = user?.role || 'user';
+  const usdReturns = (returnsList as SalesReturn[] || []).filter(i => i.currency === 'USD');
+  const totalPages = Math.ceil(usdReturns.length / pageSize);
+  const safePage = Math.min(currentPage, totalPages || 1);
+  const paginatedReturns = usdReturns.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -325,84 +343,6 @@ export default function SalesReturnUsdPage() {
           <p className="text-muted-foreground mt-1">{t('Create sales return in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-sales-return-history">
-                <ListOrdered className="w-4 h-4 mr-2" />
-                {t('Return History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Sales Return History')}</DialogTitle>
-              </DialogHeader>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Return #')}</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Customer')}</TableHead>
-                    <TableHead>{t('Representative')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Total')}</TableHead>
-                    <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Status')}</TableHead>
-                    {(userRole === 'admin' || userRole === 'user') && (
-                      <TableHead>{t('Actions')}</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(returnsList as SalesReturn[] || []).filter(i => i.currency === 'USD').map((ret: SalesReturn) => (
-                    <TableRow key={ret.id} data-testid={`row-return-history-${ret.id}`}>
-                      <TableCell>{ret.id}</TableCell>
-                      <TableCell className="font-mono">{ret.returnNumber}</TableCell>
-                      <TableCell>{formatDate(ret.date)}</TableCell>
-                      <TableCell>{ret.customerName}</TableCell>
-                      <TableCell>{ret.representativeName || '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>
-                          {ret.returnType === 'cash' ? t('Cash') : t('Credit')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">${ret.subtotal}</TableCell>
-                      <TableCell className="font-mono text-red-600">${ret.remaining}</TableCell>
-                      <TableCell>
-                        {ret.status === 'approved' ? (
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            {t('Approved')}
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {t('Pending')}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      {(userRole === 'admin' || userRole === 'user') && (
-                        <TableCell>
-                          {ret.status === 'pending' && (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleApprove(ret.id)}
-                              disabled={isApproving}
-                              data-testid={`button-approve-return-${ret.id}`}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              {t('Approve')}
-                            </Button>
-                          )}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-return-form">
             <RotateCcw className="w-4 h-4 mr-2" />
             {t('Reset')}
@@ -703,6 +643,132 @@ export default function SalesReturnUsdPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ListOrdered className="h-5 w-5 text-orange-600" />
+            {t('Return History')}
+            <Badge variant="secondary" className="ml-2">{usdReturns.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>{t('Return #')}</TableHead>
+                  <TableHead>{t('Date')}</TableHead>
+                  <TableHead>{t('Customer Name')}</TableHead>
+                  <TableHead>{t('Representative')}</TableHead>
+                  <TableHead>{t('Type')}</TableHead>
+                  <TableHead>{t('Total')}</TableHead>
+                  <TableHead>{t('Remaining')}</TableHead>
+                  <TableHead>{t('Status')}</TableHead>
+                  <TableHead className="text-center">{t('Actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedReturns.map((ret, i) => (
+                  <TableRow key={ret.id} data-testid={`row-return-history-${ret.id}`}>
+                    <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold">{ret.returnNumber}</TableCell>
+                    <TableCell className="font-mono text-sm">{formatDate(ret.date)}</TableCell>
+                    <TableCell className="font-medium">{ret.customerName}</TableCell>
+                    <TableCell>{ret.representativeName || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant={ret.returnType === 'cash' ? 'default' : 'secondary'}>
+                        {ret.returnType === 'cash' ? t('Cash') : t('Credit')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{usd(ret.subtotal)}</TableCell>
+                    <TableCell className="font-mono text-sm text-red-600">{usd(ret.remaining)}</TableCell>
+                    <TableCell>
+                      {ret.status === 'approved' ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {t('Approved')}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {t('Pending')}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        {ret.status === 'pending' && (userRole === 'admin' || userRole === 'user') && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-green-600"
+                            onClick={() => handleApprove(ret.id)}
+                            disabled={isApproving}
+                            data-testid={`button-approve-return-${ret.id}`}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-600"
+                              data-testid={`button-delete-return-${ret.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                              <AlertDialogDescription>{t('This will permanently delete this return.')}</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(ret.id)}>{t('Yes')}</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paginatedReturns.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                      {t('No returns yet')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-muted-foreground">
+                {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, usdReturns.length)} {t('of')} {usdReturns.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <Button key={p} variant={p === safePage ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(p)}>
+                    {p}
+                  </Button>
+                ))}
+                <Button variant="outline" size="icon" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

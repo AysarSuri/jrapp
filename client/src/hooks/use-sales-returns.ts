@@ -54,6 +54,20 @@ export function useCreateSalesReturn() {
   });
 }
 
+export function useDeleteSalesReturn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/sales-returns/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sales-returns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sales-returns/next-number"] });
+    },
+  });
+}
+
 export function useApproveSalesReturn() {
   const queryClient = useQueryClient();
   return useMutation({
