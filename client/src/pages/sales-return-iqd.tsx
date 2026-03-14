@@ -114,6 +114,7 @@ export default function SalesReturnIqdPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
   const [filterReturnNumber, setFilterReturnNumber] = useState("");
+  const [filterCustomerId, setFilterCustomerId] = useState("");
   const [filterCustomerName, setFilterCustomerName] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState(() => new Date().toISOString().split('T')[0]);
   const [filterDateTo, setFilterDateTo] = useState(() => new Date().toISOString().split('T')[0]);
@@ -679,11 +680,17 @@ export default function SalesReturnIqdPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
-              <Input
-                value={filterCustomerName}
-                onChange={(e) => { setFilterCustomerName(e.target.value); setCurrentPage(1); }}
+              <CustomerSearchSelect
+                customers={customersList || []}
+                value={filterCustomerId}
+                onValueChange={(id) => {
+                  if (!id) { setFilterCustomerId(""); setFilterCustomerName(""); setCurrentPage(1); return; }
+                  setFilterCustomerId(id);
+                  const c = customersList?.find(cu => cu.id === parseInt(id));
+                  if (c) setFilterCustomerName(c.name);
+                  setCurrentPage(1);
+                }}
                 placeholder={t('Search by customer name')}
-                className="h-9"
                 data-testid="input-filter-customer-name"
               />
             </div>
