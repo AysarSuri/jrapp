@@ -44,6 +44,11 @@ export default function AgentPaymentIqdPage() {
     queryKey: ["/api/transfer-offices"],
   });
 
+  const { data: nextNumber } = useQuery<{ paymentNumber: string }>({
+    queryKey: ["/api/agent-payments/next-number"],
+  });
+
+  const [paymentNumber, setPaymentNumber] = useState("");
   const [agentId, setAgentId] = useState<string>("");
   const [agentName, setAgentName] = useState("");
   const [paymentSource, setPaymentSource] = useState<string>("");
@@ -54,6 +59,10 @@ export default function AgentPaymentIqdPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  if (nextNumber?.paymentNumber && !paymentNumber) {
+    setPaymentNumber(nextNumber.paymentNumber);
+  }
 
   const banks = banksList || [];
   const transferOffices = transferOfficesList || [];
@@ -94,6 +103,7 @@ export default function AgentPaymentIqdPage() {
   const selectedAgent = customers?.find(c => c.id === parseInt(agentId));
 
   const resetForm = () => {
+    setPaymentNumber("");
     setAgentId("");
     setAgentName("");
     setPaymentSource("");
@@ -121,6 +131,7 @@ export default function AgentPaymentIqdPage() {
     }
 
     createPayment({
+      paymentNumber,
       agentId: parseInt(agentId),
       agentName,
       paymentSource: paymentSource.split(":")[0],
@@ -175,6 +186,7 @@ export default function AgentPaymentIqdPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>#</TableHead>
+                      <TableHead>{t('Payment Number')}</TableHead>
                       <TableHead>{t('Date')}</TableHead>
                       <TableHead>{t('Time')}</TableHead>
                       <TableHead>{t('Customer')}</TableHead>
@@ -190,6 +202,7 @@ export default function AgentPaymentIqdPage() {
                     {iqdPayments.map((p, i) => (
                       <TableRow key={p.id} data-testid={`row-agent-payment-${p.id}`}>
                         <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm font-bold">{p.paymentNumber || "-"}</TableCell>
                         <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                         <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                         <TableCell className="font-medium">{p.agentName}</TableCell>
@@ -234,7 +247,17 @@ export default function AgentPaymentIqdPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Payment Number')}</Label>
+                <Input
+                  value={paymentNumber}
+                  readOnly
+                  className="bg-muted/50 font-mono font-bold text-center"
+                  data-testid="input-payment-number"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>{t('Customer')}</Label>
                 <CustomerSearchSelect

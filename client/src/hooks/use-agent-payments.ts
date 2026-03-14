@@ -16,6 +16,7 @@ export function useCreateAgentPayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/agent-payments/next-number"] });
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
     },
   });

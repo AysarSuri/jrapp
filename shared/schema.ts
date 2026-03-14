@@ -598,6 +598,7 @@ export type InsertCustomerReceipt = z.infer<typeof insertCustomerReceiptSchema>;
 
 export const agentPayments = pgTable("agent_payments", {
   id: serial("id").primaryKey(),
+  paymentNumber: text("payment_number").notNull().default(""),
   agentId: integer("agent_id").notNull(),
   agentName: text("agent_name").notNull(),
   paymentSource: text("payment_source").notNull(),

@@ -2831,6 +2831,16 @@ export async function registerRoutes(
   });
 
   // Agent Payments
+  app.get('/api/agent-payments/next-number', requireAuth, async (_req, res) => {
+    try {
+      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(payment_number)` }).from(agentPayments);
+      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
+      res.json({ paymentNumber: String(last + 1).padStart(6, "0") });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.agentPayments.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getAgentPayments();
     res.json(data);
