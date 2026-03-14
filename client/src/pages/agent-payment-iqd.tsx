@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, Banknote, RotateCcw, ListOrdered, Building, Landmark, UserCheck, HandCoins,
-  Trash2, ChevronLeft, ChevronRight,
+  Trash2, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -63,6 +63,10 @@ export default function AgentPaymentIqdPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+  const [searchNumber, setSearchNumber] = useState("");
+  const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   if (nextNumber?.paymentNumber && !paymentNumber) {
     setPaymentNumber(nextNumber.paymentNumber);
@@ -72,9 +76,16 @@ export default function AgentPaymentIqdPage() {
   const transferOffices = transferOfficesList || [];
 
   const iqdPayments = payments?.filter(p => p.currency === "IQD") || [];
-  const totalPages = Math.ceil(iqdPayments.length / pageSize);
-  const safePage = Math.min(currentPage, totalPages || 1);
-  const paginatedPayments = iqdPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const filteredPayments = iqdPayments.filter(p => {
+    if (historyFilter && historyFilter !== "all" && String(p.agentId) !== historyFilter) return false;
+    if (historyFromDate && p.date < historyFromDate) return false;
+    if (historyToDate && p.date > historyToDate) return false;
+    if (searchNumber && !(p.paymentNumber || "").toLowerCase().includes(searchNumber.toLowerCase())) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedPayments = filteredPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
@@ -381,11 +392,39 @@ export default function AgentPaymentIqdPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ListOrdered className="h-5 w-5 text-orange-600" />
-            {t('Payment History')}
-            <Badge variant="secondary" className="ml-2">{iqdPayments.length}</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-orange-600" />
+              {t('Payment History')}
+              <Badge variant="secondary" className="ml-2">{filteredPayments.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-payment-number" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-from-date" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-to-date" />
+              </div>
+              <div className="w-48">
+                <CustomerSearchSelect
+                  customers={customers || []}
+                  value={historyFilter}
+                  onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }}
+                  showAllOption
+                  allOptionLabel={t('All Customers')}
+                  placeholder={t('All Customers')}
+                  inputClassName="h-9 text-sm"
+                  data-testid="select-filter-payment-history"
+                />
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {paymentsLoading ? (
@@ -468,7 +507,7 @@ export default function AgentPaymentIqdPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
-                    {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, iqdPayments.length)} {t('of')} {iqdPayments.length}
+                    {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredPayments.length)} {t('of')} {filteredPayments.length}
                   </p>
                   <div className="flex items-center gap-1">
                     <Button variant="outline" size="icon" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
