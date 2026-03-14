@@ -51,6 +51,11 @@ export default function CustomerReceiptIqdPage() {
     queryKey: ["/api/transfer-offices"],
   });
 
+  const { data: nextNumber } = useQuery<{ receiptNumber: string }>({
+    queryKey: ["/api/customer-receipts/next-number"],
+  });
+
+  const [receiptNumber, setReceiptNumber] = useState("");
   const [customerId, setCustomerId] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [paymentSource, setPaymentSource] = useState<string>("");
@@ -79,6 +84,10 @@ export default function CustomerReceiptIqdPage() {
   const [editReference, setEditReference] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editTime, setEditTime] = useState("");
+
+  if (nextNumber?.receiptNumber && !receiptNumber) {
+    setReceiptNumber(nextNumber.receiptNumber);
+  }
 
   const banks = banksList || [];
   const transferOffices = transferOfficesList || [];
@@ -115,6 +124,7 @@ export default function CustomerReceiptIqdPage() {
   const selectedCustomer = customers?.find(c => c.id === parseInt(customerId));
 
   const resetForm = () => {
+    setReceiptNumber("");
     setCustomerId("");
     setCustomerName("");
     setPaymentSource("");
@@ -144,6 +154,7 @@ export default function CustomerReceiptIqdPage() {
     }
 
     createReceipt({
+      receiptNumber,
       customerId: parseInt(customerId),
       customerName,
       paymentSource: paymentSource.split(":")[0],
@@ -269,7 +280,17 @@ export default function CustomerReceiptIqdPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Receipt Number')}</Label>
+                <Input
+                  value={receiptNumber}
+                  readOnly
+                  className="bg-muted/50 font-mono font-bold text-center"
+                  data-testid="input-receipt-number"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>{t('Customer')}</Label>
                 <CustomerSearchSelect
@@ -533,6 +554,7 @@ export default function CustomerReceiptIqdPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Receipt Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Customer')}</TableHead>
@@ -550,6 +572,7 @@ export default function CustomerReceiptIqdPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold">{r.receiptNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.customerName}</TableCell>

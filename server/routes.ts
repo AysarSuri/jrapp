@@ -2736,6 +2736,16 @@ export async function registerRoutes(
   });
 
   // Customer Receipts
+  app.get('/api/customer-receipts/next-number', requireAuth, async (_req, res) => {
+    try {
+      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(customerReceipts);
+      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
+      res.json({ receiptNumber: String(last + 1).padStart(6, "0") });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.customerReceipts.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getCustomerReceipts();
     res.json(data);

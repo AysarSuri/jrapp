@@ -16,6 +16,7 @@ export function useCreateCustomerReceipt() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customer-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-receipts/next-number"] });
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
     },
   });

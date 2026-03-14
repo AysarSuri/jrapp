@@ -575,6 +575,7 @@ export type InsertPurchaseReturnItem = z.infer<typeof insertPurchaseReturnItemSc
 
 export const customerReceipts = pgTable("customer_receipts", {
   id: serial("id").primaryKey(),
+  receiptNumber: text("receipt_number").notNull().default(""),
   customerId: integer("customer_id").notNull(),
   customerName: text("customer_name").notNull(),
   paymentSource: text("payment_source").notNull(),
