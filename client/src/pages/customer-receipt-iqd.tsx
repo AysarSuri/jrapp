@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, Banknote, RotateCcw, ListOrdered, Building, Landmark, Percent,
-  Pencil, Trash2, ChevronLeft, ChevronRight,
+  Pencil, Trash2, ChevronLeft, ChevronRight, Search,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -68,6 +68,7 @@ export default function CustomerReceiptIqdPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
 
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [searchNumber, setSearchNumber] = useState("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -246,6 +247,7 @@ export default function CustomerReceiptIqdPage() {
     if (historyFilter && historyFilter !== "all" && String(r.customerId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
     if (historyToDate && r.date > historyToDate) return false;
+    if (searchNumber && !(r.receiptNumber || "").toLowerCase().includes(searchNumber.toLowerCase())) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
@@ -504,6 +506,10 @@ export default function CustomerReceiptIqdPage() {
               <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-receipt-number" />
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-from-date" />
