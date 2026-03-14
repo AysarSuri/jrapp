@@ -187,7 +187,7 @@ export default function AgentPaymentUsdPage() {
                       <TableHead>{t('Payment Number')}</TableHead>
                       <TableHead>{t('Date')}</TableHead>
                       <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('Customer')}</TableHead>
+                      <TableHead>{t('Customer Name')}</TableHead>
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
                       <TableHead>{t('Opening Balance')}</TableHead>
@@ -257,7 +257,7 @@ export default function AgentPaymentUsdPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('Customer')}</Label>
+                <Label>{t('Customer Name')}</Label>
                 <CustomerSearchSelect
                   customers={customers || []}
                   value={agentId}
@@ -292,7 +292,7 @@ export default function AgentPaymentUsdPage() {
                 <CardContent className="pt-4 pb-4">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
                       <p className="font-bold">{selectedAgent.name}</p>
                     </div>
                     <div>
@@ -377,7 +377,7 @@ export default function AgentPaymentUsdPage() {
               {selectedAgent && (
                 <>
                   <div className="rounded-lg border p-3 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
                     <p className="font-bold text-lg">{selectedAgent.name}</p>
                   </div>
                   <Separator />

@@ -292,7 +292,7 @@ export default function CustomerReceiptIqdPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('Customer')}</Label>
+                <Label>{t('Customer Name')}</Label>
                 <CustomerSearchSelect
                   customers={customers || []}
                   value={customerId}
@@ -327,7 +327,7 @@ export default function CustomerReceiptIqdPage() {
                 <CardContent className="pt-4 pb-4">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
                       <p className="font-bold">{selectedCustomer.name}</p>
                     </div>
                     <div>
@@ -434,7 +434,7 @@ export default function CustomerReceiptIqdPage() {
               {selectedCustomer && (
                 <>
                   <div className="rounded-lg border p-3 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{t('Customer')}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('Customer Name')}</p>
                     <p className="font-bold text-lg">{selectedCustomer.name}</p>
                   </div>
                   <Separator />
@@ -557,7 +557,7 @@ export default function CustomerReceiptIqdPage() {
                     <TableHead>{t('Receipt Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
-                    <TableHead>{t('Customer')}</TableHead>
+                    <TableHead>{t('Customer Name')}</TableHead>
                     <TableHead>{t('Source')}</TableHead>
                     <TableHead>{t('Amount')}</TableHead>
                     <TableHead>{t('Discount')}</TableHead>
@@ -688,7 +688,7 @@ export default function CustomerReceiptIqdPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('Customer')}</Label>
+              <Label>{t('Customer Name')}</Label>
               <CustomerSearchSelect
                 customers={customers || []}
                 value={editCustomerId}
