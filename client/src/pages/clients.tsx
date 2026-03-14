@@ -1,130 +1,185 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertClientSchema } from "@shared/routes";
-import { z } from "zod";
-import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, X, Save } from "lucide-react";
 import { IconCustomers } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { fmtUsd } from "@/lib/format-utils";
+
+type Client = {
+  id: number;
+  name: string;
+  type: string;
+  contact: string | null;
+  address: string | null;
+  balance: string;
+  oldDebtUsd: string;
+  oldDebtIqd: string;
+  hidden: boolean;
+};
 
 export default function ClientsPage() {
   const { t } = useTranslation();
   const { data: clients, isLoading } = useClients();
-  const { mutate: createClient, isPending } = useCreateClient();
+  const { mutate: createClient, isPending: isCreating } = useCreateClient();
+  const { mutate: updateClient, isPending: isUpdating } = useUpdateClient();
+  const { mutate: deleteClient } = useDeleteClient();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const form = useForm<z.infer<typeof insertClientSchema>>({
-    resolver: zodResolver(insertClientSchema),
-    defaultValues: { name: "", type: "customer", contact: "" },
-  });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [name, setName] = useState("");
+  const [type, setType] = useState("customer");
+  const [contact, setContact] = useState("");
 
-  const onSubmit = (values: z.infer<typeof insertClientSchema>) => {
-    createClient(values, {
+  const resetForm = () => {
+    setEditingId(null);
+    setName("");
+    setType("customer");
+    setContact("");
+  };
+
+  const startEdit = (client: Client) => {
+    setEditingId(client.id);
+    setName(client.name);
+    setType(client.type);
+    setContact(client.contact || "");
+  };
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({ title: t("Please enter the client name"), variant: "destructive" });
+      return;
+    }
+
+    if (editingId) {
+      updateClient({ id: editingId, data: { name: name.trim(), type, contact: contact.trim() || null } }, {
+        onSuccess: () => {
+          resetForm();
+          toast({ title: t("Client updated successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to update client"), description: err.message, variant: "destructive" });
+        },
+      });
+    } else {
+      createClient({ name: name.trim(), type, contact: contact.trim() || null }, {
+        onSuccess: () => {
+          resetForm();
+          toast({ title: t("Client created successfully") });
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to create client"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    deleteClient(id, {
       onSuccess: () => {
-        setOpen(false);
-        form.reset();
-        toast({ title: t("Client created successfully") });
+        if (editingId === id) resetForm();
+        toast({ title: t("Client deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to create client"), description: err.message, variant: "destructive" });
+        toast({ title: t("Failed to delete client"), description: err.message, variant: "destructive" });
       },
     });
   };
 
-  const filtered = clients?.filter((c) =>
+  const filtered = clients?.filter((c: Client) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.contact?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
-  const customers = clients?.filter(c => c.type === 'customer') || [];
-  const suppliers = clients?.filter(c => c.type === 'supplier') || [];
+  const customers = clients?.filter((c: Client) => c.type === "customer") || [];
+  const suppliers = clients?.filter((c: Client) => c.type === "supplier") || [];
+  const isSaving = isCreating || isUpdating;
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Clients')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage suppliers and customers')}</p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-client">
-              <Plus className="w-5 h-5 mr-2" />
-              {t('Add Client')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>{t('Add New Client')}</DialogTitle>
-              <DialogDescription>{t('Fill in the client details below.')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-client-name" placeholder="Client Name" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="type" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Type')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl><SelectTrigger data-testid="select-client-type"><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="customer">{t('Customer')}</SelectItem>
-                        <SelectItem value="supplier">{t('Supplier')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="contact" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Contact')}</FormLabel>
-                    <FormControl><Input data-testid="input-client-contact" placeholder="0770-000-0000" {...field} value={field.value ?? ""} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => setOpen(false)}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isPending} data-testid="button-save-client">
-                    {isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{t("Clients")}</h1>
+        <p className="text-muted-foreground mt-1">{t("Manage suppliers and customers")}</p>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label className="text-base font-bold mb-1 block">{t("Name")}</label>
+              <Input
+                data-testid="input-client-name"
+                className="h-11 text-base font-semibold"
+                placeholder={t("Client name...")}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-base font-bold mb-1 block">{t("Type")}</label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-client-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">{t("Customer")}</SelectItem>
+                  <SelectItem value="supplier">{t("Supplier")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-base font-bold mb-1 block">{t("Contact")}</label>
+              <Input
+                data-testid="input-client-contact"
+                className="h-11 text-base font-semibold"
+                placeholder="0770-000-0000"
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="h-11 flex-1 bg-primary text-white"
+                data-testid="button-save-client"
+              >
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin ltr:mr-2 rtl:ml-2" /> : editingId ? <Save className="w-5 h-5 ltr:mr-2 rtl:ml-2" /> : <Plus className="w-5 h-5 ltr:mr-2 rtl:ml-2" />}
+                {editingId ? t("Update") : t("Add")}
+              </Button>
+              {editingId && (
+                <Button
+                  variant="outline"
+                  onClick={resetForm}
+                  className="h-11"
+                  data-testid="button-cancel-edit"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Customers')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("Customers")}</CardTitle>
             <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -133,7 +188,7 @@ export default function ClientsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Suppliers')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("Suppliers")}</CardTitle>
             <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -145,43 +200,95 @@ export default function ClientsPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search clients...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-clients" />
+            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder={t("Search clients...")}
+              className="pl-9 max-w-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              data-testid="input-search-clients"
+            />
           </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-          ) : filtered?.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
               <div className="bg-muted/50 p-4 rounded-full mb-4"><IconCustomers className="w-10 h-10" /></div>
-              <h3 className="font-semibold text-lg">{t('No clients found')}</h3>
-              <p>{t('Add a new client to get started.')}</p>
+              <h3 className="font-semibold text-lg">{t("No clients found")}</h3>
+              <p>{t("Add a new client to get started.")}</p>
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Name')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Contact')}</TableHead>
-                    <TableHead className="text-right">{t('Balance')}</TableHead>
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t("Name")}</TableHead>
+                    <TableHead className="text-sm font-bold">{t("Type")}</TableHead>
+                    <TableHead className="text-sm font-bold">{t("Contact")}</TableHead>
+                    <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered?.map((client) => (
-                    <TableRow key={client.id} data-testid={`row-client-${client.id}`}>
-                      <TableCell className="font-mono text-xs">{client.id}</TableCell>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell>
-                        <Badge variant={client.type === 'customer' ? 'default' : 'secondary'}>
-                          {t(client.type === 'customer' ? 'Customer' : 'Supplier')}
+                  {filtered.map((client: Client, index: number) => (
+                    <TableRow
+                      key={client.id}
+                      data-testid={`row-client-${client.id}`}
+                      className={editingId === client.id ? "bg-primary/5" : ""}
+                    >
+                      <TableCell className="text-sm font-semibold">{index + 1}</TableCell>
+                      <TableCell className="text-sm font-semibold">{client.name}</TableCell>
+                      <TableCell className="text-sm font-semibold">
+                        <Badge variant={client.type === "customer" ? "default" : "secondary"}>
+                          {t(client.type === "customer" ? "Customer" : "Supplier")}
                         </Badge>
                       </TableCell>
-                      <TableCell>{client.contact || '-'}</TableCell>
-                      <TableCell className="text-right font-mono">{fmtUsd(client.balance)}</TableCell>
+                      <TableCell className="text-sm font-semibold">{client.contact || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEdit(client)}
+                            data-testid={`button-edit-client-${client.id}`}
+                          >
+                            <Pencil className="h-5 w-5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive"
+                                data-testid={`button-delete-client-${client.id}`}
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("Delete Client")}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("Are you sure you want to delete this client?")} ({client.name})
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(client.id)}
+                                  data-testid={`button-confirm-delete-client-${client.id}`}
+                                >
+                                  {t("Delete")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
