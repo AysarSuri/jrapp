@@ -280,7 +280,7 @@ export default function CustomerReceiptIqdPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Receipt Number')}</Label>
                 <Input
@@ -299,25 +299,6 @@ export default function CustomerReceiptIqdPage() {
                   onValueChange={selectCustomer}
                   placeholder={t('Select customer...')}
                   data-testid="select-receipt-customer"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  data-testid="input-receipt-date"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t('Time')}</Label>
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  data-testid="input-receipt-time"
                 />
               </div>
             </div>
@@ -339,20 +320,39 @@ export default function CustomerReceiptIqdPage() {
               </Card>
             )}
 
-            <Separator />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  data-testid="input-receipt-date"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label>{t('Amount Received At')}</Label>
-              <SearchSelect
-                items={[
-                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
-                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
-                ]}
-                value={paymentSource}
-                onValueChange={(v) => selectPaymentSource(v || "")}
-                placeholder={t('Select account where amount was received...')}
-                data-testid="select-receipt-source"
-              />
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  data-testid="input-receipt-time"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('Amount Received At')}</Label>
+                <SearchSelect
+                  items={[
+                    ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
+                    ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
+                  ]}
+                  value={paymentSource}
+                  onValueChange={(v) => selectPaymentSource(v || "")}
+                  placeholder={t('Select account where amount was received...')}
+                  data-testid="select-receipt-source"
+                />
+              </div>
             </div>
 
             <Separator />
