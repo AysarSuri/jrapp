@@ -115,8 +115,8 @@ export default function SalesReturnUsdPage() {
   const pageSize = 20;
   const [filterReturnNumber, setFilterReturnNumber] = useState("");
   const [filterCustomerName, setFilterCustomerName] = useState("");
-  const [filterDateFrom, setFilterDateFrom] = useState("");
-  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterDateTo, setFilterDateTo] = useState(() => new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     if (nextNumber?.number) {
