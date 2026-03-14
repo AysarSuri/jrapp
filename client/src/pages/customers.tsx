@@ -215,7 +215,7 @@ export default function CustomersPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
               <label className="text-base font-bold mb-1 block">{t("Name")}</label>
               <Input
@@ -236,7 +236,7 @@ export default function CustomersPage() {
                 onChange={(e) => setContact(e.target.value)}
               />
             </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="text-base font-bold mb-1 block">{t("Address")}</label>
               <AddressSearchSelect
                 addresses={addresses}
