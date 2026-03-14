@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -245,13 +244,19 @@ export default function SettingsPage() {
                     <FileText className="h-4 w-4 text-green-500" />
                     {t('Invoice Footer Text')}
                   </Label>
-                  <Textarea
+                  <Input
                     value={generalSettings.invoiceFooterText}
-                    onChange={(e) => setGeneralSettings(prev => ({ ...prev, invoiceFooterText: e.target.value }))}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 80) {
+                        setGeneralSettings(prev => ({ ...prev, invoiceFooterText: e.target.value }));
+                      }
+                    }}
+                    maxLength={80}
                     placeholder={t('Enter text to display at the bottom of sales invoices...')}
-                    className="min-h-[80px] text-base font-semibold"
+                    className="h-11 text-base font-semibold"
                     data-testid="input-settings-invoice-footer"
                   />
+                  <p className="text-xs text-muted-foreground text-end">{generalSettings.invoiceFooterText.length} / 80</p>
                   <p className="text-xs text-muted-foreground">{t('This text will appear at the bottom of every sales invoice')}</p>
                 </div>
 
