@@ -105,7 +105,7 @@ export function SearchSelect({
               }
             }
           }}
-          className={`${isRtl ? "pr-8 pl-8" : "pl-8 pr-8"} ${inputClassName}`}
+          className={`${isRtl ? "pr-8 pl-8" : "pl-8 pr-8"} h-11 text-base ${inputClassName}`}
           disabled={disabled}
         />
         {(value && value !== "" && value !== "all" && !disabled) ? (
