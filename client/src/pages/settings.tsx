@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog } from "lucide-react";
-import { IconOwner, IconCustomers } from "@/components/erp-icons";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye } from "lucide-react";
+import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar } from "@/components/erp-icons";
 
 const PRINTER_SETTINGS_KEY = "erp_printer_settings";
 const GENERAL_SETTINGS_KEY = "erp_general_settings";
+const FIELD_VISIBILITY_KEY = "erp_field_visibility";
 
 interface PrinterSettings {
   invoicePrinter: string;
@@ -26,6 +28,29 @@ interface GeneralSettings {
   invoiceFooterText: string;
 }
 
+interface FieldVisibilitySettings {
+  salesInvoice_address: boolean;
+  salesInvoice_mobile: boolean;
+  salesInvoice_representative: boolean;
+  salesInvoice_note: boolean;
+  salesInvoice_driverName: boolean;
+  salesInvoice_driverMobile: boolean;
+  salesInvoice_vehicleNumber: boolean;
+  salesInvoice_discount: boolean;
+  salesInvoice_amountPaid: boolean;
+  salesInvoice_weight: boolean;
+  customer_address: boolean;
+  customer_agent: boolean;
+  customer_oldDebtUsd: boolean;
+  customer_oldDebtIqd: boolean;
+  purchaseInvoice_listNumber: boolean;
+  purchaseInvoice_carNumber: boolean;
+  purchaseInvoice_manifestNumber: boolean;
+  purchaseInvoice_transportFee: boolean;
+  purchaseInvoice_customs: boolean;
+  purchaseInvoice_amountReceived: boolean;
+}
+
 const defaultPrinterSettings: PrinterSettings = {
   invoicePrinter: "",
   reportsPrinter: "",
@@ -36,6 +61,29 @@ const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
   invoiceFooterText: "",
+};
+
+const defaultFieldVisibility: FieldVisibilitySettings = {
+  salesInvoice_address: true,
+  salesInvoice_mobile: true,
+  salesInvoice_representative: true,
+  salesInvoice_note: true,
+  salesInvoice_driverName: true,
+  salesInvoice_driverMobile: true,
+  salesInvoice_vehicleNumber: true,
+  salesInvoice_discount: true,
+  salesInvoice_amountPaid: true,
+  salesInvoice_weight: true,
+  customer_address: true,
+  customer_agent: true,
+  customer_oldDebtUsd: true,
+  customer_oldDebtIqd: true,
+  purchaseInvoice_listNumber: true,
+  purchaseInvoice_carNumber: true,
+  purchaseInvoice_manifestNumber: true,
+  purchaseInvoice_transportFee: true,
+  purchaseInvoice_customs: true,
+  purchaseInvoice_amountReceived: true,
 };
 
 function loadPrinterSettings(): PrinterSettings {
@@ -62,7 +110,19 @@ function saveGeneralSettings(settings: GeneralSettings) {
   localStorage.setItem(GENERAL_SETTINGS_KEY, JSON.stringify(settings));
 }
 
-type SettingsTab = "printers" | "general";
+export function loadFieldVisibility(): FieldVisibilitySettings {
+  try {
+    const saved = localStorage.getItem(FIELD_VISIBILITY_KEY);
+    if (saved) return { ...defaultFieldVisibility, ...JSON.parse(saved) };
+  } catch {}
+  return defaultFieldVisibility;
+}
+
+function saveFieldVisibility(settings: FieldVisibilitySettings) {
+  localStorage.setItem(FIELD_VISIBILITY_KEY, JSON.stringify(settings));
+}
+
+type SettingsTab = "printers" | "general" | "field_visibility";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -71,10 +131,12 @@ export default function SettingsPage() {
 
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>(loadPrinterSettings);
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
+  const [fieldVisibility, setFieldVisibility] = useState<FieldVisibilitySettings>(loadFieldVisibility);
 
   const tabs: { key: SettingsTab; label: string; icon: typeof Printer }[] = [
     { key: "printers", label: t("Printer Settings"), icon: Printer },
     { key: "general", label: t("General Settings"), icon: Cog },
+    { key: "field_visibility", label: t("Show & Hide Fields"), icon: Eye },
   ];
 
   const handleSavePrinterSettings = () => {
@@ -86,6 +148,27 @@ export default function SettingsPage() {
     saveGeneralSettings(generalSettings);
     toast({ title: t("Settings saved successfully") });
   };
+
+  const handleSaveFieldVisibility = () => {
+    saveFieldVisibility(fieldVisibility);
+    toast({ title: t("Settings saved successfully") });
+  };
+
+  const toggleField = (key: keyof FieldVisibilitySettings) => {
+    setFieldVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const FieldToggle = ({ fieldKey, label }: { fieldKey: keyof FieldVisibilitySettings; label: string }) => (
+    <div className="flex items-center justify-between py-3 px-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+      <Label className="text-sm font-semibold cursor-pointer" htmlFor={fieldKey}>{label}</Label>
+      <Switch
+        id={fieldKey}
+        checked={fieldVisibility[fieldKey]}
+        onCheckedChange={() => toggleField(fieldKey)}
+        data-testid={`switch-field-${fieldKey}`}
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -269,6 +352,76 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {activeTab === "field_visibility" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <IconSales className="h-5 w-5 text-blue-600" />
+                    {t('Sales Invoice Fields')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FieldToggle fieldKey="salesInvoice_address" label={t("Address")} />
+                    <FieldToggle fieldKey="salesInvoice_mobile" label={t("Mobile")} />
+                    <FieldToggle fieldKey="salesInvoice_representative" label={t("Representative")} />
+                    <FieldToggle fieldKey="salesInvoice_note" label={t("Notes")} />
+                    <FieldToggle fieldKey="salesInvoice_driverName" label={t("Driver Name")} />
+                    <FieldToggle fieldKey="salesInvoice_driverMobile" label={t("Driver Mobile")} />
+                    <FieldToggle fieldKey="salesInvoice_vehicleNumber" label={t("Vehicle Number")} />
+                    <FieldToggle fieldKey="salesInvoice_discount" label={t("Discount")} />
+                    <FieldToggle fieldKey="salesInvoice_amountPaid" label={t("Amount Paid")} />
+                    <FieldToggle fieldKey="salesInvoice_weight" label={t("Weight")} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <IconCustomers className="h-5 w-5 text-green-600" />
+                    {t('Customer Fields')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FieldToggle fieldKey="customer_address" label={t("Address")} />
+                    <FieldToggle fieldKey="customer_agent" label={t("Agent")} />
+                    <FieldToggle fieldKey="customer_oldDebtUsd" label={t("Opening Balance (USD)")} />
+                    <FieldToggle fieldKey="customer_oldDebtIqd" label={t("Opening Balance (IQD)")} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <IconSupplierList className="h-5 w-5 text-orange-600" />
+                    {t('Purchase Invoice Fields')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FieldToggle fieldKey="purchaseInvoice_listNumber" label={t("List Number")} />
+                    <FieldToggle fieldKey="purchaseInvoice_carNumber" label={t("Car Number")} />
+                    <FieldToggle fieldKey="purchaseInvoice_manifestNumber" label={t("Manifest")} />
+                    <FieldToggle fieldKey="purchaseInvoice_transportFee" label={t("Transport Fee")} />
+                    <FieldToggle fieldKey="purchaseInvoice_customs" label={t("Customs")} />
+                    <FieldToggle fieldKey="purchaseInvoice_amountReceived" label={t("Amount Received from Supplier")} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveFieldVisibility} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-field-visibility">
+                  <Save className="h-5 w-5" />
+                  {t('Save Settings')}
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>
