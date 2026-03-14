@@ -689,7 +689,7 @@ export default function SalesReturnUsdPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('From Date')}</Label>
               <DateInput
                 value={filterDateFrom}
-                onChange={(val) => { setFilterDateFrom(val); setCurrentPage(1); }}
+                onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                 className="h-9"
                 data-testid="input-filter-date-from"
               />
@@ -698,7 +698,7 @@ export default function SalesReturnUsdPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('To Date')}</Label>
               <DateInput
                 value={filterDateTo}
-                onChange={(val) => { setFilterDateTo(val); setCurrentPage(1); }}
+                onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                 className="h-9"
                 data-testid="input-filter-date-to"
               />
