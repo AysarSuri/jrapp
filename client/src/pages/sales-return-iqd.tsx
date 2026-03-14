@@ -267,6 +267,7 @@ export default function SalesReturnIqdPage() {
       setCustomerName("");
       setAddress("");
       setMobile("");
+      setRepresentativeId(null);
       setRepresentativeName("");
       setRepresentativeMobile("");
       return;

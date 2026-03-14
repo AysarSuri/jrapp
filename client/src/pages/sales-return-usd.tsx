@@ -265,6 +265,7 @@ export default function SalesReturnUsdPage() {
       setCustomerName("");
       setAddress("");
       setMobile("");
+      setRepresentativeId(null);
       setRepresentativeName("");
       setRepresentativeMobile("");
       return;
