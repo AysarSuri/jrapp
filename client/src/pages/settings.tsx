@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -22,6 +23,7 @@ interface PrinterSettings {
 interface GeneralSettings {
   adminSalesPrintMode: string;
   agentSalesPrintMode: string;
+  invoiceFooterText: string;
 }
 
 const defaultPrinterSettings: PrinterSettings = {
@@ -33,6 +35,7 @@ const defaultPrinterSettings: PrinterSettings = {
 const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
+  invoiceFooterText: "",
 };
 
 function loadPrinterSettings(): PrinterSettings {
@@ -235,6 +238,21 @@ export default function SettingsPage() {
                     </Select>
                     <p className="text-xs text-muted-foreground">{t('Print format when agent creates a sales invoice')}</p>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-green-500" />
+                    {t('Invoice Footer Text')}
+                  </Label>
+                  <Textarea
+                    value={generalSettings.invoiceFooterText}
+                    onChange={(e) => setGeneralSettings(prev => ({ ...prev, invoiceFooterText: e.target.value }))}
+                    placeholder={t('Enter text to display at the bottom of sales invoices...')}
+                    className="min-h-[80px] text-base font-semibold"
+                    data-testid="input-settings-invoice-footer"
+                  />
+                  <p className="text-xs text-muted-foreground">{t('This text will appear at the bottom of every sales invoice')}</p>
                 </div>
 
                 <div className="flex justify-end pt-4">

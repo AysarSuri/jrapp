@@ -495,6 +495,20 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </div>
             </div>
 
+            {(() => {
+              try {
+                const gs = JSON.parse(localStorage.getItem("erp_general_settings") || "{}");
+                if (gs.invoiceFooterText) {
+                  return (
+                    <div style={{ marginTop: 15, padding: "8px 12px", textAlign: "center", fontSize: "12pt", fontWeight: 600, color: fieldColor, borderTop: `1px dashed ${fieldColor}`, borderBottom: `1px dashed ${fieldColor}` }}>
+                      {gs.invoiceFooterText}
+                    </div>
+                  );
+                }
+              } catch {}
+              return null;
+            })()}
+
             <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
               <div style={{ textAlign: "center", width: 200 }}>
                 <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Customer Signature")}</div>
