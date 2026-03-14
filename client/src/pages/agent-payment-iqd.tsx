@@ -442,9 +442,6 @@ export default function AgentPaymentIqdPage() {
                       <TableHead>{t('Customer Name')}</TableHead>
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
-                      <TableHead>{t('Opening Balance')}</TableHead>
-                      <TableHead>{t('Remaining')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>
                       <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
@@ -463,13 +460,6 @@ export default function AgentPaymentIqdPage() {
                         <TableCell className="font-mono text-sm text-orange-600">
                           {parseFloat(p.amount) > 0 ? formatIQD(parseFloat(p.amount)) : "-"}
                         </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {formatIQD(parseFloat(p.oldDebt))}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-emerald-600">
-                          {formatIQD(parseFloat(p.remaining))}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center">
@@ -496,7 +486,7 @@ export default function AgentPaymentIqdPage() {
                     ))}
                     {paginatedPayments.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                           {t('No payments yet')}
                         </TableCell>
                       </TableRow>
