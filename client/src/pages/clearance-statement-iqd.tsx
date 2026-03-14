@@ -30,9 +30,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Loader2, Banknote, DollarSign, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Undo2,
-} from "lucide-react";
+import { Loader2, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Undo2 } from "lucide-react";
+import { IconDinar, IconDollar } from "@/components/erp-icons";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 
 interface StatementEntry {
@@ -354,7 +353,7 @@ export default function ClearanceStatementIqdPage() {
             </Button>
           </Link>
           <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-            <Banknote className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+            <IconDinar className="h-7 w-7 text-orange-600 dark:text-orange-400" />
           </div>
           {t('Clearance Statement IQD')}
         </h1>

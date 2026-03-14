@@ -8,7 +8,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, UserCog, Users } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog } from "lucide-react";
+import { IconOwner, IconCustomers } from "@/components/erp-icons";
 
 const PRINTER_SETTINGS_KEY = "erp_printer_settings";
 const GENERAL_SETTINGS_KEY = "erp_general_settings";
@@ -200,7 +201,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <UserCog className="h-4 w-4 text-blue-500" />
+                      <IconOwner className="h-4 w-4 text-blue-500" />
                       {t('Sales Print Mode (Admin/User)')}
                     </Label>
                     <Select
@@ -220,7 +221,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
-                      <Users className="h-4 w-4 text-orange-500" />
+                      <IconCustomers className="h-4 w-4 text-orange-500" />
                       {t('Sales Print Mode (Agent)')}
                     </Label>
                     <Select

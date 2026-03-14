@@ -2,7 +2,8 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, DollarSign, Printer, MessageCircle, ArrowLeft, RotateCcw, Eye, Pencil, Trash2 } from "lucide-react";
+import { FileSearch, Loader2, ArrowDownToLine, Tag, Printer, MessageCircle, ArrowLeft, RotateCcw, Eye, Pencil, Trash2 } from "lucide-react";
+import { IconExpenseEntry, IconDinar, IconDollar } from "@/components/erp-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -362,11 +363,11 @@ export default function SupplierStatementUsdPage() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "purchase_invoice":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800 gap-1"><Receipt className="w-3 h-3" />{t("Purchase Invoice")}</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800 gap-1"><IconExpenseEntry className="w-3 h-3" />{t("Purchase Invoice")}</Badge>;
       case "return_invoice":
         return <Badge variant="outline" className="bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400 border-orange-200 dark:border-orange-800 gap-1"><RotateCcw className="w-3 h-3" />{t("Return Invoice")}</Badge>;
       case "payment":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 gap-1"><Banknote className="w-3 h-3" />{t("Payment")}</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 gap-1"><IconDinar className="w-3 h-3" />{t("Payment")}</Badge>;
       case "adjustment_received":
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 gap-1"><ArrowDownToLine className="w-3 h-3" />{t("Received")}</Badge>;
       case "adjustment_discount":
@@ -599,7 +600,7 @@ export default function SupplierStatementUsdPage() {
       </Link>
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-supplier-statement-usd-title">
-          <DollarSign className="h-8 w-8 text-blue-600" />
+          <IconDollar className="h-8 w-8 text-blue-600" />
           {t("Supplier Statement - USD")}
         </h1>
         <p className="text-muted-foreground mt-1">{t("View supplier account statement in US Dollar")}</p>

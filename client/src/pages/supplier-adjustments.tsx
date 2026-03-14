@@ -19,10 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine, Percent, HandCoins, Landmark, Building, ArrowLeft,
-  Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, ArrowDownToLine, Percent, ArrowLeft, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { IconDollar, IconDinar, IconExternalDebt, IconBank, IconOffice } from "@/components/erp-icons";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
@@ -375,7 +373,7 @@ export default function SupplierAdjustmentsPage() {
               <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-semibold">
-                    <DollarSign className="h-5 w-5" />
+                    <IconDollar className="h-5 w-5" />
                     {t("Amount")} (USD)
                   </div>
                   <Input
@@ -394,7 +392,7 @@ export default function SupplierAdjustmentsPage() {
               <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400 font-semibold">
-                    <Banknote className="h-5 w-5" />
+                    <IconDinar className="h-5 w-5" />
                     {t("Amount")} (IQD)
                   </div>
                   <Input

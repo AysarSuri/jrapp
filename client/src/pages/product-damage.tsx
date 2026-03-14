@@ -19,10 +19,8 @@ import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, AlertTriangle,
-  ChevronLeft, ChevronRight, Eye, Printer, Pencil,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ChevronLeft, ChevronRight, Eye, Printer, Pencil } from "lucide-react";
+import { IconDamage } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -366,7 +364,7 @@ export default function ProductDamagePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <AlertTriangle className="w-7 h-7 text-destructive" />
+          <IconDamage className="w-7 h-7 text-destructive" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Product Damage')}</h1>
         </div>
       </div>
@@ -374,7 +372,7 @@ export default function ProductDamagePage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-destructive" />
+            <IconDamage className="w-5 h-5 text-destructive" />
             {editingId ? t('Edit Damage Report') : t('New Damage Report')}
             {editingId && (
               <Button variant="ghost" size="sm" onClick={resetForm} className="ms-2 text-muted-foreground" data-testid="button-cancel-edit">

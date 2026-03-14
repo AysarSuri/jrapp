@@ -13,10 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, ArrowDownToLine,
-  Pencil, Trash2, ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, ArrowDownToLine, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconDollar, IconDinar } from "@/components/erp-icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -252,7 +250,7 @@ export default function OfficeReceiptsPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-4 w-4 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -268,7 +266,7 @@ export default function OfficeReceiptsPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Banknote className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-4 w-4 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>

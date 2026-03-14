@@ -19,7 +19,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Users, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
+import { IconCustomers } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -124,7 +125,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Customers')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
@@ -133,7 +134,7 @@ export default function ClientsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Suppliers')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{suppliers.length}</div>
@@ -153,7 +154,7 @@ export default function ClientsPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><Users className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconCustomers className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No clients found')}</h3>
               <p>{t('Add a new client to get started.')}</p>
             </div>

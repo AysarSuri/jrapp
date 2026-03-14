@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, HandCoins, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { IconExternalDebt } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -137,7 +138,7 @@ export default function ExternalDebtsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <HandCoins className="h-6 w-6 text-purple-600" />
+              <IconExternalDebt className="h-6 w-6 text-purple-600" />
             </div>
             {t('External Debts')}
           </h1>
@@ -180,7 +181,7 @@ export default function ExternalDebtsPage() {
                       data-testid={`suggestion-external-debt-${item.id}`}
                     >
                       <span className="flex items-center gap-2">
-                        <HandCoins className="h-3.5 w-3.5 text-purple-500" />
+                        <IconExternalDebt className="h-3.5 w-3.5 text-purple-500" />
                         <span className="font-medium">{item.name}</span>
                       </span>
                       <span className="text-xs text-muted-foreground">
@@ -235,7 +236,7 @@ export default function ExternalDebtsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total External Debts')}</CardTitle>
-            <HandCoins className="h-4 w-4 text-purple-600" />
+            <IconExternalDebt className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{debtsList?.length || 0}</div>
@@ -268,7 +269,7 @@ export default function ExternalDebtsPage() {
                     data-testid={`search-suggestion-external-debt-${item.id}`}
                   >
                     <span className="flex items-center gap-2">
-                      <HandCoins className="h-3.5 w-3.5 text-purple-500" />
+                      <IconExternalDebt className="h-3.5 w-3.5 text-purple-500" />
                       <span className="font-medium">{item.name}</span>
                     </span>
                     <span className="text-xs text-muted-foreground">
@@ -287,7 +288,7 @@ export default function ExternalDebtsPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><HandCoins className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconExternalDebt className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No external debts found')}</h3>
               <p>{t('Add a new external debt to get started.')}</p>
             </div>
@@ -313,7 +314,7 @@ export default function ExternalDebtsPage() {
                       <TableCell className="font-mono text-xs">{idx + 1}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
-                          <HandCoins className="h-3 w-3" />
+                          <IconExternalDebt className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>

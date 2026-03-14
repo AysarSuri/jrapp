@@ -16,10 +16,8 @@ import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ArrowRightLeft, Warehouse as WarehouseIcon,
-  ChevronLeft, ChevronRight, Eye,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { IconCurrencyExchange, IconWarehouse } from "@/components/erp-icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -242,7 +240,7 @@ export default function WarehouseTransferPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <ArrowRightLeft className="w-7 h-7 text-primary" />
+          <IconCurrencyExchange className="w-7 h-7 text-primary" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Warehouse Transfer')}</h1>
         </div>
       </div>
@@ -250,7 +248,7 @@ export default function WarehouseTransferPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <WarehouseIcon className="w-5 h-5" />
+            <IconWarehouse className="w-5 h-5" />
             {t('New Transfer')}
           </CardTitle>
         </CardHeader>
@@ -297,7 +295,7 @@ export default function WarehouseTransferPage() {
             </div>
 
             <div className="flex justify-center pb-2">
-              <ArrowRightLeft className="w-6 h-6 text-muted-foreground" />
+              <IconCurrencyExchange className="w-6 h-6 text-muted-foreground" />
             </div>
 
             <div className="space-y-2">

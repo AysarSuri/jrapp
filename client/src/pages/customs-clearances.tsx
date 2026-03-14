@@ -12,7 +12,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ShieldCheck, Loader2, Trash2, Pencil, Save, RotateCcw, Search, Undo2 } from "lucide-react";
+import { Loader2, Trash2, Pencil, Save, RotateCcw, Search, Undo2 } from "lucide-react";
+import { IconClearance } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +110,7 @@ export default function CustomsClearancesPage() {
               <Undo2 className="h-5 w-5" />
             </Button>
           </Link>
-          <ShieldCheck className="w-7 h-7 text-primary" />
+          <IconClearance className="w-7 h-7 text-primary" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Customs Clearances')}</h1>
         </div>
         <Badge variant="outline" className="text-base px-3 py-1">
@@ -120,7 +121,7 @@ export default function CustomsClearancesPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-primary" />
+            <IconClearance className="w-5 h-5 text-primary" />
             {editingId ? t('Edit Customs Clearance') : t('Add New Customs Clearance')}
             {editingId && (
               <Button variant="ghost" size="sm" onClick={resetForm} className="ms-2 text-muted-foreground" data-testid="button-cancel-edit">
@@ -202,7 +203,7 @@ export default function CustomsClearancesPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
               <div className="bg-muted/50 p-4 rounded-full mb-4">
-                <ShieldCheck className="w-10 h-10" />
+                <IconClearance className="w-10 h-10" />
               </div>
               <h3 className="font-semibold text-lg">{t('No customs clearances found')}</h3>
               <p>{t('Add a new customs clearance to get started.')}</p>
@@ -225,7 +226,7 @@ export default function CustomsClearancesPage() {
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
-                          <ShieldCheck className="h-3 w-3" />
+                          <IconClearance className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>

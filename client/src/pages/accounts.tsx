@@ -17,7 +17,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, CreditCard, Landmark, Wallet, Loader2 } from "lucide-react";
+import { Plus, Wallet, Loader2 } from "lucide-react";
+import { IconAccounts, IconBank } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,8 +50,8 @@ export default function AccountsPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'bank': return <Landmark className="w-5 h-5" />;
-      case 'transfer_office': return <CreditCard className="w-5 h-5" />;
+      case 'bank': return <IconBank className="w-5 h-5" />;
+      case 'transfer_office': return <IconAccounts className="w-5 h-5" />;
       default: return <Wallet className="w-5 h-5" />;
     }
   };

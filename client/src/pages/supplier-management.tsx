@@ -1,16 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Truck,
-  Receipt,
-  Undo2,
-  Banknote,
-  ArrowDownToLine,
-  FileSearch,
-  ClipboardList,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Undo2, ArrowDownToLine, FileSearch, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconSupplierList, IconExpenseEntry, IconDinar, IconInventory } from "@/components/erp-icons";
 
 export default function SupplierManagementPage() {
   const { t, i18n } = useTranslation();
@@ -19,7 +10,7 @@ export default function SupplierManagementPage() {
   const sections = [
     {
       href: "/suppliers",
-      icon: Truck,
+      icon: IconSupplierList,
       label: "Suppliers",
       gradient: "from-blue-500 to-blue-600",
       bg: "bg-blue-50 dark:bg-blue-900/20",
@@ -28,7 +19,7 @@ export default function SupplierManagementPage() {
     },
     {
       href: "/purchase-invoice-usd",
-      icon: Receipt,
+      icon: IconExpenseEntry,
       label: "Purchase Invoice USD",
       gradient: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50 dark:bg-emerald-900/20",
@@ -37,7 +28,7 @@ export default function SupplierManagementPage() {
     },
     {
       href: "/purchase-invoice-iqd",
-      icon: Receipt,
+      icon: IconExpenseEntry,
       label: "Purchase Invoice IQD",
       gradient: "from-orange-500 to-orange-600",
       bg: "bg-orange-50 dark:bg-orange-900/20",
@@ -46,7 +37,7 @@ export default function SupplierManagementPage() {
     },
     {
       href: "/supplier-payments",
-      icon: Banknote,
+      icon: IconDinar,
       label: "Supplier Payments",
       gradient: "from-purple-500 to-purple-600",
       bg: "bg-purple-50 dark:bg-purple-900/20",
@@ -100,7 +91,7 @@ export default function SupplierManagementPage() {
     },
     {
       href: "/supplier-debts",
-      icon: ClipboardList,
+      icon: IconInventory,
       label: "Supplier Debts List",
       gradient: "from-red-500 to-red-600",
       bg: "bg-red-50 dark:bg-red-900/20",

@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Building2, Save, Upload, Trash2, QrCode, Phone, MapPin, Briefcase, Image, Stamp, Palette, Navigation, Globe } from "lucide-react";
+import { Save, Upload, Trash2, Phone, Briefcase, Image, Stamp, Palette, Navigation, Globe } from "lucide-react";
+import { IconCompany, IconBarcode, IconAddress } from "@/components/erp-icons";
 import { SiFacebook, SiInstagram, SiTiktok, SiSnapchat } from "react-icons/si";
 import type { CompanyProfile } from "@shared/schema";
 
@@ -42,7 +43,7 @@ function QRCodeCanvas({ value, size = 200 }: { value: string; size?: number }) {
         style={{ width: size, height: size }}
         data-testid="qr-placeholder"
       >
-        <QrCode className="w-12 h-12 text-muted-foreground" />
+        <IconBarcode className="w-12 h-12 text-muted-foreground" />
       </div>
     );
   }
@@ -156,7 +157,7 @@ export default function CompanyProfilePage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <Building2 className="w-7 h-7" />
+          <IconCompany className="w-7 h-7" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Company Profile')}</h1>
         </div>
         <Button
@@ -174,7 +175,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
+                <IconCompany className="w-4 h-4" />
                 {t('Company Information')}
               </CardTitle>
             </CardHeader>
@@ -206,7 +207,7 @@ export default function CompanyProfilePage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="address" className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
+                  <IconAddress className="w-3.5 h-3.5" />
                   {t('Address')}
                 </Label>
                 <Textarea
@@ -317,7 +318,7 @@ export default function CompanyProfilePage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <QrCode className="w-4 h-4" />
+                <IconBarcode className="w-4 h-4" />
                 {t('QR Code Address')}
               </CardTitle>
             </CardHeader>

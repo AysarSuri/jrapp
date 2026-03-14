@@ -1,13 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Package,
-  Ruler,
-  FolderOpen,
-  ClipboardList,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconProduct, IconUnit, IconCategory, IconInventory } from "@/components/erp-icons";
 
 export default function MaterialManagementPage() {
   const { t, i18n } = useTranslation();
@@ -16,7 +10,7 @@ export default function MaterialManagementPage() {
   const sections = [
     {
       href: "/products",
-      icon: Package,
+      icon: IconProduct,
       label: "Products",
       gradient: "from-blue-500 to-blue-600",
       bg: "bg-blue-50 dark:bg-blue-900/20",
@@ -25,7 +19,7 @@ export default function MaterialManagementPage() {
     },
     {
       href: "/units",
-      icon: Ruler,
+      icon: IconUnit,
       label: "Units",
       gradient: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50 dark:bg-emerald-900/20",
@@ -34,7 +28,7 @@ export default function MaterialManagementPage() {
     },
     {
       href: "/categories",
-      icon: FolderOpen,
+      icon: IconCategory,
       label: "Categories",
       gradient: "from-amber-500 to-amber-600",
       bg: "bg-amber-50 dark:bg-amber-900/20",
@@ -43,7 +37,7 @@ export default function MaterialManagementPage() {
     },
     {
       href: "/inventory-report",
-      icon: ClipboardList,
+      icon: IconInventory,
       label: "Inventory Report",
       gradient: "from-purple-500 to-purple-600",
       bg: "bg-purple-50 dark:bg-purple-900/20",

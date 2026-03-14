@@ -19,7 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Truck, Loader2, MapPin, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { IconSupplierList, IconAddress } from "@/components/erp-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -455,7 +456,7 @@ export default function SuppliersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Suppliers')}</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
+            <IconSupplierList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{suppliers.length}</div>
@@ -596,7 +597,7 @@ export default function SuppliersPage() {
                       <span>{client.name}</span>
                       {client.address && (
                         <Badge variant="outline" className="gap-1 text-xs font-semibold shrink-0">
-                          <MapPin className="h-3 w-3" />
+                          <IconAddress className="h-3 w-3" />
                           {client.address}
                         </Badge>
                       )}
@@ -621,7 +622,7 @@ export default function SuppliersPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><Truck className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconSupplierList className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No suppliers found')}</h3>
               <p>{t('Add a new supplier to get started.')}</p>
             </div>
@@ -650,7 +651,7 @@ export default function SuppliersPage() {
                         <TableCell className="font-bold text-sm">
                           {client.address ? (
                             <Badge variant="outline" className="gap-1 font-bold">
-                              <MapPin className="h-3 w-3" />
+                              <IconAddress className="h-3 w-3" />
                               {client.address}
                             </Badge>
                           ) : '-'}

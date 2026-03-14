@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Loader2, Trash2, Pencil, Tags, Save, RotateCcw } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { IconExpenseType } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +98,7 @@ export default function ExpenseTypesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <Tags className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              <IconExpenseType className="h-7 w-7 text-purple-600 dark:text-purple-400" />
             </div>
             {t('Expense Types')}
           </h1>
@@ -141,7 +142,7 @@ export default function ExpenseTypesPage() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Tags className="h-5 w-5 text-purple-600" />
+              <IconExpenseType className="h-5 w-5 text-purple-600" />
               {t('Expense Types')}
               <Badge variant="secondary" className="ml-2">{filtered.length}</Badge>
             </CardTitle>
@@ -162,7 +163,7 @@ export default function ExpenseTypesPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><Tags className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconExpenseType className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No expense types found')}</h3>
               <p>{t('Add a new expense type to get started.')}</p>
             </div>
@@ -182,7 +183,7 @@ export default function ExpenseTypesPage() {
                       <TableCell className="font-mono text-sm font-bold">{index + 1}</TableCell>
                       <TableCell className="text-sm font-bold">
                         <Badge variant="outline" className="gap-1 text-sm">
-                          <Tags className="h-3.5 w-3.5" />
+                          <IconExpenseType className="h-3.5 w-3.5" />
                           {item.name}
                         </Badge>
                       </TableCell>

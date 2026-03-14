@@ -13,10 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, ArrowRightLeft, RotateCcw, Trash2, ListOrdered,
-  ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, Trash2, ListOrdered, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconCurrencyExchange } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -138,14 +136,14 @@ export default function CurrencyExchangePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <ArrowRightLeft className="w-7 h-7 text-primary" />
+        <IconCurrencyExchange className="w-7 h-7 text-primary" />
         <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Currency Exchange')}</h1>
       </div>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5" />
+            <IconCurrencyExchange className="w-5 h-5" />
             {t('New Exchange')}
           </CardTitle>
         </CardHeader>
@@ -200,7 +198,7 @@ export default function CurrencyExchangePage() {
 
             <div className="flex justify-center pb-2">
               <Button variant="outline" size="icon" onClick={handleCurrencySwap} data-testid="button-swap">
-                <ArrowRightLeft className="w-4 h-4" />
+                <IconCurrencyExchange className="w-4 h-4" />
               </Button>
             </div>
 

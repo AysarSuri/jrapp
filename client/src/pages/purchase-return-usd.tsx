@@ -20,10 +20,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
-import {
-  Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw, ArrowLeft,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search, ScanBarcode,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ArrowLeft, ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search, ScanBarcode } from "lucide-react";
+import { IconDollar } from "@/components/erp-icons";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
 import { broadcastDataUpdate } from "@/lib/broadcast";
@@ -702,7 +700,7 @@ export default function PurchaseReturnUsdPage() {
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Subtotal')}</Label>
               <div className="text-lg font-bold flex items-center gap-1" data-testid="text-purchase-return-subtotal">
-                <DollarSign className="w-4 h-4" />
+                <IconDollar className="w-4 h-4" />
                 {fmtUsd(subtotal)}
               </div>
             </div>

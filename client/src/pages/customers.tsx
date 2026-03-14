@@ -24,7 +24,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SearchSelect } from "@/components/search-select";
-import { Plus, Search, Users, Loader2, MapPin, Pencil, Trash2, UserCheck } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2 } from "lucide-react";
+import { IconCustomers, IconAddress, IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -243,7 +244,7 @@ export default function CustomersPage() {
                 )} />
                 <div className="space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-1.5">
-                    <UserCheck className="h-3.5 w-3.5" />
+                    <IconAgent className="h-3.5 w-3.5" />
                     {t('Agent')}
                   </Label>
                   <SearchSelect
@@ -287,7 +288,7 @@ export default function CustomersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Customers')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{customers.length}</div>
@@ -337,7 +338,7 @@ export default function CustomersPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><Users className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconCustomers className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No customers found')}</h3>
               <p>{t('Add a new customer to get started.')}</p>
             </div>
@@ -365,7 +366,7 @@ export default function CustomersPage() {
                       <TableCell>
                         {client.address ? (
                           <Badge variant="outline" className="gap-1">
-                            <MapPin className="h-3 w-3" />
+                            <IconAddress className="h-3 w-3" />
                             {client.address}
                           </Badge>
                         ) : '-'}
@@ -374,7 +375,7 @@ export default function CustomersPage() {
                       <TableCell>
                         {getAgentForClient(client.id) ? (
                           <Badge variant="secondary" className="gap-1 text-xs">
-                            <UserCheck className="h-3 w-3" />
+                            <IconAgent className="h-3 w-3" />
                             {getAgentForClient(client.id)}
                           </Badge>
                         ) : '-'}

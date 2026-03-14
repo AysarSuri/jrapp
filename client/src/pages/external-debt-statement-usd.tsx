@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, DollarSign, Printer } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
+import { IconDollar } from "@/components/erp-icons";
 import i18n from "@/lib/i18n";
 
 type CompanyProfileData = {
@@ -215,7 +216,7 @@ export default function ExternalDebtStatementUsdPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <DollarSign className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+            <IconDollar className="h-7 w-7 text-blue-600 dark:text-blue-400" />
           </div>
           {t('External Debt Statement USD')}
         </h1>

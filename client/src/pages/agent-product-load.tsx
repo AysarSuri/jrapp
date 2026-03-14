@@ -15,10 +15,8 @@ import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, Truck,
-  ChevronLeft, ChevronRight, Eye,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { IconSupplierList } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -226,7 +224,7 @@ export default function AgentProductLoadPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
             <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-              <Truck className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+              <IconSupplierList className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
             </div>
             {t('Agent Product Load')}
           </h1>
@@ -237,7 +235,7 @@ export default function AgentProductLoadPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Truck className="w-5 h-5 text-indigo-600" />
+            <IconSupplierList className="w-5 h-5 text-indigo-600" />
             {t('New Product Load')}
           </CardTitle>
         </CardHeader>

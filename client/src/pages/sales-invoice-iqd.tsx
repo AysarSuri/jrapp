@@ -20,10 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import {
-  Plus, Trash2, Save, Loader2, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Banknote, Pencil, ScanBarcode, Search,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Search, Eye } from "lucide-react";
+import { IconDinar } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -36,7 +34,6 @@ import { formatDate } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
 import { AddressSearchSelect } from "@/components/address-search-select";
-import { Eye } from "lucide-react";
 
 interface InvoiceItem {
   productId: number | null;
@@ -499,7 +496,7 @@ export default function SalesInvoiceIqdPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-invoice-iqd-title">
-            <Banknote className="h-8 w-8 text-blue-600" />
+            <IconDinar className="h-8 w-8 text-blue-600" />
             {isEditMode ? t('Edit Sales Invoice - IQD') : t('Sales Invoice - IQD')}
           </h1>
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice in Iraqi Dinar') : t('Create sales invoice in Iraqi Dinar')}</p>

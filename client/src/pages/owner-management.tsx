@@ -1,13 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  UserCog,
-  ArrowUpFromLine,
-  ArrowDownToLine,
-  ArrowRight,
-  DollarSign,
-  Banknote,
-} from "lucide-react";
+import { ArrowUpFromLine, ArrowDownToLine, ArrowRight } from "lucide-react";
+import { IconOwner, IconDollar, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function OwnerManagementPage() {
@@ -16,7 +10,7 @@ export default function OwnerManagementPage() {
   const sections = [
     {
       href: "/owners",
-      icon: UserCog,
+      icon: IconOwner,
       label: "Owner Names",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
@@ -40,7 +34,7 @@ export default function OwnerManagementPage() {
     },
     {
       href: "/owner-statement-usd",
-      icon: DollarSign,
+      icon: IconDollar,
       label: "Owner Statement USD",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
@@ -48,7 +42,7 @@ export default function OwnerManagementPage() {
     },
     {
       href: "/owner-statement-iqd",
-      icon: Banknote,
+      icon: IconDinar,
       label: "Owner Statement IQD",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",

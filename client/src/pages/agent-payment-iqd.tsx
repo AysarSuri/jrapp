@@ -16,10 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, Banknote, RotateCcw, ListOrdered, Building, Landmark, UserCheck, HandCoins,
-  Trash2, ChevronLeft, ChevronRight, Search,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { IconDinar, IconOffice, IconBank, IconAgent, IconExternalDebt } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -190,7 +188,7 @@ export default function AgentPaymentIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-              <Banknote className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+              <IconDinar className="h-7 w-7 text-orange-600 dark:text-orange-400" />
             </div>
             {t('Customer Payment IQD')}
           </h1>
@@ -274,7 +272,7 @@ export default function AgentPaymentIqdPage() {
             <Card className="border-orange-200 dark:border-orange-900">
               <CardHeader className="pb-3 pt-4">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Banknote className="h-4 w-4 text-orange-600" />
+                  <IconDinar className="h-4 w-4 text-orange-600" />
                   {t('Amount')} (IQD)
                 </CardTitle>
               </CardHeader>

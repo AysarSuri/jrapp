@@ -19,7 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Ruler, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconUnit } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,7 +132,7 @@ export default function UnitsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Units')}</CardTitle>
-            <Ruler className="h-4 w-4 text-muted-foreground" />
+            <IconUnit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{allUnits.length}</div>
@@ -240,7 +241,7 @@ export default function UnitsPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><Ruler className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconUnit className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No units found')}</h3>
               <p>{t('Add a new unit to get started.')}</p>
             </div>
@@ -264,7 +265,7 @@ export default function UnitsPage() {
                         <TableCell className="font-bold font-mono text-sm">{unit.id}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="gap-1 font-bold">
-                            <Ruler className="h-3 w-3" />
+                            <IconUnit className="h-3 w-3" />
                             {unit.name}
                           </Badge>
                         </TableCell>

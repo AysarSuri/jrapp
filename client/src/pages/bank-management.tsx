@@ -1,12 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Landmark,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  FileText,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, FileText, ArrowRight } from "lucide-react";
+import { IconBank } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function BankManagementPage() {
@@ -15,7 +10,7 @@ export default function BankManagementPage() {
   const sections = [
     {
       href: "/banks",
-      icon: Landmark,
+      icon: IconBank,
       label: "Banks",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",

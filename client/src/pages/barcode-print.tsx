@@ -14,7 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Printer, QrCode, Plus, Trash2, Settings2, Eye, Search, Save, RotateCcw } from "lucide-react";
+import { Printer, Plus, Trash2, Settings2, Eye, Search, Save, RotateCcw } from "lucide-react";
+import { IconBarcode } from "@/components/erp-icons";
 import { getProductName } from "@/lib/language-utils";
 
 type Product = {
@@ -332,7 +333,7 @@ export default function BarcodePrintPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <QrCode className="w-7 h-7" />
+          <IconBarcode className="w-7 h-7" />
           <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Barcode Print')}</h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

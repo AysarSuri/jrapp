@@ -1,14 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  HandCoins,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  DollarSign,
-  Banknote,
-  ListChecks,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ListChecks, ArrowRight } from "lucide-react";
+import { IconExternalDebt, IconDollar, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ExternalDebtManagementPage() {
@@ -17,7 +10,7 @@ export default function ExternalDebtManagementPage() {
   const sections = [
     {
       href: "/external-debts",
-      icon: HandCoins,
+      icon: IconExternalDebt,
       label: "External Debts",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
@@ -41,7 +34,7 @@ export default function ExternalDebtManagementPage() {
     },
     {
       href: "/external-debt-statement-usd",
-      icon: DollarSign,
+      icon: IconDollar,
       label: "External Debt Statement USD",
       color: "from-blue-500 to-cyan-600",
       bgColor: "bg-cyan-50 dark:bg-cyan-950/30",
@@ -49,7 +42,7 @@ export default function ExternalDebtManagementPage() {
     },
     {
       href: "/external-debt-statement-iqd",
-      icon: Banknote,
+      icon: IconDinar,
       label: "External Debt Statement IQD",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",

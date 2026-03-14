@@ -14,11 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Users, Plus, Pencil, Trash2, Loader2, Save, Shield, User, Truck,
-  Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw,
-  CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
+import { IconCustomers, IconSupplierList } from "@/components/erp-icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -217,7 +214,7 @@ export default function UserManagementPage() {
   const roleConfig = {
     admin: { icon: Shield, color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300", label: "Admin" },
     user: { icon: User, color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "User" },
-    sales_rep: { icon: Truck, color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300", label: "Representative" },
+    sales_rep: { icon: IconSupplierList, color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300", label: "Representative" },
   };
 
   const allUsers = users || [];
@@ -276,7 +273,7 @@ export default function UserManagementPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-user-management-title">
             <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <Users className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              <IconCustomers className="h-7 w-7 text-purple-600 dark:text-purple-400" />
             </div>
             {t('User Management')}
           </h1>
@@ -387,7 +384,7 @@ export default function UserManagementPage() {
                     </SelectItem>
                     <SelectItem value="sales_rep">
                       <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-emerald-600" />
+                        <IconSupplierList className="h-4 w-4 text-emerald-600" />
                         {t('Representative')}
                       </div>
                     </SelectItem>
@@ -535,7 +532,7 @@ export default function UserManagementPage() {
             <div className="grid grid-cols-1 gap-3">
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <IconCustomers className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{t('Total Users')}</span>
                 </div>
                 <span className="font-bold text-lg" data-testid="text-total-users">{allUsers.length}</span>
@@ -560,7 +557,7 @@ export default function UserManagementPage() {
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-emerald-600" />
+                  <IconSupplierList className="h-4 w-4 text-emerald-600" />
                   <span className="text-sm font-medium">{t('Representative')}</span>
                 </div>
                 <span className="font-bold text-lg text-emerald-600" data-testid="text-rep-count">
@@ -594,7 +591,7 @@ export default function UserManagementPage() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
+              <IconCustomers className="h-5 w-5 text-purple-600" />
               {t('Users List')}
               <Badge variant="secondary" className="ml-2">{filteredUsers.length}</Badge>
             </CardTitle>

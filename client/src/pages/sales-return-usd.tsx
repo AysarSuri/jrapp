@@ -20,10 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import {
-  Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconDollar } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,

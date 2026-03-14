@@ -20,10 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import {
-  Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Pencil, Search, Grid3X3, Eye, Package, ScanBarcode, Star,
-} from "lucide-react";
+import { Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, Search, Eye, ScanBarcode, Star } from "lucide-react";
+import { IconDollar, IconPosUsd, IconProduct } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -502,7 +500,7 @@ export default function PosIqdPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-category-title">
-            <Grid3X3 className="h-8 w-8 text-purple-600" />
+            <IconPosUsd className="h-8 w-8 text-purple-600" />
             {isEditMode ? t('Edit Sales Invoice') : t('POS IQD')}
           </h1>
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice') : t('Point of sale - IQD currency')}</p>
@@ -638,7 +636,7 @@ export default function PosIqdPage() {
                 </div>
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <Package className="w-4 h-4 text-green-600" />
+                    <IconProduct className="w-4 h-4 text-green-600" />
                     {t('Product Name')}
                   </Label>
                   <div className="relative" ref={productSearchRef}>
@@ -707,7 +705,7 @@ export default function PosIqdPage() {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Grid3X3 className="w-5 h-5 text-purple-600" />
+                <IconPosUsd className="w-5 h-5 text-purple-600" />
                 {t('Products by Category')}
               </CardTitle>
             </CardHeader>
@@ -798,7 +796,7 @@ export default function PosIqdPage() {
                             </div>
                           ) : (
                             <div className="w-full aspect-square mb-1.5 rounded bg-muted/30 flex items-center justify-center">
-                              <Package className="w-6 h-6 text-muted-foreground/50" />
+                              <IconProduct className="w-6 h-6 text-muted-foreground/50" />
                             </div>
                           )}
                           <p className="text-xs font-semibold leading-tight truncate" data-testid={`text-sales-category-product-name-${product.id}`}>
@@ -834,7 +832,7 @@ export default function PosIqdPage() {
             <CardContent className="p-0">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Package className="w-12 h-12 mb-3 opacity-30" />
+                  <IconProduct className="w-12 h-12 mb-3 opacity-30" />
                   <p className="text-sm">{t('Scan a barcode to add products')}</p>
                 </div>
               ) : (

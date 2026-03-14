@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Banknote } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { IconDinar } from "@/components/erp-icons";
 import { formatDate } from "@/lib/format-utils";
 
 interface StatementEntry {
@@ -74,7 +75,7 @@ export default function BankStatementIqdPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-            <Banknote className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+            <IconDinar className="h-7 w-7 text-orange-600 dark:text-orange-400" />
           </div>
           {t('Bank Statement IQD')}
         </h1>

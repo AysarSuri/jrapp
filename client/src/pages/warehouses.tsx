@@ -20,7 +20,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Warehouse as WarehouseIcon, Loader2, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil } from "lucide-react";
+import { IconWarehouse } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,7 +143,7 @@ export default function WarehousesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Warehouses')}</CardTitle>
-            <WarehouseIcon className="h-4 w-4 text-muted-foreground" />
+            <IconWarehouse className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{warehousesList?.length || 0}</div>
@@ -162,7 +163,7 @@ export default function WarehousesPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><WarehouseIcon className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconWarehouse className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No warehouses found')}</h3>
               <p>{t('Add a new warehouse to get started.')}</p>
             </div>
@@ -182,7 +183,7 @@ export default function WarehousesPage() {
                       <TableCell className="font-mono text-xs">{item.id}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
-                          <WarehouseIcon className="h-3 w-3" />
+                          <IconWarehouse className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>

@@ -20,10 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Plus, Trash2, Save, Loader2, DollarSign, FileText, RotateCcw,
-  ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search, ScanBarcode,
-} from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search, ScanBarcode } from "lucide-react";
+import { IconDollar } from "@/components/erp-icons";
 import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -483,7 +481,7 @@ export default function PurchaseInvoiceUsdPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <DollarSign className="h-8 w-8 text-blue-600" />
+            <IconDollar className="h-8 w-8 text-blue-600" />
             {isEditMode ? t('Edit Purchase Invoice - USD') : t('Purchase Invoice - USD')}
           </h1>
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase invoice in US Dollar') : t('Create purchase invoice in US Dollar')}</p>

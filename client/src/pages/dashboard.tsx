@@ -11,15 +11,8 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Package, 
-  DollarSign, 
-  ArrowUpRight,
-  FileText
-} from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowUpRight, FileText } from "lucide-react";
+import { IconCustomers, IconProduct, IconDollar } from "@/components/erp-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -63,7 +56,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Sales')}</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IconDollar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
@@ -79,7 +72,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Active Clients')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <IconCustomers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
@@ -95,7 +88,7 @@ export default function Dashboard() {
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Products')}</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <IconProduct className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>

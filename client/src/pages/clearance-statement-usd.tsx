@@ -30,9 +30,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Loader2, DollarSign, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Banknote, Undo2,
-} from "lucide-react";
+import { Loader2, Eye, Pencil, Trash2, Printer, MessageCircle, Save, Undo2 } from "lucide-react";
+import { IconDollar, IconDinar } from "@/components/erp-icons";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
 
 interface StatementEntry {
@@ -354,7 +353,7 @@ export default function ClearanceStatementUsdPage() {
             </Button>
           </Link>
           <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <DollarSign className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+            <IconDollar className="h-7 w-7 text-blue-600 dark:text-blue-400" />
           </div>
           {t('Clearance Statement USD')}
         </h1>

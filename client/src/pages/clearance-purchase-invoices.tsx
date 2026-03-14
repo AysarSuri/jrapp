@@ -12,10 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, FileText,
-  Pencil, Trash2, Printer, ChevronLeft, ChevronRight, Undo2,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, FileText, Pencil, Trash2, Printer, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
+import { IconDollar, IconDinar } from "@/components/erp-icons";
 import { Link } from "wouter";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -398,7 +396,7 @@ export default function ClearancePurchaseInvoicesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <IconDollar className="h-4 w-4 text-blue-600" />
                   {t('Customs USD')}
                 </Label>
                 <Input
@@ -413,7 +411,7 @@ export default function ClearancePurchaseInvoicesPage() {
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <Banknote className="h-4 w-4 text-orange-600" />
+                  <IconDinar className="h-4 w-4 text-orange-600" />
                   {t('Customs IQD')}
                 </Label>
                 <Input

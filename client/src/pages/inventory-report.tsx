@@ -11,7 +11,8 @@ import {
 import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ClipboardList, Search, ArrowLeft } from "lucide-react";
+import { Loader2, Search, ArrowLeft } from "lucide-react";
+import { IconInventory } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useUnits } from "@/hooks/use-units";
 import { getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
@@ -85,7 +86,7 @@ export default function InventoryReportPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <ClipboardList className="w-7 h-7 text-primary" />
+        <IconInventory className="w-7 h-7 text-primary" />
         <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Inventory Report')}</h1>
       </div>
 

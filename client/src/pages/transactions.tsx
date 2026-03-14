@@ -22,7 +22,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { SearchSelect } from "@/components/search-select";
-import { Plus, ArrowRightLeft, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { IconCurrencyExchange } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -188,7 +189,7 @@ export default function TransactionsPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : transactions?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><ArrowRightLeft className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconCurrencyExchange className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No transactions found')}</h3>
               <p>{t('Create a new transaction to get started.')}</p>
             </div>

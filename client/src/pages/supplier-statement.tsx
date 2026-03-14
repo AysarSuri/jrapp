@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { FileSearch, Loader2, Receipt, Banknote, ArrowDownToLine, Tag, ArrowLeft } from "lucide-react";
+import { FileSearch, Loader2, ArrowDownToLine, Tag, ArrowLeft } from "lucide-react";
+import { IconExpenseEntry, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -70,8 +71,8 @@ export default function SupplierStatementPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "purchase_invoice": return <Receipt className="w-4 h-4" />;
-      case "payment": return <Banknote className="w-4 h-4" />;
+      case "purchase_invoice": return <IconExpenseEntry className="w-4 h-4" />;
+      case "payment": return <IconDinar className="w-4 h-4" />;
       case "adjustment_received": return <ArrowDownToLine className="w-4 h-4" />;
       case "adjustment_discount": return <Tag className="w-4 h-4" />;
       default: return null;
@@ -81,9 +82,9 @@ export default function SupplierStatementPage() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "purchase_invoice":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800 gap-1"><Receipt className="w-3 h-3" />{t("Purchase Invoice")}</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border-red-200 dark:border-red-800 gap-1"><IconExpenseEntry className="w-3 h-3" />{t("Purchase Invoice")}</Badge>;
       case "payment":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 gap-1"><Banknote className="w-3 h-3" />{t("Payment")}</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 gap-1"><IconDinar className="w-3 h-3" />{t("Payment")}</Badge>;
       case "adjustment_received":
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border-blue-200 dark:border-blue-800 gap-1"><ArrowDownToLine className="w-3 h-3" />{t("Received")}</Badge>;
       case "adjustment_discount":

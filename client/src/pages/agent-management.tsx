@@ -1,12 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Users,
-  Truck,
-  MapPin,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { IconCustomers, IconSupplierList, IconAddress } from "@/components/erp-icons";
 
 export default function AgentManagementPage() {
   const { t, i18n } = useTranslation();
@@ -15,7 +10,7 @@ export default function AgentManagementPage() {
   const sections = [
     {
       href: "/agent-clients",
-      icon: Users,
+      icon: IconCustomers,
       label: "Agent Clients",
       gradient: "from-blue-500 to-blue-600",
       bg: "bg-blue-50 dark:bg-blue-900/20",
@@ -24,7 +19,7 @@ export default function AgentManagementPage() {
     },
     {
       href: "/agent-product-load",
-      icon: Truck,
+      icon: IconSupplierList,
       label: "Agent Product Load",
       gradient: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50 dark:bg-emerald-900/20",
@@ -33,7 +28,7 @@ export default function AgentManagementPage() {
     },
     {
       href: "/agent-gps",
-      icon: MapPin,
+      icon: IconAddress,
       label: "Agent GPS",
       gradient: "from-orange-500 to-orange-600",
       bg: "bg-orange-50 dark:bg-orange-900/20",

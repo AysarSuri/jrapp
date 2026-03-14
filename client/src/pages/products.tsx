@@ -26,7 +26,8 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, PackageOpen, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, DollarSign, Printer, EyeOff, Star } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star } from "lucide-react";
+import { IconProduct, IconDollar } from "@/components/erp-icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -918,7 +919,7 @@ export default function ProductsPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><PackageOpen className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconProduct className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No products found')}</h3>
               <p>{t('Add a new product to get started.')}</p>
             </div>
@@ -1029,7 +1030,7 @@ export default function ProductsPage() {
           <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-            <div className="bg-muted/50 p-4 rounded-full mb-4"><PackageOpen className="w-10 h-10" /></div>
+            <div className="bg-muted/50 p-4 rounded-full mb-4"><IconProduct className="w-10 h-10" /></div>
             <h3 className="font-semibold text-lg">{t('No products found')}</h3>
           </div>
         ) : (
@@ -1089,7 +1090,7 @@ export default function ProductsPage() {
           <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-            <div className="bg-muted/50 p-4 rounded-full mb-4"><DollarSign className="w-10 h-10" /></div>
+            <div className="bg-muted/50 p-4 rounded-full mb-4"><IconDollar className="w-10 h-10" /></div>
             <h3 className="font-semibold text-lg">{t('No products found')}</h3>
           </div>
         ) : (
@@ -1157,7 +1158,7 @@ export default function ProductsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Products')}</CardTitle>
-            <PackageOpen className="h-4 w-4 text-muted-foreground" />
+            <IconProduct className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-total-products">{allProducts.length}</div>
@@ -1184,7 +1185,7 @@ export default function ProductsPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
-            <DollarSign className="h-4 w-4" />
+            <IconDollar className="h-4 w-4" />
             {t('Price List')}
           </TabsTrigger>
           <TabsTrigger value="report" className="gap-2 font-bold" data-testid="tab-report">
@@ -1192,7 +1193,7 @@ export default function ProductsPage() {
             {t('Material Report')}
           </TabsTrigger>
           <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
-            <PackageOpen className="h-4 w-4" />
+            <IconProduct className="h-4 w-4" />
             {t('Products')}
           </TabsTrigger>
         </TabsList>

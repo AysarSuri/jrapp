@@ -1,12 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Building,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  FileText,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, FileText, ArrowRight } from "lucide-react";
+import { IconOffice } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function OfficeManagementPage() {
@@ -15,7 +10,7 @@ export default function OfficeManagementPage() {
   const sections = [
     {
       href: "/transfer-offices",
-      icon: Building,
+      icon: IconOffice,
       label: "Transfer Offices",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",

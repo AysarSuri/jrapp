@@ -18,10 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Building, Landmark, HandCoins, ArrowLeft,
-  Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, ArrowLeft, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { IconDollar, IconDinar, IconOffice, IconBank, IconExternalDebt } from "@/components/erp-icons";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, usd } from "@/lib/format-utils";
@@ -302,7 +300,7 @@ export default function SupplierPaymentsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <Banknote className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+              <IconDinar className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
             </div>
             {isEditMode ? t('Edit Payment') : t('Supplier Payments')}
           </h1>
@@ -388,7 +386,7 @@ export default function SupplierPaymentsPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-base flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                    <DollarSign className="h-5 w-5" />
+                    <IconDollar className="h-5 w-5" />
                     {t('USD Account')}
                   </CardTitle>
                 </CardHeader>
@@ -470,7 +468,7 @@ export default function SupplierPaymentsPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-base flex items-center gap-2 text-orange-700 dark:text-orange-400">
-                    <Banknote className="h-5 w-5" />
+                    <IconDinar className="h-5 w-5" />
                     {t('IQD Account')}
                   </CardTitle>
                 </CardHeader>

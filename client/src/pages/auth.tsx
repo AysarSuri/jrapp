@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, Shield, User, Truck, Users, LogIn } from "lucide-react";
+import { Loader2, Shield, User, LogIn } from "lucide-react";
+import { IconClearance, IconSupplierList, IconCustomers } from "@/components/erp-icons";
 import { useTranslation } from "react-i18next";
 
 type LoginUser = {
@@ -145,7 +146,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md z-10">
         <div className="mb-8 text-center space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
-            <ShieldCheck className="w-8 h-8" />
+            <IconClearance className="w-8 h-8" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight">ProERP</h1>
           <p className="text-muted-foreground text-lg">{t("erpSystem")}</p>
@@ -155,7 +156,7 @@ export default function AuthPage() {
           <Card className="border-border/50 shadow-xl shadow-black/5 backdrop-blur-sm bg-card/95">
             <CardHeader className="space-y-1 pb-4">
               <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-                <Users className="h-6 w-6" />
+                <IconCustomers className="h-6 w-6" />
                 {t("selectUser")}
               </CardTitle>
             </CardHeader>
@@ -190,7 +191,7 @@ export default function AuthPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <IconCustomers className="h-10 w-10 mx-auto mb-3 opacity-50" />
                   <p className="font-bold">{t("No users found")}</p>
                 </div>
               )}

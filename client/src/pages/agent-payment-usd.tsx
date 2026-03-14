@@ -16,10 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, RotateCcw, ListOrdered, Building, Landmark, UserCheck, HandCoins,
-  Trash2, ChevronLeft, ChevronRight, Search,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { IconDollar, IconOffice, IconBank, IconAgent, IconExternalDebt } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -188,7 +186,7 @@ export default function AgentPaymentUsdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <DollarSign className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              <IconDollar className="h-7 w-7 text-blue-600 dark:text-blue-400" />
             </div>
             {t('Customer Payment USD')}
           </h1>
@@ -272,7 +270,7 @@ export default function AgentPaymentUsdPage() {
             <Card className="border-blue-200 dark:border-blue-900">
               <CardHeader className="pb-3 pt-4">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <IconDollar className="h-4 w-4 text-blue-600" />
                   {t('Amount')} (USD)
                 </CardTitle>
               </CardHeader>

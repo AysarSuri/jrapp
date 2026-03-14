@@ -14,10 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, DollarSign, Banknote, RotateCcw, ListOrdered, Receipt,
-  Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText,
-} from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText } from "lucide-react";
+import { IconDollar, IconDinar, IconExpenseEntry } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -467,7 +465,7 @@ export default function ExpensesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-              <Receipt className="h-7 w-7 text-red-600 dark:text-red-400" />
+              <IconExpenseEntry className="h-7 w-7 text-red-600 dark:text-red-400" />
             </div>
             {t('Expenses')}
           </h1>
@@ -526,7 +524,7 @@ export default function ExpensesPage() {
               <Card className="border-blue-200 dark:border-blue-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-blue-600" />
+                    <IconDollar className="h-4 w-4 text-blue-600" />
                     {t('USD Amount')}
                   </CardTitle>
                 </CardHeader>
@@ -542,7 +540,7 @@ export default function ExpensesPage() {
               <Card className="border-orange-200 dark:border-orange-900">
                 <CardHeader className="pb-3 pt-4">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Banknote className="h-4 w-4 text-orange-600" />
+                    <IconDinar className="h-4 w-4 text-orange-600" />
                     {t('IQD Amount')}
                   </CardTitle>
                 </CardHeader>

@@ -1,15 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  ShieldCheck,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  ArrowRight,
-  FileText,
-  DollarSign,
-  Banknote,
-  Car,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowRight, FileText, Car } from "lucide-react";
+import { IconClearance, IconDollar, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ClearanceManagementPage() {
@@ -18,7 +10,7 @@ export default function ClearanceManagementPage() {
   const sections = [
     {
       href: "/customs-clearances",
-      icon: ShieldCheck,
+      icon: IconClearance,
       label: "Customs Clearances",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
@@ -50,7 +42,7 @@ export default function ClearanceManagementPage() {
     },
     {
       href: "/clearance-statement-usd",
-      icon: DollarSign,
+      icon: IconDollar,
       label: "Clearance Statement USD",
       color: "from-green-500 to-green-600",
       bgColor: "bg-green-50 dark:bg-green-950/30",
@@ -58,7 +50,7 @@ export default function ClearanceManagementPage() {
     },
     {
       href: "/clearance-statement-iqd",
-      icon: Banknote,
+      icon: IconDinar,
       label: "Clearance Statement IQD",
       color: "from-amber-500 to-amber-600",
       bgColor: "bg-amber-50 dark:bg-amber-950/30",

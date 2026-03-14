@@ -21,7 +21,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, UserCheck, Loader2, Trash2, Pencil, Phone } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Phone } from "lucide-react";
+import { IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -167,7 +168,7 @@ export default function RepresentativesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Representatives')}</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
+            <IconAgent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{reps?.length || 0}</div>
@@ -187,7 +188,7 @@ export default function RepresentativesPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><UserCheck className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconAgent className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No representatives found')}</h3>
               <p>{t('Add a new representative to get started.')}</p>
             </div>
@@ -209,7 +210,7 @@ export default function RepresentativesPage() {
                       <TableCell className="font-mono text-xs">{item.id}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
-                          <UserCheck className="h-3 w-3" />
+                          <IconAgent className="h-3 w-3" />
                           {item.name}
                         </Badge>
                       </TableCell>

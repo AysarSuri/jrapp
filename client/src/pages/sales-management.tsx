@@ -1,16 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Users,
-  Receipt,
-  Undo2,
-  DollarSign,
-  Banknote,
-  FileText,
-  Grid3X3,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Undo2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { IconCustomers, IconExpenseEntry, IconDollar, IconDinar, IconPosUsd } from "@/components/erp-icons";
 
 export default function SalesManagementPage() {
   const { t, i18n } = useTranslation();
@@ -19,7 +10,7 @@ export default function SalesManagementPage() {
   const sections = [
     {
       href: "/customers",
-      icon: Users,
+      icon: IconCustomers,
       label: "Customers",
       gradient: "from-blue-500 to-blue-600",
       bg: "bg-blue-50 dark:bg-blue-900/20",
@@ -28,7 +19,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/sales-invoice-usd",
-      icon: Receipt,
+      icon: IconExpenseEntry,
       label: "Sales Invoice USD",
       gradient: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50 dark:bg-emerald-900/20",
@@ -37,7 +28,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/sales-invoice-iqd",
-      icon: Receipt,
+      icon: IconExpenseEntry,
       label: "Sales Invoice IQD",
       gradient: "from-orange-500 to-orange-600",
       bg: "bg-orange-50 dark:bg-orange-900/20",
@@ -46,7 +37,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/sales-by-category",
-      icon: Grid3X3,
+      icon: IconPosUsd,
       label: "POS USD",
       gradient: "from-lime-500 to-lime-600",
       bg: "bg-lime-50 dark:bg-lime-900/20",
@@ -55,7 +46,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/pos-iqd",
-      icon: Grid3X3,
+      icon: IconPosUsd,
       label: "POS IQD",
       gradient: "from-pink-500 to-pink-600",
       bg: "bg-pink-50 dark:bg-pink-900/20",
@@ -82,7 +73,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/customer-receipt-usd",
-      icon: DollarSign,
+      icon: IconDollar,
       label: "Customer Receipt USD",
       gradient: "from-cyan-500 to-cyan-600",
       bg: "bg-cyan-50 dark:bg-cyan-900/20",
@@ -91,7 +82,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/customer-receipt-iqd",
-      icon: Banknote,
+      icon: IconDinar,
       label: "Customer Receipt IQD",
       gradient: "from-amber-500 to-amber-600",
       bg: "bg-amber-50 dark:bg-amber-900/20",
@@ -100,7 +91,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/agent-payment-usd",
-      icon: DollarSign,
+      icon: IconDollar,
       label: "Customer Payment USD",
       gradient: "from-teal-500 to-teal-600",
       bg: "bg-teal-50 dark:bg-teal-900/20",
@@ -109,7 +100,7 @@ export default function SalesManagementPage() {
     },
     {
       href: "/agent-payment-iqd",
-      icon: Banknote,
+      icon: IconDinar,
       label: "Customer Payment IQD",
       gradient: "from-indigo-500 to-indigo-600",
       bg: "bg-indigo-50 dark:bg-indigo-900/20",

@@ -20,7 +20,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, FolderOpen, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Layers, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Layers, ChevronDown, ChevronUp } from "lucide-react";
+import { IconCategory } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -204,7 +205,7 @@ export default function CategoriesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Categories')}</CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+            <IconCategory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{allCategories.length}</div>
@@ -362,7 +363,7 @@ export default function CategoriesPage() {
                         setCurrentPage(1);
                       }}
                     >
-                      <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                      <IconCategory className="h-3.5 w-3.5 text-muted-foreground" />
                       <span>{cat.name}</span>
                     </button>
                   ))}
@@ -379,7 +380,7 @@ export default function CategoriesPage() {
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <div className="bg-muted/50 p-4 rounded-full mb-4"><FolderOpen className="w-10 h-10" /></div>
+              <div className="bg-muted/50 p-4 rounded-full mb-4"><IconCategory className="w-10 h-10" /></div>
               <h3 className="font-semibold text-lg">{t('No categories found')}</h3>
               <p>{t('Add a new category to get started.')}</p>
             </div>
@@ -420,7 +421,7 @@ export default function CategoriesPage() {
                             <TableCell className="font-bold font-mono text-sm">{cat.id}</TableCell>
                             <TableCell>
                               <Badge variant="outline" className="gap-1 font-bold">
-                                <FolderOpen className="h-3 w-3" />
+                                <IconCategory className="h-3 w-3" />
                                 {cat.name}
                               </Badge>
                             </TableCell>

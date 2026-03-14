@@ -1,10 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import {
-  Tags,
-  Receipt,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { IconExpenseType, IconExpenseEntry } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ExpenseManagementPage() {
@@ -13,7 +10,7 @@ export default function ExpenseManagementPage() {
   const sections = [
     {
       href: "/expense-types",
-      icon: Tags,
+      icon: IconExpenseType,
       label: "Expense Types",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
@@ -21,7 +18,7 @@ export default function ExpenseManagementPage() {
     },
     {
       href: "/expenses",
-      icon: Receipt,
+      icon: IconExpenseEntry,
       label: "Expenses",
       color: "from-emerald-500 to-emerald-600",
       bgColor: "bg-emerald-50 dark:bg-emerald-950/30",

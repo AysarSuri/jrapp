@@ -11,9 +11,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Save, Loader2, Users, UserCheck, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle,
-} from "lucide-react";
+import { Save, Loader2, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle } from "lucide-react";
+import { IconCustomers, IconAgent } from "@/components/erp-icons";
 import { SearchSelect } from "@/components/search-select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -319,7 +318,7 @@ ${clicheHtml}
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
             <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900/30">
-              <Users className="h-7 w-7 text-violet-600 dark:text-violet-400" />
+              <IconCustomers className="h-7 w-7 text-violet-600 dark:text-violet-400" />
             </div>
             {t('Agent Clients')}
           </h1>
@@ -481,7 +480,7 @@ ${clicheHtml}
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-violet-600" />
+                  <IconAgent className="h-4 w-4 text-violet-600" />
                   {t('Currently Assigned')}
                   <Badge variant="secondary" className="ml-1">{assignedToAgent.length}</Badge>
                 </CardTitle>
@@ -504,7 +503,7 @@ ${clicheHtml}
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-violet-600" />
+              <IconCustomers className="h-5 w-5 text-violet-600" />
               {t('All Assignments')}
               <Badge variant="secondary" className="ml-2">{filteredAssignments.length}</Badge>
             </CardTitle>
