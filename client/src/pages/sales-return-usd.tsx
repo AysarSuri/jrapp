@@ -113,6 +113,10 @@ export default function SalesReturnUsdPage() {
   const [items, setItems] = useState<ReturnItem[]>([emptyItem()]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+  const [filterReturnNumber, setFilterReturnNumber] = useState("");
+  const [filterCustomerName, setFilterCustomerName] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
 
   useEffect(() => {
     if (nextNumber?.number) {
@@ -327,7 +331,14 @@ export default function SalesReturnUsdPage() {
   };
 
   const userRole = user?.role || 'user';
-  const usdReturns = (returnsList as SalesReturn[] || []).filter(i => i.currency === 'USD');
+  const usdReturns = (returnsList as SalesReturn[] || []).filter(i => {
+    if (i.currency !== 'USD') return false;
+    if (filterReturnNumber && !i.returnNumber?.toLowerCase().includes(filterReturnNumber.toLowerCase())) return false;
+    if (filterCustomerName && !i.customerName?.toLowerCase().includes(filterCustomerName.toLowerCase())) return false;
+    if (filterDateFrom && i.date < filterDateFrom) return false;
+    if (filterDateTo && i.date > filterDateTo) return false;
+    return true;
+  });
   const totalPages = Math.ceil(usdReturns.length / pageSize);
   const safePage = Math.min(currentPage, totalPages || 1);
   const paginatedReturns = usdReturns.slice((safePage - 1) * pageSize, safePage * pageSize);
@@ -653,6 +664,46 @@ export default function SalesReturnUsdPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Return #')}</Label>
+              <Input
+                value={filterReturnNumber}
+                onChange={(e) => { setFilterReturnNumber(e.target.value); setCurrentPage(1); }}
+                placeholder={t('Search by return number')}
+                className="h-9"
+                data-testid="input-filter-return-number"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('Customer Name')}</Label>
+              <Input
+                value={filterCustomerName}
+                onChange={(e) => { setFilterCustomerName(e.target.value); setCurrentPage(1); }}
+                placeholder={t('Search by customer name')}
+                className="h-9"
+                data-testid="input-filter-customer-name"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('From Date')}</Label>
+              <DateInput
+                value={filterDateFrom}
+                onChange={(val) => { setFilterDateFrom(val); setCurrentPage(1); }}
+                className="h-9"
+                data-testid="input-filter-date-from"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-muted-foreground">{t('To Date')}</Label>
+              <DateInput
+                value={filterDateTo}
+                onChange={(val) => { setFilterDateTo(val); setCurrentPage(1); }}
+                className="h-9"
+                data-testid="input-filter-date-to"
+              />
+            </div>
+          </div>
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
