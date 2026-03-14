@@ -78,6 +78,12 @@ export default function SalesReturnIqdPage() {
   const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/addresses"],
   });
+  const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
+    queryKey: ["/api/agent-clients"],
+  });
+  const { data: agentsList } = useQuery<{ id: string; name: string; mobile: string }[]>({
+    queryKey: ["/api/agents"],
+  });
   const { data: warehousesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/warehouses"],
   });
@@ -261,6 +267,8 @@ export default function SalesReturnIqdPage() {
       setCustomerName("");
       setAddress("");
       setMobile("");
+      setRepresentativeName("");
+      setRepresentativeMobile("");
       return;
     }
     const client = customersList.find(c => c.id === parseInt(clientId));
@@ -269,6 +277,15 @@ export default function SalesReturnIqdPage() {
       setCustomerName(client.name);
       setAddress(client.address || "");
       setMobile(client.contact || "");
+      const assignment = agentClientsList?.find(ac => ac.clientId === client.id);
+      if (assignment) {
+        setRepresentativeName(assignment.agentName);
+        const agent = agentsList?.find(a => a.id === assignment.agentUserId);
+        setRepresentativeMobile(agent?.mobile || "");
+      } else {
+        setRepresentativeName("");
+        setRepresentativeMobile("");
+      }
     }
   };
 
