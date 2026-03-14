@@ -8,6 +8,20 @@ export function useAgentPayments() {
   });
 }
 
+export function useDeleteAgentPayment() {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/agent-payments/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/agent-payments/next-number"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    },
+  });
+}
+
 export function useCreateAgentPayment() {
   return useMutation({
     mutationFn: async (data: InsertAgentPayment) => {

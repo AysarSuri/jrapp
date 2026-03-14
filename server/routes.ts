@@ -2910,6 +2910,34 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/agent-payments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const [payment] = await db.select().from(agentPayments).where(eq(agentPayments.id, id));
+      if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+      await db.transaction(async (tx) => {
+        const amount = parseFloat(payment.amount || "0");
+        if (amount > 0) {
+          if (payment.currency === "USD") {
+            await tx.update(clients)
+              .set({ oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) + ${amount}` })
+              .where(eq(clients.id, payment.agentId));
+          } else {
+            await tx.update(clients)
+              .set({ oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) + ${amount}` })
+              .where(eq(clients.id, payment.agentId));
+          }
+        }
+        await tx.delete(agentPayments).where(eq(agentPayments.id, id));
+      });
+      res.json({ message: "Deleted" });
+    } catch (err) {
+      console.error("Error deleting agent payment:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Currency Exchanges
   app.get(api.currencyExchanges.list.path, requireAuth, async (_req, res) => {
     const data = await storage.getCurrencyExchanges();

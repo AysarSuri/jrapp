@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useAgentPayments, useCreateAgentPayment } from "@/hooks/use-agent-payments";
+import { useAgentPayments, useCreateAgentPayment, useDeleteAgentPayment } from "@/hooks/use-agent-payments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,12 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save, Loader2, DollarSign, RotateCcw, ListOrdered, Building, Landmark, UserCheck, HandCoins,
+  Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
 
@@ -30,6 +32,7 @@ export default function AgentPaymentUsdPage() {
   const { toast } = useToast();
   const { data: payments, isLoading: paymentsLoading } = useAgentPayments();
   const { mutate: createPayment, isPending: isSaving } = useCreateAgentPayment();
+  const { mutate: deletePayment } = useDeleteAgentPayment();
 
   const { data: allClients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -58,7 +61,8 @@ export default function AgentPaymentUsdPage() {
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
   if (nextNumber?.paymentNumber && !paymentNumber) {
     setPaymentNumber(nextNumber.paymentNumber);
@@ -68,6 +72,20 @@ export default function AgentPaymentUsdPage() {
   const transferOffices = transferOfficesList || [];
 
   const usdPayments = payments?.filter(p => p.currency === "USD") || [];
+  const totalPages = Math.ceil(usdPayments.length / pageSize);
+  const safePage = Math.min(currentPage, totalPages || 1);
+  const paginatedPayments = usdPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const handleDelete = (id: number) => {
+    deletePayment(id, {
+      onSuccess: () => {
+        toast({ title: t("Payment deleted successfully") });
+      },
+      onError: (err: any) => {
+        toast({ title: t("Failed to delete payment"), description: err.message, variant: "destructive" });
+      },
+    });
+  };
 
   const selectAgent = useCallback((id: string) => {
     if (!id) {
@@ -166,72 +184,6 @@ export default function AgentPaymentUsdPage() {
           <p className="text-muted-foreground mt-1">{t('Pay customers in USD')}</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2" data-testid="button-agent-payment-history">
-                <ListOrdered className="h-4 w-4" />
-                {t('Payment History')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t('Payment History')} - USD</DialogTitle>
-              </DialogHeader>
-              {paymentsLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>{t('Payment Number')}</TableHead>
-                      <TableHead>{t('Date')}</TableHead>
-                      <TableHead>{t('Time')}</TableHead>
-                      <TableHead>{t('Customer Name')}</TableHead>
-                      <TableHead>{t('Source')}</TableHead>
-                      <TableHead>{t('Amount')}</TableHead>
-                      <TableHead>{t('Opening Balance')}</TableHead>
-                      <TableHead>{t('Remaining')}</TableHead>
-                      <TableHead>{t('Reference')}</TableHead>
-                      <TableHead>{t('Notes')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {usdPayments.map((p, i) => (
-                      <TableRow key={p.id} data-testid={`row-agent-payment-${p.id}`}>
-                        <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm font-bold">{p.paymentNumber || "-"}</TableCell>
-                        <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
-                        <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
-                        <TableCell className="font-medium">{p.agentName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">{p.paymentSourceName}</Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-blue-600">
-                          {parseFloat(p.amount) > 0 ? usd(p.amount) : "-"}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-red-600">
-                          {usd(p.oldDebt)}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-emerald-600">
-                          {usd(p.remaining)}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {usdPayments.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                          {t('No payments yet')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </DialogContent>
-          </Dialog>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-payment">
             <RotateCcw className="h-4 w-4" />
             {t('Reset')}
@@ -424,6 +376,117 @@ export default function AgentPaymentUsdPage() {
           )}
         </div>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ListOrdered className="h-5 w-5 text-blue-600" />
+            {t('Payment History')}
+            <Badge variant="secondary" className="ml-2">{usdPayments.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {paymentsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+          ) : (
+            <>
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>{t('Payment Number')}</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead>{t('Time')}</TableHead>
+                      <TableHead>{t('Customer Name')}</TableHead>
+                      <TableHead>{t('Source')}</TableHead>
+                      <TableHead>{t('Amount')}</TableHead>
+                      <TableHead>{t('Opening Balance')}</TableHead>
+                      <TableHead>{t('Remaining')}</TableHead>
+                      <TableHead>{t('Reference')}</TableHead>
+                      <TableHead>{t('Notes')}</TableHead>
+                      <TableHead className="text-center">{t('Actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedPayments.map((p, i) => (
+                      <TableRow key={p.id} data-testid={`row-agent-payment-${p.id}`}>
+                        <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm font-bold">{p.paymentNumber || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
+                        <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
+                        <TableCell className="font-medium">{p.agentName}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">{p.paymentSourceName}</Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-blue-600">
+                          {parseFloat(p.amount) > 0 ? usd(p.amount) : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-red-600">
+                          {usd(p.oldDebt)}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm text-emerald-600">
+                          {usd(p.remaining)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{p.reference || "-"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-red-600" data-testid={`button-delete-payment-${p.id}`}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t('Are you sure?')}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t('This will permanently delete this payment.')}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('No')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(p.id)}>{t('Yes')}</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {paginatedPayments.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
+                          {t('No payments yet')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, usdPayments.length)} {t('of')} {usdPayments.length}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                      <Button key={pg} variant={pg === safePage ? "default" : "outline"} size="icon" onClick={() => setCurrentPage(pg)}>
+                        {pg}
+                      </Button>
+                    ))}
+                    <Button variant="outline" size="icon" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
