@@ -40,6 +40,7 @@ export function useCreateSalesInvoice() {
       queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices/next-number"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-opening-balance"] });
     },
   });
 }
@@ -55,6 +56,7 @@ export function useApproveSalesInvoice() {
       queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-opening-balance"] });
     },
   });
 }
@@ -69,6 +71,7 @@ export function useDeleteSalesInvoice() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices/next-number"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-opening-balance"] });
     },
   });
 }

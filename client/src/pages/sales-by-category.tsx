@@ -420,6 +420,7 @@ export default function SalesByCategoryPage() {
           toast({ title: t("Sales invoice updated successfully") });
           queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices"] });
           queryClient.invalidateQueries({ queryKey: ["/api/sales-invoices", inlineEditId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/customer-opening-balance"] });
           resetForm();
         })
         .catch((err: any) => {
