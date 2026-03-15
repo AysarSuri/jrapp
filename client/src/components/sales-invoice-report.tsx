@@ -119,6 +119,23 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
     enabled: !!invoice?.customerId && open,
   });
 
+  const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", invoice?.customerId, invoice?.date, invoice?.time, currency, invoiceId],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId: String(invoice!.customerId),
+        date: invoice!.date,
+        time: invoice!.time || "00:00",
+        currency,
+        excludeInvoiceId: String(invoiceId),
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch opening balance");
+      return res.json();
+    },
+    enabled: !!invoice?.customerId && !!invoice?.date && open,
+  });
+
   const { data: companyProfile } = useQuery<CompanyProfileData>({
     queryKey: ["/api/company-profile"],
     enabled: open,
@@ -146,9 +163,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
   const textColor = companyProfile?.secondaryColor || "white";
 
   const customer = clients?.find(c => c.id === invoice?.customerId);
-  const oldDebt = currency === "USD"
-    ? parseFloat(customer?.oldDebtUsd || "0")
-    : parseFloat(customer?.oldDebtIqd || "0");
+  const oldDebt = openingBalanceData?.openingBalance ?? 0;
 
   const invoiceRemaining = parseFloat(invoice?.remaining || "0");
   const totalBalance = oldDebt + invoiceRemaining;
@@ -482,13 +497,13 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 </h3>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
                   <span>{t("Opening Balance")}:</span>
-                  <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
+                  <span style={{ fontWeight: 500, color: oldDebt > 0 ? "#dc2626" : oldDebt < 0 ? "#16a34a" : "inherit" }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: "11pt" }}>
                   <span>{t("Invoice Remaining")}:</span>
                   <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: totalBalance > 0 ? "#dc2626" : totalBalance < 0 ? "#16a34a" : fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
                   <span>{t("Total Balance")}:</span>
                   <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
                 </div>
