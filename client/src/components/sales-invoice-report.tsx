@@ -256,7 +256,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
 
         const phone = (invoice.mobile || customer?.mobile || "").replace(/[^0-9]/g, "");
         const text = encodeURIComponent(
-          `${currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}\n${t("Invoice #")}: ${invoice.invoiceNumber}\n${t("Customer Name")}: ${invoice.customerName}\n${t("Total Balance")}: ${currencyPrefix}${fmt(totalBalance)}${currencySuffix}`
+          `${currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}\n${t("Invoice #")}: ${invoice.invoiceNumber}\n${t("Customer Name")}: ${invoice.customerName}\n${t("Remaining with")} ${totalBalance > 0 ? invoice.customerName : (companyProfile?.name || "")}: ${currencyPrefix}${fmt(Math.abs(totalBalance))}${currencySuffix}`
         );
         const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
         window.open(waUrl, "_blank");
@@ -504,8 +504,8 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: totalBalance > 0 ? "#dc2626" : totalBalance < 0 ? "#16a34a" : fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
-                  <span>{t("Total Balance")}:</span>
-                  <span>{currencyPrefix}{fmt(totalBalance)}{currencySuffix}</span>
+                  <span>{t("Remaining with")} {totalBalance > 0 ? invoice.customerName : (companyProfile?.name || "")}:</span>
+                  <span>{currencyPrefix}{fmt(Math.abs(totalBalance))}{currencySuffix}</span>
                 </div>
               </div>
             </div>

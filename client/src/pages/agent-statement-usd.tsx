@@ -12,6 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 
+interface CompanyProfileData {
+  id: number;
+  name: string;
+}
+
 interface StatementEntry {
   id: number;
   date: string;
@@ -38,6 +43,10 @@ export default function AgentStatementUsdPage() {
   });
 
   const agents = agentsList || [];
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
+  });
 
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
     queryKey: ["/api/agent-statement", selectedAgentId],
@@ -121,11 +130,11 @@ export default function AgentStatementUsdPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
+            <Card className={`bg-gradient-to-br ${finalBalance > 0 ? 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800' : 'from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
               <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-blue-700 dark:text-blue-400 mb-1">{t('Final Balance')}</p>
-                <p className="font-mono font-bold text-blue-800 dark:text-blue-300" data-testid="text-final-balance">
-                  {usd(finalBalance)}
+                <p className={`text-xs mb-1 ${finalBalance > 0 ? 'text-red-700 dark:text-red-400' : finalBalance < 0 ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400'}`}>{t('Remaining with')} {finalBalance > 0 ? (statement?.agent?.name || "") : (companyProfile?.name || "")}</p>
+                <p className={`font-mono font-bold ${finalBalance > 0 ? 'text-red-800 dark:text-red-300' : finalBalance < 0 ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}`} data-testid="text-final-balance">
+                  {usd(Math.abs(finalBalance))}
                 </p>
               </CardContent>
             </Card>
