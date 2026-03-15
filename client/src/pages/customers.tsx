@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usd, formatDate } from "@/lib/format-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
+import { loadFieldVisibility } from "@/pages/settings";
 
 type Client = {
   id: number;
@@ -53,6 +54,7 @@ export default function CustomersPage() {
   const [oldDebtIqd, setOldDebtIqd] = useState("0");
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
+  const fv = loadFieldVisibility();
 
   const { data: agentsList } = useQuery<{ id: string; name: string; mobile: string }[]>({
     queryKey: ["/api/agents"],
@@ -127,7 +129,7 @@ export default function CustomersPage() {
       toast({ title: t("Please enter the contact"), variant: "destructive" });
       return;
     }
-    if (!address.trim()) {
+    if (fv.customer_address && !address.trim()) {
       toast({ title: t("Please enter the address"), variant: "destructive" });
       return;
     }
@@ -136,9 +138,9 @@ export default function CustomersPage() {
       name: name.trim(),
       type: "customer" as const,
       contact: contact.trim(),
-      address: address.trim(),
-      oldDebtUsd,
-      oldDebtIqd,
+      address: fv.customer_address ? address.trim() : "",
+      oldDebtUsd: fv.customer_oldDebtUsd ? oldDebtUsd : "0",
+      oldDebtIqd: fv.customer_oldDebtIqd ? oldDebtIqd : "0",
     };
 
     if (editingId) {
@@ -226,11 +228,11 @@ export default function CustomersPage() {
       <tr>
         <td class="num">${i + 1}</td>
         <td class="name-cell">${esc(c.name)}</td>
-        <td>${esc(c.address || '-')}</td>
+        ${fv.customer_address ? `<td>${esc(c.address || '-')}</td>` : ""}
         <td class="mono">${esc(c.contact || '-')}</td>
-        <td>${agentName}</td>
-        <td class="mono price-usd">$${Number(c.oldDebtUsd || 0).toFixed(2)}</td>
-        <td class="mono price-iqd">${Number(c.oldDebtIqd || 0).toLocaleString()} IQD</td>
+        ${fv.customer_agent ? `<td>${agentName}</td>` : ""}
+        ${fv.customer_oldDebtUsd ? `<td class="mono price-usd">$${Number(c.oldDebtUsd || 0).toFixed(2)}</td>` : ""}
+        ${fv.customer_oldDebtIqd ? `<td class="mono price-iqd">${Number(c.oldDebtIqd || 0).toLocaleString()} IQD</td>` : ""}
       </tr>`;
     }).join("");
 
@@ -443,14 +445,14 @@ export default function CustomersPage() {
       <span class="stat-label">${t('Total Customers')}</span>
       <span class="stat-value">${filtered.length}</span>
     </div>
-    <div class="stat-card green">
+    ${fv.customer_oldDebtUsd ? `<div class="stat-card green">
       <span class="stat-label">${t('Total Opening Balances (USD)')}</span>
       <span class="stat-value">$${totalUsd.toFixed(2)}</span>
-    </div>
-    <div class="stat-card orange">
+    </div>` : ""}
+    ${fv.customer_oldDebtIqd ? `<div class="stat-card orange">
       <span class="stat-label">${t('Total Opening Balances (IQD)')}</span>
       <span class="stat-value">${totalIqd.toLocaleString()} IQD</span>
-    </div>
+    </div>` : ""}
   </div>
 
   <table>
@@ -458,19 +460,19 @@ export default function CustomersPage() {
       <tr>
         <th>#</th>
         <th>${t('Name')}</th>
-        <th>${t('Address')}</th>
+        ${fv.customer_address ? `<th>${t('Address')}</th>` : ""}
         <th>${t('Contact')}</th>
-        <th>${t('Agent')}</th>
-        <th>${t('Opening Balance (USD)')}</th>
-        <th>${t('Opening Balance (IQD)')}</th>
+        ${fv.customer_agent ? `<th>${t('Agent')}</th>` : ""}
+        ${fv.customer_oldDebtUsd ? `<th>${t('Opening Balance (USD)')}</th>` : ""}
+        ${fv.customer_oldDebtIqd ? `<th>${t('Opening Balance (IQD)')}</th>` : ""}
       </tr>
     </thead>
     <tbody>
       ${tableRows}
       <tr class="total-row">
-        <td colspan="5" class="name-cell">${t('Total')}</td>
-        <td class="mono price-usd">$${totalUsd.toFixed(2)}</td>
-        <td class="mono price-iqd">${totalIqd.toLocaleString()} IQD</td>
+        <td colspan="${2 + (fv.customer_address ? 1 : 0) + (fv.customer_agent ? 1 : 0)}" class="name-cell">${t('Total')}</td>
+        ${fv.customer_oldDebtUsd ? `<td class="mono price-usd">$${totalUsd.toFixed(2)}</td>` : ""}
+        ${fv.customer_oldDebtIqd ? `<td class="mono price-iqd">${totalIqd.toLocaleString()} IQD</td>` : ""}
       </tr>
     </tbody>
   </table>
@@ -500,7 +502,7 @@ export default function CustomersPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className={`grid grid-cols-1 ${fv.customer_address ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4 items-end`}>
             <div>
               <label className="text-base font-bold mb-1 block">{t("Name")}</label>
               <Input
@@ -521,78 +523,101 @@ export default function CustomersPage() {
                 onChange={(e) => setContact(e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-base font-bold mb-1 block">{t("Address")}</label>
-              <AddressSearchSelect
-                addresses={addresses}
-                value={address}
-                onValueChange={setAddress}
-                placeholder={t("Select address...")}
-                data-testid="select-customer-address"
-              />
-            </div>
+            {fv.customer_address && (
+              <div>
+                <label className="text-base font-bold mb-1 block">{t("Address")}</label>
+                <AddressSearchSelect
+                  addresses={addresses}
+                  value={address}
+                  onValueChange={setAddress}
+                  placeholder={t("Select address...")}
+                  data-testid="select-customer-address"
+                />
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mt-4">
-            <div>
-              <label className="text-base font-bold mb-1 block">{t("Agent")}</label>
-              <SearchSelect
-                items={agents}
-                value={selectedAgentId}
-                onValueChange={(v) => setSelectedAgentId(v || "")}
-                placeholder={t("Select agent (optional)...")}
-                data-testid="select-customer-agent"
-              />
-            </div>
-            <div>
-              <label className="text-base font-bold mb-1 block">{t("Opening Balance (USD)")}</label>
-              <Input
-                data-testid="input-customer-old-debt-usd"
-                className="h-11 text-base font-semibold"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={oldDebtUsd}
-                onChange={(e) => setOldDebtUsd(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-base font-bold mb-1 block">{t("Opening Balance (IQD)")}</label>
-              <Input
-                data-testid="input-customer-old-debt-iqd"
-                className="h-11 text-base font-semibold"
-                type="number"
-                step="1"
-                placeholder="0"
-                value={oldDebtIqd}
-                onChange={(e) => setOldDebtIqd(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="h-11 flex-1 bg-primary text-white"
-                data-testid="button-save-customer"
-              >
-                {isSaving ? <Loader2 className="w-5 h-5 animate-spin ltr:mr-2 rtl:ml-2" /> : editingId ? <Save className="w-5 h-5 ltr:mr-2 rtl:ml-2" /> : <Plus className="w-5 h-5 ltr:mr-2 rtl:ml-2" />}
-                {editingId ? t("Update") : t("Add")}
-              </Button>
-              {editingId && (
+          {(() => {
+            const secondRowFields: React.ReactNode[] = [];
+            if (fv.customer_agent) {
+              secondRowFields.push(
+                <div key="agent">
+                  <label className="text-base font-bold mb-1 block">{t("Agent")}</label>
+                  <SearchSelect
+                    items={agents}
+                    value={selectedAgentId}
+                    onValueChange={(v) => setSelectedAgentId(v || "")}
+                    placeholder={t("Select agent (optional)...")}
+                    data-testid="select-customer-agent"
+                  />
+                </div>
+              );
+            }
+            if (fv.customer_oldDebtUsd) {
+              secondRowFields.push(
+                <div key="usd">
+                  <label className="text-base font-bold mb-1 block">{t("Opening Balance (USD)")}</label>
+                  <Input
+                    data-testid="input-customer-old-debt-usd"
+                    className="h-11 text-base font-semibold"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={oldDebtUsd}
+                    onChange={(e) => setOldDebtUsd(e.target.value)}
+                  />
+                </div>
+              );
+            }
+            if (fv.customer_oldDebtIqd) {
+              secondRowFields.push(
+                <div key="iqd">
+                  <label className="text-base font-bold mb-1 block">{t("Opening Balance (IQD)")}</label>
+                  <Input
+                    data-testid="input-customer-old-debt-iqd"
+                    className="h-11 text-base font-semibold"
+                    type="number"
+                    step="1"
+                    placeholder="0"
+                    value={oldDebtIqd}
+                    onChange={(e) => setOldDebtIqd(e.target.value)}
+                  />
+                </div>
+              );
+            }
+            secondRowFields.push(
+              <div key="actions" className="flex gap-2">
                 <Button
-                  variant="outline"
-                  onClick={resetForm}
-                  className="h-11"
-                  data-testid="button-cancel-edit"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="h-11 flex-1 bg-primary text-white"
+                  data-testid="button-save-customer"
                 >
-                  <X className="w-5 h-5" />
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin ltr:mr-2 rtl:ml-2" /> : editingId ? <Save className="w-5 h-5 ltr:mr-2 rtl:ml-2" /> : <Plus className="w-5 h-5 ltr:mr-2 rtl:ml-2" />}
+                  {editingId ? t("Update") : t("Add")}
                 </Button>
-              )}
-            </div>
-          </div>
+                {editingId && (
+                  <Button
+                    variant="outline"
+                    onClick={resetForm}
+                    className="h-11"
+                    data-testid="button-cancel-edit"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                )}
+              </div>
+            );
+            const colsClass = secondRowFields.length === 1 ? "md:grid-cols-1" : secondRowFields.length === 2 ? "md:grid-cols-2" : secondRowFields.length === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
+            return secondRowFields.length > 0 ? (
+              <div className={`grid grid-cols-1 ${colsClass} gap-4 items-end mt-4`}>
+                {secondRowFields}
+              </div>
+            ) : null;
+          })()}
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className={`grid gap-4 ${fv.customer_oldDebtUsd && fv.customer_oldDebtIqd ? "md:grid-cols-3" : fv.customer_oldDebtUsd || fv.customer_oldDebtIqd ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("Total Customers")}</CardTitle>
@@ -602,22 +627,26 @@ export default function CustomersPage() {
             <div className="text-2xl font-bold">{customers.length}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("Total Opening Balances (USD)")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usd(totalOldDebtUsd)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t("Total Opening Balances (IQD)")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOldDebtIqd.toLocaleString()} IQD</div>
-          </CardContent>
-        </Card>
+        {fv.customer_oldDebtUsd && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{t("Total Opening Balances (USD)")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{usd(totalOldDebtUsd)}</div>
+            </CardContent>
+          </Card>
+        )}
+        {fv.customer_oldDebtIqd && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{t("Total Opening Balances (IQD)")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalOldDebtIqd.toLocaleString()} IQD</div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -627,18 +656,20 @@ export default function CustomersPage() {
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input placeholder={t("Search customers...")} className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customers" />
             </div>
-            <div className="w-48">
-              <AddressSearchSelect
-                addresses={addresses}
-                value={addressFilter}
-                onValueChange={setAddressFilter}
-                placeholder={t("All Addresses")}
-                data-testid="select-address-filter"
-                showAllOption
-                allOptionLabel={t("All Addresses")}
-                inputClassName="h-10"
-              />
-            </div>
+            {fv.customer_address && (
+              <div className="w-48">
+                <AddressSearchSelect
+                  addresses={addresses}
+                  value={addressFilter}
+                  onValueChange={setAddressFilter}
+                  placeholder={t("All Addresses")}
+                  data-testid="select-address-filter"
+                  showAllOption
+                  allOptionLabel={t("All Addresses")}
+                  inputClassName="h-10"
+                />
+              </div>
+            )}
             <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5" data-testid="button-print-customers">
               <Printer className="h-5 w-5" />
               {t("Print")}
@@ -661,11 +692,11 @@ export default function CustomersPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-sm font-bold">#</TableHead>
                     <TableHead className="text-sm font-bold">{t("Name")}</TableHead>
-                    <TableHead className="text-sm font-bold">{t("Address")}</TableHead>
+                    {fv.customer_address && <TableHead className="text-sm font-bold">{t("Address")}</TableHead>}
                     <TableHead className="text-sm font-bold">{t("Contact")}</TableHead>
-                    <TableHead className="text-sm font-bold">{t("Agent")}</TableHead>
-                    <TableHead className="text-sm font-bold text-right">{t("Opening Balance (USD)")}</TableHead>
-                    <TableHead className="text-sm font-bold text-right">{t("Opening Balance (IQD)")}</TableHead>
+                    {fv.customer_agent && <TableHead className="text-sm font-bold">{t("Agent")}</TableHead>}
+                    {fv.customer_oldDebtUsd && <TableHead className="text-sm font-bold text-right">{t("Opening Balance (USD)")}</TableHead>}
+                    {fv.customer_oldDebtIqd && <TableHead className="text-sm font-bold text-right">{t("Opening Balance (IQD)")}</TableHead>}
                     <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -678,25 +709,29 @@ export default function CustomersPage() {
                     >
                       <TableCell className="text-sm font-semibold">{index + 1}</TableCell>
                       <TableCell className="text-sm font-semibold">{client.name}</TableCell>
-                      <TableCell className="text-sm font-semibold">
-                        {client.address ? (
-                          <Badge variant="outline" className="gap-1">
-                            <IconAddress className="h-3 w-3" />
-                            {client.address}
-                          </Badge>
-                        ) : "-"}
-                      </TableCell>
+                      {fv.customer_address && (
+                        <TableCell className="text-sm font-semibold">
+                          {client.address ? (
+                            <Badge variant="outline" className="gap-1">
+                              <IconAddress className="h-3 w-3" />
+                              {client.address}
+                            </Badge>
+                          ) : "-"}
+                        </TableCell>
+                      )}
                       <TableCell className="text-sm font-semibold">{client.contact || "-"}</TableCell>
-                      <TableCell className="text-sm font-semibold">
-                        {getAgentForClient(client.id) ? (
-                          <Badge variant="secondary" className="gap-1 text-xs">
-                            <IconAgent className="h-3 w-3" />
-                            {getAgentForClient(client.id)}
-                          </Badge>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm font-semibold text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>
-                      <TableCell className="text-sm font-semibold text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
+                      {fv.customer_agent && (
+                        <TableCell className="text-sm font-semibold">
+                          {getAgentForClient(client.id) ? (
+                            <Badge variant="secondary" className="gap-1 text-xs">
+                              <IconAgent className="h-3 w-3" />
+                              {getAgentForClient(client.id)}
+                            </Badge>
+                          ) : "-"}
+                        </TableCell>
+                      )}
+                      {fv.customer_oldDebtUsd && <TableCell className="text-sm font-semibold text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>}
+                      {fv.customer_oldDebtIqd && <TableCell className="text-sm font-semibold text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>}
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button
