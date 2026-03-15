@@ -213,12 +213,13 @@ export default function SalesInvoiceUsdPage() {
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
         updated[index].amount = (qty * prc).toFixed(2);
       }
-      if (field === "quantity" && updated[index].productId) {
+      if ((field === "quantity" || field === "gift") && updated[index].productId) {
         const prod = products?.find(p => p.id === updated[index].productId);
         if (prod) {
-          const qty = parseFloat(value || "0");
+          const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
+          const gift = parseFloat(field === "gift" ? value : updated[index].gift || "0");
           const unitWeight = parseFloat(prod.weight || "0");
-          updated[index].weight = (qty * unitWeight).toFixed(2);
+          updated[index].weight = ((qty + gift) * unitWeight).toFixed(2);
         }
       }
       return updated;
@@ -232,6 +233,7 @@ export default function SalesInvoiceUsdPage() {
     setItems(prev => {
       const updated = [...prev];
       const qty = parseFloat(updated[index].quantity || "0");
+      const gift = parseFloat(updated[index].gift || "0");
       const unitWeight = parseFloat(product.weight || "0");
       updated[index] = {
         ...updated[index],
@@ -240,7 +242,7 @@ export default function SalesInvoiceUsdPage() {
         productName: getProductName(product),
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
-        weight: (qty * unitWeight).toFixed(2),
+        weight: ((qty + gift) * unitWeight).toFixed(2),
       };
       updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
       const lastRow = updated[updated.length - 1];
@@ -269,6 +271,7 @@ export default function SalesInvoiceUsdPage() {
         emptyIndex = updated.length - 1;
       }
       const qty = 1;
+      const gift = parseFloat(updated[emptyIndex].gift || "0");
       const unitWeight = parseFloat(product.weight || "0");
       updated[emptyIndex] = {
         ...updated[emptyIndex],
@@ -278,7 +281,7 @@ export default function SalesInvoiceUsdPage() {
         quantity: String(qty),
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
-        weight: (qty * unitWeight).toFixed(2),
+        weight: ((qty + gift) * unitWeight).toFixed(2),
         amount: (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2),
       };
       const lastRow = updated[updated.length - 1];

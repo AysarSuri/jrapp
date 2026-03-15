@@ -244,12 +244,13 @@ export default function PosIqdPage() {
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
         updated[index].amount = (qty * prc).toFixed(2);
       }
-      if (field === "quantity" && updated[index].productId) {
+      if ((field === "quantity" || field === "gift") && updated[index].productId) {
         const prod = products?.find(p => p.id === updated[index].productId);
         if (prod) {
-          const qty = parseFloat(value || "0");
+          const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
+          const gift = parseFloat(field === "gift" ? value : updated[index].gift || "0");
           const unitWeight = parseFloat(prod.weight || "0");
-          updated[index].weight = (qty * unitWeight).toFixed(2);
+          updated[index].weight = ((qty + gift) * unitWeight).toFixed(2);
         }
       }
       return updated;
@@ -263,16 +264,18 @@ export default function PosIqdPage() {
         const updated = [...prev];
         const curQty = parseFloat(updated[existingIndex].quantity || "0");
         const newQty = curQty + 1;
+        const gift = parseFloat(updated[existingIndex].gift || "0");
         const unitWeight = parseFloat(product.weight || "0");
         updated[existingIndex] = {
           ...updated[existingIndex],
           quantity: String(newQty),
-          weight: (newQty * unitWeight).toFixed(2),
+          weight: ((newQty + gift) * unitWeight).toFixed(2),
           amount: (newQty * parseFloat(updated[existingIndex].price || "0")).toFixed(2),
         };
         return updated;
       }
       const qty = 1;
+      const gift = 0;
       const unitWeight = parseFloat(product.weight || "0");
       const newItem: InvoiceItem = {
         productId: product.id,
@@ -281,7 +284,7 @@ export default function PosIqdPage() {
         quantity: String(qty),
         gift: "0",
         unit: product.bigUnit,
-        weight: (qty * unitWeight).toFixed(2),
+        weight: ((qty + gift) * unitWeight).toFixed(2),
         price: product.bigUnitPriceIqd,
         amount: (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2),
       };
