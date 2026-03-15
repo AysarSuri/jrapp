@@ -2747,6 +2747,83 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/customer-opening-balance', requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.query.customerId as string, 10);
+      const balanceDate = req.query.date as string;
+      const balanceTime = (req.query.time as string) || "00:00";
+      const currency = (req.query.currency as string) || "USD";
+      const excludeInvoiceId = req.query.excludeInvoiceId ? parseInt(req.query.excludeInvoiceId as string, 10) : null;
+
+      if (!customerId || !balanceDate) return res.status(400).json({ message: "customerId and date are required" });
+
+      const [customer] = await db.select().from(clients).where(eq(clients.id, customerId));
+      if (!customer) return res.status(404).json({ message: "Customer not found" });
+
+      const currentOldDebt = currency === "USD" ? parseFloat(customer.oldDebtUsd || "0") : parseFloat(customer.oldDebtIqd || "0");
+
+      const allReceipts = await db.select().from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.currency} = ${currency}`);
+      const allPayments = await db.select().from(agentPayments)
+        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.currency} = ${currency}`);
+
+      let originalOldDebt = currentOldDebt;
+      for (const rec of allReceipts) {
+        originalOldDebt += parseFloat(rec.amount || "0") + parseFloat(rec.discount || "0");
+      }
+      for (const pay of allPayments) {
+        originalOldDebt += parseFloat(pay.amount || "0");
+      }
+
+      const beforeDateTimeCondition = (dateCol: any, timeCol: any) =>
+        sql`(${dateCol} < ${balanceDate} OR (${dateCol} = ${balanceDate} AND COALESCE(${timeCol}, '00:00') < ${balanceTime}))`;
+
+      let invoiceCondition = sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.currency} = ${currency} AND ${beforeDateTimeCondition(salesInvoices.date, salesInvoices.time)}`;
+      if (excludeInvoiceId) {
+        invoiceCondition = sql`${invoiceCondition} AND ${salesInvoices.id} != ${excludeInvoiceId}`;
+      }
+      const prevInvoices = await db.select().from(salesInvoices).where(invoiceCondition);
+
+      const prevReturns = await db.select().from(salesReturns)
+        .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.currency} = ${currency} AND ${beforeDateTimeCondition(salesReturns.date, salesReturns.time)}`);
+
+      const prevReceipts = allReceipts.filter(r => {
+        const rDate = r.date;
+        const rTime = r.time || "00:00";
+        return rDate < balanceDate || (rDate === balanceDate && rTime < balanceTime);
+      });
+
+      const prevPayments = allPayments.filter(p => {
+        const pDate = p.date;
+        const pTime = p.time || "00:00";
+        return pDate < balanceDate || (pDate === balanceDate && pTime < balanceTime);
+      });
+
+      let openingBalance = originalOldDebt;
+
+      for (const inv of prevInvoices) {
+        openingBalance += parseFloat(inv.remaining || "0");
+      }
+
+      for (const pay of prevPayments) {
+        openingBalance += parseFloat(pay.amount || "0");
+      }
+
+      for (const ret of prevReturns) {
+        openingBalance -= parseFloat(ret.remaining || "0");
+      }
+
+      for (const rec of prevReceipts) {
+        openingBalance -= parseFloat(rec.amount || "0") + parseFloat(rec.discount || "0");
+      }
+
+      res.json({ openingBalance });
+    } catch (err) {
+      console.error("Error calculating customer opening balance:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Customer Receipts
   app.get('/api/customer-receipts/next-number', requireAuth, async (_req, res) => {
     try {

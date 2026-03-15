@@ -227,6 +227,19 @@ export default function PosIqdPage() {
     }
   };
 
+  const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", customerId, date, time, "IQD", inlineEditId],
+    queryFn: async () => {
+      const params = new URLSearchParams({ customerId: String(customerId), date, time: time || "00:00", currency: "IQD" });
+      if (inlineEditId) params.set("excludeInvoiceId", String(inlineEditId));
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!customerId && !!date,
+  });
+  const openingBalance = openingBalanceData?.openingBalance ?? 0;
+
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
@@ -940,7 +953,7 @@ export default function PosIqdPage() {
 
           <Card className="border-border/50 shadow-sm">
             <CardContent className="pt-4">
-              <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="grid grid-cols-4 gap-2 mb-3">
                 <div className="rounded-lg border p-2 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Products')}</p>
                   <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-items">{totalItems}</p>
@@ -952,6 +965,10 @@ export default function PosIqdPage() {
                 <div className="rounded-lg border p-2 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Weight')}</p>
                   <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-weight">{totalWeight}</p>
+                </div>
+                <div className={`rounded-lg border p-2 text-center ${openingBalance > 0 ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : openingBalance < 0 ? 'border-green-300 bg-green-50 dark:bg-green-900/20' : ''}`}>
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Opening Balance')}</p>
+                  <p className={`text-lg font-bold ${openingBalance > 0 ? 'text-red-600' : openingBalance < 0 ? 'text-green-600' : 'text-primary'}`} data-testid="text-sales-category-opening-balance">{fmtIqd(openingBalance)}</p>
                 </div>
               </div>
             </CardContent>

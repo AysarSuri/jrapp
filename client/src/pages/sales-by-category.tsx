@@ -227,6 +227,19 @@ export default function SalesByCategoryPage() {
     }
   };
 
+  const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", customerId, date, time, "USD", inlineEditId],
+    queryFn: async () => {
+      const params = new URLSearchParams({ customerId: String(customerId), date, time: time || "00:00", currency: "USD" });
+      if (inlineEditId) params.set("excludeInvoiceId", String(inlineEditId));
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!customerId && !!date,
+  });
+  const openingBalance = openingBalanceData?.openingBalance ?? 0;
+
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
@@ -244,12 +257,13 @@ export default function SalesByCategoryPage() {
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
         updated[index].amount = (qty * prc).toFixed(2);
       }
-      if (field === "quantity" && updated[index].productId) {
+      if ((field === "quantity" || field === "gift") && updated[index].productId) {
         const prod = products?.find(p => p.id === updated[index].productId);
         if (prod) {
-          const qty = parseFloat(value || "0");
+          const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
+          const gift = parseFloat(field === "gift" ? value : updated[index].gift || "0");
           const unitWeight = parseFloat(prod.weight || "0");
-          updated[index].weight = (qty * unitWeight).toFixed(2);
+          updated[index].weight = ((qty + gift) * unitWeight).toFixed(2);
         }
       }
       return updated;
@@ -263,16 +277,18 @@ export default function SalesByCategoryPage() {
         const updated = [...prev];
         const curQty = parseFloat(updated[existingIndex].quantity || "0");
         const newQty = curQty + 1;
+        const gift = parseFloat(updated[existingIndex].gift || "0");
         const unitWeight = parseFloat(product.weight || "0");
         updated[existingIndex] = {
           ...updated[existingIndex],
           quantity: String(newQty),
-          weight: (newQty * unitWeight).toFixed(2),
+          weight: ((newQty + gift) * unitWeight).toFixed(2),
           amount: (newQty * parseFloat(updated[existingIndex].price || "0")).toFixed(2),
         };
         return updated;
       }
       const qty = 1;
+      const gift = 0;
       const unitWeight = parseFloat(product.weight || "0");
       const newItem: InvoiceItem = {
         productId: product.id,
@@ -281,7 +297,7 @@ export default function SalesByCategoryPage() {
         quantity: String(qty),
         gift: "0",
         unit: product.bigUnit,
-        weight: (qty * unitWeight).toFixed(2),
+        weight: ((qty + gift) * unitWeight).toFixed(2),
         price: product.bigUnitPriceUsd,
         amount: (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2),
       };
@@ -937,7 +953,7 @@ export default function SalesByCategoryPage() {
 
           <Card className="border-border/50 shadow-sm">
             <CardContent className="pt-4">
-              <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="grid grid-cols-4 gap-2 mb-3">
                 <div className="rounded-lg border p-2 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Products')}</p>
                   <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-items">{totalItems}</p>
@@ -949,6 +965,10 @@ export default function SalesByCategoryPage() {
                 <div className="rounded-lg border p-2 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Total Weight')}</p>
                   <p className="text-lg font-bold text-primary" data-testid="text-sales-category-total-weight">{totalWeight}</p>
+                </div>
+                <div className={`rounded-lg border p-2 text-center ${openingBalance > 0 ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : openingBalance < 0 ? 'border-green-300 bg-green-50 dark:bg-green-900/20' : ''}`}>
+                  <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t('Opening Balance')}</p>
+                  <p className={`text-lg font-bold ${openingBalance > 0 ? 'text-red-600' : openingBalance < 0 ? 'text-green-600' : 'text-primary'}`} data-testid="text-sales-category-opening-balance">{usd(openingBalance)}</p>
                 </div>
               </div>
             </CardContent>
