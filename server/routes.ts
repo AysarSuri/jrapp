@@ -2571,6 +2571,31 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/sales-returns/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { returnData: retData, items } = req.body;
+
+      await db.transaction(async (tx) => {
+        await tx.update(salesReturns).set(retData).where(eq(salesReturns.id, id));
+        await tx.delete(salesReturnItems).where(eq(salesReturnItems.returnId, id));
+        if (items && items.length > 0) {
+          const itemsWithReturnId = items.map((item: any) => ({
+            ...item,
+            returnId: id,
+          }));
+          await tx.insert(salesReturnItems).values(itemsWithReturnId);
+        }
+      });
+
+      const updated = await storage.getSalesReturn(id);
+      res.json(updated);
+    } catch (err) {
+      console.error("Error updating sales return:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete('/api/sales-returns/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);

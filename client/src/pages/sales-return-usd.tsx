@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight, Pencil, Eye } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { usd, formatDate } from "@/lib/format-utils";
+import SalesReturnReport from "@/components/sales-return-report";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import ProductSearchSelect from "@/components/product-search-select";
 import { useUnits } from "@/hooks/use-units";
@@ -118,12 +120,17 @@ export default function SalesReturnUsdPage() {
   const [filterCustomerName, setFilterCustomerName] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState(() => new Date().toISOString().split('T')[0]);
   const [filterDateTo, setFilterDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const [inlineEditId, setInlineEditId] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [reportReturnId, setReportReturnId] = useState<number | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
-    if (nextNumber?.number) {
+    if (nextNumber?.number && !isEditMode) {
       setReturnNumber(nextNumber.number);
     }
-  }, [nextNumber]);
+  }, [nextNumber, isEditMode]);
 
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
@@ -200,6 +207,55 @@ export default function SalesReturnUsdPage() {
     setItems([emptyItem()]);
     setDate(new Date().toISOString().split("T")[0]);
     setTime(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+    setInlineEditId(null);
+    setIsEditMode(false);
+  };
+
+  const startEdit = async (returnId: number) => {
+    try {
+      const [retRes, itemsRes] = await Promise.all([
+        fetch(`/api/sales-returns/${returnId}`, { credentials: "include" }),
+        fetch(`/api/sales-returns/${returnId}/items`, { credentials: "include" }),
+      ]);
+      if (!retRes.ok || !itemsRes.ok) return;
+      const ret = await retRes.json();
+      const fetchedItems = await itemsRes.json();
+      setInlineEditId(returnId);
+      setIsEditMode(true);
+      setReturnNumber(ret.returnNumber || "");
+      setDate(typeof ret.date === "string" ? ret.date.split("T")[0] : new Date(ret.date).toISOString().split("T")[0]);
+      setTime(ret.time || "");
+      setCustomerId(ret.customerId || null);
+      setCustomerName(ret.customerName || "");
+      setAddress(ret.address || "");
+      setMobile(ret.mobile || "");
+      setRepresentativeId(ret.representativeId || null);
+      setRepresentativeName(ret.representativeName || "");
+      setRepresentativeMobile(ret.representativeMobile || "");
+      setNote(ret.note || "");
+      setDriverName(ret.driverName || "");
+      setDriverMobile(ret.driverMobile || "");
+      setVehicleNumber(ret.vehicleNumber || "");
+      setReturnType(ret.returnType || "cash");
+      setWarehouseId(ret.warehouseId || null);
+      setWarehouseName(ret.warehouseName || "");
+      setAmountPaid(ret.amountPaid || "");
+      const mappedItems = fetchedItems.map((item: any) => ({
+        productId: item.productId,
+        productCode: item.productCode || "",
+        productName: item.productName || "",
+        quantity: item.quantity || "",
+        gift: item.gift || "",
+        unit: item.unit || "",
+        price: item.price || "",
+        amount: item.amount || "0",
+      }));
+      setItems([...mappedItems, emptyItem()]);
+      setFormKey(k => k + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      toast({ title: t("Failed to load return for editing"), variant: "destructive" });
+    }
   };
 
   const handleSave = () => {
@@ -257,19 +313,32 @@ export default function SalesReturnUsdPage() {
       amount: item.amount,
     }));
 
-    createReturn({ returnData, items: itemsData }, {
-      onSuccess: () => {
-        if (isRep) {
-          toast({ title: t("Sales return sent for approval") });
-        } else {
-          toast({ title: t("Sales return saved successfully") });
-        }
-        resetForm();
-      },
-      onError: (err) => {
-        toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
-      },
-    });
+    if (isEditMode && inlineEditId) {
+      apiRequest("PATCH", `/api/sales-returns/${inlineEditId}`, { returnData, items: itemsData })
+        .then(() => {
+          toast({ title: t("Sales return updated successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/sales-returns"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sales-returns", inlineEditId] });
+          resetForm();
+        })
+        .catch((err) => {
+          toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
+        });
+    } else {
+      createReturn({ returnData, items: itemsData }, {
+        onSuccess: () => {
+          if (isRep) {
+            toast({ title: t("Sales return sent for approval") });
+          } else {
+            toast({ title: t("Sales return saved successfully") });
+          }
+          resetForm();
+        },
+        onError: (err) => {
+          toast({ title: t("Failed to save return"), description: err.message, variant: "destructive" });
+        },
+      });
+    }
   };
 
   const selectCustomer = (clientId: string) => {
@@ -355,9 +424,9 @@ export default function SalesReturnUsdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-return-usd-title">
             <Undo2 className="h-8 w-8 text-orange-600" />
-            {t('Sales Return - USD')}
+            {isEditMode ? t('Edit Sales Return - USD') : t('Sales Return - USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create sales return in US Dollar')}</p>
+          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales return in US Dollar') : t('Create sales return in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-return-form">
@@ -366,7 +435,7 @@ export default function SalesReturnUsdPage() {
           </Button>
           <Button onClick={handleSave} disabled={isSaving} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-sales-return">
             {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-            {userRole === 'sales_rep' ? t('Send for Approval') : t('Save Return')}
+            {isEditMode ? t('Update Return') : (userRole === 'sales_rep' ? t('Send for Approval') : t('Save Return'))}
           </Button>
         </div>
       </div>
@@ -774,6 +843,12 @@ export default function SalesReturnUsdPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-sales-return-${ret.id}`}>
+                          <Eye className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(ret.id)} data-testid={`btn-edit-sales-return-${ret.id}`}>
+                          <Pencil className="h-5 w-5" />
+                        </Button>
                         {ret.status === 'pending' && (userRole === 'admin' || userRole === 'user') && (
                           <Button
                             size="icon"
@@ -844,6 +919,13 @@ export default function SalesReturnUsdPage() {
           )}
         </CardContent>
       </Card>
+
+      <SalesReturnReport
+        returnId={reportReturnId}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        currency="USD"
+      />
     </div>
   );
 }
