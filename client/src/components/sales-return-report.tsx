@@ -474,12 +474,6 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
                 </div>
               </div>
             </div>
-
-            {companyProfile?.qrAddress && (
-              <div style={{ textAlign: "center", marginTop: 15, position: "relative", zIndex: 1 }}>
-                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 80, height: 80 }} />
-              </div>
-            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">{t("Return not found")}</div>
