@@ -307,35 +307,35 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
               </div>
             )}
-            {(companyProfile?.linkTitle || companyProfile?.qrAddress) && (
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: isRtl ? "flex-start" : "flex-end", gap: 8, marginBottom: 4, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
-                {companyProfile?.qrAddress && (
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 70, height: 70 }} />
-                )}
-                {companyProfile?.linkTitle && (
-                  <span style={{ fontSize: "10pt", fontWeight: 600, color: fieldColor, paddingTop: 2 }}>
-                    {companyProfile.linkTitle}
+            <div className="header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
+              {companyProfile?.qrAddress && (
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 80, height: 80 }} />
+                  {companyProfile?.linkTitle && (
+                    <span style={{ fontSize: "7pt", fontWeight: 600, color: fieldColor, textAlign: "center", maxWidth: 90, wordBreak: "break-word" }}>
+                      {companyProfile.linkTitle}
+                    </span>
+                  )}
+                </div>
+              )}
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <h1 style={{ fontSize: "16pt", marginBottom: 6 }}>
+                  {currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}
+                </h1>
+                <div style={{ display: "flex", justifyContent: "center", gap: 20, fontSize: "12pt", flexWrap: "wrap" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 10h8"/><path d="M8 14h4"/></svg>
+                    {t("Invoice #")}: {invoice.invoiceNumber}
                   </span>
-                )}
-              </div>
-            )}
-            <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1 }}>
-              <h1 style={{ fontSize: "16pt", marginBottom: 6 }}>
-                {currency === "USD" ? t("Sales Invoice - USD") : t("Sales Invoice - IQD")}
-              </h1>
-              <div style={{ display: "flex", justifyContent: "center", gap: 20, fontSize: "12pt", flexWrap: "wrap" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 10h8"/><path d="M8 14h4"/></svg>
-                  {t("Invoice #")}: {invoice.invoiceNumber}
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  {t("Date")}: {formatDate(invoice.date)}
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  {t("Time")}: {invoice.time}
-                </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {t("Date")}: {formatDate(invoice.date)}
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {t("Time")}: {invoice.time}
+                  </span>
+                </div>
               </div>
             </div>
 
