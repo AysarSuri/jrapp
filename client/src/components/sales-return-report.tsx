@@ -267,7 +267,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : returnData ? (
-          <div ref={printRef} style={{ position: "relative" }}>
+          <div ref={printRef} style={{ position: "relative", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.logo && (
               <div style={{ position: "absolute", top: "58%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
                 <img src={companyProfile.logo} alt="" style={{ width: 300, height: 300, objectFit: "contain", opacity: 0.08 }} />
@@ -302,67 +302,67 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Customer Name")}:</span>
-                <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.customerName}</span>
+                <span style={{ fontWeight: 700, marginInlineStart: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.customerName}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Return Type")}:</span>
-                <span style={{ fontWeight: 700, marginLeft: "auto", color: returnData.returnType === "cash" ? "#16a34a" : fieldColor, background: returnData.returnType === "cash" ? "#f0fdf4" : "#fef2f2", padding: "2px 10px", borderRadius: 4, fontSize: "12pt" }}>{returnData.returnType === "cash" ? t("Cash") : t("Credit")}</span>
+                <span style={{ fontWeight: 700, marginInlineStart: "auto", color: returnData.returnType === "cash" ? "#16a34a" : fieldColor, background: returnData.returnType === "cash" ? "#f0fdf4" : "#fef2f2", padding: "2px 10px", borderRadius: 4, fontSize: "12pt" }}>{returnData.returnType === "cash" ? t("Cash") : t("Credit")}</span>
               </div>
               {returnData.mobile && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Mobile")}:</span>
-                  <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{returnData.mobile}</span>
+                  <span style={{ fontWeight: 700, marginInlineStart: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{returnData.mobile}</span>
                 </div>
               )}
               {returnData.address && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Address")}:</span>
-                  <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.address}</span>
+                  <span style={{ fontWeight: 700, marginInlineStart: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.address}</span>
                 </div>
               )}
               {returnData.representativeName && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Representative")}:</span>
-                  <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.representativeName}</span>
+                  <span style={{ fontWeight: 700, marginInlineStart: "auto", color: "#1e293b", fontSize: "13pt" }}>{returnData.representativeName}</span>
                 </div>
               )}
               {returnData.representativeMobile && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Rep. Mobile")}:</span>
-                  <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{returnData.representativeMobile}</span>
+                  <span style={{ fontWeight: 700, marginInlineStart: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{returnData.representativeMobile}</span>
                 </div>
               )}
               {returnData.driverName && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Driver Name")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{returnData.driverName}</span>
+                  <span style={{ fontWeight: 500, marginInlineStart: "auto", color: "#1e293b" }}>{returnData.driverName}</span>
                 </div>
               )}
               {returnData.driverMobile && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Driver Mobile")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{returnData.driverMobile}</span>
+                  <span style={{ fontWeight: 500, marginInlineStart: "auto", fontFamily: "monospace", color: "#1e293b" }}>{returnData.driverMobile}</span>
                 </div>
               )}
               {returnData.vehicleNumber && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2"/><path d="M9 17H15"/><path d="M14 6h-4v5h9"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Vehicle Number")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{returnData.vehicleNumber}</span>
+                  <span style={{ fontWeight: 500, marginInlineStart: "auto", fontFamily: "monospace", color: "#1e293b" }}>{returnData.vehicleNumber}</span>
                 </div>
               )}
               {returnData.note && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", gridColumn: "1 / -1" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Note")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{returnData.note}</span>
+                  <span style={{ fontWeight: 500, marginInlineStart: "auto", color: "#1e293b" }}>{returnData.note}</span>
                 </div>
               )}
             </div>
@@ -396,8 +396,8 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
               </tbody>
             </table>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10, position: "relative", zIndex: 1 }}>
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden", order: isRtl ? 2 : 1 }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   {t("Financial Summary")}
@@ -424,7 +424,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
                 </div>
               </div>
 
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden" }}>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden", order: isRtl ? 1 : 2 }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                   {t("Delivery Info")}
