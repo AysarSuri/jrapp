@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { IconDollar, IconOffice, IconBank } from "@/components/erp-icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -252,6 +253,8 @@ export default function CustomerReceiptUsdPage() {
 
   const totalDeducted = parseFloat(amount || "0") + parseFloat(discount || "0");
 
+  const [, navigate] = useLocation();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -265,6 +268,10 @@ export default function CustomerReceiptUsdPage() {
           <p className="text-muted-foreground mt-1">{t('Receive payments from customers in USD')}</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/sales-management")} data-testid="button-back-sales-management">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            {t('Sales Management')}
+          </Button>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-receipt">
             <RotateCcw className="h-5 w-5" />
             {t('Reset')}

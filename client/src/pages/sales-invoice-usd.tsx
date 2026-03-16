@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Search, Eye } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Search, Eye, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { IconDollar } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -503,6 +504,8 @@ export default function SalesInvoiceUsdPage() {
 
   const userRole = user?.role || 'user';
 
+  const [, navigate] = useLocation();
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -514,6 +517,10 @@ export default function SalesInvoiceUsdPage() {
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice in US Dollar') : t('Create sales invoice in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/sales-management")} data-testid="button-back-sales-management">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            {t('Sales Management')}
+          </Button>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-form">
             <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}

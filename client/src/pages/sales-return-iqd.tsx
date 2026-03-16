@@ -22,8 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw,
-  ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight, Pencil, Eye,
+  ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight, Pencil, Eye, ArrowLeft,
 } from "lucide-react";
+import { useLocation } from "wouter";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -435,6 +436,8 @@ export default function SalesReturnIqdPage() {
   const safePage = Math.min(currentPage, totalPages || 1);
   const paginatedReturns = iqdReturns.slice((safePage - 1) * pageSize, safePage * pageSize);
 
+  const [, navigate] = useLocation();
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -446,6 +449,10 @@ export default function SalesReturnIqdPage() {
           <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales return in Iraqi Dinar') : t('Create sales return in Iraqi Dinar')}</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/sales-management")} data-testid="button-back-sales-management">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            {t('Sales Management')}
+          </Button>
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-return-iqd-form">
             <RotateCcw className="w-5 h-5 mr-2" />
             {t('Reset')}
