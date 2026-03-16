@@ -2779,6 +2779,7 @@ export async function registerRoutes(
       const balanceTime = (req.query.time as string) || "00:00";
       const currency = (req.query.currency as string) || "USD";
       const excludeInvoiceId = req.query.excludeInvoiceId ? parseInt(req.query.excludeInvoiceId as string, 10) : null;
+      const excludeReturnId = req.query.excludeReturnId ? parseInt(req.query.excludeReturnId as string, 10) : null;
 
       if (!customerId || !balanceDate) return res.status(400).json({ message: "customerId and date are required" });
 
@@ -2809,8 +2810,11 @@ export async function registerRoutes(
       }
       const prevInvoices = await db.select().from(salesInvoices).where(invoiceCondition);
 
-      const prevReturns = await db.select().from(salesReturns)
-        .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.currency} = ${currency} AND ${beforeDateTimeCondition(salesReturns.date, salesReturns.time)}`);
+      let returnCondition = sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.currency} = ${currency} AND ${beforeDateTimeCondition(salesReturns.date, salesReturns.time)}`;
+      if (excludeReturnId) {
+        returnCondition = sql`${returnCondition} AND ${salesReturns.id} != ${excludeReturnId}`;
+      }
+      const prevReturns = await db.select().from(salesReturns).where(returnCondition);
 
       const prevReceipts = allReceipts.filter(r => {
         const rDate = r.date;

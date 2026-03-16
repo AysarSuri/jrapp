@@ -107,6 +107,23 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
     enabled: !!returnId && open,
   });
 
+  const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", returnData?.customerId, returnData?.date, returnData?.time, currency, returnId],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId: String(returnData!.customerId),
+        date: returnData!.date,
+        time: returnData!.time || "00:00",
+        currency,
+        excludeReturnId: String(returnId),
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch opening balance");
+      return res.json();
+    },
+    enabled: !!returnData?.customerId && !!returnData?.date && open,
+  });
+
   const { data: companyProfile } = useQuery<CompanyProfileData>({
     queryKey: ["/api/company-profile"],
     enabled: open,
@@ -132,6 +149,10 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
 
   const fieldColor = companyProfile?.primaryColor || "#333";
   const textColor = companyProfile?.secondaryColor || "white";
+
+  const oldDebt = openingBalanceData?.openingBalance ?? 0;
+  const returnRemaining = parseFloat(returnData?.remaining || "0");
+  const totalBalance = oldDebt - returnRemaining;
 
   const fmt = (n: number | string) => {
     const num = typeof n === "string" ? parseFloat(n) : n;
@@ -392,6 +413,14 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "11pt", borderTop: "1px solid #e2e8f0", paddingTop: 4 }}>
                   <span style={{ fontWeight: 700, color: "#000" }}>{t("Remaining")}:</span>
                   <span style={{ fontWeight: 700, fontFamily: "monospace", color: "#dc2626" }}>{currencyPrefix}{fmt(returnData.remaining)}{currencySuffix}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: "11pt", borderTop: "1px solid #e2e8f0", paddingTop: 4 }}>
+                  <span style={{ fontWeight: 600, color: "#64748b" }}>{t("Opening Balance")}:</span>
+                  <span style={{ fontWeight: 700, fontFamily: "monospace", color: oldDebt > 0 ? "#dc2626" : oldDebt < 0 ? "#16a34a" : "#000" }}>{currencyPrefix}{fmt(oldDebt)}{currencySuffix}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: totalBalance > 0 ? "#dc2626" : totalBalance < 0 ? "#16a34a" : fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
+                  <span style={{ color: "#000", fontSize: "10pt" }}>{t("Remaining with")} {totalBalance > 0 ? returnData.customerName : (companyProfile?.name || "")}:</span>
+                  <span>{currencyPrefix}{fmt(Math.abs(totalBalance))}{currencySuffix}</span>
                 </div>
               </div>
 
