@@ -170,6 +170,10 @@ export default function SalesReturnIqdPage() {
       }
       return updated;
     });
+    setTimeout(() => {
+      const qtyInput = document.querySelector(`[data-testid="input-return-iqd-quantity-${index}"]`) as HTMLInputElement;
+      if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
+    }, 50);
   }, [products]);
 
   const addRow = () => {

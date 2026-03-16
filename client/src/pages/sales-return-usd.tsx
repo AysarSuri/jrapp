@@ -166,6 +166,10 @@ export default function SalesReturnUsdPage() {
       }
       return updated;
     });
+    setTimeout(() => {
+      const qtyInput = document.querySelector(`[data-testid="input-return-quantity-${index}"]`) as HTMLInputElement;
+      if (qtyInput) { qtyInput.focus(); qtyInput.select(); }
+    }, 50);
   }, [products]);
 
   const addRow = () => {
