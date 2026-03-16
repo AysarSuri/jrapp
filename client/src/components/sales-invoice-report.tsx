@@ -504,7 +504,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <span style={{ fontWeight: 500 }}>{currencyPrefix}{fmt(invoiceRemaining)}{currencySuffix}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", fontSize: "13pt", fontWeight: 700, color: totalBalance > 0 ? "#dc2626" : totalBalance < 0 ? "#16a34a" : fieldColor, borderTop: `2px solid ${fieldColor}`, marginTop: 5 }}>
-                  <span style={{ color: "#000" }}>{t("Remaining with")} <span style={{ fontSize: "11pt" }}>{totalBalance > 0 ? invoice.customerName : (companyProfile?.name || "")}</span>:</span>
+                  <span style={{ color: "#000", fontSize: "10pt" }}>{t("Remaining with")} {totalBalance > 0 ? invoice.customerName : (companyProfile?.name || "")}:</span>
                   <span>{currencyPrefix}{fmt(Math.abs(totalBalance))}{currencySuffix}</span>
                 </div>
               </div>
