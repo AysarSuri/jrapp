@@ -40,6 +40,7 @@ interface ReturnItem {
   productCode: string;
   productName: string;
   quantity: string;
+  gift: string;
   unit: string;
   price: string;
   amount: string;
@@ -50,6 +51,7 @@ const emptyItem = (): ReturnItem => ({
   productCode: "",
   productName: "",
   quantity: "",
+  gift: "0",
   unit: "",
   price: "",
   amount: "0",
@@ -147,7 +149,7 @@ export default function SalesReturnIqdPage() {
   }, []);
 
   const selectProduct = useCallback((index: number, productId: string) => {
-    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", weight: "0", amount: "0" }; return u; }); return; }
+    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", gift: "0", weight: "0", amount: "0" }; return u; }); return; }
     const product = products?.find(p => p.id === parseInt(productId));
     if (!product) return;
     setItems(prev => {
@@ -249,6 +251,7 @@ export default function SalesReturnIqdPage() {
       productCode: item.productCode,
       productName: item.productName,
       quantity: item.quantity,
+      gift: item.gift || "0",
       unit: item.unit,
       price: item.price,
       amount: item.amount,
@@ -488,9 +491,10 @@ export default function SalesReturnIqdPage() {
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
                   <TableHead className="text-primary-foreground text-center w-12">#</TableHead>
-                  <TableHead className="text-primary-foreground min-w-[200px]">{t('Product')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[120px]">{t('Product Code')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[90px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground min-w-[140px]">{t('Product')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[150px]">{t('Product Code')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[80px]">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px]">{t('Amount')}</TableHead>
@@ -553,6 +557,17 @@ export default function SalesReturnIqdPage() {
                           <span className="text-lg font-bold">+</span>
                         </Button>
                       </div>
+                    </TableCell>
+                    <TableCell className="p-1">
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={item.gift}
+                        onChange={(e) => updateItem(index, "gift", e.target.value)}
+                        className="h-9 text-sm text-center w-16"
+                        data-testid={`input-return-iqd-gift-${index}`}
+                      />
                     </TableCell>
                     <TableCell className="p-1">
                       <Select
