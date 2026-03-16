@@ -717,6 +717,7 @@ export const companyProfile = pgTable("company_profile", {
   instagramLink: text("instagram_link").notNull().default(""),
   tiktokLink: text("tiktok_link").notNull().default(""),
   snapchatLink: text("snapchat_link").notNull().default(""),
+  linkTitle: text("link_title").notNull().default(""),
 });
 
 export const insertCompanyProfileSchema = createInsertSchema(companyProfile).omit({ id: true });

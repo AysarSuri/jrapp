@@ -72,6 +72,7 @@ type CompanyProfileData = {
   qrAddress: string;
   primaryColor: string;
   secondaryColor: string;
+  linkTitle: string;
 };
 
 interface SalesReturnReportProps {
@@ -276,6 +277,11 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10, position: "relative", zIndex: 1 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+              </div>
+            )}
+            {companyProfile?.linkTitle && (
+              <div style={{ textAlign: isRtl ? "left" : "right", marginBottom: 4, position: "relative", zIndex: 1, fontSize: "10pt", fontWeight: 600, color: fieldColor }}>
+                {companyProfile.linkTitle}
               </div>
             )}
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1 }}>

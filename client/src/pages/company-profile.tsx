@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Save, Upload, Trash2, Phone, Briefcase, Image, Stamp, Palette, Navigation, Globe } from "lucide-react";
+import { Save, Upload, Trash2, Phone, Briefcase, Image, Stamp, Palette, Navigation, Globe, Link2 } from "lucide-react";
 import { IconCompany, IconBarcode, IconAddress } from "@/components/erp-icons";
 import { SiFacebook, SiInstagram, SiTiktok, SiSnapchat } from "react-icons/si";
 import type { CompanyProfile } from "@shared/schema";
@@ -77,6 +77,7 @@ export default function CompanyProfilePage() {
     instagramLink: "",
     tiktokLink: "",
     snapchatLink: "",
+    linkTitle: "",
   });
 
   useEffect(() => {
@@ -99,6 +100,7 @@ export default function CompanyProfilePage() {
         instagramLink: profile.instagramLink || "",
         tiktokLink: profile.tiktokLink || "",
         snapchatLink: profile.snapchatLink || "",
+        linkTitle: profile.linkTitle || "",
       });
     }
   }, [profile]);
@@ -349,6 +351,19 @@ export default function CompanyProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="linkTitle" className="flex items-center gap-1.5">
+                  <Link2 className="w-3.5 h-3.5" />
+                  {t('Link Title')}
+                </Label>
+                <Input
+                  id="linkTitle"
+                  value={form.linkTitle}
+                  onChange={(e) => setForm((p) => ({ ...p, linkTitle: e.target.value }))}
+                  placeholder={t('Link Title') + '...'}
+                  data-testid="input-link-title"
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="gpsLocation" className="flex items-center gap-1.5">
                   <Navigation className="w-3.5 h-3.5" />
