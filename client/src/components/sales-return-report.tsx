@@ -282,7 +282,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
             <div className="header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
               {companyProfile?.qrAddress && (
                 <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 80, height: 80 }} />
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 60, height: 60 }} />
                   {companyProfile?.linkTitle && (
                     <span style={{ fontSize: "7pt", fontWeight: 600, color: fieldColor, textAlign: "center", maxWidth: 90, wordBreak: "break-word" }}>
                       {companyProfile.linkTitle}
