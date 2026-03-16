@@ -51,7 +51,7 @@ const emptyItem = (): ReturnItem => ({
   productCode: "",
   productName: "",
   quantity: "",
-  gift: "0",
+  gift: "",
   unit: "",
   price: "",
   amount: "0",
@@ -149,7 +149,7 @@ export default function SalesReturnIqdPage() {
   }, []);
 
   const selectProduct = useCallback((index: number, productId: string) => {
-    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", gift: "0", weight: "0", amount: "0" }; return u; }); return; }
+    if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", gift: "", weight: "0", amount: "0" }; return u; }); return; }
     const product = products?.find(p => p.id === parseInt(productId));
     if (!product) return;
     setItems(prev => {
@@ -493,7 +493,7 @@ export default function SalesReturnIqdPage() {
                   <TableHead className="text-primary-foreground text-center w-12">#</TableHead>
                   <TableHead className="text-primary-foreground min-w-[140px]">{t('Product')}</TableHead>
                   <TableHead className="text-primary-foreground w-[150px]">{t('Product Code')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[120px]">{t('Quantity')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[150px]">{t('Quantity')}</TableHead>
                   <TableHead className="text-primary-foreground w-[80px]">{t('Gift')}</TableHead>
                   <TableHead className="text-primary-foreground w-[100px]">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px]">{t('Selling Price')}</TableHead>
@@ -541,7 +541,7 @@ export default function SalesReturnIqdPage() {
                           min="0"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                          className="h-9 text-sm text-center w-14"
+                          className="h-9 text-sm text-center w-20"
                           data-testid={`input-return-iqd-quantity-${index}`}
                         />
                         <Button
