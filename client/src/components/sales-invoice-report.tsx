@@ -307,9 +307,16 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
               </div>
             )}
-            {companyProfile?.linkTitle && (
-              <div style={{ textAlign: isRtl ? "left" : "right", marginBottom: 4, position: "relative", zIndex: 1, fontSize: "10pt", fontWeight: 600, color: fieldColor }}>
-                {companyProfile.linkTitle}
+            {(companyProfile?.linkTitle || companyProfile?.qrAddress) && (
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: isRtl ? "flex-start" : "flex-end", gap: 8, marginBottom: 4, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
+                {companyProfile?.qrAddress && (
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 70, height: 70 }} />
+                )}
+                {companyProfile?.linkTitle && (
+                  <span style={{ fontSize: "10pt", fontWeight: 600, color: fieldColor, paddingTop: 2 }}>
+                    {companyProfile.linkTitle}
+                  </span>
+                )}
               </div>
             )}
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1 }}>
