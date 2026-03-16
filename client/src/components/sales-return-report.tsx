@@ -279,7 +279,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
               </div>
             )}
-            <div className="header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1, direction: isRtl ? "rtl" : "ltr" }}>
+            <div className="header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1 }}>
               {companyProfile?.qrAddress && (
                 <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(companyProfile.qrAddress)}`} alt="QR" style={{ width: 60, height: 60 }} />
