@@ -206,7 +206,7 @@ export default function PurchaseInvoiceIqdPage() {
   const totalExpenses = (parseFloat(carExpense || "0") + parseFloat(customsExpense || "0") + parseFloat(otherExpenses || "0"));
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
-  const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
+  const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0") + parseFloat(i.gift || "0"), 0);
   const totalWeight = items.reduce((sum, i) => sum + (parseFloat(i.weight || "0") * parseFloat(i.quantity || "0")), 0);
   const discountVal = parseFloat(discount || "0");
   const amountPaidVal = parseFloat(amountPaid || "0");
