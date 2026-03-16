@@ -44,6 +44,7 @@ interface ReturnItem {
   unit: string;
   price: string;
   amount: string;
+  weight: string;
 }
 
 const emptyItem = (): ReturnItem => ({
@@ -55,6 +56,7 @@ const emptyItem = (): ReturnItem => ({
   unit: "",
   price: "",
   amount: "0",
+  weight: "0",
 });
 
 export default function SalesReturnUsdPage() {
@@ -135,6 +137,7 @@ export default function SalesReturnUsdPage() {
   const subtotal = items.reduce((sum, item) => sum + parseFloat(item.amount || "0"), 0);
   const totalItems = items.filter(i => i.productCode && parseFloat(i.quantity || "0") > 0).length;
   const totalQuantity = items.reduce((sum, i) => sum + parseFloat(i.quantity || "0"), 0);
+  const totalWeight = items.reduce((sum, i) => sum + parseFloat(i.weight || "0"), 0);
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - amountPaidVal;
 
@@ -147,9 +150,16 @@ export default function SalesReturnUsdPage() {
         const prc = parseFloat(field === "price" ? value : updated[index].price || "0");
         updated[index].amount = (qty * prc).toFixed(2);
       }
+      if (field === "quantity" || field === "gift") {
+        const prod = products?.find(p => p.id === updated[index].productId);
+        const unitWeight = parseFloat(prod?.weight || "0");
+        const qty = parseFloat(field === "quantity" ? value : updated[index].quantity || "0");
+        const gift = parseFloat(field === "gift" ? value : updated[index].gift || "0");
+        updated[index].weight = ((qty + gift) * unitWeight).toFixed(2);
+      }
       return updated;
     });
-  }, []);
+  }, [products]);
 
   const selectProduct = useCallback((index: number, productId: string) => {
     if (!productId) { setItems(prev => { const u = [...prev]; u[index] = { ...u[index], productId: null, productCode: "", productName: "", unit: "", price: "0", gift: "", weight: "0", amount: "0" }; return u; }); return; }
@@ -157,6 +167,9 @@ export default function SalesReturnUsdPage() {
     if (!product) return;
     setItems(prev => {
       const updated = [...prev];
+      const qty = parseFloat(updated[index].quantity || "0");
+      const gift = parseFloat(updated[index].gift || "0");
+      const unitWeight = parseFloat(product.weight || "0");
       updated[index] = {
         ...updated[index],
         productId: product.id,
@@ -164,8 +177,8 @@ export default function SalesReturnUsdPage() {
         productName: getProductName(product),
         unit: product.bigUnit,
         price: product.bigUnitPriceUsd,
+        weight: ((qty + gift) * unitWeight).toFixed(2),
       };
-      const qty = parseFloat(updated[index].quantity || "0");
       updated[index].amount = (qty * parseFloat(product.bigUnitPriceUsd)).toFixed(2);
       const lastRow = updated[updated.length - 1];
       if (lastRow.productId !== null) {
@@ -699,7 +712,7 @@ export default function SalesReturnUsdPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-border/50 shadow-sm">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Products')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-return-total-items">{totalItems}</p>
@@ -707,6 +720,10 @@ export default function SalesReturnUsdPage() {
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Quantity')}</p>
                 <p className="text-3xl font-bold text-primary" data-testid="text-return-total-quantity">{totalQuantity}</p>
+              </div>
+              <div className="rounded-lg border p-4 text-center">
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
+                <p className="text-3xl font-bold text-primary" data-testid="text-return-total-weight">{totalWeight}</p>
               </div>
             </div>
           </CardContent>
