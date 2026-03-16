@@ -546,9 +546,6 @@ export default function CustomerReceiptUsdPage() {
                     <TableHead>{t('Source')}</TableHead>
                     <TableHead>{t('Amount')}</TableHead>
                     <TableHead>{t('Discount')}</TableHead>
-                    <TableHead>{t('Opening Balance')}</TableHead>
-                    <TableHead>{t('Remaining')}</TableHead>
-                    <TableHead>{t('Reference')}</TableHead>
                     <TableHead>{t('Notes')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
@@ -570,13 +567,6 @@ export default function CustomerReceiptUsdPage() {
                       <TableCell className="font-mono text-sm text-green-600">
                         {parseFloat(r.discount) > 0 ? usd(r.discount) : "-"}
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {usd(r.oldDebt)}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-emerald-600">
-                        {usd(r.remaining)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{r.reference || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.note || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
