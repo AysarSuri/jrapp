@@ -290,7 +290,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f1f5f9", direction: isRtl ? "rtl" : "ltr" }}>
                   <span style={{ fontSize: "11pt", fontWeight: 600, color: "#16a34a" }}>{t("Payment")}</span>
-                  <span style={{ fontSize: "12pt", fontWeight: 700, fontFamily: "monospace", color: "#16a34a" }}>-{fmtCurrency(amount)}</span>
+                  <span style={{ fontSize: "12pt", fontWeight: 700, fontFamily: "monospace", color: "#16a34a" }}>{fmtCurrency(amount)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0 4px", borderTop: `2px solid ${primaryColor}`, marginTop: 6, direction: isRtl ? "rtl" : "ltr" }}>
                   <span style={{ fontSize: "13pt", fontWeight: 800, color: closingBalance > 0 ? "#dc2626" : "#16a34a" }}>{t("Total Balance")}</span>
