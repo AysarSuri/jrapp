@@ -26,7 +26,7 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star, Shuffle } from "lucide-react";
 import { IconProduct, IconDollar } from "@/components/erp-icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
@@ -150,6 +150,15 @@ export default function ProductsPage() {
   const cancelEdit = () => {
     setEditingProduct(null);
     form.reset(defaultValues);
+  };
+
+  const generateRandomBarcode = () => {
+    const existingBarcodes = new Set((productsList || []).map(p => p.barcode));
+    let barcode = "";
+    do {
+      barcode = String(Math.floor(1000000000000 + Math.random() * 9000000000000));
+    } while (existingBarcodes.has(barcode));
+    form.setValue("barcode", barcode);
   };
 
   const onSubmit = (values: FormValues) => {
@@ -666,7 +675,12 @@ export default function ProductsPage() {
                 <FormField control={form.control} name="barcode" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Barcode')}</FormLabel>
-                    <FormControl><Input placeholder="SCAN-123" className="h-11 text-base font-semibold" {...field} data-testid="input-barcode" /></FormControl>
+                    <div className="flex gap-1">
+                      <FormControl><Input placeholder="SCAN-123" className="h-11 text-base font-semibold" {...field} data-testid="input-barcode" /></FormControl>
+                      <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={generateRandomBarcode} title={t("Generate Barcode")} data-testid="button-generate-barcode">
+                        <Shuffle className="w-5 h-5" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )} />
