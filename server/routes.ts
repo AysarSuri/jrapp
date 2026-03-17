@@ -4105,6 +4105,16 @@ export async function registerRoutes(
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} < ${fromDate} AND ${salesInvoices.currency} = 'IQD'`);
       openingBalanceIqd += parseFloat(priorInvoicesIqd[0]?.total || "0");
 
+      const priorPaymentsUsd = await db.select({ total: sql<string>`COALESCE(SUM(${agentPayments.amount}::numeric), 0)` })
+        .from(agentPayments)
+        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.date} < ${fromDate} AND ${agentPayments.currency} = 'USD'`);
+      openingBalanceUsd += parseFloat(priorPaymentsUsd[0]?.total || "0");
+
+      const priorPaymentsIqd = await db.select({ total: sql<string>`COALESCE(SUM(${agentPayments.amount}::numeric), 0)` })
+        .from(agentPayments)
+        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.date} < ${fromDate} AND ${agentPayments.currency} = 'IQD'`);
+      openingBalanceIqd += parseFloat(priorPaymentsIqd[0]?.total || "0");
+
       const priorReturnsUsd = await db.select({ total: sql<string>`COALESCE(SUM(${salesReturns.remaining}::numeric), 0)` })
         .from(salesReturns)
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'USD'`);
@@ -4115,6 +4125,16 @@ export async function registerRoutes(
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'IQD'`);
       openingBalanceIqd -= parseFloat(priorReturnsIqd[0]?.total || "0");
 
+      const priorReceiptDiscountUsd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+        .from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'USD'`);
+      openingBalanceUsd -= parseFloat(priorReceiptDiscountUsd[0]?.total || "0");
+
+      const priorReceiptDiscountIqd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+        .from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'IQD'`);
+      openingBalanceIqd -= parseFloat(priorReceiptDiscountIqd[0]?.total || "0");
+
       const invoices = await db.select().from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
         .orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
@@ -4122,6 +4142,14 @@ export async function registerRoutes(
       const returns = await db.select().from(salesReturns)
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`)
         .orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
+
+      const payments = await db.select().from(agentPayments)
+        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.date} >= ${fromDate} AND ${agentPayments.date} <= ${toDate}`)
+        .orderBy(sql`${agentPayments.date} ASC, ${agentPayments.time} ASC`);
+
+      const receipts = await db.select().from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} >= ${fromDate} AND ${customerReceipts.date} <= ${toDate}`)
+        .orderBy(sql`${customerReceipts.date} ASC, ${customerReceipts.time} ASC`);
 
       type CustomerStatementEntry = {
         id: number;
@@ -4167,6 +4195,40 @@ export async function registerRoutes(
             currency: ret.currency,
             debit: 0,
             credit: remaining,
+          });
+        }
+      }
+
+      for (const pay of payments) {
+        const amount = parseFloat(pay.amount || "0");
+        if (amount !== 0) {
+          entries.push({
+            id: pay.id,
+            date: pay.date,
+            time: pay.time || "00:00",
+            type: "agent_payment",
+            description: `${pay.paymentNumber} - ${pay.paymentSourceName || ""}`,
+            reference: pay.paymentNumber,
+            currency: pay.currency,
+            debit: amount,
+            credit: 0,
+          });
+        }
+      }
+
+      for (const rec of receipts) {
+        const discount = parseFloat(rec.discount || "0");
+        if (discount !== 0) {
+          entries.push({
+            id: rec.id,
+            date: rec.date,
+            time: rec.time || "00:00",
+            type: "customer_receipt_discount",
+            description: `${rec.receiptNumber} - ${rec.paymentSourceName || ""}`,
+            reference: rec.receiptNumber,
+            currency: rec.currency,
+            debit: 0,
+            credit: discount,
           });
         }
       }
