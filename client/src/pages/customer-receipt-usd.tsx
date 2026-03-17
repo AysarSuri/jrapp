@@ -122,6 +122,23 @@ export default function CustomerReceiptUsdPage() {
 
   const selectedCustomer = customers?.find(c => c.id === parseInt(customerId));
 
+  const { data: currentBalance, isLoading: balanceLoading } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", customerId, "current", "USD"],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId,
+        date: "2099-12-31",
+        time: "23:59",
+        currency: "USD",
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!customerId,
+    staleTime: 0,
+  });
+
   const resetForm = () => {
     setEditReceipt(null);
     setReceiptNumber("");
@@ -482,13 +499,13 @@ export default function CustomerReceiptUsdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt USD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    {usd(selectedCustomer.oldDebtUsd)}
+                    {balanceLoading ? "..." : usd(currentBalance?.openingBalance ?? 0)}
                   </p>
                   {totalDeducted > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Receipt')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {usd((parseFloat(selectedCustomer.oldDebtUsd) - totalDeducted))}
+                        {balanceLoading ? "..." : usd((currentBalance?.openingBalance ?? 0) - totalDeducted)}
                       </p>
                     </>
                   )}

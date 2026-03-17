@@ -113,6 +113,23 @@ export default function CustomerReceiptIqdPage() {
 
   const selectedCustomer = customers?.find(c => c.id === parseInt(customerId));
 
+  const { data: currentBalance, isLoading: balanceLoading } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", customerId, "current", "IQD"],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId,
+        date: "2099-12-31",
+        time: "23:59",
+        currency: "IQD",
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!customerId,
+    staleTime: 0,
+  });
+
   const resetForm = () => {
     setEditReceipt(null);
     setReceiptNumber("");
@@ -484,13 +501,13 @@ export default function CustomerReceiptIqdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt IQD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    {formatIQD(parseFloat(selectedCustomer.oldDebtIqd))}
+                    {balanceLoading ? "..." : formatIQD(currentBalance?.openingBalance ?? 0)}
                   </p>
                   {totalDeducted > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Receipt')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {formatIQD(parseFloat(selectedCustomer.oldDebtIqd) - totalDeducted)}
+                        {balanceLoading ? "..." : formatIQD((currentBalance?.openingBalance ?? 0) - totalDeducted)}
                       </p>
                     </>
                   )}
