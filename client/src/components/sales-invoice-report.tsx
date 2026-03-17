@@ -378,27 +378,6 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                   <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{invoice.representativeMobile}</span>
                 </div>
               )}
-              {invoice.driverName && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Driver Name")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{invoice.driverName}</span>
-                </div>
-              )}
-              {invoice.driverMobile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Driver Mobile")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{invoice.driverMobile}</span>
-                </div>
-              )}
-              {invoice.vehicleNumber && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2"/><path d="M9 17H15"/><path d="M14 6h-4v5h9"/></svg>
-                  <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Vehicle Number")}:</span>
-                  <span style={{ fontWeight: 500, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b" }}>{invoice.vehicleNumber}</span>
-                </div>
-              )}
               {invoice.note && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", gridColumn: "1 / -1" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
