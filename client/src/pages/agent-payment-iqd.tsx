@@ -291,7 +291,6 @@ export default function AgentPaymentIqdPage() {
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:9pt;">${p.agentName}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${p.paymentSourceName}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#c2410c;font-size:9pt;">${amt.toLocaleString()} IQD</td>
-        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;">${p.reference || "-"}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;max-width:180px;">${p.note || "-"}</td>
       </tr>`;
     }).join("");
@@ -336,7 +335,6 @@ export default function AgentPaymentIqdPage() {
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Source")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Reference")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Notes")}</th>
             </tr>
           </thead>
@@ -345,7 +343,7 @@ export default function AgentPaymentIqdPage() {
             <tr style="background:#f1f5f9;font-weight:800;">
               <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#c2410c;text-align:${isRtl ? "left" : "right"};">${totalAmount.toLocaleString()} IQD</td>
-              <td colspan="2"></td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
