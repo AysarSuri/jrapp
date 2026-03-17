@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ArrowLeft, Eye } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ArrowLeft, Eye, Printer } from "lucide-react";
 import { useLocation } from "wouter";
 import { IconDinar, IconOffice, IconBank } from "@/components/erp-icons";
 import {
@@ -26,10 +26,18 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import CustomerReceiptReport from "@/components/customer-receipt-report";
 import { formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
+
+type CompanyProfileData = {
+  id: number; name: string; address: string; mobile1: string; mobile2: string;
+  businessType: string; logo: string | null; cliche: string | null; stamp: string | null;
+  qrAddress: string; primaryColor: string; secondaryColor: string;
+};
 
 export default function CustomerReceiptIqdPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const { data: receipts, isLoading: receiptsLoading } = useCustomerReceipts();
   const { mutate: createReceipt, isPending: isSaving } = useCreateCustomerReceipt();
   const { mutate: updateReceipt, isPending: isUpdating } = useUpdateCustomerReceipt();
@@ -50,6 +58,10 @@ export default function CustomerReceiptIqdPage() {
 
   const { data: nextNumber } = useQuery<{ receiptNumber: string }>({
     queryKey: ["/api/customer-receipts/next-number"],
+  });
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
   });
 
   const [receiptNumber, setReceiptNumber] = useState("");
@@ -259,6 +271,98 @@ export default function CustomerReceiptIqdPage() {
   const totalDeducted = parseFloat(amount || "0") + parseFloat(discount || "0");
 
   const [, navigate] = useLocation();
+
+  const handlePrintList = () => {
+    const selectedCust = historyFilter && historyFilter !== "all"
+      ? customers?.find(c => c.id === parseInt(historyFilter))
+      : null;
+    const totalAmount = filteredReceipts.reduce((s, r) => s + parseFloat(r.amount || "0"), 0);
+    const totalDiscount = filteredReceipts.reduce((s, r) => s + parseFloat(r.discount || "0"), 0);
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: companyProfile?.primaryColor || "#1e293b", accentTextColor: "#ffffff" });
+    const primaryColor = companyProfile?.primaryColor || "#1e293b";
+
+    const rows = filteredReceipts.map((r, i) => `
+      <tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${i + 1}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:10pt;">${r.receiptNumber || "-"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${formatDate(r.date)}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:10pt;">${r.time || "-"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:10pt;">${r.customerName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:10pt;">${r.paymentSourceName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#c2410c;font-size:10pt;">${parseFloat(r.amount || "0").toLocaleString()} IQD</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;color:#16a34a;font-size:10pt;">${parseFloat(r.discount || "0") > 0 ? parseFloat(r.discount).toLocaleString() + " IQD" : "-"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:9pt;color:#64748b;max-width:150px;">${r.note || "-"}</td>
+      </tr>
+    `).join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Customer Receipt IQD")} - ${t("Receipt History")}</title>
+        <style>
+          ${printStyles}
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+          @media print { body { padding: 10px; } }
+        </style>
+      </head>
+      <body>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;" />` : ""}
+            <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;">
+              <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Receipt IQD")} - ${t("Receipt History")}</h1>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:24px;font-size:11pt;color:#555;font-weight:600;flex-wrap:wrap;">
+            ${selectedCust ? `<span>${t("Customer Name")}: <strong style="color:${primaryColor}">${selectedCust.name}</strong></span>` : `<span>${t("All Customers")}</span>`}
+            <span>${t("From Date")}: <strong>${formatDate(historyFromDate)}</strong></span>
+            <span>${t("To Date")}: <strong>${formatDate(historyToDate)}</strong></span>
+            <span>${t("Count")}: <strong>${filteredReceipts.length}</strong></span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:${primaryColor};color:#fff;">
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Receipt Number")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Source")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Discount")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Notes")}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr style="background:#f1f5f9;font-weight:800;">
+              <td colspan="6" style="padding:10px;font-size:11pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#c2410c;text-align:${isRtl ? "left" : "right"};">${totalAmount.toLocaleString()} IQD</td>
+              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#16a34a;text-align:${isRtl ? "left" : "right"};">${totalDiscount > 0 ? totalDiscount.toLocaleString() + " IQD" : "-"}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="text-align:center;margin-top:16px;font-size:9pt;color:#94a3b8;">
+          ${companyProfile?.name || ""} ${companyProfile?.mobile1 ? " | " + companyProfile.mobile1 : ""}
+        </div>
+      </body>
+      </html>
+    `;
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    if (w.document.fonts?.ready) {
+      w.document.fonts.ready.then(() => setTimeout(() => w.print(), 200));
+    } else {
+      setTimeout(() => w.print(), 800);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -525,6 +629,10 @@ export default function CustomerReceiptIqdPage() {
               <ListOrdered className="h-5 w-5 text-orange-600" />
               {t('Receipt History')}
               <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
+              <Button variant="outline" size="sm" onClick={handlePrintList} disabled={filteredReceipts.length === 0} className="ml-2 gap-1" data-testid="button-print-receipt-list">
+                <Printer className="h-4 w-4" />
+                {t('Print List')}
+              </Button>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
