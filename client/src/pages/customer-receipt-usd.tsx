@@ -280,19 +280,27 @@ export default function CustomerReceiptUsdPage() {
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: companyProfile?.primaryColor || "#1e293b", accentTextColor: "#ffffff" });
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
 
-    const rows = filteredReceipts.map((r, i) => `
+    const totalNet = filteredReceipts.reduce((s, r) => s + parseFloat(r.amount || "0") + parseFloat(r.discount || "0"), 0);
+
+    const rows = filteredReceipts.map((r, i) => {
+      const amt = parseFloat(r.amount || "0");
+      const disc = parseFloat(r.discount || "0");
+      const net = amt + disc;
+      return `
       <tr>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${i + 1}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:10pt;">${r.receiptNumber || "-"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${formatDate(r.date)}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:10pt;">${r.time || "-"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:10pt;">${r.customerName}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:10pt;">${r.paymentSourceName}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#1e40af;font-size:10pt;">$${parseFloat(r.amount || "0").toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;color:#16a34a;font-size:10pt;">${parseFloat(r.discount || "0") > 0 ? "$" + parseFloat(r.discount).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:9pt;color:#64748b;max-width:150px;">${r.note || "-"}</td>
-      </tr>
-    `).join("");
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:9pt;">${r.receiptNumber || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(r.date)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">${r.time || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:9pt;">${r.customerName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${r.paymentSourceName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#1e40af;font-size:9pt;">$${amt.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;color:#16a34a;font-size:9pt;">${disc > 0 ? "$" + disc.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#7c3aed;font-size:9pt;">$${net.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;">${r.reference || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;max-width:180px;">${r.note || "-"}</td>
+      </tr>`;
+    }).join("");
 
     const html = `
       <!DOCTYPE html>
@@ -302,19 +310,22 @@ export default function CustomerReceiptUsdPage() {
         <title>${t("Customer Receipt USD")} - ${t("Receipt History")}</title>
         <style>
           ${printStyles}
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-          @media print { body { padding: 10px; } }
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
         </style>
       </head>
       <body>
-        <div style="text-align:center;margin-bottom:16px;">
+        <div style="text-align:center;margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;" />` : ""}
-            <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;">
-              <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Receipt USD")} - ${t("Receipt History")}</h1>
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;" />` : ""}
+            <div style="background:${primaryColor};color:#fff;padding:8px 20px;border-radius:8px;display:inline-block;">
+              <h1 style="font-size:15pt;margin:0;font-weight:800;">${t("Customer Receipt USD")} - ${t("Receipt History")}</h1>
             </div>
           </div>
-          <div style="display:flex;justify-content:center;gap:24px;font-size:11pt;color:#555;font-weight:600;flex-wrap:wrap;">
+          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
             ${selectedCust ? `<span>${t("Customer Name")}: <strong style="color:${primaryColor}">${selectedCust.name}</strong></span>` : `<span>${t("All Customers")}</span>`}
             <span>${t("From Date")}: <strong>${formatDate(historyFromDate)}</strong></span>
             <span>${t("To Date")}: <strong>${formatDate(historyToDate)}</strong></span>
@@ -324,34 +335,37 @@ export default function CustomerReceiptUsdPage() {
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
           <thead>
             <tr style="background:${primaryColor};color:#fff;">
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">#</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Receipt Number")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Date")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Time")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Customer Name")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Source")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Discount")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Notes")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Receipt Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Source")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Discount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Net Total")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Reference")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Notes")}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr style="background:#f1f5f9;font-weight:800;">
-              <td colspan="6" style="padding:10px;font-size:11pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
-              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#1e40af;text-align:${isRtl ? "left" : "right"};">$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
-              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#16a34a;text-align:${isRtl ? "left" : "right"};">${totalDiscount > 0 ? "$" + totalDiscount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
-              <td></td>
+              <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:${isRtl ? "left" : "right"};">$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#16a34a;text-align:${isRtl ? "left" : "right"};">${totalDiscount > 0 ? "$" + totalDiscount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#7c3aed;text-align:${isRtl ? "left" : "right"};">$${totalNet.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+              <td colspan="2"></td>
             </tr>
           </tfoot>
         </table>
-        <div style="text-align:center;margin-top:16px;font-size:9pt;color:#94a3b8;">
+        <div style="text-align:center;margin-top:12px;font-size:9pt;color:#94a3b8;">
           ${companyProfile?.name || ""} ${companyProfile?.mobile1 ? " | " + companyProfile.mobile1 : ""}
         </div>
       </body>
       </html>
     `;
-    const w = window.open("", "_blank", "width=900,height=700");
+    const w = window.open("", "_blank", "width=1200,height=700");
     if (!w) return;
     w.document.write(html);
     w.document.close();
