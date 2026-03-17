@@ -165,6 +165,23 @@ export default function AgentPaymentUsdPage() {
 
   const selectedAgent = customers?.find(c => c.id === parseInt(agentId));
 
+  const { data: currentBalance, isLoading: balanceLoading } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", agentId, "current", "USD"],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId: agentId,
+        date: "2099-12-31",
+        time: "23:59",
+        currency: "USD",
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!agentId,
+    staleTime: 0,
+  });
+
   const resetForm = () => {
     setPaymentNumber("");
     setAgentId("");
@@ -407,13 +424,13 @@ export default function AgentPaymentUsdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt USD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    {usd(selectedAgent.oldDebtUsd)}
+                    {balanceLoading ? "..." : usd(currentBalance?.openingBalance ?? 0)}
                   </p>
                   {amountVal > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {usd((parseFloat(selectedAgent.oldDebtUsd) - amountVal))}
+                        {balanceLoading ? "..." : usd((currentBalance?.openingBalance ?? 0) - amountVal)}
                       </p>
                     </>
                   )}

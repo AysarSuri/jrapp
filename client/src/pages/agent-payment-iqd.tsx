@@ -167,6 +167,23 @@ export default function AgentPaymentIqdPage() {
 
   const selectedAgent = customers?.find(c => c.id === parseInt(agentId));
 
+  const { data: currentBalance, isLoading: balanceLoading } = useQuery<{ openingBalance: number }>({
+    queryKey: ["/api/customer-opening-balance", agentId, "current", "IQD"],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        customerId: agentId,
+        date: "2099-12-31",
+        time: "23:59",
+        currency: "IQD",
+      });
+      const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!agentId,
+    staleTime: 0,
+  });
+
   const resetForm = () => {
     setPaymentNumber("");
     setAgentId("");
@@ -409,13 +426,13 @@ export default function AgentPaymentIqdPage() {
                 <div className="text-center space-y-2">
                   <p className="text-xs text-muted-foreground">{t('Current Debt IQD')}</p>
                   <p className="font-mono text-2xl font-bold text-red-600">
-                    {formatIQD(parseFloat(selectedAgent.oldDebtIqd))}
+                    {balanceLoading ? "..." : formatIQD(currentBalance?.openingBalance ?? 0)}
                   </p>
                   {amountVal > 0 && (
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {formatIQD(parseFloat(selectedAgent.oldDebtIqd) - amountVal)}
+                        {balanceLoading ? "..." : formatIQD((currentBalance?.openingBalance ?? 0) - amountVal)}
                       </p>
                     </>
                   )}
