@@ -22,6 +22,7 @@ import SalesInvoiceReport from "@/components/sales-invoice-report";
 import SalesReturnReport from "@/components/sales-return-report";
 import CustomerReceiptReport from "@/components/customer-receipt-report";
 import AgentPaymentReport from "@/components/agent-payment-report";
+import StatementEditDialog from "@/components/statement-edit-dialog";
 import type { CustomerReceipt, AgentPayment } from "@shared/schema";
 
 interface CompanyProfileData {
@@ -75,6 +76,8 @@ export default function AgentStatementUsdPage() {
   const [reportPayment, setReportPayment] = useState<AgentPayment | null>(null);
   const [reportPaymentOpen, setReportPaymentOpen] = useState(false);
   const [deleteEntry, setDeleteEntry] = useState<{ id: number; type: string; reference: string | null } | null>(null);
+  const [editEntry, setEditEntry] = useState<{ id: number; type: string; currency: string; reference: string | null } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data: clientsList } = useQuery<CustomerData[]>({
     queryKey: ["/api/clients"],
@@ -156,12 +159,8 @@ export default function AgentStatementUsdPage() {
   };
 
   const handleEdit = (entry: StatementEntry & { balance: number }) => {
-    let path = "";
-    if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}`;
-    else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}`;
-    else if (entry.type === "customer_receipt" || entry.type === "customer_receipt_discount") path = `/customer-receipt-${entry.currency.toLowerCase()}`;
-    else if (entry.type === "agent_payment") path = `/agent-payment-${entry.currency.toLowerCase()}`;
-    if (path) window.open(path, "_blank");
+    setEditEntry({ id: entry.id, type: entry.type, currency: entry.currency, reference: entry.reference });
+    setEditOpen(true);
   };
 
   const getDeleteApi = (type: string) => {
@@ -466,6 +465,7 @@ export default function AgentStatementUsdPage() {
       <SalesReturnReport returnId={reportReturnId} open={reportReturnOpen} onOpenChange={setReportReturnOpen} currency="USD" />
       <CustomerReceiptReport receipt={reportReceipt} open={reportReceiptOpen} onOpenChange={setReportReceiptOpen} />
       <AgentPaymentReport payment={reportPayment} open={reportPaymentOpen} onOpenChange={setReportPaymentOpen} />
+      <StatementEditDialog entry={editEntry} open={editOpen} onOpenChange={setEditOpen} />
 
       <AlertDialog open={!!deleteEntry} onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}>
         <AlertDialogContent>
