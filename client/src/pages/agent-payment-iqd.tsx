@@ -280,18 +280,21 @@ export default function AgentPaymentIqdPage() {
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: companyProfile?.primaryColor || "#1e293b", accentTextColor: "#ffffff" });
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
 
-    const rows = filteredPayments.map((p, i) => `
+    const rows = filteredPayments.map((p, i) => {
+      const amt = parseFloat(p.amount || "0");
+      return `
       <tr>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${i + 1}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:10pt;">${p.paymentNumber || "-"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${formatDate(p.date)}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:10pt;">${p.time || "-"}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:10pt;">${p.agentName}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:10pt;">${p.paymentSourceName}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#c2410c;font-size:10pt;">${parseFloat(p.amount || "0").toLocaleString()} IQD</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:9pt;color:#64748b;max-width:150px;">${p.note || "-"}</td>
-      </tr>
-    `).join("");
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:9pt;">${p.paymentNumber || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(p.date)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">${p.time || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:9pt;">${p.agentName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${p.paymentSourceName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#c2410c;font-size:9pt;">${amt.toLocaleString()} IQD</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;">${p.reference || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;max-width:180px;">${p.note || "-"}</td>
+      </tr>`;
+    }).join("");
 
     const html = `
       <!DOCTYPE html>
@@ -301,19 +304,22 @@ export default function AgentPaymentIqdPage() {
         <title>${t("Customer Payment IQD")} - ${t("Payment History")}</title>
         <style>
           ${printStyles}
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-          @media print { body { padding: 10px; } }
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
         </style>
       </head>
       <body>
-        <div style="text-align:center;margin-bottom:16px;">
+        <div style="text-align:center;margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;" />` : ""}
-            <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;">
-              <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Payment IQD")} - ${t("Payment History")}</h1>
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;" />` : ""}
+            <div style="background:${primaryColor};color:#fff;padding:8px 20px;border-radius:8px;display:inline-block;">
+              <h1 style="font-size:15pt;margin:0;font-weight:800;">${t("Customer Payment IQD")} - ${t("Payment History")}</h1>
             </div>
           </div>
-          <div style="display:flex;justify-content:center;gap:24px;font-size:11pt;color:#555;font-weight:600;flex-wrap:wrap;">
+          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
             ${selectedCustomer ? `<span>${t("Customer Name")}: <strong style="color:${primaryColor}">${selectedCustomer.name}</strong></span>` : `<span>${t("All Customers")}</span>`}
             <span>${t("From Date")}: <strong>${formatDate(historyFromDate)}</strong></span>
             <span>${t("To Date")}: <strong>${formatDate(historyToDate)}</strong></span>
@@ -323,32 +329,33 @@ export default function AgentPaymentIqdPage() {
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
           <thead>
             <tr style="background:${primaryColor};color:#fff;">
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">#</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Payment Number")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Date")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Time")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Customer Name")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Source")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
-              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Notes")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Payment Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Source")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Reference")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Notes")}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
           <tfoot>
             <tr style="background:#f1f5f9;font-weight:800;">
-              <td colspan="6" style="padding:10px;font-size:11pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
-              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#c2410c;text-align:${isRtl ? "left" : "right"};">${totalAmount.toLocaleString()} IQD</td>
-              <td></td>
+              <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#c2410c;text-align:${isRtl ? "left" : "right"};">${totalAmount.toLocaleString()} IQD</td>
+              <td colspan="2"></td>
             </tr>
           </tfoot>
         </table>
-        <div style="text-align:center;margin-top:16px;font-size:9pt;color:#94a3b8;">
+        <div style="text-align:center;margin-top:12px;font-size:9pt;color:#94a3b8;">
           ${companyProfile?.name || ""} ${companyProfile?.mobile1 ? " | " + companyProfile.mobile1 : ""}
         </div>
       </body>
       </html>
     `;
-    const w = window.open("", "_blank", "width=900,height=700");
+    const w = window.open("", "_blank", "width=1200,height=700");
     if (!w) return;
     w.document.write(html);
     w.document.close();
