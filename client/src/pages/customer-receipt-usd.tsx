@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ArrowLeft } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ArrowLeft, Eye } from "lucide-react";
 import { useLocation } from "wouter";
 import { IconDollar, IconOffice, IconBank } from "@/components/erp-icons";
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
+import CustomerReceiptReport from "@/components/customer-receipt-report";
 
 export default function CustomerReceiptUsdPage() {
   const { t } = useTranslation();
@@ -74,6 +75,8 @@ export default function CustomerReceiptUsdPage() {
   const pageSize = 10;
 
   const [editReceipt, setEditReceipt] = useState<CustomerReceipt | null>(null);
+  const [reportReceipt, setReportReceipt] = useState<CustomerReceipt | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [editCustomerId, setEditCustomerId] = useState("");
   const [editCustomerName, setEditCustomerName] = useState("");
   const [editPaymentSource, setEditPaymentSource] = useState("");
@@ -580,6 +583,15 @@ export default function CustomerReceiptUsdPage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            onClick={() => { setReportReceipt(r); setReportOpen(true); }}
+                            data-testid={`button-view-receipt-${r.id}`}
+                          >
+                            <Eye className="h-5 w-5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="text-orange-600"
                             onClick={() => openEdit(r)}
                             data-testid={`button-edit-receipt-${r.id}`}
@@ -747,6 +759,12 @@ export default function CustomerReceiptUsdPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CustomerReceiptReport
+        receipt={reportReceipt}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
     </div>
   );
 }
