@@ -129,15 +129,27 @@ export default function AgentStatementUsdPage() {
               <Label className="text-base font-bold mb-1 block">{t('To Date')}</Label>
               <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-statement-to-date" />
             </div>
-            {selectedCustomerId && statement && (
-              <div className="flex items-end">
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2">
-                  <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">{t('Opening Balance')}</p>
-                  <p className="font-mono text-base font-bold text-blue-700 dark:text-blue-300" data-testid="text-opening-balance">{usd(openingBalanceUsd)}</p>
-                </div>
-              </div>
-            )}
           </div>
+          {selectedCustomerId && statement && (
+            <div className="flex flex-wrap items-end gap-4 mt-4">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">{t('Opening Balance')}</p>
+                <p className="font-mono text-base font-bold text-blue-700 dark:text-blue-300" data-testid="text-opening-balance">{usd(openingBalanceUsd)}</p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-4 py-2">
+                <p className="text-xs text-red-600 dark:text-red-400 font-bold">{t('Total Debit')}</p>
+                <p className="font-mono text-base font-bold text-red-700 dark:text-red-300" data-testid="text-total-debit">{usd(totalDebit)}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-4 py-2">
+                <p className="text-xs text-green-600 dark:text-green-400 font-bold">{t('Total Credit')}</p>
+                <p className="font-mono text-base font-bold text-green-700 dark:text-green-300" data-testid="text-total-credit">{usd(totalCredit)}</p>
+              </div>
+              <div className={`rounded-lg px-4 py-2 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
+                <p className={`text-xs font-bold ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>{t('Remaining')}</p>
+                <p className={`font-mono text-base font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{usd(finalBalance)}</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -149,33 +161,6 @@ export default function AgentStatementUsdPage() {
 
       {selectedCustomerId && statement && !statementLoading && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Debit')}</p>
-                <p className="font-mono font-bold text-red-800 dark:text-red-300" data-testid="text-total-debit">
-                  {usd(totalDebit)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-green-700 dark:text-green-400 mb-1">{t('Total Credit')}</p>
-                <p className="font-mono font-bold text-green-800 dark:text-green-300" data-testid="text-total-credit">
-                  {usd(totalCredit)}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className={`bg-gradient-to-br ${finalBalance > 0 ? 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800' : 'from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
-              <CardContent className="pt-4 pb-3">
-                <p className={`text-xs mb-1 ${finalBalance > 0 ? 'text-red-700 dark:text-red-400' : finalBalance < 0 ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400'}`}>{t('Remaining with')} {finalBalance > 0 ? (statement?.customer?.name || "") : (companyProfile?.name || "")}</p>
-                <p className={`font-mono font-bold ${finalBalance > 0 ? 'text-red-800 dark:text-red-300' : finalBalance < 0 ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}`} data-testid="text-final-balance">
-                  {usd(Math.abs(finalBalance))}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card className="border-border/50 shadow-sm">
             <CardContent className="pt-6 overflow-x-auto">
               <Table>
