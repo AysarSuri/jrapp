@@ -131,6 +131,14 @@ export default function AgentStatementIqdPage() {
               <Label className="text-base font-bold mb-1 block">{t('To Date')}</Label>
               <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-statement-to-date" />
             </div>
+            {selectedCustomerId && statement && (
+              <div className="flex items-end">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">{t('Opening Balance')}</p>
+                  <p className="font-mono text-base font-bold text-blue-700 dark:text-blue-300" data-testid="text-opening-balance">{formatIQD(openingBalanceIqd)}</p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
