@@ -4133,8 +4133,8 @@ export async function registerRoutes(
       }
 
       for (const ret of returns) {
-        const subtotal = parseFloat(ret.subtotal || "0");
-        if (subtotal > 0) {
+        const remaining = parseFloat(ret.remaining || "0");
+        if (remaining !== 0) {
           entries.push({
             id: ret.id,
             date: ret.date,
@@ -4144,7 +4144,7 @@ export async function registerRoutes(
             reference: ret.returnNumber,
             currency: ret.currency,
             debit: 0,
-            credit: subtotal,
+            credit: remaining,
           });
         }
       }
