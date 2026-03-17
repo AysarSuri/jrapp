@@ -20,9 +20,6 @@ import { Save, Loader2, RotateCcw, ListOrdered, Percent, Pencil, Trash2, Chevron
 import { useLocation } from "wouter";
 import { IconDinar, IconOffice, IconBank } from "@/components/erp-icons";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
@@ -77,16 +74,6 @@ export default function CustomerReceiptIqdPage() {
   const [editReceipt, setEditReceipt] = useState<CustomerReceipt | null>(null);
   const [reportReceipt, setReportReceipt] = useState<CustomerReceipt | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
-  const [editCustomerId, setEditCustomerId] = useState("");
-  const [editCustomerName, setEditCustomerName] = useState("");
-  const [editPaymentSource, setEditPaymentSource] = useState("");
-  const [editPaymentSourceName, setEditPaymentSourceName] = useState("");
-  const [editAmount, setEditAmount] = useState("");
-  const [editDiscount, setEditDiscount] = useState("");
-  const [editNote, setEditNote] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
 
   if (nextNumber?.receiptNumber && !receiptNumber) {
     setReceiptNumber(nextNumber.receiptNumber);
@@ -127,6 +114,7 @@ export default function CustomerReceiptIqdPage() {
   const selectedCustomer = customers?.find(c => c.id === parseInt(customerId));
 
   const resetForm = () => {
+    setEditReceipt(null);
     setReceiptNumber("");
     setCustomerId("");
     setCustomerName("");
@@ -138,6 +126,31 @@ export default function CustomerReceiptIqdPage() {
     setReference("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
+  };
+
+  const openEdit = (r: CustomerReceipt) => {
+    setEditReceipt(r);
+    setReceiptNumber(r.receiptNumber || "");
+    setCustomerId(String(r.customerId));
+    setCustomerName(r.customerName);
+    const src = r.paymentSource || "";
+    if (src === "bank") {
+      const bank = banksList?.find(b => r.paymentSourceName?.includes(b.name));
+      setPaymentSource(bank ? `bank:${bank.id}` : src);
+    } else if (src === "transfer_office") {
+      const office = transferOfficesList?.find(o => r.paymentSourceName?.includes(o.name));
+      setPaymentSource(office ? `transfer_office:${office.id}` : src);
+    } else {
+      setPaymentSource(src);
+    }
+    setPaymentSourceName(r.paymentSourceName);
+    setAmount(r.amount);
+    setDiscount(r.discount);
+    setNote(r.note || "");
+    setReference(r.reference || "");
+    setDate(r.date);
+    setTime(r.time || "00:00");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSave = () => {
@@ -156,82 +169,52 @@ export default function CustomerReceiptIqdPage() {
       return;
     }
 
-    createReceipt({
-      receiptNumber,
-      customerId: parseInt(customerId),
-      customerName,
-      paymentSource: paymentSource.split(":")[0],
-      paymentSourceName,
-      amount: amount || "0",
-      discount: discount || "0",
-      currency: "IQD",
-      note: note || null,
-      reference: reference || null,
-      date,
-      time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Receipt saved successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Failed to save receipt"), variant: "destructive" });
-      },
-    });
-  };
-
-  const openEdit = (r: CustomerReceipt) => {
-    setEditReceipt(r);
-    setEditCustomerId(String(r.customerId));
-    setEditCustomerName(r.customerName);
-    setEditPaymentSource(r.paymentSource);
-    setEditPaymentSourceName(r.paymentSourceName);
-    setEditAmount(r.amount);
-    setEditDiscount(r.discount);
-    setEditNote(r.note || "");
-    setEditReference(r.reference || "");
-    setEditDate(r.date);
-    setEditTime(r.time || "00:00");
-  };
-
-  const handleUpdate = () => {
-    if (!editReceipt) return;
-    if (!editCustomerId) {
-      toast({ title: t("Please select a customer"), variant: "destructive" });
-      return;
+    if (editReceipt) {
+      updateReceipt({ id: editReceipt.id, data: {
+        customerId: parseInt(customerId),
+        customerName,
+        paymentSource: paymentSource.split(":")[0],
+        paymentSourceName,
+        amount: amount || "0",
+        discount: discount || "0",
+        currency: "IQD",
+        note: note || null,
+        reference: reference || null,
+        date,
+        time,
+      }}, {
+        onSuccess: () => {
+          toast({ title: t("Receipt updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to update receipt"), variant: "destructive" });
+        },
+      });
+    } else {
+      createReceipt({
+        receiptNumber,
+        customerId: parseInt(customerId),
+        customerName,
+        paymentSource: paymentSource.split(":")[0],
+        paymentSourceName,
+        amount: amount || "0",
+        discount: discount || "0",
+        currency: "IQD",
+        note: note || null,
+        reference: reference || null,
+        date,
+        time,
+      }, {
+        onSuccess: () => {
+          toast({ title: t("Receipt saved successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to save receipt"), variant: "destructive" });
+        },
+      });
     }
-    if (!editPaymentSource) {
-      toast({ title: t("Please select a payment source"), variant: "destructive" });
-      return;
-    }
-    const amountVal = parseFloat(editAmount || "0");
-    const discountVal = parseFloat(editDiscount || "0");
-    if (amountVal <= 0 && discountVal <= 0) {
-      toast({ title: t("Please enter an amount or discount"), variant: "destructive" });
-      return;
-    }
-
-    updateReceipt({ id: editReceipt.id, data: {
-      customerId: parseInt(editCustomerId),
-      customerName: editCustomerName,
-      paymentSource: editPaymentSource.split(":")[0],
-      paymentSourceName: editPaymentSourceName,
-      amount: editAmount || "0",
-      discount: editDiscount || "0",
-      currency: "IQD",
-      note: editNote || null,
-      reference: editReference || null,
-      date: editDate,
-      time: editTime,
-    }}, {
-      onSuccess: () => {
-        toast({ title: t("Receipt updated successfully") });
-        setEditReceipt(null);
-      },
-      onError: () => {
-        toast({ title: t("Failed to update receipt"), variant: "destructive" });
-      },
-    });
   };
 
   const handleDelete = (id: number) => {
@@ -287,7 +270,14 @@ export default function CustomerReceiptIqdPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-border/50 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
+            <CardTitle className="text-lg">
+              {editReceipt ? (
+                <span className="flex items-center gap-2">
+                  <Pencil className="h-5 w-5 text-orange-500" />
+                  {t('Edit Receipt')} #{editReceipt.receiptNumber}
+                </span>
+              ) : t('Receipt Details')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -468,17 +458,23 @@ export default function CustomerReceiptIqdPage() {
 
               <Button
                 onClick={handleSave}
-                disabled={isSaving || !customerId || !paymentSource}
-                className="w-full h-12 text-base gap-2 bg-orange-600 hover:bg-orange-700"
+                disabled={(editReceipt ? isUpdating : isSaving) || !customerId || !paymentSource}
+                className={`w-full h-12 text-base gap-2 ${editReceipt ? "bg-orange-600 hover:bg-orange-700" : "bg-orange-600 hover:bg-orange-700"}`}
                 data-testid="button-save-receipt"
               >
-                {isSaving ? (
+                {(editReceipt ? isUpdating : isSaving) ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                {t('Save Receipt')}
+                {editReceipt ? t('Update Receipt') : t('Save Receipt')}
               </Button>
+              {editReceipt && (
+                <Button variant="outline" onClick={resetForm} className="w-full h-10 gap-2 mt-2" data-testid="button-cancel-edit-receipt">
+                  <RotateCcw className="h-4 w-4" />
+                  {t('Cancel Edit')}
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -676,89 +672,6 @@ export default function CustomerReceiptIqdPage() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={!!editReceipt} onOpenChange={(open) => { if (!open) setEditReceipt(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t('Edit Receipt')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('Customer Name')}</Label>
-              <CustomerSearchSelect
-                customers={customers || []}
-                value={editCustomerId}
-                onValueChange={(id) => {
-                  setEditCustomerId(id);
-                  const customer = customers?.find(c => c.id === parseInt(id));
-                  if (customer) setEditCustomerName(customer.name);
-                }}
-                placeholder={t('Select customer...')}
-                data-testid="select-edit-receipt-customer"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} data-testid="input-edit-receipt-date" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Time')}</Label>
-                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} data-testid="input-edit-receipt-time" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Payment Source')}</Label>
-              <SearchSelect
-                items={[
-                  ...banks.map(b => ({ id: `bank:${b.id}`, name: b.name })),
-                  ...transferOffices.map(o => ({ id: `transfer_office:${o.id}`, name: o.name })),
-                ]}
-                value={editPaymentSource}
-                onValueChange={(v) => {
-                  if (!v) { setEditPaymentSource(""); setEditPaymentSourceName(""); return; }
-                  setEditPaymentSource(v);
-                  const [type, id] = v.split(":");
-                  if (type === "bank") {
-                    const bank = banksList?.find(b => b.id === parseInt(id));
-                    if (bank) setEditPaymentSourceName(`${t("Bank")} - ${bank.name}`);
-                  } else {
-                    const office = transferOfficesList?.find(o => o.id === parseInt(id));
-                    if (office) setEditPaymentSourceName(`${t("Transfer Office")} - ${office.name}`);
-                  }
-                }}
-                placeholder={t('Select payment source...')}
-                data-testid="select-edit-receipt-source"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('Amount')} (IQD)</Label>
-                <Input type="number" step="250" min="0" placeholder="0" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} data-testid="input-edit-receipt-amount" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Discount')} (IQD)</Label>
-                <Input type="number" step="250" min="0" placeholder="0" value={editDiscount} onChange={(e) => setEditDiscount(e.target.value)} data-testid="input-edit-receipt-discount" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Reference')}</Label>
-              <Input placeholder={t('Reference number...')} value={editReference} onChange={(e) => setEditReference(e.target.value)} data-testid="input-edit-receipt-reference" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('Notes')}</Label>
-              <Textarea placeholder={t('Notes...')} value={editNote} onChange={(e) => setEditNote(e.target.value)} className="resize-none" data-testid="input-edit-receipt-note" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditReceipt(null)} data-testid="button-cancel-edit-receipt">{t('Cancel')}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="gap-2 bg-orange-600 hover:bg-orange-700 text-white" data-testid="button-save-edit-receipt">
-              {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              {t('Save')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <CustomerReceiptReport
         receipt={reportReceipt}

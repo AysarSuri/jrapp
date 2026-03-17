@@ -1349,6 +1349,8 @@ const resources = {
       "Payment #": "Payment #",
       "Agent Payment Receipt - USD": "Agent Payment Receipt - USD",
       "Agent Payment Receipt - IQD": "Agent Payment Receipt - IQD",
+      "Update Receipt": "Update Receipt",
+      "Cancel Edit": "Cancel Edit",
     }
   },
   ar: {
@@ -2702,6 +2704,8 @@ const resources = {
       "Payment #": "رقم الدفع",
       "Agent Payment Receipt - USD": "وصل دفع المندوب - دولار",
       "Agent Payment Receipt - IQD": "وصل دفع المندوب - دينار",
+      "Update Receipt": "تحديث الوصل",
+      "Cancel Edit": "إلغاء التعديل",
     }
   },
   ckb: {
@@ -4042,6 +4046,8 @@ const resources = {
       "Payment #": "ژمارەی پارەدان",
       "Agent Payment Receipt - USD": "پسوولەی پارەدانی مەندووب - دۆلار",
       "Agent Payment Receipt - IQD": "پسوولەی پارەدانی مەندووب - دینار",
+      "Update Receipt": "نوێکردنەوەی وەرگرتن",
+      "Cancel Edit": "هەڵوەشاندنەوەی دەستکاری",
     }
   },
   tr: {
@@ -5394,6 +5400,8 @@ const resources = {
       "Payment #": "Ödeme No",
       "Agent Payment Receipt - USD": "Temsilci Ödeme Makbuzu - USD",
       "Agent Payment Receipt - IQD": "Temsilci Ödeme Makbuzu - IQD",
+      "Update Receipt": "Makbuzu Güncelle",
+      "Cancel Edit": "Düzenlemeyi İptal Et",
     }
   }
 };
