@@ -110,7 +110,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
     return `${fmt(val)} IQD`;
   };
 
-  const closingBalance = (openingBalance?.openingBalance ?? 0) - amount;
+  const closingBalance = (openingBalance?.openingBalance ?? 0) + amount;
 
   const handlePrint = () => {
     const content = printRef.current;
