@@ -22,6 +22,19 @@ export function useDeleteAgentPayment() {
   });
 }
 
+export function useUpdateAgentPayment() {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertAgentPayment> }) => {
+      const res = await apiRequest("PATCH", `/api/agent-payments/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/agent-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    },
+  });
+}
+
 export function useCreateAgentPayment() {
   return useMutation({
     mutationFn: async (data: InsertAgentPayment) => {

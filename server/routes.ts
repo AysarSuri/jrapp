@@ -3016,6 +3016,23 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/agent-payments/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { note, reference, date, time } = req.body;
+      const updateFields: Record<string, any> = {};
+      if (note !== undefined) updateFields.note = note;
+      if (reference !== undefined) updateFields.reference = reference;
+      if (date !== undefined) updateFields.date = date;
+      if (time !== undefined) updateFields.time = time;
+      const [updated] = await db.update(agentPayments).set(updateFields).where(eq(agentPayments.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Payment not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete('/api/agent-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);

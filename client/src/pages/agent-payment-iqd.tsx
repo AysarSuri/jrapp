@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useAgentPayments, useCreateAgentPayment, useDeleteAgentPayment } from "@/hooks/use-agent-payments";
+import { useAgentPayments, useCreateAgentPayment, useUpdateAgentPayment, useDeleteAgentPayment } from "@/hooks/use-agent-payments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search, Eye, Pencil } from "lucide-react";
 import { IconDinar, IconOffice, IconBank, IconAgent, IconExternalDebt } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import AgentPaymentReport from "@/components/agent-payment-report";
+import type { AgentPayment } from "@shared/schema";
 import { formatDate } from "@/lib/format-utils";
 
 export default function AgentPaymentIqdPage() {
@@ -31,6 +34,41 @@ export default function AgentPaymentIqdPage() {
   const { data: payments, isLoading: paymentsLoading } = useAgentPayments();
   const { mutate: createPayment, isPending: isSaving } = useCreateAgentPayment();
   const { mutate: deletePayment } = useDeleteAgentPayment();
+  const { mutate: updatePayment, isPending: isUpdating } = useUpdateAgentPayment();
+
+  const [reportPayment, setReportPayment] = useState<AgentPayment | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [editPayment, setEditPayment] = useState<AgentPayment | null>(null);
+  const [editNote, setEditNote] = useState("");
+  const [editReference, setEditReference] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  const openReport = (p: AgentPayment) => {
+    setReportPayment(p);
+    setReportOpen(true);
+  };
+
+  const openEdit = (p: AgentPayment) => {
+    setEditPayment(p);
+    setEditNote(p.note || "");
+    setEditReference(p.reference || "");
+    setEditDate(p.date);
+    setEditTime(p.time);
+  };
+
+  const handleUpdate = () => {
+    if (!editPayment) return;
+    updatePayment({ id: editPayment.id, data: { note: editNote || null, reference: editReference || null, date: editDate, time: editTime } as any }, {
+      onSuccess: () => {
+        toast({ title: t("Payment updated successfully") });
+        setEditPayment(null);
+      },
+      onError: () => {
+        toast({ title: t("Failed to update payment"), variant: "destructive" });
+      },
+    });
+  };
 
   const { data: allClients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -460,7 +498,13 @@ export default function AgentPaymentIqdPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
                         <TableCell>
-                          <div className="flex items-center justify-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button variant="ghost" size="icon" className="text-blue-600" onClick={() => openReport(p)} data-testid={`button-report-payment-${p.id}`}>
+                              <Eye className="h-5 w-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-orange-600" onClick={() => openEdit(p)} data-testid={`button-edit-payment-${p.id}`}>
+                              <Pencil className="h-5 w-5" />
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-red-600" data-testid={`button-delete-payment-${p.id}`}>
@@ -516,6 +560,43 @@ export default function AgentPaymentIqdPage() {
           )}
         </CardContent>
       </Card>
+
+      <AgentPaymentReport payment={reportPayment} open={reportOpen} onOpenChange={setReportOpen} />
+
+      <Dialog open={!!editPayment} onOpenChange={(open) => { if (!open) setEditPayment(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("Edit Payment")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-base font-bold">{t("Note")}</Label>
+              <Textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} className="h-20 text-base font-semibold" data-testid="input-edit-note" />
+            </div>
+            <div>
+              <Label className="text-base font-bold">{t("Reference")}</Label>
+              <Input value={editReference} onChange={(e) => setEditReference(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-reference" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-base font-bold">{t("Date")}</Label>
+                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-date" />
+              </div>
+              <div>
+                <Label className="text-base font-bold">{t("Time")}</Label>
+                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-time" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPayment(null)}>{t("Cancel")}</Button>
+            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-primary text-white" data-testid="button-save-edit">
+              {isUpdating ? <Loader2 className="w-5 h-5 mr-1 animate-spin" /> : <Save className="w-5 h-5 mr-1" />}
+              {t("Save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
