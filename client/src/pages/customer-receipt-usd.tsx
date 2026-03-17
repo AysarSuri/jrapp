@@ -280,12 +280,9 @@ export default function CustomerReceiptUsdPage() {
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: companyProfile?.primaryColor || "#1e293b", accentTextColor: "#ffffff" });
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
 
-    const totalNet = filteredReceipts.reduce((s, r) => s + parseFloat(r.amount || "0") + parseFloat(r.discount || "0"), 0);
-
     const rows = filteredReceipts.map((r, i) => {
       const amt = parseFloat(r.amount || "0");
       const disc = parseFloat(r.discount || "0");
-      const net = amt + disc;
       return `
       <tr>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
@@ -296,8 +293,6 @@ export default function CustomerReceiptUsdPage() {
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${r.paymentSourceName}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#1e40af;font-size:9pt;">$${amt.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;color:#16a34a;font-size:9pt;">${disc > 0 ? "$" + disc.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
-        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#7c3aed;font-size:9pt;">$${net.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
-        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;">${r.reference || "-"}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:8pt;color:#64748b;max-width:180px;">${r.note || "-"}</td>
       </tr>`;
     }).join("");
@@ -343,8 +338,6 @@ export default function CustomerReceiptUsdPage() {
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Source")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Discount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Net Total")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Reference")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Notes")}</th>
             </tr>
           </thead>
@@ -354,8 +347,7 @@ export default function CustomerReceiptUsdPage() {
               <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:${isRtl ? "left" : "right"};">$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#16a34a;text-align:${isRtl ? "left" : "right"};">${totalDiscount > 0 ? "$" + totalDiscount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : "-"}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#7c3aed;text-align:${isRtl ? "left" : "right"};">$${totalNet.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
-              <td colspan="2"></td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
