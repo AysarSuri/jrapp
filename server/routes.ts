@@ -4074,15 +4074,17 @@ export async function registerRoutes(
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'IQD'`);
       openingBalanceIqd -= parseFloat(priorReturnsIqd[0]?.total || "0");
 
-      const priorReceiptDiscountUsd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+      const priorReceiptUsd = await db.select({ totalAmt: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDisc: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
         .from(customerReceipts)
         .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'USD'`);
-      openingBalanceUsd -= parseFloat(priorReceiptDiscountUsd[0]?.total || "0");
+      openingBalanceUsd -= parseFloat(priorReceiptUsd[0]?.totalAmt || "0");
+      openingBalanceUsd -= parseFloat(priorReceiptUsd[0]?.totalDisc || "0");
 
-      const priorReceiptDiscountIqd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+      const priorReceiptIqd = await db.select({ totalAmt: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDisc: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
         .from(customerReceipts)
         .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'IQD'`);
-      openingBalanceIqd -= parseFloat(priorReceiptDiscountIqd[0]?.total || "0");
+      openingBalanceIqd -= parseFloat(priorReceiptIqd[0]?.totalAmt || "0");
+      openingBalanceIqd -= parseFloat(priorReceiptIqd[0]?.totalDisc || "0");
 
       const invoices = await db.select().from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
@@ -4166,7 +4168,21 @@ export async function registerRoutes(
       }
 
       for (const rec of receipts) {
+        const amount = parseFloat(rec.amount || "0");
         const discount = parseFloat(rec.discount || "0");
+        if (amount !== 0) {
+          entries.push({
+            id: rec.id,
+            date: rec.date,
+            time: rec.time || "00:00",
+            type: "customer_receipt",
+            description: `${rec.receiptNumber} - ${rec.paymentSourceName || ""}`,
+            reference: rec.receiptNumber,
+            currency: rec.currency,
+            debit: 0,
+            credit: amount,
+          });
+        }
         if (discount !== 0) {
           entries.push({
             id: rec.id,
