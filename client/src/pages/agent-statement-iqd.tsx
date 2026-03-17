@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -10,11 +11,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, Printer } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Loader2, Printer, Eye, Pencil, Trash2 } from "lucide-react";
 import { IconDinar } from "@/components/erp-icons";
 import { formatDate } from "@/lib/format-utils";
 import { DateInput } from "@/components/ui/date-input";
 import { getModernPrintStyles } from "@/lib/print-styles";
+import { useToast } from "@/hooks/use-toast";
+import SalesInvoiceReport from "@/components/sales-invoice-report";
+import SalesReturnReport from "@/components/sales-return-report";
+import CustomerReceiptReport from "@/components/customer-receipt-report";
+import AgentPaymentReport from "@/components/agent-payment-report";
+import type { CustomerReceipt, AgentPayment } from "@shared/schema";
 
 interface CompanyProfileData {
   id: number;
@@ -55,6 +63,18 @@ export default function AgentStatementIqdPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportInvoiceOpen, setReportInvoiceOpen] = useState(false);
+  const [reportReturnId, setReportReturnId] = useState<number | null>(null);
+  const [reportReturnOpen, setReportReturnOpen] = useState(false);
+  const [reportReceipt, setReportReceipt] = useState<CustomerReceipt | null>(null);
+  const [reportReceiptOpen, setReportReceiptOpen] = useState(false);
+  const [reportPayment, setReportPayment] = useState<AgentPayment | null>(null);
+  const [reportPaymentOpen, setReportPaymentOpen] = useState(false);
+  const [deleteEntry, setDeleteEntry] = useState<{ id: number; type: string; reference: string | null } | null>(null);
 
   const { data: clientsList } = useQuery<CustomerData[]>({
     queryKey: ["/api/clients"],
@@ -111,6 +131,62 @@ export default function AgentStatementIqdPage() {
     if (type === "customer_receipt_discount") return t('Receipt Discount');
     if (type === "discount") return t('Discount');
     return t('Payment');
+  };
+
+  const handleView = async (entry: StatementEntry & { balance: number }) => {
+    try {
+      if (entry.type === "sales_invoice") {
+        setReportInvoiceId(entry.id);
+        setReportInvoiceOpen(true);
+      } else if (entry.type === "sales_return") {
+        setReportReturnId(entry.id);
+        setReportReturnOpen(true);
+      } else if (entry.type === "customer_receipt" || entry.type === "customer_receipt_discount") {
+        const res = await fetch(`/api/customer-receipts`, { credentials: "include" });
+        if (!res.ok) throw new Error();
+        const all = await res.json();
+        const rec = all.find((r: any) => r.id === entry.id);
+        if (rec) { setReportReceipt(rec); setReportReceiptOpen(true); }
+      } else if (entry.type === "agent_payment") {
+        const res = await fetch(`/api/agent-payments`, { credentials: "include" });
+        if (!res.ok) throw new Error();
+        const all = await res.json();
+        const pay = all.find((p: any) => p.id === entry.id);
+        if (pay) { setReportPayment(pay); setReportPaymentOpen(true); }
+      }
+    } catch {
+      toast({ title: t("Failed to load data"), variant: "destructive" });
+    }
+  };
+
+  const handleEdit = (entry: StatementEntry & { balance: number }) => {
+    let path = "";
+    if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}`;
+    else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}`;
+    else if (entry.type === "customer_receipt" || entry.type === "customer_receipt_discount") path = `/customer-receipt-${entry.currency.toLowerCase()}`;
+    else if (entry.type === "agent_payment") path = `/agent-payment-${entry.currency.toLowerCase()}`;
+    if (path) window.open(path, "_blank");
+  };
+
+  const getDeleteApi = (type: string) => {
+    if (type === "sales_invoice") return "/api/sales-invoices";
+    if (type === "sales_return") return "/api/sales-returns";
+    if (type === "customer_receipt" || type === "customer_receipt_discount") return "/api/customer-receipts";
+    if (type === "agent_payment") return "/api/agent-payments";
+    return "";
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEntry) return;
+    try {
+      const api = getDeleteApi(deleteEntry.type);
+      await apiRequest("DELETE", `${api}/${deleteEntry.id}`);
+      toast({ title: t("Deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/customer-statement"] });
+    } catch (err: any) {
+      toast({ title: t("Failed to delete invoice"), description: err?.message, variant: "destructive" });
+    }
+    setDeleteEntry(null);
   };
 
   const handlePrint = () => {
@@ -311,6 +387,7 @@ export default function AgentStatementIqdPage() {
                     <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} (IQD)</TableHead>
                     <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} (IQD)</TableHead>
                     <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Cumulative Balance')} (IQD)</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -331,6 +408,7 @@ export default function AgentStatementIqdPage() {
                       <TableCell className="font-mono text-sm font-bold text-blue-600">
                         {formatIQD(openingBalanceIqd)}
                       </TableCell>
+                      <TableCell>-</TableCell>
                     </TableRow>
                   )}
                   {entriesWithBalance.map((entry, i) => (
@@ -350,11 +428,24 @@ export default function AgentStatementIqdPage() {
                       <TableCell className="font-mono text-sm font-bold text-blue-600">
                         {formatIQD(entry.balance)}
                       </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-800" onClick={() => handleView(entry)} data-testid={`button-view-${entry.type}-${entry.id}`}>
+                            <Eye className="w-5 h-5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-800" onClick={() => handleEdit(entry)} data-testid={`button-edit-${entry.type}-${entry.id}`}>
+                            <Pencil className="w-5 h-5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-800" onClick={() => setDeleteEntry({ id: entry.id, type: entry.type, reference: entry.reference })} data-testid={`button-delete-${entry.type}-${entry.id}`}>
+                            <Trash2 className="w-5 h-5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {iqdEntries.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No transactions found')}
                       </TableCell>
                     </TableRow>
@@ -365,6 +456,7 @@ export default function AgentStatementIqdPage() {
                       <TableCell className="font-mono text-sm font-bold text-red-700">{formatIQD(totalDebit)}</TableCell>
                       <TableCell className="font-mono text-sm font-bold text-green-700">{formatIQD(totalCredit)}</TableCell>
                       <TableCell className="font-mono text-sm font-bold text-blue-700">{formatIQD(finalBalance)}</TableCell>
+                      <TableCell />
                     </TableRow>
                   )}
                 </TableBody>
@@ -373,6 +465,26 @@ export default function AgentStatementIqdPage() {
           </Card>
         </>
       )}
+
+      <SalesInvoiceReport invoiceId={reportInvoiceId} open={reportInvoiceOpen} onOpenChange={setReportInvoiceOpen} currency="IQD" />
+      <SalesReturnReport returnId={reportReturnId} open={reportReturnOpen} onOpenChange={setReportReturnOpen} currency="IQD" />
+      <CustomerReceiptReport receipt={reportReceipt} open={reportReceiptOpen} onOpenChange={setReportReceiptOpen} />
+      <AgentPaymentReport payment={reportPayment} open={reportPaymentOpen} onOpenChange={setReportPaymentOpen} />
+
+      <AlertDialog open={!!deleteEntry} onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete invoice")} {deleteEntry?.reference ? `#${deleteEntry.reference}` : `#${deleteEntry?.id}`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 text-white hover:bg-red-700">{t("Delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
