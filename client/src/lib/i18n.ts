@@ -1343,6 +1343,12 @@ const resources = {
       "Failed to delete customs clearance": "Failed to delete customs clearance",
       "Delete Customs Clearance": "Delete Customs Clearance",
       "Are you sure you want to delete this customs clearance?": "Are you sure you want to delete this customs clearance?",
+      "Customer Receipt - USD": "Customer Receipt - USD",
+      "Customer Receipt - IQD": "Customer Receipt - IQD",
+      "Receipt #": "Receipt #",
+      "Payment #": "Payment #",
+      "Agent Payment Receipt - USD": "Agent Payment Receipt - USD",
+      "Agent Payment Receipt - IQD": "Agent Payment Receipt - IQD",
     }
   },
   ar: {
@@ -2690,6 +2696,12 @@ const resources = {
       "Failed to delete customs clearance": "فشل في حذف التخليص الجمركي",
       "Delete Customs Clearance": "حذف التخليص الجمركي",
       "Are you sure you want to delete this customs clearance?": "هل أنت متأكد من حذف هذا التخليص الجمركي؟",
+      "Customer Receipt - USD": "وصل قبض - دولار",
+      "Customer Receipt - IQD": "وصل قبض - دينار",
+      "Receipt #": "رقم الوصل",
+      "Payment #": "رقم الدفع",
+      "Agent Payment Receipt - USD": "وصل دفع المندوب - دولار",
+      "Agent Payment Receipt - IQD": "وصل دفع المندوب - دينار",
     }
   },
   ckb: {
@@ -4024,6 +4036,12 @@ const resources = {
       "Failed to delete customs clearance": "سڕینەوەی گومرگ سەرنەکەوت",
       "Delete Customs Clearance": "سڕینەوەی گومرگ",
       "Are you sure you want to delete this customs clearance?": "ئایا دڵنیایت لە سڕینەوەی ئەم گومرگە؟",
+      "Customer Receipt - USD": "پسوولەی وەرگرتن - دۆلار",
+      "Customer Receipt - IQD": "پسوولەی وەرگرتن - دینار",
+      "Receipt #": "ژمارەی پسوولە",
+      "Payment #": "ژمارەی پارەدان",
+      "Agent Payment Receipt - USD": "پسوولەی پارەدانی مەندووب - دۆلار",
+      "Agent Payment Receipt - IQD": "پسوولەی پارەدانی مەندووب - دینار",
     }
   },
   tr: {
@@ -5370,6 +5388,12 @@ const resources = {
       "Failed to delete customs clearance": "Gümrük müşaviri silinemedi",
       "Delete Customs Clearance": "Gümrük Müşavirini Sil",
       "Are you sure you want to delete this customs clearance?": "Bu gümrük müşavirini silmek istediğinizden emin misiniz?",
+      "Customer Receipt - USD": "Müşteri Makbuzu - USD",
+      "Customer Receipt - IQD": "Müşteri Makbuzu - IQD",
+      "Receipt #": "Makbuz No",
+      "Payment #": "Ödeme No",
+      "Agent Payment Receipt - USD": "Temsilci Ödeme Makbuzu - USD",
+      "Agent Payment Receipt - IQD": "Temsilci Ödeme Makbuzu - IQD",
     }
   }
 };
