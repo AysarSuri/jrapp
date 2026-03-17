@@ -1870,7 +1870,7 @@ const resources = {
       "Pay customers in IQD": "الدفع للعملاء بالدينار",
       "Please select a customer": "يرجى اختيار العميل",
       "Select customer...": "اختر العميل...",
-      "Agent Statement USD": "كشف حساب العملاء",
+      "Agent Statement USD": "كشف حساب العملاء دولار",
       "Agent Statement IQD": "كشف حساب العملاء دينار",
       "Printer Type": "نوع الطابعة",
       "Regular Printer": "طابعة عادية",
