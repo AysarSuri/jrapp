@@ -179,8 +179,12 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
           time,
         });
       } else if (entry.type === "sales_invoice") {
-        const res = await fetch(`/api/sales-invoices/${entry.id}`, { credentials: "include" });
-        const existing = await res.json();
+        const [invRes, itemsRes] = await Promise.all([
+          fetch(`/api/sales-invoices/${entry.id}`, { credentials: "include" }),
+          fetch(`/api/sales-invoices/${entry.id}/items`, { credentials: "include" }),
+        ]);
+        const existing = await invRes.json();
+        const existingItems = await itemsRes.json();
         await apiRequest("PATCH", `/api/sales-invoices/${entry.id}`, {
           invoice: {
             ...existing,
@@ -190,11 +194,15 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
             customerId: parseInt(customerId),
             customerName,
           },
-          items: existing.items || [],
+          items: existingItems || [],
         });
       } else if (entry.type === "sales_return") {
-        const res = await fetch(`/api/sales-returns/${entry.id}`, { credentials: "include" });
-        const existing = await res.json();
+        const [retRes, itemsRes] = await Promise.all([
+          fetch(`/api/sales-returns/${entry.id}`, { credentials: "include" }),
+          fetch(`/api/sales-returns/${entry.id}/items`, { credentials: "include" }),
+        ]);
+        const existing = await retRes.json();
+        const existingItems = await itemsRes.json();
         await apiRequest("PATCH", `/api/sales-returns/${entry.id}`, {
           returnData: {
             ...existing,
@@ -204,7 +212,7 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
             customerId: parseInt(customerId),
             customerName,
           },
-          items: existing.items || [],
+          items: existingItems || [],
         });
       }
 
@@ -230,8 +238,8 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{getTitle()} {entry?.reference ? `#${entry.reference}` : ""}</DialogTitle>
         </DialogHeader>
 
@@ -240,7 +248,7 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pb-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-bold">{t("Date")}</Label>
@@ -343,7 +351,7 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-edit">
             {t("Cancel")}
           </Button>
