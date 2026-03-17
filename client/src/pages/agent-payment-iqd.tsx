@@ -306,10 +306,12 @@ export default function AgentPaymentIqdPage() {
         </style>
       </head>
       <body>
-        ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:10px;"><img src="${companyProfile.cliche}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;" /></div>` : ""}
         <div style="text-align:center;margin-bottom:16px;">
-          <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;margin-bottom:8px;">
-            <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Payment IQD")} - ${t("Payment History")}</h1>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;" />` : ""}
+            <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;">
+              <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Payment IQD")} - ${t("Payment History")}</h1>
+            </div>
           </div>
           <div style="display:flex;justify-content:center;gap:24px;font-size:11pt;color:#555;font-weight:600;flex-wrap:wrap;">
             ${selectedCustomer ? `<span>${t("Customer Name")}: <strong style="color:${primaryColor}">${selectedCustomer.name}</strong></span>` : `<span>${t("All Customers")}</span>`}
