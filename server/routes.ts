@@ -4080,6 +4080,118 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/customer-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+
+      const [customer] = await db.select().from(clients).where(eq(clients.id, customerId));
+      if (!customer) return res.status(404).json({ message: "Customer not found" });
+
+      const invoices = await db.select().from(salesInvoices)
+        .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
+        .orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
+
+      const returns = await db.select().from(salesReturns)
+        .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`)
+        .orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
+
+      const allReceipts = await db.select().from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} >= ${fromDate} AND ${customerReceipts.date} <= ${toDate}`)
+        .orderBy(sql`${customerReceipts.date} ASC, ${customerReceipts.time} ASC`);
+
+      type CustomerStatementEntry = {
+        id: number;
+        date: string;
+        time: string;
+        type: string;
+        description: string | null;
+        reference: string | null;
+        currency: string;
+        debit: number;
+        credit: number;
+      };
+
+      const entries: CustomerStatementEntry[] = [];
+
+      for (const inv of invoices) {
+        const remaining = parseFloat(inv.remaining || "0");
+        if (remaining !== 0) {
+          entries.push({
+            id: inv.id,
+            date: inv.date,
+            time: inv.time || "00:00",
+            type: "sales_invoice",
+            description: `${inv.invoiceNumber} - ${inv.representativeName || ""}`,
+            reference: inv.invoiceNumber,
+            currency: inv.currency,
+            debit: remaining,
+            credit: 0,
+          });
+        }
+      }
+
+      for (const ret of returns) {
+        const subtotal = parseFloat(ret.subtotal || "0");
+        if (subtotal > 0) {
+          entries.push({
+            id: ret.id,
+            date: ret.date,
+            time: ret.time || "00:00",
+            type: "sales_return",
+            description: `${ret.returnNumber} - ${ret.representativeName || ""}`,
+            reference: ret.returnNumber,
+            currency: ret.currency,
+            debit: 0,
+            credit: subtotal,
+          });
+        }
+      }
+
+      for (const rcpt of allReceipts) {
+        const amount = parseFloat(rcpt.amount || "0");
+        if (amount > 0) {
+          entries.push({
+            id: rcpt.id,
+            date: rcpt.date,
+            time: rcpt.time || "00:00",
+            type: "customer_receipt",
+            description: rcpt.paymentSourceName,
+            reference: rcpt.receiptNumber,
+            currency: rcpt.currency,
+            debit: 0,
+            credit: amount,
+          });
+        }
+        const discount = parseFloat(rcpt.discount || "0");
+        if (discount > 0) {
+          entries.push({
+            id: rcpt.id + 100000,
+            date: rcpt.date,
+            time: rcpt.time || "00:00",
+            type: "discount",
+            description: rcpt.paymentSourceName,
+            reference: rcpt.receiptNumber,
+            currency: rcpt.currency,
+            debit: 0,
+            credit: discount,
+          });
+        }
+      }
+
+      entries.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+
+      res.json({ customer, entries });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get(api.companyProfile.get.path, requireAuth, async (_req, res) => {
     try {
       const profile = await storage.getCompanyProfile();

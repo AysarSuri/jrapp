@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import type { Representative } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -9,8 +8,10 @@ import {
 import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
+import { DateInput } from "@/components/ui/date-input";
 
 interface CompanyProfileData {
   id: number;
@@ -29,33 +30,43 @@ interface StatementEntry {
   credit: number;
 }
 
+interface CustomerData {
+  id: number;
+  name: string;
+  oldDebtUsd: string;
+  oldDebtIqd: string;
+}
+
 interface StatementResponse {
-  agent: Representative;
+  customer: CustomerData;
   entries: StatementEntry[];
 }
 
 export default function AgentStatementUsdPage() {
   const { t } = useTranslation();
-  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
 
-  const { data: agentsList } = useQuery<Representative[]>({
-    queryKey: ["/api/representatives"],
+  const { data: clientsList } = useQuery<CustomerData[]>({
+    queryKey: ["/api/clients"],
   });
 
-  const agents = agentsList || [];
+  const customers = (clientsList || []).filter((c: any) => c.type === "customer");
 
   const { data: companyProfile } = useQuery<CompanyProfileData>({
     queryKey: ["/api/company-profile"],
   });
 
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
-    queryKey: ["/api/agent-statement", selectedAgentId],
+    queryKey: ["/api/customer-statement", selectedCustomerId, fromDate, toDate],
     queryFn: async () => {
-      const res = await fetch(`/api/agent-statement/${selectedAgentId}`, { credentials: "include" });
+      const res = await fetch(`/api/customer-statement/${selectedCustomerId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
-    enabled: !!selectedAgentId,
+    enabled: !!selectedCustomerId,
   });
 
   const usdEntries = statement?.entries?.filter(e => e.currency === "USD") || [];
@@ -69,11 +80,12 @@ export default function AgentStatementUsdPage() {
   const totalDebit = usdEntries.reduce((s, e) => s + e.debit, 0);
   const totalCredit = usdEntries.reduce((s, e) => s + e.credit, 0);
   const finalBalance = totalDebit - totalCredit;
-  const currentDebt = parseFloat(statement?.agent?.debtUsd || "0");
 
   const typeBadge = (type: string) => {
     if (type === "sales_invoice") return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Sales Invoice')}</Badge>;
     if (type === "sales_return") return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">{t('Sales Return')}</Badge>;
+    if (type === "customer_receipt") return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Receipt')}</Badge>;
+    if (type === "discount") return <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">{t('Discount')}</Badge>;
     return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Payment')}</Badge>;
   };
 
@@ -91,29 +103,42 @@ export default function AgentStatementUsdPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">{t('Select Agent')}</CardTitle>
+          <CardTitle className="text-lg">{t('Select Customer')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <SearchSelect
-            items={agents.map(a => ({ id: a.id, name: a.name }))}
-            value={selectedAgentId}
-            onValueChange={setSelectedAgentId}
-            placeholder={t('Select agent...')}
-            data-testid="select-agent-statement"
-            className="max-w-md"
-          />
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <Label className="text-base font-bold mb-1 block">{t('Customer Name')}</Label>
+              <SearchSelect
+                items={customers.map((c: any) => ({ id: c.id, name: c.name }))}
+                value={selectedCustomerId}
+                onValueChange={setSelectedCustomerId}
+                placeholder={t('Select customer...')}
+                data-testid="select-customer-statement"
+                className="h-11 text-base font-semibold"
+              />
+            </div>
+            <div>
+              <Label className="text-base font-bold mb-1 block">{t('From Date')}</Label>
+              <DateInput value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-statement-from-date" />
+            </div>
+            <div>
+              <Label className="text-base font-bold mb-1 block">{t('To Date')}</Label>
+              <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-statement-to-date" />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {selectedAgentId && statementLoading && (
+      {selectedCustomerId && statementLoading && (
         <div className="flex justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
-      {selectedAgentId && statement && !statementLoading && (
+      {selectedCustomerId && statement && !statementLoading && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800">
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-red-700 dark:text-red-400 mb-1">{t('Total Debit')}</p>
@@ -132,17 +157,9 @@ export default function AgentStatementUsdPage() {
             </Card>
             <Card className={`bg-gradient-to-br ${finalBalance > 0 ? 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800' : 'from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
               <CardContent className="pt-4 pb-3">
-                <p className={`text-xs mb-1 ${finalBalance > 0 ? 'text-red-700 dark:text-red-400' : finalBalance < 0 ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400'}`}>{t('Remaining with')} {finalBalance > 0 ? (statement?.agent?.name || "") : (companyProfile?.name || "")}</p>
+                <p className={`text-xs mb-1 ${finalBalance > 0 ? 'text-red-700 dark:text-red-400' : finalBalance < 0 ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400'}`}>{t('Remaining with')} {finalBalance > 0 ? (statement?.customer?.name || "") : (companyProfile?.name || "")}</p>
                 <p className={`font-mono font-bold ${finalBalance > 0 ? 'text-red-800 dark:text-red-300' : finalBalance < 0 ? 'text-green-800 dark:text-green-300' : 'text-blue-800 dark:text-blue-300'}`} data-testid="text-final-balance">
                   {usd(Math.abs(finalBalance))}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
-              <CardContent className="pt-4 pb-3">
-                <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">{t('Current Debt USD')}</p>
-                <p className="font-mono font-bold text-amber-800 dark:text-amber-300" data-testid="text-current-debt">
-                  {usd(currentDebt)}
                 </p>
               </CardContent>
             </Card>
@@ -153,33 +170,33 @@ export default function AgentStatementUsdPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>#</TableHead>
-                    <TableHead>{t('Date')}</TableHead>
-                    <TableHead>{t('Time')}</TableHead>
-                    <TableHead>{t('Type')}</TableHead>
-                    <TableHead>{t('Description')}</TableHead>
-                    <TableHead>{t('Reference')}</TableHead>
-                    <TableHead className="text-red-700 dark:text-red-400">{t('Debit')} ($)</TableHead>
-                    <TableHead className="text-green-700 dark:text-green-400">{t('Credit')} ($)</TableHead>
-                    <TableHead className="text-blue-700 dark:text-blue-400">{t('Balance')} ($)</TableHead>
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Time')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Type')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Description')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Reference')}</TableHead>
+                    <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} ($)</TableHead>
+                    <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} ($)</TableHead>
+                    <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Balance')} ($)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {entriesWithBalance.map((entry, i) => (
-                    <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-agent-statement-${entry.id}`}>
-                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm">{formatDate(entry.date)}</TableCell>
-                      <TableCell className="font-mono text-sm">{entry.time}</TableCell>
+                    <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-customer-statement-${entry.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{formatDate(entry.date)}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{entry.time}</TableCell>
                       <TableCell>{typeBadge(entry.type)}</TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">{entry.description || "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{entry.reference || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
+                      <TableCell className="text-sm font-semibold max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold text-muted-foreground">{entry.reference || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">
                         {entry.debit > 0 ? usd(entry.debit) : ""}
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-green-600">
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">
                         {entry.credit > 0 ? usd(entry.credit) : ""}
                       </TableCell>
-                      <TableCell className="font-mono text-sm font-medium text-blue-600">
+                      <TableCell className="font-mono text-sm font-bold text-blue-600">
                         {usd(entry.balance)}
                       </TableCell>
                     </TableRow>
@@ -193,10 +210,10 @@ export default function AgentStatementUsdPage() {
                   )}
                   {usdEntries.length > 0 && (
                     <TableRow className="bg-muted/50 font-bold">
-                      <TableCell colSpan={6} className="text-end">{t('Total')}</TableCell>
-                      <TableCell className="font-mono text-red-700">{usd(totalDebit)}</TableCell>
-                      <TableCell className="font-mono text-green-700">{usd(totalCredit)}</TableCell>
-                      <TableCell className="font-mono text-blue-700">{usd(finalBalance)}</TableCell>
+                      <TableCell colSpan={6} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-red-700">{usd(totalDebit)}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-green-700">{usd(totalCredit)}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-blue-700">{usd(finalBalance)}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
