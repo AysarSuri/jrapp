@@ -1347,8 +1347,8 @@ const resources = {
       "Customer Receipt - IQD": "Customer Receipt - IQD",
       "Receipt #": "Receipt #",
       "Payment #": "Payment #",
-      "Agent Payment Receipt - USD": "Agent Payment Receipt - USD",
-      "Agent Payment Receipt - IQD": "Agent Payment Receipt - IQD",
+      "Agent Payment Receipt - USD": "Customer Payment Receipt - USD",
+      "Agent Payment Receipt - IQD": "Customer Payment Receipt - IQD",
       "Update Receipt": "Update Receipt",
       "Cancel Edit": "Cancel Edit",
     }
@@ -2702,8 +2702,8 @@ const resources = {
       "Customer Receipt - IQD": "وصل قبض - دينار",
       "Receipt #": "رقم الوصل",
       "Payment #": "رقم الدفع",
-      "Agent Payment Receipt - USD": "وصل دفع المندوب - دولار",
-      "Agent Payment Receipt - IQD": "وصل دفع المندوب - دينار",
+      "Agent Payment Receipt - USD": "وصل دفع العميل - دولار",
+      "Agent Payment Receipt - IQD": "وصل دفع العميل - دينار",
       "Update Receipt": "تحديث الوصل",
       "Cancel Edit": "إلغاء التعديل",
     }
@@ -4044,8 +4044,8 @@ const resources = {
       "Customer Receipt - IQD": "پسوولەی وەرگرتن - دینار",
       "Receipt #": "ژمارەی پسوولە",
       "Payment #": "ژمارەی پارەدان",
-      "Agent Payment Receipt - USD": "پسوولەی پارەدانی مەندووب - دۆلار",
-      "Agent Payment Receipt - IQD": "پسوولەی پارەدانی مەندووب - دینار",
+      "Agent Payment Receipt - USD": "پسوولەی پارەدانی کڕیار - دۆلار",
+      "Agent Payment Receipt - IQD": "پسوولەی پارەدانی کڕیار - دینار",
       "Update Receipt": "نوێکردنەوەی وەرگرتن",
       "Cancel Edit": "هەڵوەشاندنەوەی دەستکاری",
     }
@@ -5398,8 +5398,8 @@ const resources = {
       "Customer Receipt - IQD": "Müşteri Makbuzu - IQD",
       "Receipt #": "Makbuz No",
       "Payment #": "Ödeme No",
-      "Agent Payment Receipt - USD": "Temsilci Ödeme Makbuzu - USD",
-      "Agent Payment Receipt - IQD": "Temsilci Ödeme Makbuzu - IQD",
+      "Agent Payment Receipt - USD": "Müşteri Ödeme Makbuzu - USD",
+      "Agent Payment Receipt - IQD": "Müşteri Ödeme Makbuzu - IQD",
       "Update Receipt": "Makbuzu Güncelle",
       "Cancel Edit": "Düzenlemeyi İptal Et",
     }
