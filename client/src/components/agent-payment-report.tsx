@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 import { useUser } from "@/hooks/use-auth";
+import QRCode from "qrcode";
 import type { AgentPayment } from "@shared/schema";
 
 type CompanyProfileData = {
@@ -45,6 +46,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const { data: user } = useUser();
 
   const currency = payment?.currency || "USD";
@@ -76,7 +78,18 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
     staleTime: 0,
   });
 
-  const fieldColor = companyProfile?.primaryColor || "#333";
+  useEffect(() => {
+    const qrText = companyProfile?.qrAddress;
+    if (qrText && open) {
+      QRCode.toDataURL(qrText, { width: 100, margin: 1, color: { dark: "#1e293b", light: "#ffffff" } })
+        .then(url => setQrDataUrl(url))
+        .catch(() => setQrDataUrl(""));
+    } else {
+      setQrDataUrl("");
+    }
+  }, [companyProfile?.qrAddress, open]);
+
+  const primaryColor = companyProfile?.primaryColor || "#1e293b";
   const customer = clients?.find(c => c.id === payment?.agentId);
 
   const fmt = (n: number | string) => {
@@ -97,6 +110,8 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
     return `${fmt(val)} IQD`;
   };
 
+  const closingBalance = (openingBalance?.openingBalance ?? 0) - amount;
+
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
@@ -111,8 +126,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
         <title>${receiptTitle} - ${payment?.agentName || ""}</title>
         <style>
           ${printStyles}
-          .cliche-container { text-align: center; margin-bottom: 12px; }
-          .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         </style>
       </head>
       <body>${content.innerHTML}</body>
@@ -173,13 +187,6 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
     }
   };
 
-  const renderRow = (label: string, value: string, bold?: boolean, color?: string) => (
-    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", fontSize: "12pt" }}>
-      <span style={{ fontWeight: 700, color: "#555" }}>{label}:</span>
-      <span style={{ fontWeight: bold ? 800 : 700, color: color || "inherit", fontFamily: "monospace" }}>{value}</span>
-    </div>
-  );
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -204,95 +211,111 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div ref={printRef}>
+          <div ref={printRef} style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.cliche && (
-              <div style={{ textAlign: "center", marginBottom: 10 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+              <div style={{ textAlign: "center", marginBottom: 8 }}>
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }} />
               </div>
             )}
 
-            <div style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #333", paddingBottom: 10 }}>
-              <h1 style={{ fontSize: "16pt", marginBottom: 3 }}>{receiptTitle}</h1>
-              <p style={{ fontSize: "11pt", color: "#666", fontWeight: 700 }}>
-                {t("Payment #")}: {payment.paymentNumber || "-"}
-              </p>
-              <p style={{ fontSize: "12pt", color: "#666", fontWeight: 700 }}>
-                {t("Date")}: {formatDate(payment.date)} | {t("Time")}: {payment.time}
-              </p>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 16, fontSize: "12pt" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 700, color: "#555" }}>{t("Customer Name")}:</span>
-                <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.agentName}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
-                <span style={{ fontWeight: 700, color: "#555" }}>{t("Payment Source")}:</span>
-                <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{payment.paymentSourceName}</span>
-              </div>
-              {payment.note && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
-                  <span style={{ fontWeight: 700 }}>{payment.note}</span>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12, paddingBottom: 12, borderBottom: `3px solid ${primaryColor}`, direction: "ltr" }}>
+              {qrDataUrl && (
+                <div style={{ flexShrink: 0, marginRight: 16, order: isRtl ? -1 : 1 }}>
+                  <img src={qrDataUrl} alt="QR" style={{ width: 80, height: 80, borderRadius: 6, border: "1px solid #e2e8f0" }} />
                 </div>
               )}
+
+              <div style={{ flex: 1, textAlign: "center", order: 0 }}>
+                <div style={{ background: primaryColor, color: "#fff", padding: "10px 24px", borderRadius: 8, display: "inline-block", marginBottom: 8 }}>
+                  <h1 style={{ fontSize: "16pt", margin: 0, fontWeight: 800, letterSpacing: "0.5px" }}>{receiptTitle}</h1>
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", gap: 24, fontSize: "11pt", color: "#555", fontWeight: 600 }}>
+                  <span>{t("Payment #")}: <strong style={{ color: primaryColor }}>{payment.paymentNumber || "-"}</strong></span>
+                  <span>{t("Date")}: <strong>{formatDate(payment.date)}</strong></span>
+                  <span>{t("Time")}: <strong>{payment.time}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginBottom: 16, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none" }}>
+                <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Customer Name")}</div>
+                <div style={{ fontSize: "12pt", fontWeight: 700, color: "#1e293b" }}>{payment.agentName}</div>
+              </div>
+              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Payment Source")}</div>
+                <div style={{ fontSize: "12pt", fontWeight: 700, color: "#1e293b" }}>{payment.paymentSourceName}</div>
+              </div>
               {payment.reference && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
-                  <span style={{ fontWeight: 700, color: "#555" }}>{t("Reference")}:</span>
-                  <span style={{ fontWeight: 700 }}>{payment.reference}</span>
+                <div style={{ padding: "10px 14px", background: "#fff", borderBottom: payment.note ? "1px solid #e2e8f0" : "none", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none" }}>
+                  <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Reference")}</div>
+                  <div style={{ fontSize: "11pt", fontWeight: 600, color: "#475569" }}>{payment.reference}</div>
+                </div>
+              )}
+              {payment.note && (
+                <div style={{ padding: "10px 14px", background: "#fff", gridColumn: payment.reference ? "auto" : "1 / -1" }}>
+                  <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Note")}</div>
+                  <div style={{ fontSize: "11pt", fontWeight: 600, color: "#475569" }}>{payment.note}</div>
                 </div>
               )}
             </div>
 
-            <div style={{ border: "1px solid #ddd", borderRadius: 6, padding: 12, marginBottom: 16 }}>
-              <h3 style={{ fontSize: "13pt", marginBottom: 8, borderBottom: "1px solid #eee", paddingBottom: 5, fontWeight: 700, color: fieldColor }}>
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden", marginBottom: 16 }}>
+              <div style={{ background: primaryColor, color: "#fff", padding: "8px 14px", fontSize: "11pt", fontWeight: 700 }}>
                 {t("Payment Details")}
-              </h3>
-              {renderRow(t("Amount"), fmtCurrency(amount))}
-              {amount > 0 && (
-                <p style={{ fontSize: "9pt", color: "#666", fontStyle: "italic", margin: "2px 0 6px" }}>
-                  {numberToWords(amount, i18n.language, currencyWord)}
-                </p>
-              )}
-            </div>
-
-            <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 12, marginBottom: 16 }}>
-              <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 8, fontWeight: 700 }}>{t("Customer Balance")}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", direction: isRtl ? "rtl" : "ltr" }}>
-                  <span style={{ fontWeight: 700 }}>{t("Opening Balance")}:</span>
-                  <span style={{ fontWeight: 700, fontFamily: "monospace" }}>
-                    {balanceLoading ? "..." : fmtCurrency(openingBalance?.openingBalance ?? 0)}
-                  </span>
+              </div>
+              <div style={{ padding: "12px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0" }}>
+                  <span style={{ fontSize: "11pt", fontWeight: 600, color: "#64748b" }}>{t("Amount")}</span>
+                  <span style={{ fontSize: "14pt", fontWeight: 800, color: "#1e293b", fontFamily: "monospace" }}>{fmtCurrency(amount)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "12pt", color: "#16a34a", direction: isRtl ? "rtl" : "ltr" }}>
-                  <span style={{ fontWeight: 700 }}>{t("Payment")}:</span>
-                  <span style={{ fontWeight: 700, fontFamily: "monospace" }}>-{fmtCurrency(amount)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: "14pt", color: "#dc2626", fontWeight: 800, borderTop: `2px solid ${fieldColor}`, marginTop: 4, paddingTop: 8, direction: isRtl ? "rtl" : "ltr" }}>
-                  <span>{t("Total Balance")}:</span>
-                  <span style={{ fontFamily: "monospace" }}>
-                    {balanceLoading ? "..." : fmtCurrency((openingBalance?.openingBalance ?? 0) - amount)}
-                  </span>
-                </div>
-                {!balanceLoading && ((openingBalance?.openingBalance ?? 0) - amount) !== 0 && (
-                  <div style={{ fontSize: "10pt", fontWeight: 700, color: ((openingBalance?.openingBalance ?? 0) - amount) > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 4, direction: isRtl ? "rtl" : "ltr" }}>
-                    {t("Remaining with")} {((openingBalance?.openingBalance ?? 0) - amount) > 0 ? payment.agentName : (companyProfile?.name || "")}
+                {amount > 0 && (
+                  <div style={{ fontSize: "9pt", color: "#94a3b8", fontStyle: "italic", padding: "4px 0 2px" }}>
+                    {numberToWords(amount, i18n.language, currencyWord)}
                   </div>
                 )}
               </div>
             </div>
 
-            <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "12pt" }}>
+            <div style={{ border: `2px solid ${primaryColor}`, borderRadius: 8, overflow: "hidden", marginBottom: 20 }}>
+              <div style={{ background: primaryColor, color: "#fff", padding: "8px 14px", fontSize: "11pt", fontWeight: 700 }}>
+                {t("Customer Balance")}
+              </div>
+              <div style={{ padding: "12px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f1f5f9", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span style={{ fontSize: "11pt", fontWeight: 600, color: "#64748b" }}>{t("Opening Balance")}</span>
+                  <span style={{ fontSize: "12pt", fontWeight: 700, fontFamily: "monospace", color: "#1e293b" }}>
+                    {balanceLoading ? "..." : fmtCurrency(openingBalance?.openingBalance ?? 0)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f1f5f9", direction: isRtl ? "rtl" : "ltr" }}>
+                  <span style={{ fontSize: "11pt", fontWeight: 600, color: "#16a34a" }}>{t("Payment")}</span>
+                  <span style={{ fontSize: "12pt", fontWeight: 700, fontFamily: "monospace", color: "#16a34a" }}>-{fmtCurrency(amount)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0 4px", borderTop: `2px solid ${primaryColor}`, marginTop: 6, direction: isRtl ? "rtl" : "ltr" }}>
+                  <span style={{ fontSize: "13pt", fontWeight: 800, color: closingBalance > 0 ? "#dc2626" : "#16a34a" }}>{t("Total Balance")}</span>
+                  <span style={{ fontSize: "16pt", fontWeight: 800, fontFamily: "monospace", color: closingBalance > 0 ? "#dc2626" : "#16a34a" }}>
+                    {balanceLoading ? "..." : fmtCurrency(closingBalance)}
+                  </span>
+                </div>
+                {!balanceLoading && closingBalance !== 0 && (
+                  <div style={{ fontSize: "10pt", fontWeight: 700, color: closingBalance > 0 ? "#dc2626" : "#16a34a", textAlign: isRtl ? "right" : "left", marginTop: 6, padding: "6px 10px", background: closingBalance > 0 ? "#fef2f2" : "#f0fdf4", borderRadius: 6, direction: isRtl ? "rtl" : "ltr" }}>
+                    {t("Remaining with")} {closingBalance > 0 ? payment.agentName : (companyProfile?.name || "")}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 24, paddingTop: 12 }}>
               <div style={{ textAlign: "center", width: 200 }}>
-                <div style={{ borderTop: "1px solid #333", marginTop: 40, paddingTop: 3 }}>{t("Customer Signature")}</div>
+                <div style={{ borderTop: `2px solid ${primaryColor}`, marginTop: 50, paddingTop: 6, fontSize: "10pt", fontWeight: 700, color: "#64748b" }}>{t("Customer Signature")}</div>
               </div>
               <div style={{ textAlign: "center", width: 200 }}>
                 {companyProfile?.stamp && (
-                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 120, maxHeight: 120, objectFit: "contain", margin: "0 auto 5px" }} />
+                  <img src={companyProfile.stamp} alt="Stamp" style={{ maxWidth: 110, maxHeight: 110, objectFit: "contain", margin: "0 auto 5px" }} />
                 )}
-                <div style={{ fontWeight: 700, fontSize: "12pt" }}>{user?.fullName || ""}</div>
-                <div style={{ borderTop: "1px solid #333", marginTop: 10, paddingTop: 3 }}>{t("Accountant")}</div>
+                <div style={{ fontWeight: 700, fontSize: "11pt", color: "#1e293b", marginBottom: 4 }}>{user?.fullName || ""}</div>
+                <div style={{ borderTop: `2px solid ${primaryColor}`, paddingTop: 6, fontSize: "10pt", fontWeight: 700, color: "#64748b" }}>{t("Accountant")}</div>
               </div>
             </div>
           </div>
