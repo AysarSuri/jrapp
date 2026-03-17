@@ -2786,20 +2786,7 @@ export async function registerRoutes(
       const [customer] = await db.select().from(clients).where(eq(clients.id, customerId));
       if (!customer) return res.status(404).json({ message: "Customer not found" });
 
-      const currentOldDebt = currency === "USD" ? parseFloat(customer.oldDebtUsd || "0") : parseFloat(customer.oldDebtIqd || "0");
-
-      const allReceipts = await db.select().from(customerReceipts)
-        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.currency} = ${currency}`);
-      const allPayments = await db.select().from(agentPayments)
-        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.currency} = ${currency}`);
-
-      let originalOldDebt = currentOldDebt;
-      for (const rec of allReceipts) {
-        originalOldDebt += parseFloat(rec.amount || "0") + parseFloat(rec.discount || "0");
-      }
-      for (const pay of allPayments) {
-        originalOldDebt += parseFloat(pay.amount || "0");
-      }
+      const fixedOldDebt = currency === "USD" ? parseFloat(customer.oldDebtUsd || "0") : parseFloat(customer.oldDebtIqd || "0");
 
       const beforeDateTimeCondition = (dateCol: any, timeCol: any) =>
         sql`(${dateCol} < ${balanceDate} OR (${dateCol} = ${balanceDate} AND COALESCE(${timeCol}, '00:00') < ${balanceTime}))`;
@@ -2808,43 +2795,29 @@ export async function registerRoutes(
       if (excludeInvoiceId) {
         invoiceCondition = sql`${invoiceCondition} AND ${salesInvoices.id} != ${excludeInvoiceId}`;
       }
-      const prevInvoices = await db.select().from(salesInvoices).where(invoiceCondition);
+      const [invSum] = await db.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesInvoices).where(invoiceCondition);
 
       let returnCondition = sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.currency} = ${currency} AND ${beforeDateTimeCondition(salesReturns.date, salesReturns.time)}`;
       if (excludeReturnId) {
         returnCondition = sql`${returnCondition} AND ${salesReturns.id} != ${excludeReturnId}`;
       }
-      const prevReturns = await db.select().from(salesReturns).where(returnCondition);
+      const [retSum] = await db.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesReturns).where(returnCondition);
 
-      const prevReceipts = allReceipts.filter(r => {
-        const rDate = r.date;
-        const rTime = r.time || "00:00";
-        return rDate < balanceDate || (rDate === balanceDate && rTime < balanceTime);
-      });
+      const [paySum] = await db.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(agentPayments)
+        .where(sql`${agentPayments.agentId} = ${customerId} AND ${agentPayments.currency} = ${currency} AND ${beforeDateTimeCondition(agentPayments.date, agentPayments.time)}`);
 
-      const prevPayments = allPayments.filter(p => {
-        const pDate = p.date;
-        const pTime = p.time || "00:00";
-        return pDate < balanceDate || (pDate === balanceDate && pTime < balanceTime);
-      });
+      const [recAmtSum] = await db.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.currency} = ${currency} AND ${beforeDateTimeCondition(customerReceipts.date, customerReceipts.time)}`);
 
-      let openingBalance = originalOldDebt;
+      const [recDiscSum] = await db.select({ total: sql<string>`COALESCE(SUM(discount::numeric), 0)` }).from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.currency} = ${currency} AND ${beforeDateTimeCondition(customerReceipts.date, customerReceipts.time)}`);
 
-      for (const inv of prevInvoices) {
-        openingBalance += parseFloat(inv.remaining || "0");
-      }
-
-      for (const pay of prevPayments) {
-        openingBalance += parseFloat(pay.amount || "0");
-      }
-
-      for (const ret of prevReturns) {
-        openingBalance -= parseFloat(ret.remaining || "0");
-      }
-
-      for (const rec of prevReceipts) {
-        openingBalance -= parseFloat(rec.amount || "0") + parseFloat(rec.discount || "0");
-      }
+      const openingBalance = fixedOldDebt
+        + parseFloat(invSum?.total || "0")
+        + parseFloat(paySum?.total || "0")
+        - parseFloat(retSum?.total || "0")
+        - parseFloat(recAmtSum?.total || "0")
+        - parseFloat(recDiscSum?.total || "0");
 
       res.json({ openingBalance });
     } catch (err) {
@@ -2883,13 +2856,22 @@ export async function registerRoutes(
 
       const result = await db.transaction(async (tx) => {
         const [customer] = await tx.select().from(clients).where(eq(clients.id, input.customerId));
+        const currency = input.currency;
+        const fixedOldDebt = currency === "USD" ? parseFloat(customer?.oldDebtUsd || "0") : parseFloat(customer?.oldDebtIqd || "0");
 
-        let currentDebt = 0;
-        if (input.currency === "USD") {
-          currentDebt = parseFloat(customer?.oldDebtUsd || "0");
-        } else {
-          currentDebt = parseFloat(customer?.oldDebtIqd || "0");
-        }
+        const [invSum] = await tx.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesInvoices)
+          .where(sql`${salesInvoices.customerId} = ${input.customerId} AND ${salesInvoices.currency} = ${currency}`);
+        const [paySum] = await tx.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(agentPayments)
+          .where(sql`${agentPayments.agentId} = ${input.customerId} AND ${agentPayments.currency} = ${currency}`);
+        const [retSum] = await tx.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesReturns)
+          .where(sql`${salesReturns.customerId} = ${input.customerId} AND ${salesReturns.currency} = ${currency}`);
+        const [recDiscSum] = await tx.select({ total: sql<string>`COALESCE(SUM(discount::numeric), 0)` }).from(customerReceipts)
+          .where(sql`${customerReceipts.customerId} = ${input.customerId} AND ${customerReceipts.currency} = ${currency}`);
+        const [recAmtSum] = await tx.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(customerReceipts)
+          .where(sql`${customerReceipts.customerId} = ${input.customerId} AND ${customerReceipts.currency} = ${currency}`);
+
+        const currentDebt = fixedOldDebt + parseFloat(invSum[0]?.total || "0") + parseFloat(paySum[0]?.total || "0")
+          - parseFloat(retSum[0]?.total || "0") - parseFloat(recDiscSum[0]?.total || "0") - parseFloat(recAmtSum[0]?.total || "0");
 
         const remaining = currentDebt - totalDeducted;
 
@@ -2898,20 +2880,6 @@ export async function registerRoutes(
           oldDebt: String(currentDebt),
           remaining: String(remaining),
         }).returning();
-
-        if (input.currency === "USD") {
-          await tx.update(clients)
-            .set({
-              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${totalDeducted}`,
-            })
-            .where(eq(clients.id, input.customerId));
-        } else {
-          await tx.update(clients)
-            .set({
-              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${totalDeducted}`,
-            })
-            .where(eq(clients.id, input.customerId));
-        }
 
         return receipt;
       });
@@ -2975,13 +2943,22 @@ export async function registerRoutes(
 
       const result = await db.transaction(async (tx) => {
         const [customer] = await tx.select().from(clients).where(eq(clients.id, input.agentId));
+        const currency = input.currency;
+        const fixedOldDebt = currency === "USD" ? parseFloat(customer?.oldDebtUsd || "0") : parseFloat(customer?.oldDebtIqd || "0");
 
-        let currentDebt = 0;
-        if (input.currency === "USD") {
-          currentDebt = parseFloat(customer?.oldDebtUsd || "0");
-        } else {
-          currentDebt = parseFloat(customer?.oldDebtIqd || "0");
-        }
+        const [invSum] = await tx.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesInvoices)
+          .where(sql`${salesInvoices.customerId} = ${input.agentId} AND ${salesInvoices.currency} = ${currency}`);
+        const [paySum] = await tx.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(agentPayments)
+          .where(sql`${agentPayments.agentId} = ${input.agentId} AND ${agentPayments.currency} = ${currency}`);
+        const [retSum] = await tx.select({ total: sql<string>`COALESCE(SUM(remaining::numeric), 0)` }).from(salesReturns)
+          .where(sql`${salesReturns.customerId} = ${input.agentId} AND ${salesReturns.currency} = ${currency}`);
+        const [recDiscSum] = await tx.select({ total: sql<string>`COALESCE(SUM(discount::numeric), 0)` }).from(customerReceipts)
+          .where(sql`${customerReceipts.customerId} = ${input.agentId} AND ${customerReceipts.currency} = ${currency}`);
+        const [recAmtSum] = await tx.select({ total: sql<string>`COALESCE(SUM(amount::numeric), 0)` }).from(customerReceipts)
+          .where(sql`${customerReceipts.customerId} = ${input.agentId} AND ${customerReceipts.currency} = ${currency}`);
+
+        const currentDebt = fixedOldDebt + parseFloat(invSum[0]?.total || "0") + parseFloat(paySum[0]?.total || "0")
+          - parseFloat(retSum[0]?.total || "0") - parseFloat(recDiscSum[0]?.total || "0") - parseFloat(recAmtSum[0]?.total || "0");
 
         const remaining = currentDebt - amount;
 
@@ -2990,20 +2967,6 @@ export async function registerRoutes(
           oldDebt: String(currentDebt),
           remaining: String(remaining),
         }).returning();
-
-        if (input.currency === "USD") {
-          await tx.update(clients)
-            .set({
-              oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) - ${amount}`,
-            })
-            .where(eq(clients.id, input.agentId));
-        } else {
-          await tx.update(clients)
-            .set({
-              oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) - ${amount}`,
-            })
-            .where(eq(clients.id, input.agentId));
-        }
 
         return payment;
       });
@@ -3039,21 +3002,7 @@ export async function registerRoutes(
       const [payment] = await db.select().from(agentPayments).where(eq(agentPayments.id, id));
       if (!payment) return res.status(404).json({ message: "Payment not found" });
 
-      await db.transaction(async (tx) => {
-        const amount = parseFloat(payment.amount || "0");
-        if (amount > 0) {
-          if (payment.currency === "USD") {
-            await tx.update(clients)
-              .set({ oldDebtUsd: sql`CAST(${clients.oldDebtUsd} AS NUMERIC) + ${amount}` })
-              .where(eq(clients.id, payment.agentId));
-          } else {
-            await tx.update(clients)
-              .set({ oldDebtIqd: sql`CAST(${clients.oldDebtIqd} AS NUMERIC) + ${amount}` })
-              .where(eq(clients.id, payment.agentId));
-          }
-        }
-        await tx.delete(agentPayments).where(eq(agentPayments.id, id));
-      });
+      await db.delete(agentPayments).where(eq(agentPayments.id, id));
       res.json({ message: "Deleted" });
     } catch (err) {
       console.error("Error deleting agent payment:", err);
