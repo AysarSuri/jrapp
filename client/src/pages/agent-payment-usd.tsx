@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search, Eye, Pencil } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search, Eye, Pencil, Printer } from "lucide-react";
 import { IconDollar, IconOffice, IconBank, IconAgent, IconExternalDebt } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -26,10 +26,27 @@ import { Textarea } from "@/components/ui/textarea";
 import AgentPaymentReport from "@/components/agent-payment-report";
 import type { AgentPayment } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
+import { getModernPrintStyles } from "@/lib/print-styles";
+
+type CompanyProfileData = {
+  id: number;
+  name: string;
+  address: string;
+  mobile1: string;
+  mobile2: string;
+  businessType: string;
+  logo: string | null;
+  cliche: string | null;
+  stamp: string | null;
+  qrAddress: string;
+  primaryColor: string;
+  secondaryColor: string;
+};
 
 export default function AgentPaymentUsdPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const { data: payments, isLoading: paymentsLoading } = useAgentPayments();
   const { mutate: createPayment, isPending: isSaving } = useCreateAgentPayment();
   const { mutate: deletePayment } = useDeleteAgentPayment();
@@ -74,6 +91,10 @@ export default function AgentPaymentUsdPage() {
 
   const { data: nextNumber } = useQuery<{ paymentNumber: string }>({
     queryKey: ["/api/agent-payments/next-number"],
+  });
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
   });
 
   const [paymentNumber, setPaymentNumber] = useState("");
@@ -247,6 +268,92 @@ export default function AgentPaymentUsdPage() {
   };
 
   const amountVal = parseFloat(amount || "0");
+
+  const handlePrintList = () => {
+    const selectedCustomer = historyFilter && historyFilter !== "all"
+      ? customers?.find(c => c.id === parseInt(historyFilter))
+      : null;
+    const totalAmount = filteredPayments.reduce((s, p) => s + parseFloat(p.amount || "0"), 0);
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: companyProfile?.primaryColor || "#1e293b", accentTextColor: "#ffffff" });
+    const primaryColor = companyProfile?.primaryColor || "#1e293b";
+
+    const rows = filteredPayments.map((p, i) => `
+      <tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${i + 1}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:10pt;">${p.paymentNumber || "-"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:10pt;">${formatDate(p.date)}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:10pt;">${p.time || "-"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;font-size:10pt;">${p.agentName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:10pt;">${p.paymentSourceName}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;text-align:${isRtl ? "left" : "right"};font-family:monospace;font-weight:700;color:#1e40af;font-size:10pt;">$${parseFloat(p.amount || "0").toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:9pt;color:#64748b;max-width:150px;">${p.note || "-"}</td>
+      </tr>
+    `).join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Customer Payment USD")} - ${t("Payment History")}</title>
+        <style>
+          ${printStyles}
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+          @media print { body { padding: 10px; } }
+        </style>
+      </head>
+      <body>
+        ${companyProfile?.cliche ? `<div style="text-align:center;margin-bottom:10px;"><img src="${companyProfile.cliche}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;" /></div>` : ""}
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="background:${primaryColor};color:#fff;padding:10px 24px;border-radius:8px;display:inline-block;margin-bottom:8px;">
+            <h1 style="font-size:16pt;margin:0;font-weight:800;">${t("Customer Payment USD")} - ${t("Payment History")}</h1>
+          </div>
+          <div style="display:flex;justify-content:center;gap:24px;font-size:11pt;color:#555;font-weight:600;flex-wrap:wrap;">
+            ${selectedCustomer ? `<span>${t("Customer Name")}: <strong style="color:${primaryColor}">${selectedCustomer.name}</strong></span>` : `<span>${t("All Customers")}</span>`}
+            <span>${t("From Date")}: <strong>${formatDate(historyFromDate)}</strong></span>
+            <span>${t("To Date")}: <strong>${formatDate(historyToDate)}</strong></span>
+            <span>${t("Count")}: <strong>${filteredPayments.length}</strong></span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:${primaryColor};color:#fff;">
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Payment Number")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Source")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;text-align:${isRtl ? "left" : "right"};">${t("Amount")}</th>
+              <th style="padding:8px 10px;font-size:10pt;font-weight:700;">${t("Notes")}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr style="background:#f1f5f9;font-weight:800;">
+              <td colspan="6" style="padding:10px;font-size:11pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:10px;font-size:12pt;font-family:monospace;color:#1e40af;text-align:${isRtl ? "left" : "right"};">$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="text-align:center;margin-top:16px;font-size:9pt;color:#94a3b8;">
+          ${companyProfile?.name || ""} ${companyProfile?.mobile1 ? " | " + companyProfile.mobile1 : ""}
+        </div>
+      </body>
+      </html>
+    `;
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    if (w.document.fonts?.ready) {
+      w.document.fonts.ready.then(() => setTimeout(() => w.print(), 200));
+    } else {
+      setTimeout(() => w.print(), 800);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -474,6 +581,10 @@ export default function AgentPaymentUsdPage() {
               <ListOrdered className="h-5 w-5 text-blue-600" />
               {t('Payment History')}
               <Badge variant="secondary" className="ml-2">{filteredPayments.length}</Badge>
+              <Button variant="outline" size="sm" onClick={handlePrintList} disabled={filteredPayments.length === 0} className="ml-2 gap-1" data-testid="button-print-payment-list">
+                <Printer className="h-4 w-4" />
+                {t('Print List')}
+              </Button>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
