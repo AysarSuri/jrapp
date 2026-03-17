@@ -4116,8 +4116,8 @@ export async function registerRoutes(
       const entries: CustomerStatementEntry[] = [];
 
       for (const inv of invoices) {
-        const remaining = parseFloat(inv.remaining || "0");
-        if (remaining !== 0) {
+        const subtotal = parseFloat(inv.subtotal || "0");
+        if (subtotal !== 0) {
           entries.push({
             id: inv.id,
             date: inv.date,
@@ -4126,15 +4126,15 @@ export async function registerRoutes(
             description: `${inv.invoiceNumber} - ${inv.representativeName || ""}`,
             reference: inv.invoiceNumber,
             currency: inv.currency,
-            debit: remaining,
+            debit: subtotal,
             credit: 0,
           });
         }
       }
 
       for (const ret of returns) {
-        const remaining = parseFloat(ret.remaining || "0");
-        if (remaining !== 0) {
+        const subtotal = parseFloat(ret.subtotal || "0");
+        if (subtotal !== 0) {
           entries.push({
             id: ret.id,
             date: ret.date,
@@ -4144,7 +4144,7 @@ export async function registerRoutes(
             reference: ret.returnNumber,
             currency: ret.currency,
             debit: 0,
-            credit: remaining,
+            credit: subtotal,
           });
         }
       }
