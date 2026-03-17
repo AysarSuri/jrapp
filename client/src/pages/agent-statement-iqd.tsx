@@ -172,13 +172,13 @@ export default function AgentStatementIqdPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-sm font-bold">#</TableHead>
                     <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Time')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Type')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Description')}</TableHead>
-                    <TableHead className="text-sm font-bold">{t('Reference')}</TableHead>
                     <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} (IQD)</TableHead>
                     <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} (IQD)</TableHead>
-                    <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Balance')} (IQD)</TableHead>
+                    <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Cumulative Balance')} (IQD)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -187,9 +187,9 @@ export default function AgentStatementIqdPage() {
                       <TableCell className="font-mono text-sm font-semibold">-</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">-</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">-</TableCell>
                       <TableCell><Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Opening Balance')}</Badge></TableCell>
                       <TableCell className="text-sm font-bold">{t('Opening Balance')}</TableCell>
-                      <TableCell className="text-sm font-semibold text-muted-foreground">-</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-red-600">
                         {openingBalanceIqd > 0 ? formatIQD(openingBalanceIqd) : ""}
                       </TableCell>
@@ -205,10 +205,10 @@ export default function AgentStatementIqdPage() {
                     <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-customer-statement-${entry.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">{formatDate(entry.date)}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{entry.reference || "-"}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">{entry.time}</TableCell>
                       <TableCell>{typeBadge(entry.type)}</TableCell>
                       <TableCell className="text-sm font-semibold max-w-[200px] truncate">{entry.description || "-"}</TableCell>
-                      <TableCell className="text-sm font-semibold text-muted-foreground">{entry.reference || "-"}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-red-600">
                         {entry.debit > 0 ? formatIQD(entry.debit) : ""}
                       </TableCell>
