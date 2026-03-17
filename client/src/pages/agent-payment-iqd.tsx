@@ -23,7 +23,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import AgentPaymentReport from "@/components/agent-payment-report";
 import type { AgentPayment } from "@shared/schema";
 import { formatDate } from "@/lib/format-utils";
@@ -39,10 +38,6 @@ export default function AgentPaymentIqdPage() {
   const [reportPayment, setReportPayment] = useState<AgentPayment | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [editPayment, setEditPayment] = useState<AgentPayment | null>(null);
-  const [editNote, setEditNote] = useState("");
-  const [editReference, setEditReference] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editTime, setEditTime] = useState("");
 
   const openReport = (p: AgentPayment) => {
     setReportPayment(p);
@@ -51,23 +46,17 @@ export default function AgentPaymentIqdPage() {
 
   const openEdit = (p: AgentPayment) => {
     setEditPayment(p);
-    setEditNote(p.note || "");
-    setEditReference(p.reference || "");
-    setEditDate(p.date);
-    setEditTime(p.time);
-  };
-
-  const handleUpdate = () => {
-    if (!editPayment) return;
-    updatePayment({ id: editPayment.id, data: { note: editNote || null, reference: editReference || null, date: editDate, time: editTime } as any }, {
-      onSuccess: () => {
-        toast({ title: t("Payment updated successfully") });
-        setEditPayment(null);
-      },
-      onError: () => {
-        toast({ title: t("Failed to update payment"), variant: "destructive" });
-      },
-    });
+    setPaymentNumber(p.paymentNumber || "");
+    setAgentId(String(p.agentId));
+    setAgentName(p.agentName);
+    setPaymentSource(p.paymentSource === "hand" ? "hand:0" : `${p.paymentSource}:0`);
+    setPaymentSourceName(p.paymentSourceName);
+    setAmount(p.amount || "");
+    setNote(p.note || "");
+    setReference(p.reference || "");
+    setDate(p.date);
+    setTime(p.time);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const { data: allClients } = useQuery<Client[]>({
@@ -185,6 +174,7 @@ export default function AgentPaymentIqdPage() {
   });
 
   const resetForm = () => {
+    setEditPayment(null);
     setPaymentNumber("");
     setAgentId("");
     setAgentName("");
@@ -206,33 +196,56 @@ export default function AgentPaymentIqdPage() {
       toast({ title: t("Please select a payment source"), variant: "destructive" });
       return;
     }
-    const amountVal = parseFloat(amount || "0");
-    if (amountVal <= 0) {
+    const amtVal = parseFloat(amount || "0");
+    if (amtVal <= 0) {
       toast({ title: t("Please enter an amount"), variant: "destructive" });
       return;
     }
 
-    createPayment({
-      paymentNumber,
-      agentId: parseInt(agentId),
-      agentName,
-      paymentSource: paymentSource.split(":")[0],
-      paymentSourceName,
-      amount: amount || "0",
-      currency: "IQD",
-      note: note || null,
-      reference: reference || null,
-      date,
-      time,
-    }, {
-      onSuccess: () => {
-        toast({ title: t("Payment saved successfully") });
-        resetForm();
-      },
-      onError: () => {
-        toast({ title: t("Failed to save payment"), variant: "destructive" });
-      },
-    });
+    if (editPayment) {
+      updatePayment({ id: editPayment.id, data: {
+        paymentNumber,
+        agentId: parseInt(agentId),
+        agentName,
+        paymentSource: paymentSource.split(":")[0],
+        paymentSourceName,
+        amount: amount || "0",
+        note: note || null,
+        reference: reference || null,
+        date,
+        time,
+      } as any }, {
+        onSuccess: () => {
+          toast({ title: t("Payment updated successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to update payment"), variant: "destructive" });
+        },
+      });
+    } else {
+      createPayment({
+        paymentNumber,
+        agentId: parseInt(agentId),
+        agentName,
+        paymentSource: paymentSource.split(":")[0],
+        paymentSourceName,
+        amount: amount || "0",
+        currency: "IQD",
+        note: note || null,
+        reference: reference || null,
+        date,
+        time,
+      }, {
+        onSuccess: () => {
+          toast({ title: t("Payment saved successfully") });
+          resetForm();
+        },
+        onError: () => {
+          toast({ title: t("Failed to save payment"), variant: "destructive" });
+        },
+      });
+    }
   };
 
   const amountVal = parseFloat(amount || "0");
@@ -260,7 +273,14 @@ export default function AgentPaymentIqdPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 border-border/50 shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
+            <CardTitle className="text-lg">
+              {editPayment ? (
+                <span className="flex items-center gap-2 text-orange-600">
+                  <Pencil className="h-5 w-5" />
+                  {t('Edit Payment')} #{editPayment.paymentNumber}
+                </span>
+              ) : t('Payment Details')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -406,17 +426,23 @@ export default function AgentPaymentIqdPage() {
 
               <Button
                 onClick={handleSave}
-                disabled={isSaving || !agentId || !paymentSource}
-                className="w-full h-12 text-base gap-2 bg-orange-600 hover:bg-orange-700"
+                disabled={(editPayment ? isUpdating : isSaving) || !agentId || !paymentSource}
+                className={`w-full h-12 text-base gap-2 ${editPayment ? 'bg-orange-600 hover:bg-orange-700' : 'bg-orange-600 hover:bg-orange-700'}`}
                 data-testid="button-save-agent-payment"
               >
-                {isSaving ? (
+                {(editPayment ? isUpdating : isSaving) ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <Save className="h-5 w-5" />
                 )}
-                {t('Save Payment')}
+                {editPayment ? t('Update Payment') : t('Save Payment')}
               </Button>
+              {editPayment && (
+                <Button variant="outline" onClick={resetForm} className="w-full h-10 text-base gap-2 border-orange-300 text-orange-600" data-testid="button-cancel-edit">
+                  <RotateCcw className="h-5 w-5" />
+                  {t('Cancel Edit')}
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -580,40 +606,6 @@ export default function AgentPaymentIqdPage() {
 
       <AgentPaymentReport payment={reportPayment} open={reportOpen} onOpenChange={setReportOpen} />
 
-      <Dialog open={!!editPayment} onOpenChange={(open) => { if (!open) setEditPayment(null); }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("Edit Payment")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label className="text-base font-bold">{t("Note")}</Label>
-              <Textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} className="h-20 text-base font-semibold" data-testid="input-edit-note" />
-            </div>
-            <div>
-              <Label className="text-base font-bold">{t("Reference")}</Label>
-              <Input value={editReference} onChange={(e) => setEditReference(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-reference" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-base font-bold">{t("Date")}</Label>
-                <DateInput value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-date" />
-              </div>
-              <div>
-                <Label className="text-base font-bold">{t("Time")}</Label>
-                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-edit-time" />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPayment(null)}>{t("Cancel")}</Button>
-            <Button onClick={handleUpdate} disabled={isUpdating} className="bg-primary text-white" data-testid="button-save-edit">
-              {isUpdating ? <Loader2 className="w-5 h-5 mr-1 animate-spin" /> : <Save className="w-5 h-5 mr-1" />}
-              {t("Save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
