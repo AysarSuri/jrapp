@@ -4095,12 +4095,12 @@ export async function registerRoutes(
       let openingBalanceUsd = oldDebtUsd;
       let openingBalanceIqd = oldDebtIqd;
 
-      const priorInvoicesUsd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.subtotal}::numeric), 0)` })
+      const priorInvoicesUsd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.remaining}::numeric), 0)` })
         .from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} < ${fromDate} AND ${salesInvoices.currency} = 'USD'`);
       openingBalanceUsd += parseFloat(priorInvoicesUsd[0]?.total || "0");
 
-      const priorInvoicesIqd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.subtotal}::numeric), 0)` })
+      const priorInvoicesIqd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.remaining}::numeric), 0)` })
         .from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} < ${fromDate} AND ${salesInvoices.currency} = 'IQD'`);
       openingBalanceIqd += parseFloat(priorInvoicesIqd[0]?.total || "0");
@@ -4115,18 +4115,6 @@ export async function registerRoutes(
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'IQD'`);
       openingBalanceIqd -= parseFloat(priorReturnsIqd[0]?.total || "0");
 
-      const priorReceiptsUsd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDiscount: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
-        .from(customerReceipts)
-        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'USD'`);
-      openingBalanceUsd -= parseFloat(priorReceiptsUsd[0]?.total || "0");
-      openingBalanceUsd -= parseFloat(priorReceiptsUsd[0]?.totalDiscount || "0");
-
-      const priorReceiptsIqd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDiscount: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
-        .from(customerReceipts)
-        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'IQD'`);
-      openingBalanceIqd -= parseFloat(priorReceiptsIqd[0]?.total || "0");
-      openingBalanceIqd -= parseFloat(priorReceiptsIqd[0]?.totalDiscount || "0");
-
       const invoices = await db.select().from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
         .orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
@@ -4134,10 +4122,6 @@ export async function registerRoutes(
       const returns = await db.select().from(salesReturns)
         .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`)
         .orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
-
-      const allReceipts = await db.select().from(customerReceipts)
-        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} >= ${fromDate} AND ${customerReceipts.date} <= ${toDate}`)
-        .orderBy(sql`${customerReceipts.date} ASC, ${customerReceipts.time} ASC`);
 
       type CustomerStatementEntry = {
         id: number;
@@ -4154,8 +4138,8 @@ export async function registerRoutes(
       const entries: CustomerStatementEntry[] = [];
 
       for (const inv of invoices) {
-        const subtotal = parseFloat(inv.subtotal || "0");
-        if (subtotal !== 0) {
+        const remaining = parseFloat(inv.remaining || "0");
+        if (remaining !== 0) {
           entries.push({
             id: inv.id,
             date: inv.date,
@@ -4164,7 +4148,7 @@ export async function registerRoutes(
             description: `${inv.invoiceNumber} - ${inv.representativeName || ""}`,
             reference: inv.invoiceNumber,
             currency: inv.currency,
-            debit: subtotal,
+            debit: remaining,
             credit: 0,
           });
         }
@@ -4183,37 +4167,6 @@ export async function registerRoutes(
             currency: ret.currency,
             debit: 0,
             credit: remaining,
-          });
-        }
-      }
-
-      for (const rcpt of allReceipts) {
-        const amount = parseFloat(rcpt.amount || "0");
-        if (amount > 0) {
-          entries.push({
-            id: rcpt.id,
-            date: rcpt.date,
-            time: rcpt.time || "00:00",
-            type: "customer_receipt",
-            description: rcpt.paymentSourceName,
-            reference: rcpt.receiptNumber,
-            currency: rcpt.currency,
-            debit: 0,
-            credit: amount,
-          });
-        }
-        const discount = parseFloat(rcpt.discount || "0");
-        if (discount > 0) {
-          entries.push({
-            id: rcpt.id + 100000,
-            date: rcpt.date,
-            time: rcpt.time || "00:00",
-            type: "discount",
-            description: rcpt.paymentSourceName,
-            reference: rcpt.receiptNumber,
-            currency: rcpt.currency,
-            debit: 0,
-            credit: discount,
           });
         }
       }
