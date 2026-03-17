@@ -430,7 +430,7 @@ export default function AgentPaymentUsdPage() {
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {balanceLoading ? "..." : usd((currentBalance?.openingBalance ?? 0) - amountVal)}
+                        {balanceLoading ? "..." : usd((currentBalance?.openingBalance ?? 0) + amountVal)}
                       </p>
                     </>
                   )}

@@ -432,7 +432,7 @@ export default function AgentPaymentIqdPage() {
                     <>
                       <p className="text-xs text-muted-foreground">{t('After Payment')}</p>
                       <p className="font-mono text-xl font-bold text-emerald-600">
-                        {balanceLoading ? "..." : formatIQD((currentBalance?.openingBalance ?? 0) - amountVal)}
+                        {balanceLoading ? "..." : formatIQD((currentBalance?.openingBalance ?? 0) + amountVal)}
                       </p>
                     </>
                   )}
