@@ -40,6 +40,8 @@ interface CustomerData {
 interface StatementResponse {
   customer: CustomerData;
   entries: StatementEntry[];
+  openingBalanceUsd: number;
+  openingBalanceIqd: number;
 }
 
 export default function AgentStatementIqdPage() {
@@ -70,10 +72,11 @@ export default function AgentStatementIqdPage() {
   });
 
   const iqdEntries = statement?.entries?.filter(e => e.currency === "IQD") || [];
+  const openingBalanceIqd = statement?.openingBalanceIqd || 0;
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
-  let runningBalance = 0;
+  let runningBalance = openingBalanceIqd;
   const entriesWithBalance = iqdEntries.map((entry) => {
     runningBalance += entry.debit - entry.credit;
     return { ...entry, balance: runningBalance };
@@ -81,7 +84,7 @@ export default function AgentStatementIqdPage() {
 
   const totalDebit = iqdEntries.reduce((s, e) => s + e.debit, 0);
   const totalCredit = iqdEntries.reduce((s, e) => s + e.credit, 0);
-  const finalBalance = totalDebit - totalCredit;
+  const finalBalance = openingBalanceIqd + totalDebit - totalCredit;
 
   const typeBadge = (type: string) => {
     if (type === "sales_invoice") return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Sales Invoice')}</Badge>;
@@ -184,6 +187,25 @@ export default function AgentStatementIqdPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {openingBalanceIqd !== 0 && (
+                    <TableRow className="bg-blue-50 dark:bg-blue-950/20" data-testid="row-opening-balance">
+                      <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                      <TableCell><Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Opening Balance')}</Badge></TableCell>
+                      <TableCell className="text-sm font-bold">{t('Opening Balance')}</TableCell>
+                      <TableCell className="text-sm font-semibold text-muted-foreground">-</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">
+                        {openingBalanceIqd > 0 ? formatIQD(openingBalanceIqd) : ""}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">
+                        {openingBalanceIqd < 0 ? formatIQD(Math.abs(openingBalanceIqd)) : ""}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-blue-600">
+                        {formatIQD(openingBalanceIqd)}
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {entriesWithBalance.map((entry, i) => (
                     <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-customer-statement-${entry.id}`}>
                       <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>

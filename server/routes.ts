@@ -4089,6 +4089,44 @@ export async function registerRoutes(
       const [customer] = await db.select().from(clients).where(eq(clients.id, customerId));
       if (!customer) return res.status(404).json({ message: "Customer not found" });
 
+      const oldDebtUsd = parseFloat(customer.oldDebtUsd || "0");
+      const oldDebtIqd = parseFloat(customer.oldDebtIqd || "0");
+
+      let openingBalanceUsd = oldDebtUsd;
+      let openingBalanceIqd = oldDebtIqd;
+
+      const priorInvoicesUsd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.subtotal}::numeric), 0)` })
+        .from(salesInvoices)
+        .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} < ${fromDate} AND ${salesInvoices.currency} = 'USD'`);
+      openingBalanceUsd += parseFloat(priorInvoicesUsd[0]?.total || "0");
+
+      const priorInvoicesIqd = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.subtotal}::numeric), 0)` })
+        .from(salesInvoices)
+        .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} < ${fromDate} AND ${salesInvoices.currency} = 'IQD'`);
+      openingBalanceIqd += parseFloat(priorInvoicesIqd[0]?.total || "0");
+
+      const priorReturnsUsd = await db.select({ total: sql<string>`COALESCE(SUM(${salesReturns.remaining}::numeric), 0)` })
+        .from(salesReturns)
+        .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'USD'`);
+      openingBalanceUsd -= parseFloat(priorReturnsUsd[0]?.total || "0");
+
+      const priorReturnsIqd = await db.select({ total: sql<string>`COALESCE(SUM(${salesReturns.remaining}::numeric), 0)` })
+        .from(salesReturns)
+        .where(sql`${salesReturns.customerId} = ${customerId} AND ${salesReturns.date} < ${fromDate} AND ${salesReturns.currency} = 'IQD'`);
+      openingBalanceIqd -= parseFloat(priorReturnsIqd[0]?.total || "0");
+
+      const priorReceiptsUsd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDiscount: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+        .from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'USD'`);
+      openingBalanceUsd -= parseFloat(priorReceiptsUsd[0]?.total || "0");
+      openingBalanceUsd -= parseFloat(priorReceiptsUsd[0]?.totalDiscount || "0");
+
+      const priorReceiptsIqd = await db.select({ total: sql<string>`COALESCE(SUM(${customerReceipts.amount}::numeric), 0)`, totalDiscount: sql<string>`COALESCE(SUM(${customerReceipts.discount}::numeric), 0)` })
+        .from(customerReceipts)
+        .where(sql`${customerReceipts.customerId} = ${customerId} AND ${customerReceipts.date} < ${fromDate} AND ${customerReceipts.currency} = 'IQD'`);
+      openingBalanceIqd -= parseFloat(priorReceiptsIqd[0]?.total || "0");
+      openingBalanceIqd -= parseFloat(priorReceiptsIqd[0]?.totalDiscount || "0");
+
       const invoices = await db.select().from(salesInvoices)
         .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
         .orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
@@ -4186,7 +4224,7 @@ export async function registerRoutes(
         return a.time.localeCompare(b.time);
       });
 
-      res.json({ customer, entries });
+      res.json({ customer, entries, openingBalanceUsd, openingBalanceIqd });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
