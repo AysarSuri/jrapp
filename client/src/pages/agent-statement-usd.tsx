@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { usd, formatDate } from "@/lib/format-utils";
 import {
@@ -9,13 +10,17 @@ import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Printer } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 import { DateInput } from "@/components/ui/date-input";
+import { getModernPrintStyles } from "@/lib/print-styles";
 
 interface CompanyProfileData {
   id: number;
   name: string;
+  logo?: string;
+  primaryColor?: string;
 }
 
 interface StatementEntry {
@@ -93,6 +98,122 @@ export default function AgentStatementUsdPage() {
     return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Payment')}</Badge>;
   };
 
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+
+  const typeLabel = (type: string) => {
+    if (type === "sales_invoice") return t('Sales Invoice');
+    if (type === "sales_return") return t('Sales Return');
+    if (type === "agent_payment") return t('Agent Payment');
+    if (type === "customer_receipt") return t('Receipt');
+    if (type === "customer_receipt_discount") return t('Receipt Discount');
+    return t('Payment');
+  };
+
+  const handlePrint = () => {
+    if (!statement || !entriesWithBalance.length) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const primaryColor = companyProfile?.primaryColor || "#1e293b";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
+    const customerName = statement.customer?.name || "";
+    const numAlign = isRtl ? "left" : "right";
+
+    const rows = entriesWithBalance.map((entry, i) => `
+      <tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(entry.date)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:9pt;">${entry.reference || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">${entry.time}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${typeLabel(entry.type)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${entry.description || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;font-size:9pt;">${entry.debit > 0 ? usd(entry.debit) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;font-size:9pt;">${entry.credit > 0 ? usd(entry.credit) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:800;color:#1e40af;font-size:9pt;">${usd(entry.balance)}</td>
+      </tr>
+    `).join("");
+
+    const openingRow = openingBalanceUsd !== 0 ? `
+      <tr style="background:#eff6ff;">
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:700;color:#1e40af;">${t('Opening Balance')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:700;">${t('Opening Balance')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;font-size:9pt;">${openingBalanceUsd > 0 ? usd(openingBalanceUsd) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;font-size:9pt;">${openingBalanceUsd < 0 ? usd(Math.abs(openingBalanceUsd)) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:800;color:#1e40af;font-size:9pt;">${usd(openingBalanceUsd)}</td>
+      </tr>
+    ` : "";
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Customer Statement")} - ${customerName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;" />` : ""}
+            <div style="background:${primaryColor};color:#fff;padding:8px 20px;border-radius:8px;display:inline-block;">
+              <h1 style="font-size:15pt;margin:0;font-weight:800;">${t("Customer Statement")} - USD</h1>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
+            <span>${t("Customer Name")}: <strong style="color:${primaryColor}">${customerName}</strong></span>
+            <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
+            <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
+          </div>
+          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;margin-top:6px;">
+            <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${usd(openingBalanceUsd)}</strong></span>
+            <span style="color:#dc2626;">${t("Total Debit")}: <strong>${usd(totalDebit)}</strong></span>
+            <span style="color:#16a34a;">${t("Total Credit")}: <strong>${usd(totalCredit)}</strong></span>
+            <span style="color:#1e40af;">${t("Remaining")}: <strong>${usd(finalBalance)}</strong></span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:${primaryColor};color:#fff;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Type")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Description")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Debit")} ($)</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Credit")} ($)</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Cumulative Balance")} ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${openingRow}
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:${numAlign};">${usd(totalDebit)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#16a34a;text-align:${numAlign};">${usd(totalCredit)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:${numAlign};">${usd(finalBalance)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 500);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -132,23 +253,29 @@ export default function AgentStatementUsdPage() {
             </div>
           </div>
           {selectedCustomerId && statement && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">{t('Opening Balance')}</p>
-                <p className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-opening-balance">{usd(openingBalanceUsd)}</p>
+            <div className="flex items-center gap-4 mt-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">{t('Opening Balance')}</p>
+                  <p className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-opening-balance">{usd(openingBalanceUsd)}</p>
+                </div>
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-1">{t('Total Debit')}</p>
+                  <p className="font-mono text-lg font-bold text-red-700 dark:text-red-300" data-testid="text-total-debit">{usd(totalDebit)}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-green-600 dark:text-green-400 font-bold mb-1">{t('Total Credit')}</p>
+                  <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-total-credit">{usd(totalCredit)}</p>
+                </div>
+                <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
+                  <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>{t('Remaining')}</p>
+                  <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{usd(finalBalance)}</p>
+                </div>
               </div>
-              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-5 py-3">
-                <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-1">{t('Total Debit')}</p>
-                <p className="font-mono text-lg font-bold text-red-700 dark:text-red-300" data-testid="text-total-debit">{usd(totalDebit)}</p>
-              </div>
-              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-5 py-3">
-                <p className="text-sm text-green-600 dark:text-green-400 font-bold mb-1">{t('Total Credit')}</p>
-                <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-total-credit">{usd(totalCredit)}</p>
-              </div>
-              <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
-                <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>{t('Remaining')}</p>
-                <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{usd(finalBalance)}</p>
-              </div>
+              <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-statement">
+                <Printer className="w-5 h-5" />
+                {t('Print')}
+              </Button>
             </div>
           )}
         </CardContent>
