@@ -180,7 +180,7 @@ export default function AgentStatementIqdPage() {
             <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${formatIQD(openingBalanceIqd)}</strong></span>
             <span style="color:#dc2626;">${t("Total Debit")}: <strong>${formatIQD(totalDebit)}</strong></span>
             <span style="color:#16a34a;">${t("Total Credit")}: <strong>${formatIQD(totalCredit)}</strong></span>
-            <span style="color:#1e40af;">${t("Remaining")}: <strong>${formatIQD(finalBalance)}</strong></span>
+            <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${customerName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${formatIQD(Math.abs(finalBalance))}</strong></span>
           </div>
         </div>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
@@ -272,8 +272,10 @@ export default function AgentStatementIqdPage() {
                   <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-total-credit">{formatIQD(totalCredit)}</p>
                 </div>
                 <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
-                  <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>{t('Remaining')}</p>
-                  <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{formatIQD(finalBalance)}</p>
+                  <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                    {finalBalance > 0 ? `${t('Remaining at')} ${statement?.customer?.name || ''}` : finalBalance < 0 ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}` : t('Zero Account')}
+                  </p>
+                  <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{formatIQD(Math.abs(finalBalance))}</p>
                 </div>
               </div>
               <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-statement">
