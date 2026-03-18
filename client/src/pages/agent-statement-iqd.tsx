@@ -239,7 +239,7 @@ export default function AgentStatementIqdPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; }
