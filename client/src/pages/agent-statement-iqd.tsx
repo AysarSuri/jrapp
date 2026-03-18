@@ -247,12 +247,14 @@ export default function AgentStatementIqdPage() {
       </head>
       <body>
         <div style="margin-bottom:14px;">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;direction:ltr;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
             ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
             <div style="flex:1;text-align:center;">
-              <div style="background:${primaryColor};color:#fff;padding:8px 20px;border-radius:8px;display:inline-block;">
-                <h1 style="font-size:15pt;margin:0;font-weight:800;">${t("Customer Statement")} - IQD</h1>
-              </div>
+              <h2 style="font-size:14pt;margin:0;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="background:${primaryColor};color:#fff;padding:16px 20px;border-radius:8px;min-width:160px;text-align:center;">
+              <h1 style="font-size:14pt;margin:0;font-weight:800;line-height:1.3;">${t("Customer Statement")}</h1>
+              <div style="font-size:11pt;font-weight:700;margin-top:4px;">IQD</div>
             </div>
           </div>
           <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
