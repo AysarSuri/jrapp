@@ -248,8 +248,8 @@ export default function AgentStatementIqdPage() {
       <body>
         <div style="margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
-            <div style="flex:1;text-align:center;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
               <h2 style="font-size:14pt;margin:0;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
             </div>
             <div style="background:${primaryColor};color:#fff;padding:16px 20px;border-radius:8px;min-width:160px;text-align:center;">
