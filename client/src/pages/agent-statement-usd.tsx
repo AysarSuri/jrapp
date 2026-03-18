@@ -480,10 +480,10 @@ export default function AgentStatementUsdPage() {
             const remaining = parseFloat(inv?.remaining || "0");
             return `
               <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
-                <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
+                <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
                   <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
                 </div>
-                <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+                <table style="width:100%;border-collapse:collapse;font-size:9pt;">
                   <thead>
                     <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
                       <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
@@ -522,7 +522,7 @@ export default function AgentStatementUsdPage() {
           }).join("")}
           ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
 
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;margin-top:12px;">
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:9pt;margin-top:12px;">
             <thead>
               <tr style="background:#e2e8f0;color:#000;">
                 <th style="padding:4px 6px;font-weight:700;">#</th>
