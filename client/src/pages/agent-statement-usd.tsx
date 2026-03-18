@@ -61,8 +61,9 @@ interface StatementResponse {
 export default function AgentStatementUsdPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
+  const firstOfMonth = today.slice(0, 8) + "01";
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
-  const [fromDate, setFromDate] = useState(today);
+  const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(today);
   const queryClient = useQueryClient();
   const { toast } = useToast();
