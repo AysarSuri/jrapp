@@ -530,7 +530,7 @@ export default function AgentStatementIqdPage() {
 
           <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;margin-top:12px;">
             <thead>
-              <tr style="background:${primaryColor};color:#fff;">
+              <tr style="background:#e2e8f0;color:#000;">
                 <th style="padding:4px 6px;font-weight:700;">#</th>
                 <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
                 <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
