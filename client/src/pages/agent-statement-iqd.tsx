@@ -519,6 +519,7 @@ export default function AgentStatementIqdPage() {
                           ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${formatIQD(discount)}</span></span>` : ""}
                           ${!isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${formatIQD(remaining)}</span></span>` : ""}
                           ${isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${formatIQD(amountPaid)}</span></span>` : ""}
+                          ${isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${formatIQD(remaining)}</span></span>` : ""}
                         </div>
                       </td>
                     </tr>
