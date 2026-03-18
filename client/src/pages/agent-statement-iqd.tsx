@@ -512,25 +512,16 @@ export default function AgentStatementIqdPage() {
                       </tr>
                     `).join("")}
                     <tr style="background:#f8fafc;font-weight:800;">
-                      <td colspan="${colCount - 1}" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
-                      <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${formatIQD(entry.debit || entry.credit)}</td>
+                      <td colspan="${colCount}" style="padding:4px 6px;">
+                        <div style="display:flex;justify-content:space-around;align-items:center;gap:8px;flex-wrap:wrap;">
+                          <span style="color:${isReturn ? '#16a34a' : '#dc2626'};">${t("Total")}: <span style="font-family:monospace;">${formatIQD(entry.debit || entry.credit)}</span></span>
+                          ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${formatIQD(amountPaid)}</span></span>` : ""}
+                          ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${formatIQD(discount)}</span></span>` : ""}
+                          ${!isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${formatIQD(remaining)}</span></span>` : ""}
+                          ${isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${formatIQD(amountPaid)}</span></span>` : ""}
+                        </div>
+                      </td>
                     </tr>
-                    ${!isReturn && amountPaid > 0 ? `<tr style="background:#f0fdf4;">
-                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Amount Paid")}</td>
-                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${formatIQD(amountPaid)}</td>
-                    </tr>` : ""}
-                    ${!isReturn && discount > 0 ? `<tr style="background:#fefce8;">
-                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Discount")}</td>
-                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#d97706;">${formatIQD(discount)}</td>
-                    </tr>` : ""}
-                    ${!isReturn && remaining > 0 ? `<tr style="background:#fef2f2;">
-                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Remaining")}</td>
-                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;">${formatIQD(remaining)}</td>
-                    </tr>` : ""}
-                    ${isReturn && amountPaid > 0 ? `<tr style="background:#f0fdf4;">
-                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Amount Paid")}</td>
-                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${formatIQD(amountPaid)}</td>
-                    </tr>` : ""}
                   </tbody>
                 </table>
               </div>
