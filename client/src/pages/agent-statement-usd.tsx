@@ -244,9 +244,9 @@ export default function AgentStatementUsdPage() {
       <body>
         <div style="margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
-            <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
               ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
-              <h2 style="font-size:14pt;margin:0;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+              <h2 style="font-size:13pt;margin:0;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
             </div>
             <div style="background:${primaryColor};color:#fff;padding:16px 20px;border-radius:8px;min-width:160px;text-align:center;">
               <h1 style="font-size:14pt;margin:0;font-weight:800;line-height:1.3;">${t("Customer Statement")}</h1>
