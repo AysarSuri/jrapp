@@ -249,12 +249,12 @@ export default function AgentStatementUsdPage() {
               <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
             </div>
             <div style="flex:1;padding:0 20px;">
-              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;direction:${dir};">
                 <span>${t("Customer Name")}: <strong style="color:${primaryColor}">${customerName}</strong></span>
                 <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
                 <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
               </div>
-              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;margin-top:6px;">
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;margin-top:6px;direction:${dir};">
                 <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${usd(openingBalanceUsd)}</strong></span>
                 <span style="color:#dc2626;">${t("Total Debit")}: <strong>${usd(totalDebit)}</strong></span>
                 <span style="color:#16a34a;">${t("Total Credit")}: <strong>${usd(totalCredit)}</strong></span>
