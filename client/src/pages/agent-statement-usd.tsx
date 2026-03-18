@@ -435,11 +435,18 @@ export default function AgentStatementUsdPage() {
     const customerName = statement.customer?.name || "";
     const numAlign = isRtl ? "left" : "right";
 
-    const invoiceEntries = entriesWithBalance.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
-    const receiptEntries = entriesWithBalance.filter(e => e.type === "customer_receipt" || e.type === "customer_receipt_discount" || e.type === "agent_payment");
-
     const invoiceItemsMap = invoiceItemsRef.current;
     const invoiceDataMap = invoiceDataRef.current;
+
+    const allEntries = [...entriesWithBalance]
+      .filter(e => e.type !== "customer_receipt_discount")
+      .sort((a, b) => {
+        const da = new Date(`${a.date}T${a.time || "00:00:00"}`).getTime();
+        const db = new Date(`${b.date}T${b.time || "00:00:00"}`).getTime();
+        return da - db;
+      });
+
+    let seqNum = 0;
 
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
@@ -469,82 +476,78 @@ export default function AgentStatementUsdPage() {
         </div>
 
         <div style="direction:${dir};">
-          ${invoiceEntries.map(entry => {
-            const items = invoiceItemsMap[entry.id] || [];
-            const inv = invoiceDataMap[entry.id];
+          ${allEntries.map(entry => {
+            seqNum++;
+            const isInvoice = entry.type === "sales_invoice" || entry.type === "sales_return";
             const isReturn = entry.type === "sales_return";
-            const hasGift = items.some((item: any) => parseFloat(item.gift || "0") > 0);
-            const colCount = hasGift ? 5 : 4;
-            const amountPaid = parseFloat(inv?.amountPaid || "0");
-            const discount = parseFloat(inv?.discount || "0");
-            const remaining = parseFloat(inv?.remaining || "0");
-            return `
-              <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
-                <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
-                  <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
-                </div>
-                <table style="width:100%;border-collapse:collapse;font-size:9pt;">
-                  <thead>
-                    <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
-                      <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
-                      <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
-                      ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
-                      <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
-                      <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${items.map((item: any) => `
-                      <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
-                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
-                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
-                        ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
-                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
-                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${usd(parseFloat(item.amount || "0"))}</td>
-                      </tr>
-                    `).join("")}
-                    <tr style="background:#f8fafc;font-weight:800;">
-                      <td colspan="${colCount}" style="padding:4px 6px;">
-                        <div style="display:flex;justify-content:space-around;align-items:center;gap:8px;flex-wrap:wrap;">
-                          <span style="color:${isReturn ? '#dc2626' : '#64748b'};">${t("Total")}: <span style="font-family:monospace;">${usd(entry.debit || entry.credit)}</span></span>
-                          ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Received")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
-                          ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${usd(discount)}</span></span>` : ""}
-                          ${!isReturn && remaining > 0 ? `<span style="color:#2563eb;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
-                          ${isReturn && amountPaid > 0 ? `<span style="color:#dc2626;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
-                          ${isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            `;
-          }).join("")}
-          ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
+            const isReceipt = entry.type === "customer_receipt" || entry.type === "agent_payment";
 
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:9pt;margin-top:12px;">
-            <thead>
-              <tr style="background:#e2e8f0;color:#000;">
-                <th style="padding:4px 6px;font-weight:700;">#</th>
-                <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
-                <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
-                <th style="padding:4px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
-                <th style="padding:4px 6px;font-weight:700;">${t("Note")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").map((entry) => `
-                <tr>
-                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${entry.reference || "-"}</td>
-                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${formatDate(entry.date)}</td>
-                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;font-weight:600;">${typeLabel(entry.type)}</td>
-                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(entry.credit)}</td>
-                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">${entry.description || "-"}</td>
-                </tr>
-              `).join("")}
-              ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").length === 0 ? `<tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">${t("No data")}</td></tr>` : ""}
-            </tbody>
-          </table>
+            if (isInvoice) {
+              const items = invoiceItemsMap[entry.id] || [];
+              const inv = invoiceDataMap[entry.id];
+              const hasGift = items.some((item: any) => parseFloat(item.gift || "0") > 0);
+              const colCount = hasGift ? 5 : 4;
+              const amountPaid = parseFloat(inv?.amountPaid || "0");
+              const discount = parseFloat(inv?.discount || "0");
+              const remaining = parseFloat(inv?.remaining || "0");
+              return `
+                <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
+                  <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
+                    <span>${seqNum}. ${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                    <thead>
+                      <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
+                        <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
+                        ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
+                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map((item: any) => `
+                        <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
+                          ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${usd(parseFloat(item.amount || "0"))}</td>
+                        </tr>
+                      `).join("")}
+                      <tr style="background:#f8fafc;font-weight:800;">
+                        <td colspan="${colCount}" style="padding:4px 6px;">
+                          <div style="display:flex;justify-content:space-around;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span style="color:${isReturn ? '#dc2626' : '#64748b'};">${t("Total")}: <span style="font-family:monospace;">${usd(entry.debit || entry.credit)}</span></span>
+                            ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Received")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
+                            ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${usd(discount)}</span></span>` : ""}
+                            ${!isReturn && remaining > 0 ? `<span style="color:#2563eb;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
+                            ${isReturn && amountPaid > 0 ? `<span style="color:#dc2626;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
+                            ${isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }
+
+            if (isReceipt) {
+              return `
+                <div style="margin-bottom:10px;border:1px solid #d1fae5;border-radius:6px;overflow:hidden;">
+                  <div style="background:#ecfdf5;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#16a34a;">
+                    <span>${seqNum}. ${typeLabel(entry.type)}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
+                    <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
+                  </div>
+                  ${entry.description ? `<div style="padding:4px 12px;font-size:8pt;color:#64748b;">${entry.description}</div>` : ""}
+                </div>
+              `;
+            }
+
+            return "";
+          }).join("")}
+          ${allEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
         </div>
       </body></html>`;
 
