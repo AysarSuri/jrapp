@@ -289,11 +289,11 @@ export default function AgentStatementIqdPage() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
             <div style="display:flex;flex-direction:column;align-items:center;">
               ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
-              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
             </div>
             <div style="flex:1;padding:0 20px;">
               <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#000;font-weight:600;flex-wrap:wrap;direction:${dir};">
-                <span>${t("Customer Name")}: <strong style="color:${primaryColor}">${customerName}</strong></span>
+                <span>${t("Customer Name")}: <strong style="color:#64748b">${customerName}</strong></span>
                 <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
                 <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
               </div>
@@ -304,7 +304,7 @@ export default function AgentStatementIqdPage() {
                 <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${customerName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${formatIQD(Math.abs(finalBalance))}</strong></span>
               </div>
             </div>
-            <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+            <div style="background:#64748b;color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
               <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Customer Statement")}</h1>
               <div style="font-size:10pt;font-weight:700;margin-top:3px;">IQD</div>
             </div>
@@ -312,7 +312,7 @@ export default function AgentStatementIqdPage() {
         </div>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
           <thead>
-            <tr style="background:${primaryColor};color:#fff;">
+            <tr style="background:#e2e8f0;color:#000;">
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
@@ -340,12 +340,12 @@ export default function AgentStatementIqdPage() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
             <div style="display:flex;flex-direction:column;align-items:center;">
               ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
-              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
             </div>
             <div style="flex:1;text-align:center;">
-              <h2 style="font-size:12pt;margin:0;font-weight:800;color:${primaryColor};">${t("Details")} - ${customerName}</h2>
+              <h2 style="font-size:12pt;margin:0;font-weight:800;color:#64748b;">${t("Details")} - ${customerName}</h2>
             </div>
-            <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+            <div style="background:#64748b;color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
               <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Details")}</h1>
               <div style="font-size:10pt;font-weight:700;margin-top:3px;">IQD</div>
             </div>
@@ -353,7 +353,7 @@ export default function AgentStatementIqdPage() {
 
           <div style="display:flex;gap:12px;direction:ltr;">
             <div style="flex:1;">
-              <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
+              <h3 style="font-size:10pt;font-weight:800;color:#64748b;margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
               ${invoiceEntries.map(entry => {
                 const inv = invoiceDataMap[entry.id];
                 const items = invoiceItemsMap[entry.id] || [];
@@ -366,7 +366,7 @@ export default function AgentStatementIqdPage() {
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:8pt;">
                       <thead>
-                        <tr style="background:${primaryColor};color:#fff;">
+                        <tr style="background:#e2e8f0;color:#000;">
                           <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
                           <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
                           <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>
@@ -396,10 +396,10 @@ export default function AgentStatementIqdPage() {
             </div>
 
             <div style="flex:1;">
-              <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
+              <h3 style="font-size:10pt;font-weight:800;color:#64748b;margin:0 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
               <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
                 <thead>
-                  <tr style="background:${primaryColor};color:#fff;">
+                  <tr style="background:#e2e8f0;color:#000;">
                     <th style="padding:4px 6px;font-weight:700;">#</th>
                     <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
                     <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
