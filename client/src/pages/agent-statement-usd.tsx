@@ -511,7 +511,7 @@ export default function AgentStatementUsdPage() {
                       <td colspan="${colCount}" style="padding:4px 6px;">
                         <div style="display:flex;justify-content:space-around;align-items:center;gap:8px;flex-wrap:wrap;">
                           <span style="color:${isReturn ? '#16a34a' : '#dc2626'};">${t("Total")}: <span style="font-family:monospace;">${usd(entry.debit || entry.credit)}</span></span>
-                          ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
+                          ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Received")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
                           ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${usd(discount)}</span></span>` : ""}
                           ${!isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
                           ${isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
