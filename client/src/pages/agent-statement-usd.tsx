@@ -487,7 +487,7 @@ export default function AgentStatementUsdPage() {
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:8pt;">
                   <thead>
-                    <tr style="background:${primaryColor};color:#fff;">
+                    <tr style="background:#94a3b8;color:#fff;">
                       <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
                       <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
                       ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
