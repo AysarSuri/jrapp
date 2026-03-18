@@ -193,6 +193,11 @@ export default function AgentStatementUsdPage() {
 
   const handlePrint = async () => {
     if (!statement || !entriesWithBalance.length) return;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (!win) return;
+    win.document.write(`<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h2>${t("Loading")}...</h2></body></html>`);
+
     const dir = isRtl ? "rtl" : "ltr";
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
@@ -405,12 +410,10 @@ export default function AgentStatementUsdPage() {
         </div>
       </body></html>`;
 
-    const win = window.open("", "_blank", "width=1200,height=800");
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-      setTimeout(() => win.print(), 500);
-    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
   };
 
   return (
