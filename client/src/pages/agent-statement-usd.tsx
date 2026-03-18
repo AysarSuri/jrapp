@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -102,6 +102,36 @@ export default function AgentStatementUsdPage() {
   const usdEntries = statement?.entries?.filter(e => e.currency === "USD") || [];
   const openingBalanceUsd = statement?.openingBalanceUsd || 0;
 
+  const invoiceItemsRef = useRef<Record<number, any[]>>({});
+  const invoiceDataRef = useRef<Record<number, any>>({});
+
+  useEffect(() => {
+    if (!usdEntries.length) return;
+    const invoiceEntries = usdEntries.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
+    if (!invoiceEntries.length) return;
+    const fetchAll = async () => {
+      const newItemsMap: Record<number, any[]> = {};
+      const newDataMap: Record<number, any> = {};
+      for (const entry of invoiceEntries) {
+        if (newItemsMap[entry.id]) continue;
+        try {
+          const endpoint = entry.type === "sales_invoice" ? "sales-invoices" : "sales-returns";
+          const [invRes, itemsRes] = await Promise.all([
+            fetch(`/api/${endpoint}/${entry.id}`, { credentials: "include" }),
+            fetch(`/api/${endpoint}/${entry.id}/items`, { credentials: "include" }),
+          ]);
+          if (invRes.ok && itemsRes.ok) {
+            newDataMap[entry.id] = await invRes.json();
+            newItemsMap[entry.id] = await itemsRes.json();
+          }
+        } catch {}
+      }
+      invoiceItemsRef.current = newItemsMap;
+      invoiceDataRef.current = newDataMap;
+    };
+    fetchAll();
+  }, [usdEntries]);
+
   let runningBalance = openingBalanceUsd;
   const entriesWithBalance = usdEntries.map((entry) => {
     runningBalance += entry.debit - entry.credit;
@@ -191,13 +221,8 @@ export default function AgentStatementUsdPage() {
     setDeleteEntry(null);
   };
 
-  const handlePrint = async () => {
+  const handlePrint = () => {
     if (!statement || !entriesWithBalance.length) return;
-
-    const win = window.open("", "_blank", "width=1200,height=800");
-    if (!win) return;
-    win.document.write(`<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><h2>${t("Loading")}...</h2></body></html>`);
-
     const dir = isRtl ? "rtl" : "ltr";
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
@@ -207,22 +232,8 @@ export default function AgentStatementUsdPage() {
     const invoiceEntries = entriesWithBalance.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
     const receiptEntries = entriesWithBalance.filter(e => e.type === "customer_receipt" || e.type === "customer_receipt_discount" || e.type === "agent_payment");
 
-    const invoiceItemsMap: Record<number, any[]> = {};
-    const invoiceDataMap: Record<number, any> = {};
-    for (const entry of invoiceEntries) {
-      if (invoiceItemsMap[entry.id]) continue;
-      try {
-        const endpoint = entry.type === "sales_invoice" ? "sales-invoices" : "sales-returns";
-        const [invRes, itemsRes] = await Promise.all([
-          fetch(`/api/${endpoint}/${entry.id}`, { credentials: "include" }),
-          fetch(`/api/${endpoint}/${entry.id}/items`, { credentials: "include" }),
-        ]);
-        if (invRes.ok && itemsRes.ok) {
-          invoiceDataMap[entry.id] = await invRes.json();
-          invoiceItemsMap[entry.id] = await itemsRes.json();
-        }
-      } catch {}
-    }
+    const invoiceItemsMap = invoiceItemsRef.current;
+    const invoiceDataMap = invoiceDataRef.current;
 
     const rows = entriesWithBalance.map((entry, i) => `
       <tr>
@@ -410,10 +421,12 @@ export default function AgentStatementUsdPage() {
         </div>
       </body></html>`;
 
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => win.print(), 500);
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 500);
+    }
   };
 
   return (
