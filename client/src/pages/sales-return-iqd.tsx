@@ -276,6 +276,15 @@ export default function SalesReturnIqdPage() {
     }
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("editId");
+    if (editId) {
+      startEdit(Number(editId));
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   const handleSave = () => {
     if (!customerName.trim()) {
       toast({ title: t("Customer name is required"), variant: "destructive" });

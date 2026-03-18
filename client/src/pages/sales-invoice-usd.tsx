@@ -197,6 +197,15 @@ export default function SalesInvoiceUsdPage() {
     }
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("editId");
+    if (editId) {
+      startEdit(Number(editId));
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
     queryKey: ["/api/customer-opening-balance", customerId, date, time, "USD", inlineEditId],
     queryFn: async () => {

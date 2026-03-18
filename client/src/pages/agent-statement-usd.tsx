@@ -161,8 +161,8 @@ export default function AgentStatementUsdPage() {
   const handleEdit = (entry: StatementEntry & { balance: number }) => {
     if (entry.type === "sales_invoice" || entry.type === "sales_return") {
       let path = "";
-      if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}`;
-      else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}`;
+      if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}?editId=${entry.id}`;
+      else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}?editId=${entry.id}`;
       if (path) window.open(path, "_blank");
     } else {
       setEditEntry({ id: entry.id, type: entry.type, currency: entry.currency, reference: entry.reference });

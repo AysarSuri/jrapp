@@ -197,6 +197,15 @@ export default function SalesInvoiceIqdPage() {
     }
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("editId");
+    if (editId) {
+      startEdit(Number(editId));
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
     queryKey: ["/api/customer-opening-balance", customerId, date, time, "IQD", inlineEditId],
     queryFn: async () => {
