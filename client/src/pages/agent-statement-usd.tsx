@@ -159,8 +159,15 @@ export default function AgentStatementUsdPage() {
   };
 
   const handleEdit = (entry: StatementEntry & { balance: number }) => {
-    setEditEntry({ id: entry.id, type: entry.type, currency: entry.currency, reference: entry.reference });
-    setEditOpen(true);
+    if (entry.type === "sales_invoice" || entry.type === "sales_return") {
+      let path = "";
+      if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}`;
+      else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}`;
+      if (path) window.open(path, "_blank");
+    } else {
+      setEditEntry({ id: entry.id, type: entry.type, currency: entry.currency, reference: entry.reference });
+      setEditOpen(true);
+    }
   };
 
   const getDeleteApi = (type: string) => {
