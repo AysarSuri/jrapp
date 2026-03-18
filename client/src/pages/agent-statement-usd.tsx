@@ -243,8 +243,8 @@ export default function AgentStatementUsdPage() {
       </head>
       <body>
         <div style="margin-bottom:14px;">
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
-            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:64px;height:64px;object-fit:contain;border-radius:8px;" />` : ""}
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;direction:ltr;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
             <div style="flex:1;text-align:center;">
               <div style="background:${primaryColor};color:#fff;padding:8px 20px;border-radius:8px;display:inline-block;">
                 <h1 style="font-size:15pt;margin:0;font-weight:800;">${t("Customer Statement")} - USD</h1>
