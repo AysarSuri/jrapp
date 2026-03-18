@@ -525,8 +525,7 @@ export default function AgentStatementUsdPage() {
           }).join("")}
           ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
 
-          <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:12px 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;margin-top:12px;">
             <thead>
               <tr style="background:${primaryColor};color:#fff;">
                 <th style="padding:4px 6px;font-weight:700;">#</th>
