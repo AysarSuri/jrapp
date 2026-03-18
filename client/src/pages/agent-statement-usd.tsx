@@ -248,21 +248,23 @@ export default function AgentStatementUsdPage() {
               ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:90px;height:90px;object-fit:contain;border-radius:8px;" />` : ""}
               <h2 style="font-size:13pt;margin:0;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
             </div>
-            <div style="background:${primaryColor};color:#fff;padding:16px 20px;border-radius:8px;min-width:160px;text-align:center;">
-              <h1 style="font-size:14pt;margin:0;font-weight:800;line-height:1.3;">${t("Customer Statement")}</h1>
-              <div style="font-size:11pt;font-weight:700;margin-top:4px;">USD</div>
+            <div style="flex:1;padding:0 20px;">
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
+                <span>${t("Customer Name")}: <strong style="color:${primaryColor}">${customerName}</strong></span>
+                <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
+                <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
+              </div>
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;margin-top:6px;">
+                <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${usd(openingBalanceUsd)}</strong></span>
+                <span style="color:#dc2626;">${t("Total Debit")}: <strong>${usd(totalDebit)}</strong></span>
+                <span style="color:#16a34a;">${t("Total Credit")}: <strong>${usd(totalCredit)}</strong></span>
+                <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${customerName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${usd(Math.abs(finalBalance))}</strong></span>
+              </div>
             </div>
-          </div>
-          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;">
-            <span>${t("Customer Name")}: <strong style="color:${primaryColor}">${customerName}</strong></span>
-            <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
-            <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
-          </div>
-          <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#555;font-weight:600;flex-wrap:wrap;margin-top:6px;">
-            <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${usd(openingBalanceUsd)}</strong></span>
-            <span style="color:#dc2626;">${t("Total Debit")}: <strong>${usd(totalDebit)}</strong></span>
-            <span style="color:#16a34a;">${t("Total Credit")}: <strong>${usd(totalCredit)}</strong></span>
-            <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${customerName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${usd(Math.abs(finalBalance))}</strong></span>
+            <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+              <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Customer Statement")}</h1>
+              <div style="font-size:10pt;font-weight:700;margin-top:3px;">USD</div>
+            </div>
           </div>
         </div>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
