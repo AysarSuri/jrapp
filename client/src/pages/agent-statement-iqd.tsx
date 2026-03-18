@@ -491,7 +491,7 @@ export default function AgentStatementIqdPage() {
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:8pt;">
                   <thead>
-                    <tr style="background:#94a3b8;color:#fff;">
+                    <tr style="background:#e2e8f0;color:#000;">
                       <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
                       <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
                       ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
