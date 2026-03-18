@@ -381,7 +381,7 @@ export default function AgentStatementUsdPage() {
                         `).join("")}
                         <tr style="background:#f8fafc;font-weight:800;">
                           <td colspan="4" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
-                          <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${usd(entry.debit || entry.credit)}</td>
+                          <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#2563eb'};">${usd(entry.debit || entry.credit)}</td>
                         </tr>
                       </tbody>
                     </table>
