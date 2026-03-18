@@ -509,9 +509,9 @@ export default function AgentStatementUsdPage() {
                           <span style="color:${isReturn ? '#16a34a' : '#64748b'};">${t("Total")}: <span style="font-family:monospace;">${usd(entry.debit || entry.credit)}</span></span>
                           ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Received")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
                           ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${usd(discount)}</span></span>` : ""}
-                          ${!isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
+                          ${!isReturn && remaining > 0 ? `<span style="color:#2563eb;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
                           ${isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
-                          ${isReturn && remaining > 0 ? `<span style="color:#dc2626;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
+                          ${isReturn && remaining > 0 ? `<span style="color:#2563eb;">${t("Remaining")}: <span style="font-family:monospace;">${usd(remaining)}</span></span>` : ""}
                         </div>
                       </td>
                     </tr>
