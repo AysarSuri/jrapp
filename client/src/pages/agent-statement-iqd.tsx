@@ -104,6 +104,7 @@ export default function AgentStatementIqdPage() {
 
   const invoiceItemsRef = useRef<Record<number, any[]>>({});
   const invoiceDataRef = useRef<Record<number, any>>({});
+  const entryIdsKey = iqdEntries.map(e => `${e.id}-${e.type}`).join(",");
 
   useEffect(() => {
     if (!iqdEntries.length) return;
@@ -112,8 +113,7 @@ export default function AgentStatementIqdPage() {
     const fetchAll = async () => {
       const newItemsMap: Record<number, any[]> = {};
       const newDataMap: Record<number, any> = {};
-      for (const entry of invoiceEntries) {
-        if (newItemsMap[entry.id]) continue;
+      await Promise.all(invoiceEntries.map(async (entry) => {
         try {
           const endpoint = entry.type === "sales_invoice" ? "sales-invoices" : "sales-returns";
           const [invRes, itemsRes] = await Promise.all([
@@ -125,12 +125,12 @@ export default function AgentStatementIqdPage() {
             newItemsMap[entry.id] = await itemsRes.json();
           }
         } catch {}
-      }
+      }));
       invoiceItemsRef.current = newItemsMap;
       invoiceDataRef.current = newDataMap;
     };
     fetchAll();
-  }, [iqdEntries]);
+  }, [entryIdsKey]);
 
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
