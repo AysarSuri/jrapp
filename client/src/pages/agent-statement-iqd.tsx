@@ -474,7 +474,7 @@ export default function AgentStatementIqdPage() {
           </div>
         </div>
 
-        <div style="direction:ltr;">
+        <div style="direction:${dir};">
           <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
           ${invoiceEntries.map(entry => {
             const items = invoiceItemsMap[entry.id] || [];
