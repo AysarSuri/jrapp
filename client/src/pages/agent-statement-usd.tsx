@@ -450,7 +450,7 @@ export default function AgentStatementUsdPage() {
         <title>${t("Details")} - ${customerName}</title>
         <style>
           ${printStyles}
-          @page { size: A4 landscape; margin: 10mm; }
+          @page { size: A4 portrait; margin: 10mm; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
         </style>
@@ -470,76 +470,94 @@ export default function AgentStatementUsdPage() {
           </div>
         </div>
 
-        <div style="display:flex;gap:12px;direction:ltr;">
-          <div style="flex:1;">
-            <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
-            ${invoiceEntries.map(entry => {
-              const items = invoiceItemsMap[entry.id] || [];
-              const isReturn = entry.type === "sales_return";
-              return `
-                <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-                  <div style="background:${isReturn ? '#fef2f2' : '#eff6ff'};padding:5px 8px;display:flex;justify-content:space-between;font-size:9pt;font-weight:700;direction:${dir};">
-                    <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"}</span>
-                    <span>${formatDate(entry.date)}</span>
-                  </div>
-                  <table style="width:100%;border-collapse:collapse;font-size:8pt;">
-                    <thead>
-                      <tr style="background:${primaryColor};color:#fff;">
-                        <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${items.map((item: any) => `
-                        <tr>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${usd(parseFloat(item.amount || "0"))}</td>
-                        </tr>
-                      `).join("")}
-                      <tr style="background:#f8fafc;font-weight:800;">
-                        <td colspan="4" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
-                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${usd(entry.debit || entry.credit)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+        <div style="direction:ltr;">
+          <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
+          ${invoiceEntries.map(entry => {
+            const items = invoiceItemsMap[entry.id] || [];
+            const inv = invoiceDataMap[entry.id];
+            const isReturn = entry.type === "sales_return";
+            const hasGift = items.some((item: any) => parseFloat(item.gift || "0") > 0);
+            const colCount = hasGift ? 5 : 4;
+            const amountPaid = parseFloat(inv?.amountPaid || "0");
+            const discount = parseFloat(inv?.discount || "0");
+            const remaining = parseFloat(inv?.remaining || "0");
+            return `
+              <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+                <div style="background:${isReturn ? '#fef2f2' : '#eff6ff'};padding:5px 8px;display:flex;justify-content:space-between;font-size:9pt;font-weight:700;direction:${dir};">
+                  <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"}</span>
+                  <span>${formatDate(entry.date)}</span>
                 </div>
-              `;
-            }).join("")}
-            ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
-          </div>
+                <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+                  <thead>
+                    <tr style="background:${primaryColor};color:#fff;">
+                      <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
+                      <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
+                      ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
+                      <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
+                      <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items.map((item: any) => `
+                      <tr>
+                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
+                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
+                        ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
+                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
+                        <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${usd(parseFloat(item.amount || "0"))}</td>
+                      </tr>
+                    `).join("")}
+                    <tr style="background:#f8fafc;font-weight:800;">
+                      <td colspan="${colCount - 1}" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
+                      <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${usd(entry.debit || entry.credit)}</td>
+                    </tr>
+                    ${!isReturn && amountPaid > 0 ? `<tr style="background:#f0fdf4;">
+                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Amount Paid")}</td>
+                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(amountPaid)}</td>
+                    </tr>` : ""}
+                    ${!isReturn && discount > 0 ? `<tr style="background:#fefce8;">
+                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Discount")}</td>
+                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#d97706;">${usd(discount)}</td>
+                    </tr>` : ""}
+                    ${!isReturn && remaining > 0 ? `<tr style="background:#fef2f2;">
+                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Remaining")}</td>
+                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;">${usd(remaining)}</td>
+                    </tr>` : ""}
+                    ${isReturn && amountPaid > 0 ? `<tr style="background:#f0fdf4;">
+                      <td colspan="${colCount - 1}" style="padding:3px 6px;font-weight:700;text-align:${isRtl ? 'right' : 'left'};">${t("Amount Paid")}</td>
+                      <td style="padding:3px 6px;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(amountPaid)}</td>
+                    </tr>` : ""}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }).join("")}
+          ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
 
-          <div style="flex:1;">
-            <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
-            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
-              <thead>
-                <tr style="background:${primaryColor};color:#fff;">
-                  <th style="padding:4px 6px;font-weight:700;">#</th>
-                  <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
-                  <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
-                  <th style="padding:4px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
-                  <th style="padding:4px 6px;font-weight:700;">${t("Note")}</th>
+          <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:12px 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
+            <thead>
+              <tr style="background:${primaryColor};color:#fff;">
+                <th style="padding:4px 6px;font-weight:700;">#</th>
+                <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
+                <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
+                <th style="padding:4px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                <th style="padding:4px 6px;font-weight:700;">${t("Note")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").map((entry) => `
+                <tr>
+                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${entry.reference || "-"}</td>
+                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${formatDate(entry.date)}</td>
+                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;font-weight:600;">${typeLabel(entry.type)}</td>
+                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(entry.credit)}</td>
+                  <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">${entry.description || "-"}</td>
                 </tr>
-              </thead>
-              <tbody>
-                ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").map((entry) => `
-                  <tr>
-                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${entry.reference || "-"}</td>
-                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${formatDate(entry.date)}</td>
-                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;font-weight:600;">${typeLabel(entry.type)}</td>
-                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(entry.credit)}</td>
-                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">${entry.description || "-"}</td>
-                  </tr>
-                `).join("")}
-                ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").length === 0 ? `<tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">${t("No data")}</td></tr>` : ""}
-              </tbody>
-            </table>
-          </div>
+              `).join("")}
+              ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").length === 0 ? `<tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">${t("No data")}</td></tr>` : ""}
+            </tbody>
+          </table>
         </div>
       </body></html>`;
 
