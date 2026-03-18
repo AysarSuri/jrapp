@@ -536,8 +536,8 @@ export default function AgentStatementUsdPage() {
 
             if (isReceipt) {
               return `
-                <div style="margin-bottom:10px;border:1px solid #d1fae5;border-radius:6px;overflow:hidden;">
-                  <div style="background:#ecfdf5;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#16a34a;">
+                <div style="margin-bottom:10px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
+                  <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
                     <span>${seqNum}. ${typeLabel(entry.type)}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
                     <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
                   </div>
