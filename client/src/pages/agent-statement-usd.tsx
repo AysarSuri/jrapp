@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Printer, Eye, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Printer, Eye, Pencil, Trash2, FileText } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 import { DateInput } from "@/components/ui/date-input";
 import { getModernPrintStyles } from "@/lib/print-styles";
@@ -429,6 +429,128 @@ export default function AgentStatementUsdPage() {
     }
   };
 
+  const handlePrintDetails = () => {
+    if (!statement || !entriesWithBalance.length) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const primaryColor = companyProfile?.primaryColor || "#1e293b";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
+    const customerName = statement.customer?.name || "";
+    const numAlign = isRtl ? "left" : "right";
+
+    const invoiceEntries = entriesWithBalance.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
+    const receiptEntries = entriesWithBalance.filter(e => e.type === "customer_receipt" || e.type === "customer_receipt_discount" || e.type === "agent_payment");
+
+    const invoiceItemsMap = invoiceItemsRef.current;
+    const invoiceDataMap = invoiceDataRef.current;
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        <title>${t("Details")} - ${customerName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+        </style>
+      </head>
+      <body>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+            <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+          </div>
+          <div style="flex:1;text-align:center;">
+            <h2 style="font-size:12pt;margin:0;font-weight:800;color:${primaryColor};">${t("Details")} - ${customerName}</h2>
+          </div>
+          <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+            <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Details")}</h1>
+            <div style="font-size:10pt;font-weight:700;margin-top:3px;">USD</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;direction:ltr;">
+          <div style="flex:1;">
+            <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
+            ${invoiceEntries.map(entry => {
+              const items = invoiceItemsMap[entry.id] || [];
+              const isReturn = entry.type === "sales_return";
+              return `
+                <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+                  <div style="background:${isReturn ? '#fef2f2' : '#eff6ff'};padding:5px 8px;display:flex;justify-content:space-between;font-size:9pt;font-weight:700;direction:${dir};">
+                    <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"}</span>
+                    <span>${formatDate(entry.date)}</span>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+                    <thead>
+                      <tr style="background:${primaryColor};color:#fff;">
+                        <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map((item: any) => `
+                        <tr>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${usd(parseFloat(item.amount || "0"))}</td>
+                        </tr>
+                      `).join("")}
+                      <tr style="background:#f8fafc;font-weight:800;">
+                        <td colspan="4" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
+                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${usd(entry.debit || entry.credit)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }).join("")}
+            ${invoiceEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
+          </div>
+
+          <div style="flex:1;">
+            <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
+            <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
+              <thead>
+                <tr style="background:${primaryColor};color:#fff;">
+                  <th style="padding:4px 6px;font-weight:700;">#</th>
+                  <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
+                  <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
+                  <th style="padding:4px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                  <th style="padding:4px 6px;font-weight:700;">${t("Note")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").map((entry) => `
+                  <tr>
+                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${entry.reference || "-"}</td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${formatDate(entry.date)}</td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;font-weight:600;">${typeLabel(entry.type)}</td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${usd(entry.credit)}</td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">${entry.description || "-"}</td>
+                  </tr>
+                `).join("")}
+                ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").length === 0 ? `<tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">${t("No data")}</td></tr>` : ""}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 500);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -489,10 +611,16 @@ export default function AgentStatementUsdPage() {
                   <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-final-balance">{usd(Math.abs(finalBalance))}</p>
                 </div>
               </div>
-              <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-statement">
-                <Printer className="w-5 h-5" />
-                {t('Print')}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-statement">
+                  <Printer className="w-5 h-5" />
+                  {t('Print')}
+                </Button>
+                <Button onClick={handlePrintDetails} disabled={entriesWithBalance.length === 0} className="bg-orange-600 text-white gap-2 h-11" data-testid="button-print-details">
+                  <FileText className="w-5 h-5" />
+                  {t('Print Details')}
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
