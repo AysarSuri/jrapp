@@ -202,15 +202,14 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     }
     thead { }
     th {
-      background: linear-gradient(145deg, ${accent}, ${accent}ee);
-      color: ${accentText};
+      background: #e2e8f0;
+      color: #000;
       padding: 8px 7px;
       text-align: center;
       font-weight: 700;
       font-size: 10pt;
       white-space: nowrap;
       letter-spacing: 0.2px;
-      text-transform: uppercase;
     }
     th:first-child { border-radius: ${opts.direction === "rtl" ? "0 8px 0 0" : "8px 0 0 0"}; }
     th:last-child { border-radius: ${opts.direction === "rtl" ? "8px 0 0 0" : "0 8px 0 0"}; }

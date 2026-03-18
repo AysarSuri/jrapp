@@ -224,8 +224,7 @@ export default function AgentStatementUsdPage() {
   const handlePrint = () => {
     if (!statement || !entriesWithBalance.length) return;
     const dir = isRtl ? "rtl" : "ltr";
-    const primaryColor = companyProfile?.primaryColor || "#1e293b";
-    const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
     const customerName = statement.customer?.name || "";
     const numAlign = isRtl ? "left" : "right";
 
@@ -432,8 +431,7 @@ export default function AgentStatementUsdPage() {
   const handlePrintDetails = () => {
     if (!statement || !entriesWithBalance.length) return;
     const dir = isRtl ? "rtl" : "ltr";
-    const primaryColor = companyProfile?.primaryColor || "#1e293b";
-    const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
     const customerName = statement.customer?.name || "";
     const numAlign = isRtl ? "left" : "right";
 
