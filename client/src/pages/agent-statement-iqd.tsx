@@ -463,12 +463,12 @@ export default function AgentStatementIqdPage() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
           <div style="display:flex;flex-direction:column;align-items:center;">
             ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
-            <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+            <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
           </div>
           <div style="flex:1;text-align:center;">
-            <h2 style="font-size:12pt;margin:0;font-weight:800;color:${primaryColor};">${t("Details")} - ${customerName}</h2>
+            <h2 style="font-size:12pt;margin:0;font-weight:800;color:#64748b;">${t("Details")} - ${customerName}</h2>
           </div>
-          <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+          <div style="background:#64748b;color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
             <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Details")}</h1>
             <div style="font-size:10pt;font-weight:700;margin-top:3px;">IQD</div>
           </div>
