@@ -195,13 +195,33 @@ export default function AgentStatementIqdPage() {
     setDeleteEntry(null);
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!statement || !entriesWithBalance.length) return;
     const dir = isRtl ? "rtl" : "ltr";
     const primaryColor = companyProfile?.primaryColor || "#1e293b";
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: primaryColor, accentTextColor: "#ffffff" });
     const customerName = statement.customer?.name || "";
     const numAlign = isRtl ? "left" : "right";
+
+    const invoiceEntries = entriesWithBalance.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
+    const receiptEntries = entriesWithBalance.filter(e => e.type === "customer_receipt" || e.type === "customer_receipt_discount" || e.type === "agent_payment");
+
+    const invoiceItemsMap: Record<number, any[]> = {};
+    const invoiceDataMap: Record<number, any> = {};
+    for (const entry of invoiceEntries) {
+      if (invoiceItemsMap[entry.id]) continue;
+      try {
+        const endpoint = entry.type === "sales_invoice" ? "sales-invoices" : "sales-returns";
+        const [invRes, itemsRes] = await Promise.all([
+          fetch(`/api/${endpoint}/${entry.id}`, { credentials: "include" }),
+          fetch(`/api/${endpoint}/${entry.id}/items`, { credentials: "include" }),
+        ]);
+        if (invRes.ok && itemsRes.ok) {
+          invoiceDataMap[entry.id] = await invRes.json();
+          invoiceItemsMap[entry.id] = await itemsRes.json();
+        }
+      } catch {}
+    }
 
     const rows = entriesWithBalance.map((entry, i) => `
       <tr>
@@ -299,6 +319,94 @@ export default function AgentStatementIqdPage() {
             </tr>
           </tbody>
         </table>
+
+        <div style="page-break-before:always;margin-top:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:${primaryColor};">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;text-align:center;">
+              <h2 style="font-size:12pt;margin:0;font-weight:800;color:${primaryColor};">${t("Details")} - ${customerName}</h2>
+            </div>
+            <div style="background:${primaryColor};color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+              <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Details")}</h1>
+              <div style="font-size:10pt;font-weight:700;margin-top:3px;">IQD</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;direction:ltr;">
+            <div style="flex:1;">
+              <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Sales Invoices")} / ${t("Sales Returns")}</h3>
+              ${invoiceEntries.map(entry => {
+                const inv = invoiceDataMap[entry.id];
+                const items = invoiceItemsMap[entry.id] || [];
+                const isReturn = entry.type === "sales_return";
+                return `
+                  <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+                    <div style="background:${isReturn ? '#fef2f2' : '#eff6ff'};padding:5px 8px;display:flex;justify-content:space-between;font-size:9pt;font-weight:700;direction:${dir};">
+                      <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"}</span>
+                      <span>${formatDate(entry.date)}</span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+                      <thead>
+                        <tr style="background:${primaryColor};color:#fff;">
+                          <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
+                          <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
+                          <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>
+                          <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
+                          <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${items.map((item: any) => `
+                          <tr>
+                            <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
+                            <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
+                            <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>
+                            <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${formatIQD(parseFloat(item.price || "0"))}</td>
+                            <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${formatIQD(parseFloat(item.amount || "0"))}</td>
+                          </tr>
+                        `).join("")}
+                        <tr style="background:#f8fafc;font-weight:800;">
+                          <td colspan="4" style="padding:4px 6px;text-align:${isRtl ? 'right' : 'left'};">${t("Total")}</td>
+                          <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#16a34a' : '#dc2626'};">${formatIQD(entry.debit || entry.credit)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+
+            <div style="flex:1;">
+              <h3 style="font-size:10pt;font-weight:800;color:${primaryColor};margin:0 0 6px 0;text-align:center;">${t("Receipts")} / ${t("Payments")}</h3>
+              <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;font-size:8pt;">
+                <thead>
+                  <tr style="background:${primaryColor};color:#fff;">
+                    <th style="padding:4px 6px;font-weight:700;">#</th>
+                    <th style="padding:4px 6px;font-weight:700;">${t("Date")}</th>
+                    <th style="padding:4px 6px;font-weight:700;">${t("Type")}</th>
+                    <th style="padding:4px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                    <th style="padding:4px 6px;font-weight:700;">${t("Note")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").map((entry, i) => `
+                    <tr>
+                      <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${entry.reference || "-"}</td>
+                      <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${formatDate(entry.date)}</td>
+                      <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;font-weight:600;">${typeLabel(entry.type)}</td>
+                      <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;">${formatIQD(entry.credit)}</td>
+                      <td style="padding:4px 6px;border-bottom:1px solid #f1f5f9;">${entry.description || "-"}</td>
+                    </tr>
+                  `).join("")}
+                  ${receiptEntries.filter(e => e.type !== "customer_receipt_discount").length === 0 ? `<tr><td colspan="5" style="padding:10px;text-align:center;color:#999;">${t("No data")}</td></tr>` : ""}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </body></html>`;
 
     const win = window.open("", "_blank", "width=1200,height=800");
