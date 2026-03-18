@@ -483,13 +483,13 @@ export default function AgentStatementIqdPage() {
             const discount = parseFloat(inv?.discount || "0");
             const remaining = parseFloat(inv?.remaining || "0");
             return `
-              <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-                <div style="background:#f1f5f9;padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:center;">
+              <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
+                <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
                   <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:8pt;">
                   <thead>
-                    <tr style="background:#e2e8f0;color:#000;">
+                    <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
                       <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
                       <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
                       ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
@@ -499,7 +499,7 @@ export default function AgentStatementIqdPage() {
                   </thead>
                   <tbody>
                     ${items.map((item: any) => `
-                      <tr>
+                      <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
                         <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
                         <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
                         ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
