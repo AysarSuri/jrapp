@@ -486,7 +486,7 @@ export default function AgentStatementIqdPage() {
             const remaining = parseFloat(inv?.remaining || "0");
             return `
               <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
-                <div style="background:${isReturn ? '#fef2f2' : '#eff6ff'};padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:center;">
+                <div style="background:#f1f5f9;padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:center;">
                   <span>${isReturn ? t("Sales Return") : t("Sales Invoice")}: ${entry.reference || "-"} - ${formatDate(entry.date)}</span>
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:8pt;">
