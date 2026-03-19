@@ -543,7 +543,7 @@ export default function AgentStatementIqdPage() {
               return `
                 <div style="margin-bottom:10px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
                   <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
-                    <span>${seqNum}. ${t("Amount Received")}: ${entry.reference || "-"} - ${formatDate(entry.date)}${entry.description ? ` - ${entry.description}` : ""}</span>
+                    <span>${seqNum}. ${t("Amount Received")}  ${t("Invoice Number")}: ${entry.reference || "-"} - ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` - ${entry.description}` : ""}</span>
                     <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.credit)}</span>
                   </div>
                 </div>
