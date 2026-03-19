@@ -541,7 +541,7 @@ export default function AgentStatementUsdPage() {
                     </tbody>
                   </table>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${usd(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</div>
               `;
             }
 
@@ -553,7 +553,7 @@ export default function AgentStatementUsdPage() {
                     <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
                   </div>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${usd(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</div>
               `;
             }
 
@@ -565,7 +565,7 @@ export default function AgentStatementUsdPage() {
                     <span style="font-family:monospace;font-size:10pt;">${usd(entry.debit)}</span>
                   </div>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${usd(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</div>
               `;
             }
 

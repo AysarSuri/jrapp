@@ -545,7 +545,7 @@ export default function AgentStatementIqdPage() {
                     </tbody>
                   </table>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${formatIQD(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
@@ -557,7 +557,7 @@ export default function AgentStatementIqdPage() {
                     <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.credit)}</span>
                   </div>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${formatIQD(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
@@ -569,7 +569,7 @@ export default function AgentStatementIqdPage() {
                     <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.debit)}</span>
                   </div>
                 </div>
-                <div style="text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${formatIQD(entry.cumBalance)}</span></div>
+                <div style="direction:ltr;text-align:left;font-size:8pt;font-weight:700;color:#64748b;padding:4px 8px 0;margin-bottom:12px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
