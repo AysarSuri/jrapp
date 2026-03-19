@@ -448,7 +448,7 @@ export default function AgentStatementIqdPage() {
                       `).join("")}
                       <tr style="background:#f8fafc;font-weight:700;font-size:9pt;">
                         <td colspan="${colCount + 1}" style="padding:4px 6px;">
-                          <div style="display:flex;align-items:center;gap:24px;direction:ltr;">
+                          <div style="display:flex;align-items:center;gap:36px;direction:ltr;">
                             <span style="color:#64748b;white-space:nowrap;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${formatIQD(entry.cumBalance)}</span></span>
                             <span style="color:${isReturn ? '#dc2626' : '#2563eb'};font-family:monospace;">${remaining > 0 ? `${t("Remaining")}: ${formatIQD(remaining)}` : ""}</span>
                             ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${formatIQD(discount)}</span></span>` : ""}
