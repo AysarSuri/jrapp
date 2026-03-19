@@ -448,6 +448,11 @@ export default function AgentStatementUsdPage() {
       });
 
     let seqNum = 0;
+    let cumBalance = openingBalanceUsd;
+    const allEntriesWithCum = allEntries.map(e => {
+      cumBalance += e.debit - e.credit;
+      return { ...e, cumBalance };
+    });
 
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
@@ -477,7 +482,7 @@ export default function AgentStatementUsdPage() {
         </div>
 
         <div style="direction:${dir};">
-          ${allEntries.map(entry => {
+          ${allEntriesWithCum.map(entry => {
             seqNum++;
             const isInvoice = entry.type === "sales_invoice" || entry.type === "sales_return";
             const isReturn = entry.type === "sales_return";
@@ -528,8 +533,9 @@ export default function AgentStatementUsdPage() {
                             ${isReturn && amountPaid > 0 ? `<span style="color:#dc2626;">${t("Amount Paid")}: <span style="font-family:monospace;">${usd(amountPaid)}</span></span>` : ""}
                           </div>
                         </td>
-                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#dc2626' : '#2563eb'};">
-                          ${remaining > 0 ? `${t("Remaining")}: ${usd(remaining)}` : ""}
+                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;">
+                          ${remaining > 0 ? `<span style="color:${isReturn ? '#dc2626' : '#2563eb'};">${t("Remaining")}: ${usd(remaining)}</span>` : ""}
+                          <div style="color:#64748b;font-size:8pt;margin-top:2px;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</div>
                         </td>
                       </tr>
                     </tbody>
@@ -543,7 +549,10 @@ export default function AgentStatementUsdPage() {
                 <div style="margin-bottom:10px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
                   <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
                     <span>${seqNum}. ${t("Amount Received")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
+                    <span style="display:flex;align-items:center;gap:12px;">
+                      <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
+                      <span style="font-family:monospace;font-size:8pt;color:#64748b;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</span>
+                    </span>
                   </div>
                 </div>
               `;
@@ -554,7 +563,10 @@ export default function AgentStatementUsdPage() {
                 <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
                   <div style="background:#f1f5f9;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#000;">
                     <span>${seqNum}. ${t("Amount Paid")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="font-family:monospace;font-size:10pt;">${usd(entry.debit)}</span>
+                    <span style="display:flex;align-items:center;gap:12px;">
+                      <span style="font-family:monospace;font-size:10pt;">${usd(entry.debit)}</span>
+                      <span style="font-family:monospace;font-size:8pt;color:#64748b;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</span>
+                    </span>
                   </div>
                 </div>
               `;
@@ -562,7 +574,7 @@ export default function AgentStatementUsdPage() {
 
             return "";
           }).join("")}
-          ${allEntries.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
+          ${allEntriesWithCum.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
         </div>
       </body></html>`;
 
