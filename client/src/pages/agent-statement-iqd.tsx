@@ -475,6 +475,7 @@ export default function AgentStatementIqdPage() {
           <div style="display:flex;flex-direction:column;align-items:center;">
             ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
             <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            <div style="font-size:8pt;font-weight:700;color:#64748b;margin-top:2px;">${t("Cumulative Balance")}</div>
           </div>
           <div style="flex:1;text-align:center;">
             <h2 style="font-size:12pt;margin:0;font-weight:800;color:#64748b;">${t("Details")} - ${customerName}</h2>
@@ -502,7 +503,7 @@ export default function AgentStatementIqdPage() {
               const discount = parseFloat(inv?.discount || "0");
               const remaining = parseFloat(inv?.remaining || "0");
               return `
-                <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
+                <div style="margin-bottom:0;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
                   <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:right;color:${isReturn ? '#dc2626' : '#000'};">
                     <span>${seqNum}. ${isReturn ? t("Returns") : t("Sales Invoice")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}</span>
                   </div>
