@@ -408,7 +408,7 @@ export default function AgentStatementIqdPage() {
             <div style="background:#eff6ff;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#1e40af;">
               <span>${t("Opening Balance")}</span>
               <span style="display:flex;align-items:center;">
-                <span style="font-family:monospace;font-size:9pt;font-weight:700;min-width:130px;text-align:left;">${formatIQD(openingBalanceIqd)}</span>
+                <span style="font-family:monospace;font-size:10pt;font-weight:900;min-width:130px;text-align:left;">${formatIQD(openingBalanceIqd)}</span>
                 <span style="width:40px;"></span>
                 <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(openingBalanceIqd)}</span>
               </span>
