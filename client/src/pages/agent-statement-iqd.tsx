@@ -537,42 +537,38 @@ export default function AgentStatementIqdPage() {
                             ${isReturn && amountPaid > 0 ? `<span style="color:#dc2626;">${t("Amount Paid")}: <span style="font-family:monospace;">${formatIQD(amountPaid)}</span></span>` : ""}
                           </div>
                         </td>
-                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;">
-                          ${remaining > 0 ? `<span style="color:${isReturn ? '#dc2626' : '#2563eb'};">${t("Remaining")}: ${formatIQD(remaining)}</span>` : ""}
-                          <div style="color:#64748b;font-size:8pt;margin-top:2px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
+                        <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#dc2626' : '#2563eb'};">
+                          ${remaining > 0 ? `${t("Remaining")}: ${formatIQD(remaining)}` : ""}
                         </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+                <div style="text-align:${numAlign};font-family:monospace;font-size:8pt;font-weight:700;color:#64748b;padding:2px 8px 8px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
             if (isReceipt) {
               return `
-                <div style="margin-bottom:10px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
+                <div style="margin-bottom:0;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
                   <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
                     <span>${seqNum}. ${t("Amount Received")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="display:flex;align-items:center;gap:12px;">
-                      <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.credit)}</span>
-                      <span style="font-family:monospace;font-size:8pt;color:#64748b;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
-                    </span>
+                    <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.credit)}</span>
                   </div>
                 </div>
+                <div style="text-align:${numAlign};font-family:monospace;font-size:8pt;font-weight:700;color:#64748b;padding:2px 8px 8px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
             if (isPayment) {
               return `
-                <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
+                <div style="margin-bottom:0;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
                   <div style="background:#f1f5f9;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#000;">
                     <span>${seqNum}. ${t("Amount Paid")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="display:flex;align-items:center;gap:12px;">
-                      <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.debit)}</span>
-                      <span style="font-family:monospace;font-size:8pt;color:#64748b;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
-                    </span>
+                    <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.debit)}</span>
                   </div>
                 </div>
+                <div style="text-align:${numAlign};font-family:monospace;font-size:8pt;font-weight:700;color:#64748b;padding:2px 8px 8px;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</div>
               `;
             }
 
