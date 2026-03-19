@@ -393,9 +393,8 @@ export default function AgentStatementUsdPage() {
           <div style="margin-bottom:14px;border:1px solid #93c5fd;border-radius:6px;overflow:hidden;">
             <div style="background:#eff6ff;padding:8px 12px;font-size:10pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#1e40af;">
               <span>${t("Opening Balance")}</span>
-              <span style="display:flex;align-items:center;gap:6px;">
+              <span style="display:flex;align-items:center;gap:20px;">
                 <span style="font-family:monospace;font-size:11pt;">${usd(openingBalanceUsd)}</span>
-                <span style="border-right:2px solid #64748b;height:14px;"></span>
                 <span style="color:#64748b;font-size:8pt;white-space:nowrap;">${t("Cumulative Balance")}: ${usd(openingBalanceUsd)}</span>
               </span>
             </div>
@@ -452,9 +451,8 @@ export default function AgentStatementUsdPage() {
                           </div>
                         </td>
                         <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#dc2626' : '#2563eb'};">
-                          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:nowrap;">
+                          <div style="display:flex;align-items:center;gap:20px;justify-content:flex-end;flex-wrap:nowrap;">
                             ${remaining > 0 ? `<span>${t("Remaining")}: ${usd(remaining)}</span>` : ""}
-                            ${remaining > 0 ? `<span style="border-right:2px solid #64748b;height:14px;"></span>` : ""}
                             <span style="color:#64748b;white-space:nowrap;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</span>
                           </div>
                         </td>
@@ -470,9 +468,8 @@ export default function AgentStatementUsdPage() {
                 <div style="margin-bottom:14px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
                   <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
                     <span>${seqNum}. ${t("Amount Received")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="display:flex;align-items:center;gap:6px;">
+                    <span style="display:flex;align-items:center;gap:20px;">
                       <span style="font-family:monospace;font-size:10pt;">${usd(entry.credit)}</span>
-                      <span style="border-right:2px solid #64748b;height:14px;"></span>
                       <span style="color:#64748b;font-size:8pt;white-space:nowrap;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</span>
                     </span>
                   </div>
@@ -485,9 +482,8 @@ export default function AgentStatementUsdPage() {
                 <div style="margin-bottom:14px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
                   <div style="background:#f1f5f9;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#000;">
                     <span>${seqNum}. ${t("Amount Paid")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
-                    <span style="display:flex;align-items:center;gap:6px;">
+                    <span style="display:flex;align-items:center;gap:20px;">
                       <span style="font-family:monospace;font-size:10pt;">${usd(entry.debit)}</span>
-                      <span style="border-right:2px solid #64748b;height:14px;"></span>
                       <span style="color:#64748b;font-size:8pt;white-space:nowrap;">${t("Cumulative Balance")}: ${usd(entry.cumBalance)}</span>
                     </span>
                   </div>
