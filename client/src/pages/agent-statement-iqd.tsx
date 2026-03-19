@@ -351,7 +351,6 @@ export default function AgentStatementIqdPage() {
     const invoiceDataMap = invoiceDataRef.current;
 
     const allEntries = [...entriesWithBalance]
-      .filter(e => e.type !== "customer_receipt_discount")
       .sort((a, b) => {
         const da = new Date(`${a.date}T${a.time || "00:00:00"}`).getTime();
         const db = new Date(`${b.date}T${b.time || "00:00:00"}`).getTime();
@@ -408,6 +407,7 @@ export default function AgentStatementIqdPage() {
             const isInvoice = entry.type === "sales_invoice" || entry.type === "sales_return";
             const isReturn = entry.type === "sales_return";
             const isReceipt = entry.type === "customer_receipt";
+            const isDiscount = entry.type === "customer_receipt_discount";
             const isPayment = entry.type === "agent_payment";
 
             if (isInvoice) {
@@ -472,6 +472,20 @@ export default function AgentStatementIqdPage() {
                 <div style="margin-bottom:14px;border:1px solid #fecaca;border-radius:6px;overflow:hidden;">
                   <div style="background:#fef2f2;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#dc2626;">
                     <span>${seqNum}. ${t("Amount Received")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
+                    <span style="display:flex;align-items:center;">
+                      <span style="font-family:monospace;font-size:10pt;min-width:130px;text-align:left;">${formatIQD(entry.credit)}</span>
+                      <span style="color:#64748b;font-size:8pt;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
+                    </span>
+                  </div>
+                </div>
+              `;
+            }
+
+            if (isDiscount) {
+              return `
+                <div style="margin-bottom:14px;border:1px solid #e9d5ff;border-radius:6px;overflow:hidden;">
+                  <div style="background:#faf5ff;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#7c3aed;">
+                    <span>${seqNum}. ${t("Discount")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
                     <span style="display:flex;align-items:center;">
                       <span style="font-family:monospace;font-size:10pt;min-width:130px;text-align:left;">${formatIQD(entry.credit)}</span>
                       <span style="color:#64748b;font-size:8pt;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
