@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -4276,6 +4276,158 @@ export async function registerRoutes(
       try { await seedDatabase(); } catch (e) { console.error("seedDatabase retry failed:", (e as Error).message); }
     }, 5000);
   }
+
+  const TABLE_MAP: Record<string, any> = {
+    addresses,
+    units,
+    categories,
+    category_groups: categoryGroups,
+    products,
+    inventory,
+    clients,
+    accounts,
+    transactions,
+    representatives,
+    purchase_invoices: purchaseInvoices,
+    purchase_invoice_items: purchaseInvoiceItems,
+    supplier_payments: supplierPayments,
+    supplier_adjustments: supplierAdjustments,
+    sales_invoices: salesInvoices,
+    sales_invoice_items: salesInvoiceItems,
+    sales_returns: salesReturns,
+    sales_return_items: salesReturnItems,
+    purchase_returns: purchaseReturns,
+    purchase_return_items: purchaseReturnItems,
+    customer_receipts: customerReceipts,
+    agent_payments: agentPayments,
+    bank_transactions: bankTransactions,
+    banks,
+    customs_clearance_transactions: customsClearanceTransactions,
+    customs_clearances: customsClearances,
+    clearance_purchase_invoices: clearancePurchaseInvoices,
+    transfer_office_transactions: transferOfficeTransactions,
+    transfer_offices: transferOffices,
+    external_debts: externalDebts,
+    external_debt_transactions: externalDebtTransactions,
+    owners,
+    owner_transactions: ownerTransactions,
+    expense_types: expenseTypes,
+    expenses,
+    currency_exchanges: currencyExchanges,
+    warehouse_transfers: warehouseTransfers,
+    warehouse_transfer_items: warehouseTransferItems,
+    product_damages: productDamages,
+    product_damage_items: productDamageItems,
+    warehouses,
+    notifications,
+    export_logs: exportLogs,
+    agent_product_loads: agentProductLoads,
+    agent_product_load_items: agentProductLoadItems,
+    agent_clients: agentClients,
+    agent_locations: agentLocations,
+  };
+
+  const CHILD_TABLES: Record<string, string[]> = {
+    purchase_invoices: ["purchase_invoice_items"],
+    sales_invoices: ["sales_invoice_items"],
+    sales_returns: ["sales_return_items"],
+    purchase_returns: ["purchase_return_items"],
+    warehouse_transfers: ["warehouse_transfer_items"],
+    product_damages: ["product_damage_items"],
+    agent_product_loads: ["agent_product_load_items"],
+    external_debts: ["external_debt_transactions"],
+    categories: ["category_groups"],
+  };
+
+  const PARENT_TABLES: Record<string, string[]> = {
+    purchase_invoice_items: ["purchase_invoices"],
+    sales_invoice_items: ["sales_invoices"],
+    sales_return_items: ["sales_returns"],
+    purchase_return_items: ["purchase_returns"],
+    warehouse_transfer_items: ["warehouse_transfers"],
+    product_damage_items: ["product_damages"],
+    agent_product_load_items: ["agent_product_loads"],
+    external_debt_transactions: ["external_debts"],
+    category_groups: ["categories"],
+  };
+
+  app.delete('/api/data-reset/:tableName', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const tableName = req.params.tableName;
+      const table = TABLE_MAP[tableName];
+      if (!table) return res.status(400).json({ message: "Invalid table name" });
+
+      await db.transaction(async (tx) => {
+        const childTables = CHILD_TABLES[tableName] || [];
+        for (const child of childTables) {
+          if (TABLE_MAP[child]) {
+            await tx.delete(TABLE_MAP[child]);
+          }
+        }
+        await tx.delete(table);
+      });
+      res.json({ message: `Table ${tableName} cleared successfully` });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to clear table" });
+    }
+  });
+
+  app.delete('/api/data-reset-all', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const [currentUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const deleteOrder = [
+        "agent_locations", "agent_clients",
+        "agent_product_load_items", "agent_product_loads",
+        "export_logs", "notifications",
+        "product_damage_items", "product_damages",
+        "warehouse_transfer_items", "warehouse_transfers",
+        "currency_exchanges",
+        "customer_receipts", "agent_payments",
+        "sales_return_items", "sales_returns",
+        "sales_invoice_items", "sales_invoices",
+        "purchase_return_items", "purchase_returns",
+        "purchase_invoice_items", "purchase_invoices",
+        "supplier_payments", "supplier_adjustments",
+        "owner_transactions", "owners",
+        "expenses", "expense_types",
+        "external_debt_transactions", "external_debts",
+        "transfer_office_transactions", "transfer_offices",
+        "clearance_purchase_invoices",
+        "customs_clearance_transactions", "customs_clearances",
+        "bank_transactions", "banks",
+        "transactions", "accounts",
+        "inventory",
+        "representatives",
+        "clients",
+        "products",
+        "category_groups", "categories",
+        "warehouses",
+        "units",
+        "addresses",
+      ];
+
+      await db.transaction(async (tx) => {
+        for (const tableName of deleteOrder) {
+          if (TABLE_MAP[tableName]) {
+            await tx.delete(TABLE_MAP[tableName]);
+          }
+        }
+      });
+      res.json({ message: "All tables cleared successfully" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to clear all tables" });
+    }
+  });
 
   return httpServer;
 }

@@ -90,6 +90,7 @@ import BarcodePrintPage from "@/pages/barcode-print";
 import CompanyProfilePage from "@/pages/company-profile";
 import SettingsPage from "@/pages/settings";
 import UserManagementPage from "@/pages/user-management";
+import DataResetPage from "@/pages/data-reset";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
@@ -383,6 +384,9 @@ function Router() {
       </Route>
       <Route path="/user-management">
         <ProtectedRoute component={UserManagementPage} />
+      </Route>
+      <Route path="/data-reset">
+        <ProtectedRoute component={DataResetPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>

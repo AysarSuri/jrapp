@@ -28,6 +28,7 @@ import {
   IconCurrencyExchange,
   IconSettings,
   IconUserManagement,
+  IconDataReset,
   IconCompany,
   IconAccounts,
   IconAddress,
@@ -470,6 +471,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/accounts", icon: IconAccounts, label: "Accounts" },
     { href: "/settings", icon: IconSettings, label: "Settings" },
     { href: "/user-management", icon: IconUserManagement, label: "User Management" },
+    { href: "/data-reset", icon: IconDataReset, label: "Data Reset" },
   ];
 
   const userRole = user?.role || "user";

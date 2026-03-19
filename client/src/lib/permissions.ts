@@ -141,6 +141,11 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "User Management",
     routes: ["/user-management"],
   },
+  {
+    key: "data_reset",
+    labelKey: "Data Reset",
+    routes: ["/data-reset"],
+  },
 ];
 
 export const ALL_PERMISSION_KEYS = PERMISSION_MODULES.map(m => m.key);

@@ -846,3 +846,19 @@ export function IconWarehouseTransfer({ className }: P) {
     </svg>
   );
 }
+
+export function IconDataReset({ className }: P) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className={className}>
+      <rect x="6" y="10" width="36" height="28" rx="3" fill={c2} opacity="0.2" />
+      <rect x="6" y="10" width="36" height="8" rx="3" fill={c1} />
+      <circle cx="12" cy="14" r="2" fill="white" />
+      <circle cx="18" cy="14" r="2" fill="white" />
+      <rect x="10" y="22" width="28" height="3" rx="1.5" fill={c2} opacity="0.3" />
+      <rect x="10" y="28" width="28" height="3" rx="1.5" fill={c2} opacity="0.3" />
+      <rect x="10" y="34" width="28" height="3" rx="1.5" fill={c2} opacity="0.3" />
+      <circle cx="38" cy="36" r="8" fill="#ef4444" />
+      <path d="M34 36h8M36 33l-3 3 3 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
