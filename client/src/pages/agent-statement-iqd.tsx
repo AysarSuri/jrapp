@@ -554,7 +554,7 @@ export default function AgentStatementIqdPage() {
               return `
                 <div style="margin-bottom:10px;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;">
                   <div style="background:#f1f5f9;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#000;">
-                    <span>${seqNum}. ${t("Amount Paid")}: ${entry.reference || "-"} - ${formatDate(entry.date)}${entry.description ? ` - ${entry.description}` : ""}</span>
+                    <span>${seqNum}. ${t("Amount Paid")}  ${t("Invoice Number")}: ${entry.reference || "-"} - ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` - ${entry.description}` : ""}</span>
                     <span style="font-family:monospace;font-size:10pt;">${formatIQD(entry.debit)}</span>
                   </div>
                 </div>
