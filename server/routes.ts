@@ -4268,7 +4268,14 @@ export async function registerRoutes(
     }
   });
 
-  await seedDatabase();
+  try {
+    await seedDatabase();
+  } catch (err) {
+    console.error("seedDatabase failed, will retry in 5s:", (err as Error).message);
+    setTimeout(async () => {
+      try { await seedDatabase(); } catch (e) { console.error("seedDatabase retry failed:", (e as Error).message); }
+    }, 5000);
+  }
 
   return httpServer;
 }
