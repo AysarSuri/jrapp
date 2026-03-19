@@ -390,13 +390,16 @@ export default function AgentStatementUsdPage() {
         </div>
 
         <div style="direction:${dir};">
-          <div style="margin-bottom:0;border:1px solid #93c5fd;border-radius:6px;overflow:hidden;">
+          <div style="margin-bottom:14px;border:1px solid #93c5fd;border-radius:6px;overflow:hidden;">
             <div style="background:#eff6ff;padding:8px 12px;font-size:10pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#1e40af;">
               <span>${t("Opening Balance")}</span>
-              <span style="font-family:monospace;font-size:11pt;">${usd(openingBalanceUsd)}</span>
+              <span style="display:flex;align-items:center;gap:6px;">
+                <span style="font-family:monospace;font-size:11pt;">${usd(openingBalanceUsd)}</span>
+                <span style="border-right:2px solid #64748b;height:14px;"></span>
+                <span style="color:#64748b;font-size:8pt;white-space:nowrap;">${t("Cumulative Balance")}: ${usd(openingBalanceUsd)}</span>
+              </span>
             </div>
           </div>
-          <div style="display:flex;direction:ltr;align-items:center;gap:4px;font-size:9pt;font-weight:700;color:#64748b;margin:4px 0 14px 0;padding:0 8px;">${t("Cumulative Balance")}: ${usd(openingBalanceUsd)}</div>
           ${allEntriesWithCum.map(entry => {
             seqNum++;
             const isInvoice = entry.type === "sales_invoice" || entry.type === "sales_return";
