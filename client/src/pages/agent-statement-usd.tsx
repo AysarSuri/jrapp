@@ -434,7 +434,7 @@ export default function AgentStatementUsdPage() {
                   <table style="width:100%;border-collapse:collapse;font-size:9pt;">
                     <thead>
                       <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
-                        <th style="padding:3px 6px;font-weight:700;">${t("Product Name")}</th>
+                        <th style="padding:3px 6px;font-weight:700;max-width:140px;width:140px;">${t("Product Name")}</th>
                         <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
                         ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
                         <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
@@ -445,7 +445,7 @@ export default function AgentStatementUsdPage() {
                     <tbody>
                       ${items.map((item: any) => `
                         <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;">${item.productName || "-"}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;max-width:140px;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.productName || "-"}</td>
                           <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
                           ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
                           <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${usd(parseFloat(item.price || "0"))}</td>
