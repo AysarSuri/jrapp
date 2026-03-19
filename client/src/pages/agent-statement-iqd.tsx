@@ -398,6 +398,7 @@ export default function AgentStatementIqdPage() {
               <span>${t("Opening Balance")}</span>
               <span style="display:flex;align-items:center;">
                 <span style="font-family:monospace;font-size:9pt;font-weight:700;min-width:130px;text-align:left;">${formatIQD(openingBalanceIqd)}</span>
+                <span style="width:40px;"></span>
                 <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(openingBalanceIqd)}</span>
               </span>
             </div>
@@ -457,6 +458,7 @@ export default function AgentStatementIqdPage() {
                         <td style="padding:4px 6px;text-align:${numAlign};font-family:monospace;color:${isReturn ? '#dc2626' : '#2563eb'};">
                           <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:nowrap;">
                             <span style="min-width:130px;text-align:left;">${remaining > 0 ? `${t("Remaining")}: ${formatIQD(remaining)}` : ""}</span>
+                            <span style="width:40px;"></span>
                             <span style="color:#64748b;white-space:nowrap;min-width:170px;text-align:left;font-size:9pt;font-weight:700;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
                           </div>
                         </td>
@@ -474,6 +476,7 @@ export default function AgentStatementIqdPage() {
                     <span>${seqNum}. ${t("Amount Received")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
                     <span style="display:flex;align-items:center;">
                       <span style="font-family:monospace;font-size:9pt;font-weight:700;min-width:130px;text-align:left;">${formatIQD(entry.credit)}</span>
+                      <span style="width:40px;"></span>
                       <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
                     </span>
                   </div>
@@ -488,6 +491,7 @@ export default function AgentStatementIqdPage() {
                     <span>${seqNum}. ${t("Discount")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
                     <span style="display:flex;align-items:center;">
                       <span style="font-family:monospace;font-size:9pt;font-weight:700;min-width:130px;text-align:left;">${formatIQD(entry.credit)}</span>
+                      <span style="width:40px;"></span>
                       <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
                     </span>
                   </div>
@@ -502,6 +506,7 @@ export default function AgentStatementIqdPage() {
                     <span>${seqNum}. ${t("Amount Paid")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
                     <span style="display:flex;align-items:center;">
                       <span style="font-family:monospace;font-size:9pt;font-weight:700;min-width:130px;text-align:left;">${formatIQD(entry.debit)}</span>
+                      <span style="width:40px;"></span>
                       <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:170px;text-align:left;">${t("Cumulative Balance")}: ${formatIQD(entry.cumBalance)}</span>
                     </span>
                   </div>
