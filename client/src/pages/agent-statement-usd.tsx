@@ -494,7 +494,7 @@ export default function AgentStatementUsdPage() {
               const remaining = parseFloat(inv?.remaining || "0");
               return `
                 <div style="margin-bottom:10px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
-                  <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:center;color:${isReturn ? '#dc2626' : '#000'};">
+                  <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:10pt;font-weight:700;direction:${dir};text-align:right;color:${isReturn ? '#dc2626' : '#000'};">
                     <span>${seqNum}. ${isReturn ? t("Returns") : t("Sales Invoice")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}</span>
                   </div>
                   <table style="width:100%;border-collapse:collapse;font-size:9pt;">
