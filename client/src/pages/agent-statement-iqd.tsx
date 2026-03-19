@@ -438,22 +438,22 @@ export default function AgentStatementIqdPage() {
                   <table style="width:100%;border-collapse:collapse;font-size:9pt;">
                     <thead>
                       <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
-                        <th style="padding:3px 6px;font-weight:700;max-width:140px;width:140px;">${t("Product Name")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Quantity")}</th>
-                        ${hasGift ? `<th style="padding:3px 6px;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
-                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Price")}</th>
-                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};">${t("Amount")}</th>
+                        <th style="padding:3px 6px;font-weight:700;width:45%;">${t("Product Name")}</th>
+                        <th style="padding:3px 4px;font-weight:700;text-align:center;width:50px;">${t("Quantity")}</th>
+                        ${hasGift ? `<th style="padding:3px 4px;font-weight:700;text-align:center;width:45px;">${t("Gift")}</th>` : ""}
+                        <th style="padding:3px 4px;font-weight:700;text-align:${numAlign};width:65px;">${t("Price")}</th>
+                        <th style="padding:3px 4px;font-weight:700;text-align:${numAlign};width:70px;">${t("Amount")}</th>
                         <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};min-width:80px;"></th>
                       </tr>
                     </thead>
                     <tbody>
                       ${items.map((item: any) => `
                         <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;max-width:140px;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.productName || "-"}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.quantity || "0"}</td>
-                          ${hasGift ? `<td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;">${item.gift || "0"}</td>` : ""}
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;">${formatIQD(parseFloat(item.price || "0"))}</td>
-                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;">${formatIQD(parseFloat(item.amount || "0"))}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;width:45%;">${item.productName || "-"}</td>
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;width:50px;">${item.quantity || "0"}</td>
+                          ${hasGift ? `<td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;width:45px;">${item.gift || "0"}</td>` : ""}
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;width:65px;">${formatIQD(parseFloat(item.price || "0"))}</td>
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;width:70px;">${formatIQD(parseFloat(item.amount || "0"))}</td>
                           <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;"></td>
                         </tr>
                       `).join("")}
