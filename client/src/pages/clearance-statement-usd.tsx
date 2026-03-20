@@ -179,7 +179,6 @@ export default function ClearanceStatementUsdPage() {
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
-        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
         <title>${t("Clearance Statement USD")} - ${clearanceName}</title>
         <style>
           ${printStyles}
@@ -569,7 +568,6 @@ export default function ClearanceStatementUsdPage() {
                   const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: viewEntry?.type === "receipt" ? "#1e293b" : "#dc2626", accentTextColor: "#ffffff" });
                   const title = viewEntry?.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
                   printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head><meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
-        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
                   printWindow.document.close();
                   const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-statement">

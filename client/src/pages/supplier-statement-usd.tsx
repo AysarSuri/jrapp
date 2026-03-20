@@ -416,7 +416,6 @@ export default function SupplierStatementUsdPage() {
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
-        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
         <title>${t("Supplier Statement - USD")} - ${statement.supplier.name}</title>
         <style>${printStyles}</style>
       </head>
@@ -918,7 +917,6 @@ export default function SupplierStatementUsdPage() {
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
                     <head><meta charset="UTF-8" />
-        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
                       <title>${t("Incoming Report")} - ${productsReport.supplier?.name || ""} (USD)</title>
                       <style>${incomingPrintStyles}</style>
                     </head>
@@ -1106,7 +1104,6 @@ export default function SupplierStatementUsdPage() {
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
                     <head><meta charset="UTF-8" />
-        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
                       <title>${t("Incoming Vehicle Expenses")} - ${vehicleExpenses.supplier?.name || ""} (USD)</title>
                       <style>${vPrintStyles}</style>
                     </head>
