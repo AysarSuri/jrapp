@@ -24,13 +24,55 @@ async function ensureFontsLoaded(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 150));
 }
 
-function copyComputedStyles(source: HTMLElement, target: HTMLElement) {
+async function imageToDataUri(src: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+          return;
+        }
+      } catch {}
+      resolve(src);
+    };
+    img.onerror = () => resolve(src);
+    setTimeout(() => resolve(src), 3000);
+    img.src = src;
+  });
+}
+
+async function convertAllImages(container: HTMLElement): Promise<void> {
+  const imgs = container.querySelectorAll("img");
+  for (const img of Array.from(imgs)) {
+    if (img.src && !img.src.startsWith("data:")) {
+      const dataUri = await imageToDataUri(img.src);
+      img.src = dataUri;
+    }
+  }
+}
+
+function deepCopyComputedStyles(source: HTMLElement, target: HTMLElement): void {
   const computed = window.getComputedStyle(source);
   for (let i = 0; i < computed.length; i++) {
     const prop = computed[i];
     try {
       (target.style as any)[prop] = computed.getPropertyValue(prop);
     } catch {}
+  }
+
+  const sourceChildren = source.children;
+  const targetChildren = target.children;
+  for (let i = 0; i < sourceChildren.length && i < targetChildren.length; i++) {
+    if (sourceChildren[i] instanceof HTMLElement && targetChildren[i] instanceof HTMLElement) {
+      deepCopyComputedStyles(sourceChildren[i] as HTMLElement, targetChildren[i] as HTMLElement);
+    }
   }
 }
 
@@ -49,6 +91,32 @@ async function waitForImages(container: HTMLElement, timeout = 3000): Promise<vo
   await Promise.all(promises);
 }
 
+function generatePdfFromCanvas(
+  canvas: HTMLCanvasElement,
+  orientation: "p" | "l"
+): Blob {
+  const imgWidth = orientation === "p" ? 210 : 297;
+  const pageHeight = orientation === "p" ? 297 : 210;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const pdf = new jsPDF(orientation, "mm", "a4");
+  const imgData = canvas.toDataURL("image/png");
+
+  if (imgHeight <= pageHeight) {
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  } else {
+    let yOffset = 0;
+    let page = 0;
+    while (yOffset < imgHeight) {
+      if (page > 0) pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, -yOffset, imgWidth, imgHeight);
+      yOffset += pageHeight;
+      page++;
+    }
+  }
+
+  return pdf.output("blob") as unknown as Blob;
+}
+
 export async function captureElementAsPdf(
   element: HTMLElement,
   orientation: "p" | "l" = "p"
@@ -57,21 +125,32 @@ export async function captureElementAsPdf(
 
   const clone = element.cloneNode(true) as HTMLElement;
 
-  clone.style.cssText = `position:fixed;left:-10000px;top:0;width:${A4_WIDTH_PX}px;min-width:${A4_WIDTH_PX}px;max-width:${A4_WIDTH_PX}px;background:white;z-index:-9999;overflow:visible;font-family:${FONT_FAMILY};`;
+  deepCopyComputedStyles(element, clone);
+
+  clone.style.position = "fixed";
+  clone.style.left = "0px";
+  clone.style.top = "0px";
+  clone.style.width = A4_WIDTH_PX + "px";
+  clone.style.minWidth = A4_WIDTH_PX + "px";
+  clone.style.maxWidth = A4_WIDTH_PX + "px";
+  clone.style.background = "white";
+  clone.style.zIndex = "2147483647";
+  clone.style.overflow = "visible";
+  clone.style.pointerEvents = "none";
+  clone.style.opacity = "1";
 
   const dir = window.getComputedStyle(element).direction;
   if (dir) clone.style.direction = dir;
 
-  const origPadding = element.style.padding;
-  if (origPadding) clone.style.padding = origPadding;
-
   const origFontFamily = element.style.fontFamily;
   if (origFontFamily) clone.style.fontFamily = origFontFamily;
+  else clone.style.fontFamily = FONT_FAMILY;
 
   document.body.appendChild(clone);
 
+  await convertAllImages(clone);
   await waitForImages(clone);
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise(resolve => setTimeout(resolve, 250));
 
   try {
     const canvas = await html2canvas(clone, {
@@ -81,28 +160,22 @@ export async function captureElementAsPdf(
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
       windowWidth: A4_WIDTH_PX,
+      logging: false,
+      onclone: (doc: Document) => {
+        const allEls = doc.querySelectorAll("*");
+        allEls.forEach(el => {
+          if (el instanceof HTMLElement) {
+            const cs = window.getComputedStyle(el);
+            if (cs.display === "grid") {
+              el.style.display = "flex";
+              el.style.flexWrap = "wrap";
+            }
+          }
+        });
+      },
     });
 
-    const imgWidth = orientation === "p" ? 210 : 297;
-    const pageHeight = orientation === "p" ? 297 : 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF(orientation, "mm", "a4");
-    const imgData = canvas.toDataURL("image/png");
-
-    if (imgHeight <= pageHeight) {
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    } else {
-      let yOffset = 0;
-      let page = 0;
-      while (yOffset < imgHeight) {
-        if (page > 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, -yOffset, imgWidth, imgHeight);
-        yOffset += pageHeight;
-        page++;
-      }
-    }
-
-    return pdf.output("blob");
+    return generatePdfFromCanvas(canvas, orientation);
   } finally {
     document.body.removeChild(clone);
   }
@@ -116,12 +189,13 @@ export async function captureHtmlAsPdf(
   await ensureFontsLoaded();
 
   const tempDiv = document.createElement("div");
-  tempDiv.style.cssText = `position:fixed;left:-10000px;top:0;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;z-index:-9999;`;
+  tempDiv.style.cssText = `position:fixed;left:0;top:0;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;z-index:2147483647;pointer-events:none;`;
   tempDiv.innerHTML = htmlContent;
   document.body.appendChild(tempDiv);
 
+  await convertAllImages(tempDiv);
   await waitForImages(tempDiv);
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise(resolve => setTimeout(resolve, 250));
 
   try {
     const canvas = await html2canvas(tempDiv, {
@@ -131,28 +205,10 @@ export async function captureHtmlAsPdf(
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
       windowWidth: A4_WIDTH_PX,
+      logging: false,
     });
 
-    const imgWidth = orientation === "p" ? 210 : 297;
-    const pageHeight = orientation === "p" ? 297 : 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF(orientation, "mm", "a4");
-    const imgData = canvas.toDataURL("image/png");
-
-    if (imgHeight <= pageHeight) {
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    } else {
-      let yOffset = 0;
-      let page = 0;
-      while (yOffset < imgHeight) {
-        if (page > 0) pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, -yOffset, imgWidth, imgHeight);
-        yOffset += pageHeight;
-        page++;
-      }
-    }
-
-    return pdf.output("blob");
+    return generatePdfFromCanvas(canvas, orientation);
   } finally {
     document.body.removeChild(tempDiv);
   }
