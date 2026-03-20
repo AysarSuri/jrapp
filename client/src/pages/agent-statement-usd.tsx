@@ -257,10 +257,12 @@ export default function AgentStatementUsdPage() {
       </tr>
     ` : "";
 
+    const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">`;
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
+        ${fontLink}
         <title>${t("Customer Statement")} - ${customerName}</title>
         <style>
           ${printStyles}
@@ -364,6 +366,7 @@ export default function AgentStatementUsdPage() {
       <html dir="${dir}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
+        ${fontLink}
         <title>${t("Details")} - ${customerName}</title>
         <style>
           ${printStyles}

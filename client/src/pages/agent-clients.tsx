@@ -216,6 +216,7 @@ export default function AgentClientsPage() {
 <html dir="${dir}" lang="${i18n.language}">
 <head>
 <meta charset="UTF-8" />
+        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>${t("Agent Client Assignments Report")}</title>
 <style>${printStyles}
   body { font-family: Arial, sans-serif; padding: 15px; }

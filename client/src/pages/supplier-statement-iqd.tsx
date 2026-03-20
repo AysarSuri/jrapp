@@ -422,6 +422,7 @@ export default function SupplierStatementIqdPage() {
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
         <meta charset="UTF-8" />
+        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
         <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name} - ${tabLabel}</title>
         <style>${printStyles}</style>
       </head>
@@ -920,6 +921,7 @@ export default function SupplierStatementIqdPage() {
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
                     <head><meta charset="UTF-8" />
+        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
                       <title>${t("Incoming Report")} - ${productsReport.supplier?.name || ""} (IQD)</title>
                       <style>${incomingPrintStyles}</style>
                     </head>
@@ -1107,6 +1109,7 @@ export default function SupplierStatementIqdPage() {
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
                     <head><meta charset="UTF-8" />
+        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
                       <title>${t("Incoming Vehicle Expenses")} - ${vehicleExpenses.supplier?.name || ""} (IQD)</title>
                       <style>${vPrintStyles}</style>
                     </head>
