@@ -5,6 +5,9 @@ const FONT_FAMILY = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Noto Kufi
 
 const GOOGLE_FONTS_CSS_URL = "https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap";
 
+const A4_WIDTH_PX = 794;
+const A4_HEIGHT_PX = 1123;
+
 let fontCssCache: string | null = null;
 
 async function fetchFontCssWithDataUrls(): Promise<string> {
@@ -63,39 +66,54 @@ export async function captureElementAsPdf(
 
   const fontCss = await fetchFontCssWithDataUrls();
 
-  const dataUrl = await toPng(element, {
-    quality: 1,
-    pixelRatio: 2,
-    backgroundColor: "#ffffff",
-    fontEmbedCSS: fontCss,
-  });
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = `position:absolute;left:-99999px;top:0;width:${A4_WIDTH_PX}px;min-height:${A4_HEIGHT_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-family:${FONT_FAMILY};`;
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.style.width = "100%";
+  clone.style.maxWidth = "100%";
+  clone.style.fontFamily = FONT_FAMILY;
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
-  const img = new Image();
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
+  try {
+    const dataUrl = await toPng(wrapper, {
+      quality: 1,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      fontEmbedCSS: fontCss,
+      width: A4_WIDTH_PX,
+      canvasWidth: A4_WIDTH_PX,
+    });
 
-  const imgWidth = orientation === "p" ? 210 : 297;
-  const pageHeight = orientation === "p" ? 297 : 210;
-  const imgHeight = (img.height * imgWidth) / img.width;
-  const pdf = new jsPDF(orientation, "mm", "a4");
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
 
-  if (imgHeight <= pageHeight) {
-    pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
-  } else {
-    let yOffset = 0;
-    let page = 0;
-    while (yOffset < imgHeight) {
-      if (page > 0) pdf.addPage();
-      pdf.addImage(dataUrl, "PNG", 0, -yOffset, imgWidth, imgHeight);
-      yOffset += pageHeight;
-      page++;
+    const imgWidth = orientation === "p" ? 210 : 297;
+    const pageHeight = orientation === "p" ? 297 : 210;
+    const imgHeight = (img.height * imgWidth) / img.width;
+    const pdf = new jsPDF(orientation, "mm", "a4");
+
+    if (imgHeight <= pageHeight) {
+      pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
+    } else {
+      let yOffset = 0;
+      let page = 0;
+      while (yOffset < imgHeight) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(dataUrl, "PNG", 0, -yOffset, imgWidth, imgHeight);
+        yOffset += pageHeight;
+        page++;
+      }
     }
-  }
 
-  return pdf.output("blob");
+    return pdf.output("blob");
+  } finally {
+    document.body.removeChild(wrapper);
+  }
 }
 
 export async function captureHtmlAsPdf(
@@ -106,12 +124,48 @@ export async function captureHtmlAsPdf(
   await ensureFontsLoaded();
 
   const tempDiv = document.createElement("div");
-  tempDiv.style.cssText = `position:absolute;left:-9999px;top:0;width:794px;background:white;padding:15px;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"}`;
+  tempDiv.style.cssText = `position:absolute;left:-9999px;top:0;width:${A4_WIDTH_PX}px;min-height:${A4_HEIGHT_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"}`;
   tempDiv.innerHTML = htmlContent;
   document.body.appendChild(tempDiv);
 
   try {
-    return await captureElementAsPdf(tempDiv, orientation);
+    const fontCss = await fetchFontCssWithDataUrls();
+
+    const dataUrl = await toPng(tempDiv, {
+      quality: 1,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      fontEmbedCSS: fontCss,
+      width: A4_WIDTH_PX,
+      canvasWidth: A4_WIDTH_PX,
+    });
+
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+
+    const imgWidth = orientation === "p" ? 210 : 297;
+    const pageHeight = orientation === "p" ? 297 : 210;
+    const imgHeight = (img.height * imgWidth) / img.width;
+    const pdf = new jsPDF(orientation, "mm", "a4");
+
+    if (imgHeight <= pageHeight) {
+      pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
+    } else {
+      let yOffset = 0;
+      let page = 0;
+      while (yOffset < imgHeight) {
+        if (page > 0) pdf.addPage();
+        pdf.addImage(dataUrl, "PNG", 0, -yOffset, imgWidth, imgHeight);
+        yOffset += pageHeight;
+        page++;
+      }
+    }
+
+    return pdf.output("blob");
   } finally {
     document.body.removeChild(tempDiv);
   }
