@@ -223,32 +223,32 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 16, fontSize: "12pt" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 0", marginBottom: 16, fontSize: "12pt" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 10px", width: "50%", boxSizing: "border-box" }}>
                 <span style={{ fontWeight: 700, color: "#555" }}>{t("Supplier Name")}:</span>
                 <span style={{ fontWeight: 700, flex: 1, textAlign: "center" }}>{adjustment.supplierName}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 10px", width: "50%", boxSizing: "border-box" }}>
                 <span style={{ fontWeight: 700, color: "#555" }}>{t("Adjustment Type")}:</span>
                 <span style={{ fontWeight: 700, flex: 1, textAlign: "center", color: typeColor }}>{typeLabel}</span>
               </div>
               {adjustment.payToName && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 10px", width: "100%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 700, color: "#555" }}>{t("Pay To")}:</span>
                   <span style={{ fontWeight: 700 }}>{adjustment.payToName}</span>
                 </div>
               )}
               {adjustment.note && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 0", gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "6px 10px", width: "100%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 700, color: "#555" }}>{t("Note")}:</span>
                   <span style={{ fontWeight: 700, textAlign: "center", flex: 1 }}>{adjustment.note}</span>
                 </div>
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: amountUsd > 0 && amountIqd > 0 ? "1fr 1fr" : "1fr", gap: 15, marginBottom: 16 }}>
+            <div style={{ display: "flex", gap: 15, marginBottom: 16 }}>
               {amountUsd > 0 && (
-                <div style={{ border: "2px solid " + typeColor, borderRadius: 6, padding: 12 }}>
+                <div style={{ border: "2px solid " + typeColor, borderRadius: 6, padding: 12, flex: 1, minWidth: 0 }}>
                   <h3 style={{ fontSize: "14pt", marginBottom: 8, borderBottom: "1px solid #eee", paddingBottom: 5, fontWeight: 700, color: fieldColor }}>
                     {t("Amount")} (USD)
                   </h3>
@@ -261,7 +261,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
                 </div>
               )}
               {amountIqd > 0 && (
-                <div style={{ border: "2px solid " + typeColor, borderRadius: 6, padding: 12 }}>
+                <div style={{ border: "2px solid " + typeColor, borderRadius: 6, padding: 12, flex: 1, minWidth: 0 }}>
                   <h3 style={{ fontSize: "14pt", marginBottom: 8, borderBottom: "1px solid #eee", paddingBottom: 5, fontWeight: 700, color: fieldColor }}>
                     {t("Amount")} (IQD)
                   </h3>

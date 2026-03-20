@@ -589,30 +589,30 @@ export default function ClearanceStatementUsdPage() {
                 </p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 15, fontSize: "12pt" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 0", marginBottom: 15, fontSize: "12pt" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Customs Clearance")}:</span>
                   <span style={{ fontWeight: 600, flex: 1, textAlign: "center" }}>{statement?.clearance?.name}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Type")}:</span>
                   <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.type === "receipt" ? t("Receipt") : t("Payment")}</span>
                 </div>
                 {viewEntry.reference && (
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                     <span style={{ fontWeight: 600, color: "#555" }}>{t("Reference")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewEntry.reference}</span>
                   </div>
                 )}
                 {viewEntry.description && (
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "100%", boxSizing: "border-box" }}>
                     <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }} dir="ltr">{viewEntry.description}</span>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 15, marginBottom: 15 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 15, marginBottom: 15 }}>
                 {(viewEntry.debitUsd > 0 || viewEntry.creditUsd > 0) && (
                   <div style={{ border: `2px solid ${viewEntry.type === "receipt" ? "#2563eb" : "#dc2626"}`, borderRadius: 6, padding: 15, textAlign: "center" }}>
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>

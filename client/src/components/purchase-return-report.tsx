@@ -288,29 +288,29 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: 12, fontSize: "12pt" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 0", marginBottom: 12, fontSize: "12pt" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 10px", width: "50%", boxSizing: "border-box" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Supplier Name")}:</span>
                 <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{returnData.supplierName}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 10px", width: "50%", boxSizing: "border-box" }}>
                 <span style={{ fontWeight: 600, color: "#555" }}>{t("Return Type")}:</span>
                 <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{returnData.returnType === "cash" ? t("Cash") : t("Credit")}</span>
               </div>
               {returnData.originalInvoiceNumber && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Original Invoice")}:</span>
                   <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{returnData.originalInvoiceNumber}</span>
                 </div>
               )}
               {returnData.address && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Address")}:</span>
                   <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{returnData.address}</span>
                 </div>
               )}
               {returnData.note && (
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 0", gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "2px 10px", width: "100%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
                   <span style={{ fontWeight: 500 }}>{returnData.note}</span>
                 </div>

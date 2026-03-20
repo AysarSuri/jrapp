@@ -233,23 +233,23 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginBottom: 16, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
-              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 16, border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none", width: "50%", boxSizing: "border-box" }}>
                 <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Customer Name")}</div>
                 <div style={{ fontSize: "12pt", fontWeight: 700, color: "#1e293b" }}>{receipt.customerName}</div>
               </div>
-              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ padding: "10px 14px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                 <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Payment Source")}</div>
                 <div style={{ fontSize: "12pt", fontWeight: 700, color: "#1e293b" }}>{receipt.paymentSourceName}</div>
               </div>
               {receipt.reference && (
-                <div style={{ padding: "10px 14px", background: "#fff", borderBottom: receipt.note ? "1px solid #e2e8f0" : "none", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none" }}>
+                <div style={{ padding: "10px 14px", background: "#fff", borderBottom: receipt.note ? "1px solid #e2e8f0" : "none", borderRight: isRtl ? "none" : "1px solid #e2e8f0", borderLeft: isRtl ? "1px solid #e2e8f0" : "none", width: "50%", boxSizing: "border-box" }}>
                   <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Reference")}</div>
                   <div style={{ fontSize: "11pt", fontWeight: 600, color: "#475569" }}>{receipt.reference}</div>
                 </div>
               )}
               {receipt.note && (
-                <div style={{ padding: "10px 14px", background: "#fff", gridColumn: receipt.reference ? "auto" : "1 / -1" }}>
+                <div style={{ padding: "10px 14px", background: "#fff", width: receipt.reference ? "50%" : "100%", boxSizing: "border-box" }}>
                   <div style={{ fontSize: "9pt", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", marginBottom: 2 }}>{t("Note")}</div>
                   <div style={{ fontSize: "11pt", fontWeight: 600, color: "#475569" }}>{receipt.note}</div>
                 </div>

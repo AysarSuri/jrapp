@@ -712,32 +712,32 @@ export default function ClearancePaymentsPage() {
                 </p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 20px", marginBottom: 15, fontSize: "12pt" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 0", marginBottom: 15, fontSize: "12pt" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Customs Clearance")}:</span>
                   <span style={{ fontWeight: 600, flex: 1, textAlign: "center" }}>{viewPayment.clearanceName}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                   <span style={{ fontWeight: 600, color: "#555" }}>{t("Type")}:</span>
                   <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{t("Payment")}</span>
                 </div>
                 {viewPayment.reference && (
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "50%", boxSizing: "border-box" }}>
                     <span style={{ fontWeight: 600, color: "#555" }}>{t("Reference")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewPayment.reference}</span>
                   </div>
                 )}
                 {viewPayment.description && (
-                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 0", gridColumn: "1 / -1" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dotted #ddd", padding: "4px 10px", width: "100%", boxSizing: "border-box" }}>
                     <span style={{ fontWeight: 600, color: "#555" }}>{t("Note")}:</span>
                     <span style={{ fontWeight: 500, flex: 1, textAlign: "center" }}>{viewPayment.description}</span>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginBottom: 15 }}>
+              <div style={{ display: "flex", gap: 15, marginBottom: 15 }}>
                 {parseFloat(viewPayment.amountUsd) > 0 && (
-                  <div style={{ border: "2px solid #dc2626", borderRadius: 6, padding: 15, textAlign: "center" }}>
+                  <div style={{ border: "2px solid #dc2626", borderRadius: 6, padding: 15, textAlign: "center", flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("USD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: "#dc2626", fontFamily: "monospace" }}>${fmt(viewPayment.amountUsd)}</p>
                     <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>
@@ -746,7 +746,7 @@ export default function ClearancePaymentsPage() {
                   </div>
                 )}
                 {parseFloat(viewPayment.amountIqd) > 0 && (
-                  <div style={{ border: "2px solid #ea580c", borderRadius: 6, padding: 15, textAlign: "center" }}>
+                  <div style={{ border: "2px solid #ea580c", borderRadius: 6, padding: 15, textAlign: "center", flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: "11pt", color: "#555", marginBottom: 5 }}>{t("IQD Amount")}</p>
                     <p style={{ fontSize: "22pt", fontWeight: 700, color: "#ea580c", fontFamily: "monospace" }}>{fmt(viewPayment.amountIqd)} IQD</p>
                     <p style={{ fontSize: "10pt", color: "#666", marginTop: 6, fontStyle: "italic" }}>

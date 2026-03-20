@@ -325,47 +325,47 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: 12, fontSize: "12pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden", position: "relative", zIndex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", marginBottom: 12, fontSize: "12pt", border: "1px solid #e2e8f0", borderRadius: 6, overflow: "hidden", position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Customer Name")}:</span>
                 <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.customerName}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Invoice Type")}:</span>
                 <span style={{ fontWeight: 700, marginLeft: "auto", color: invoice.invoiceType === "cash" ? "#16a34a" : fieldColor, background: invoice.invoiceType === "cash" ? "#f0fdf4" : "#fef2f2", padding: "2px 10px", borderRadius: 4, fontSize: "12pt" }}>{invoice.invoiceType === "cash" ? t("Cash") : t("Credit")}</span>
               </div>
               {invoice.mobile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Mobile")}:</span>
                   <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{invoice.mobile}</span>
                 </div>
               )}
               {invoice.address && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: invoice.mobile ? "none" : "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: invoice.mobile ? "none" : "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Address")}:</span>
                   <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.address}</span>
                 </div>
               )}
               {invoice.representativeName && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", borderRight: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Representative")}:</span>
                   <span style={{ fontWeight: 700, marginLeft: "auto", color: "#1e293b", fontSize: "13pt" }}>{invoice.representativeName}</span>
                 </div>
               )}
               {invoice.representativeMobile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderBottom: "1px solid #e2e8f0", width: "50%", boxSizing: "border-box" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   <span style={{ fontWeight: 700, color: "#64748b" }}>{t("Rep. Mobile")}:</span>
                   <span style={{ fontWeight: 700, marginLeft: "auto", fontFamily: "monospace", color: "#1e293b", fontSize: "13pt" }}>{invoice.representativeMobile}</span>
                 </div>
               )}
               {invoice.note && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderBottom: "1px solid #e2e8f0", width: "100%", boxSizing: "border-box" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   <span style={{ fontWeight: 600, color: "#64748b", fontSize: "10pt" }}>{t("Note")}:</span>
                   <span style={{ fontWeight: 500, marginLeft: "auto", color: "#1e293b" }}>{invoice.note}</span>
@@ -402,8 +402,8 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
               </tbody>
             </table>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 10, position: "relative", zIndex: 1 }}>
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden" }}>
+            <div style={{ display: "flex", gap: 10, marginTop: 10, position: "relative", zIndex: 1 }}>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, overflow: "hidden", flex: 1, minWidth: 0 }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                   {t("Delivery Info")}
@@ -431,7 +431,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 </div>
               </div>
 
-              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8 }}>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 6, padding: 8, flex: 1, minWidth: 0 }}>
                 <h3 style={{ fontSize: "13pt", marginBottom: 5, borderBottom: "1px solid #e2e8f0", paddingBottom: 3, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   {t("Invoice Summary")}
@@ -468,7 +468,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
                 </div>
               </div>
 
-              <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8, alignSelf: "end" }}>
+              <div style={{ border: `2px solid ${fieldColor}`, borderRadius: 6, padding: 8, flex: 1, minWidth: 0 }}>
                 <h3 style={{ color: fieldColor, fontSize: "13pt", marginBottom: 5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={fieldColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   {t("Customer Balance")}
