@@ -24,24 +24,57 @@ async function ensureFontsLoaded(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 150));
 }
 
+function copyComputedStyles(source: HTMLElement, target: HTMLElement) {
+  const computed = window.getComputedStyle(source);
+  for (let i = 0; i < computed.length; i++) {
+    const prop = computed[i];
+    try {
+      (target.style as any)[prop] = computed.getPropertyValue(prop);
+    } catch {}
+  }
+}
+
+async function waitForImages(container: HTMLElement, timeout = 3000): Promise<void> {
+  const imgs = container.querySelectorAll("img");
+  if (imgs.length === 0) return;
+
+  const promises = Array.from(imgs).map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, timeout);
+      img.onload = () => { clearTimeout(timer); resolve(); };
+      img.onerror = () => { clearTimeout(timer); resolve(); };
+    });
+  });
+  await Promise.all(promises);
+}
+
 export async function captureElementAsPdf(
   element: HTMLElement,
   orientation: "p" | "l" = "p"
 ): Promise<Blob | null> {
   await ensureFontsLoaded();
 
-  const origWidth = element.style.width;
-  const origMaxWidth = element.style.maxWidth;
-  const origMinWidth = element.style.minWidth;
+  const clone = element.cloneNode(true) as HTMLElement;
 
-  element.style.width = A4_WIDTH_PX + "px";
-  element.style.maxWidth = A4_WIDTH_PX + "px";
-  element.style.minWidth = A4_WIDTH_PX + "px";
+  clone.style.cssText = `position:fixed;left:-10000px;top:0;width:${A4_WIDTH_PX}px;min-width:${A4_WIDTH_PX}px;max-width:${A4_WIDTH_PX}px;background:white;z-index:-9999;overflow:visible;font-family:${FONT_FAMILY};`;
 
-  await new Promise(resolve => setTimeout(resolve, 50));
+  const dir = window.getComputedStyle(element).direction;
+  if (dir) clone.style.direction = dir;
+
+  const origPadding = element.style.padding;
+  if (origPadding) clone.style.padding = origPadding;
+
+  const origFontFamily = element.style.fontFamily;
+  if (origFontFamily) clone.style.fontFamily = origFontFamily;
+
+  document.body.appendChild(clone);
+
+  await waitForImages(clone);
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    const canvas = await html2canvas(element, {
+    const canvas = await html2canvas(clone, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -71,9 +104,7 @@ export async function captureElementAsPdf(
 
     return pdf.output("blob");
   } finally {
-    element.style.width = origWidth;
-    element.style.maxWidth = origMaxWidth;
-    element.style.minWidth = origMinWidth;
+    document.body.removeChild(clone);
   }
 }
 
@@ -85,9 +116,12 @@ export async function captureHtmlAsPdf(
   await ensureFontsLoaded();
 
   const tempDiv = document.createElement("div");
-  tempDiv.style.cssText = `position:absolute;left:-9999px;top:0;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"}`;
+  tempDiv.style.cssText = `position:fixed;left:-10000px;top:0;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;z-index:-9999;`;
   tempDiv.innerHTML = htmlContent;
   document.body.appendChild(tempDiv);
+
+  await waitForImages(tempDiv);
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
     const canvas = await html2canvas(tempDiv, {
