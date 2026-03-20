@@ -1,96 +1,101 @@
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
-
-const FONT_URL = "https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap";
 
 const FONT_FAMILY = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Noto Kufi Arabic','Segoe UI',sans-serif";
 
-const KURDISH_TEST_CHARS = "پچڤگڵڕێۆژ فاتورة مبيعات فرۆشتن لیستی حسابی دۆلار پسوولە";
+const GOOGLE_FONTS_CSS_URL = "https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap";
 
-async function ensureFontsLoaded(): Promise<void> {
-  if (!document.fonts) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return;
+let fontCssCache: string | null = null;
+
+async function fetchFontCssWithDataUrls(): Promise<string> {
+  if (fontCssCache) return fontCssCache;
+
+  try {
+    const resp = await fetch(GOOGLE_FONTS_CSS_URL);
+    const cssText = await resp.text();
+
+    const urlRegex = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g;
+    let result = cssText;
+    const matches = [...cssText.matchAll(urlRegex)];
+
+    const fontPromises = matches.map(async (match) => {
+      try {
+        const fontResp = await fetch(match[1]);
+        const blob = await fontResp.blob();
+        return new Promise<{ original: string; dataUrl: string }>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({ original: match[0], dataUrl: `url(${reader.result})` });
+          };
+          reader.readAsDataURL(blob);
+        });
+      } catch {
+        return null;
+      }
+    });
+
+    const results = await Promise.all(fontPromises);
+    for (const r of results) {
+      if (r) {
+        result = result.replace(r.original, r.dataUrl);
+      }
+    }
+
+    fontCssCache = result;
+    return result;
+  } catch {
+    return "";
   }
-
-  await document.fonts.ready;
-
-  const fontFaces = [
-    '400 16px "Noto Naskh Arabic"',
-    '500 16px "Noto Naskh Arabic"',
-    '600 16px "Noto Naskh Arabic"',
-    '700 16px "Noto Naskh Arabic"',
-    '400 16px "Tajawal"',
-    '500 16px "Tajawal"',
-    '700 16px "Tajawal"',
-    '800 16px "Tajawal"',
-    '400 16px "Noto Sans Arabic"',
-    '500 16px "Noto Sans Arabic"',
-    '600 16px "Noto Sans Arabic"',
-    '700 16px "Noto Sans Arabic"',
-  ];
-
-  const loadPromises = fontFaces.map(face => {
-    return document.fonts.load(face, KURDISH_TEST_CHARS).catch(() => {});
-  });
-
-  await Promise.all(loadPromises);
-  await document.fonts.ready;
-  await new Promise(resolve => setTimeout(resolve, 200));
 }
 
-function preRenderFonts(): HTMLDivElement {
-  const preRender = document.createElement("div");
-  preRender.style.cssText = "position:fixed;left:-99999px;top:-99999px;opacity:0;pointer-events:none;font-size:16px;white-space:nowrap;";
-  preRender.innerHTML = [
-    `<span style="font-family:'Noto Naskh Arabic';font-weight:400">${KURDISH_TEST_CHARS}</span>`,
-    `<span style="font-family:'Noto Naskh Arabic';font-weight:700">${KURDISH_TEST_CHARS}</span>`,
-    `<span style="font-family:'Tajawal';font-weight:400">${KURDISH_TEST_CHARS}</span>`,
-    `<span style="font-family:'Tajawal';font-weight:700">${KURDISH_TEST_CHARS}</span>`,
-    `<span style="font-family:'Noto Sans Arabic';font-weight:400">${KURDISH_TEST_CHARS}</span>`,
-    `<span style="font-family:'Noto Sans Arabic';font-weight:700">${KURDISH_TEST_CHARS}</span>`,
-  ].join("");
-  document.body.appendChild(preRender);
-  return preRender;
+async function ensureFontsLoaded(): Promise<void> {
+  if (document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+  await new Promise(resolve => setTimeout(resolve, 100));
 }
 
 export async function captureElementAsPdf(
   element: HTMLElement,
   orientation: "p" | "l" = "p"
 ): Promise<Blob | null> {
-  const preRender = preRenderFonts();
-
   await ensureFontsLoaded();
 
-  try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: "#ffffff",
-      onclone: (_clonedDoc, clonedElement) => {
-        clonedElement.style.fontFamily = FONT_FAMILY;
-        const allEls = clonedElement.querySelectorAll("*");
-        allEls.forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.style.fontFamily = FONT_FAMILY;
-          }
-        });
-      },
-    });
+  const fontCss = await fetchFontCssWithDataUrls();
 
-    const imgWidth = orientation === "p" ? 210 : 297;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF(orientation, "mm", "a4");
-    const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  const dataUrl = await toPng(element, {
+    quality: 1,
+    pixelRatio: 2,
+    backgroundColor: "#ffffff",
+    fontEmbedCSS: fontCss,
+  });
 
-    return pdf.output("blob");
-  } finally {
-    if (preRender.parentNode) {
-      document.body.removeChild(preRender);
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+
+  const imgWidth = orientation === "p" ? 210 : 297;
+  const pageHeight = orientation === "p" ? 297 : 210;
+  const imgHeight = (img.height * imgWidth) / img.width;
+  const pdf = new jsPDF(orientation, "mm", "a4");
+
+  if (imgHeight <= pageHeight) {
+    pdf.addImage(dataUrl, "PNG", 0, 0, imgWidth, imgHeight);
+  } else {
+    let yOffset = 0;
+    let page = 0;
+    while (yOffset < imgHeight) {
+      if (page > 0) pdf.addPage();
+      pdf.addImage(dataUrl, "PNG", 0, -yOffset, imgWidth, imgHeight);
+      yOffset += pageHeight;
+      page++;
     }
   }
+
+  return pdf.output("blob");
 }
 
 export async function captureHtmlAsPdf(
@@ -98,8 +103,6 @@ export async function captureHtmlAsPdf(
   isRtl: boolean = false,
   orientation: "p" | "l" = "p"
 ): Promise<Blob | null> {
-  const preRender = preRenderFonts();
-
   await ensureFontsLoaded();
 
   const tempDiv = document.createElement("div");
@@ -108,33 +111,10 @@ export async function captureHtmlAsPdf(
   document.body.appendChild(tempDiv);
 
   try {
-    const canvas = await html2canvas(tempDiv, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: "#ffffff",
-      onclone: (_clonedDoc, clonedElement) => {
-        clonedElement.style.fontFamily = FONT_FAMILY;
-        const allEls = clonedElement.querySelectorAll("*");
-        allEls.forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.style.fontFamily = FONT_FAMILY;
-          }
-        });
-      },
-    });
-
-    const imgWidth = orientation === "p" ? 210 : 297;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF(orientation, "mm", "a4");
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-    return pdf.output("blob");
+    return await captureElementAsPdf(tempDiv, orientation);
   } finally {
     document.body.removeChild(tempDiv);
-    if (preRender.parentNode) {
-      document.body.removeChild(preRender);
-    }
   }
 }
 
-export { FONT_FAMILY, FONT_URL };
+export { FONT_FAMILY };
