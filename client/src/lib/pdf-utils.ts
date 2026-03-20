@@ -71,9 +71,16 @@ async function waitForImages(container: HTMLElement, timeout = 3000): Promise<vo
   await Promise.all(promises);
 }
 
+function stripSvgElements(container: HTMLElement): void {
+  const svgs = container.querySelectorAll("svg");
+  svgs.forEach(svg => {
+    svg.remove();
+  });
+}
+
 function replaceFlexWithCompatible(container: HTMLElement): void {
-  const allElements = container.querySelectorAll("*");
-  allElements.forEach(el => {
+  const elements = Array.from(container.querySelectorAll("*")).reverse();
+  elements.forEach(el => {
     if (!(el instanceof HTMLElement)) return;
     const display = el.style.display;
     if (display !== "flex" && display !== "inline-flex") return;
@@ -81,40 +88,85 @@ function replaceFlexWithCompatible(container: HTMLElement): void {
     const flexWrap = el.style.flexWrap;
     const flexDir = el.style.flexDirection;
     const gap = el.style.gap;
+    const jc = el.style.justifyContent;
+    const ai = el.style.alignItems;
 
     const gapPx = gap ? parseInt(gap) || 0 : 0;
+
+    const children = Array.from(el.children).filter(c => c instanceof HTMLElement) as HTMLElement[];
 
     if (flexDir === "column") {
       el.style.display = "block";
       el.style.flexWrap = "";
       el.style.flexDirection = "";
       el.style.gap = "";
+      el.style.alignItems = "";
+      el.style.justifyContent = "";
       if (gapPx > 0) {
-        Array.from(el.children).forEach((child, idx) => {
-          if (child instanceof HTMLElement && idx > 0) {
-            child.style.marginTop = gapPx + "px";
-          }
+        children.forEach((child, idx) => {
+          if (idx > 0) child.style.marginTop = gapPx + "px";
         });
       }
       return;
     }
 
-    const children = Array.from(el.children).filter(c => c instanceof HTMLElement) as HTMLElement[];
     const hasWidthPercent = children.some(c => c.style.width && c.style.width.includes("%"));
     const hasFlexOne = children.some(c => c.style.flex === "1" || c.style.flex?.startsWith("1 "));
+    const hasFlexShrink = children.some(c => c.style.flexShrink === "0");
+
+    if (jc === "space-between" && children.length === 2 && !hasFlexOne && !hasWidthPercent) {
+      el.style.display = "block";
+      el.style.overflow = "hidden";
+      el.style.gap = "";
+      el.style.flexWrap = "";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+      children[0].style.cssFloat = "left";
+      children[0].style.display = "inline-block";
+      children[1].style.cssFloat = "right";
+      children[1].style.display = "inline-block";
+      if (ai === "center") {
+        children[0].style.verticalAlign = "middle";
+        children[1].style.verticalAlign = "middle";
+      }
+      const clearDiv = document.createElement("div");
+      clearDiv.style.clear = "both";
+      el.appendChild(clearDiv);
+      return;
+    }
+
+    if (jc === "center" && !hasFlexOne && !hasWidthPercent) {
+      el.style.display = "block";
+      el.style.textAlign = "center";
+      el.style.gap = "";
+      el.style.flexWrap = "";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+      children.forEach((child) => {
+        child.style.display = "inline-block";
+        child.style.verticalAlign = ai === "center" ? "middle" : "top";
+        if (gapPx > 0) {
+          child.style.marginLeft = Math.floor(gapPx / 2) + "px";
+          child.style.marginRight = Math.ceil(gapPx / 2) + "px";
+        }
+      });
+      return;
+    }
 
     if (flexWrap === "wrap" || hasWidthPercent) {
       el.style.display = "block";
       el.style.flexWrap = "";
       el.style.gap = "";
-      el.style.overflow = el.style.overflow || "hidden";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+      el.style.overflow = "hidden";
       children.forEach((child) => {
         const existingWidth = child.style.width;
         if (existingWidth && existingWidth.includes("%")) {
           child.style.display = "inline-block";
           child.style.verticalAlign = "top";
           child.style.boxSizing = "border-box";
-          child.style.float = "left";
+          child.style.cssFloat = "left";
         } else {
           child.style.display = "block";
           child.style.width = "100%";
@@ -128,13 +180,10 @@ function replaceFlexWithCompatible(container: HTMLElement): void {
       return;
     }
 
-    if (hasFlexOne || children.length >= 2) {
-      const jc = el.style.justifyContent;
-      const ai = el.style.alignItems;
-
+    if (hasFlexOne) {
       el.style.display = "table";
-      el.style.width = el.style.width || "100%";
-      el.style.tableLayout = "auto";
+      el.style.width = "100%";
+      el.style.tableLayout = "fixed";
       el.style.borderCollapse = "separate";
       el.style.borderSpacing = gapPx > 0 ? `${gapPx}px 0` : "0";
       el.style.flexWrap = "";
@@ -152,23 +201,48 @@ function replaceFlexWithCompatible(container: HTMLElement): void {
         if (child.style.minWidth === "0" || child.style.minWidth === "0px") {
           child.style.minWidth = "";
         }
+        if (child.style.flexShrink) {
+          child.style.flexShrink = "";
+        }
       });
+      return;
+    }
 
-      if (jc === "space-between" && children.length === 2) {
-        el.style.width = "100%";
-      }
+    if (hasFlexShrink) {
+      el.style.display = "table";
+      el.style.width = "100%";
+      el.style.tableLayout = "auto";
+      el.style.borderCollapse = "separate";
+      el.style.borderSpacing = gapPx > 0 ? `${gapPx}px 0` : "0";
+      el.style.flexWrap = "";
+      el.style.gap = "";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+
+      children.forEach((child) => {
+        child.style.display = "table-cell";
+        child.style.verticalAlign = ai === "center" ? "middle" : "top";
+        child.style.boxSizing = "border-box";
+        if (child.style.flexShrink === "0") {
+          child.style.whiteSpace = "nowrap";
+          child.style.width = "1%";
+        }
+        child.style.flexShrink = "";
+      });
       return;
     }
 
     el.style.display = "block";
-    el.style.overflow = el.style.overflow || "hidden";
+    el.style.overflow = "hidden";
     el.style.flexWrap = "";
     el.style.gap = "";
-    children.forEach((child) => {
+    el.style.justifyContent = "";
+    el.style.alignItems = "";
+    children.forEach((child, idx) => {
       child.style.display = "inline-block";
-      child.style.verticalAlign = "top";
-      if (gapPx > 0) {
-        child.style.marginRight = gapPx + "px";
+      child.style.verticalAlign = ai === "center" ? "middle" : "top";
+      if (gapPx > 0 && idx > 0) {
+        child.style.marginLeft = gapPx + "px";
       }
     });
   });
@@ -220,6 +294,7 @@ export async function captureElementAsPdf(
   await convertAllImages(container);
   await waitForImages(container);
 
+  stripSvgElements(container);
   replaceFlexWithCompatible(container);
 
   await new Promise(r => setTimeout(r, 300));
@@ -264,6 +339,7 @@ export async function captureHtmlAsPdf(
   await convertAllImages(tempDiv);
   await waitForImages(tempDiv);
 
+  stripSvgElements(tempDiv);
   replaceFlexWithCompatible(tempDiv);
 
   await new Promise(resolve => setTimeout(resolve, 300));
