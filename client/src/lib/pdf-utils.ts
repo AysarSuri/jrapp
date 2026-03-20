@@ -71,6 +71,109 @@ async function waitForImages(container: HTMLElement, timeout = 3000): Promise<vo
   await Promise.all(promises);
 }
 
+function replaceFlexWithCompatible(container: HTMLElement): void {
+  const allElements = container.querySelectorAll("*");
+  allElements.forEach(el => {
+    if (!(el instanceof HTMLElement)) return;
+    const display = el.style.display;
+    if (display !== "flex" && display !== "inline-flex") return;
+
+    const flexWrap = el.style.flexWrap;
+    const flexDir = el.style.flexDirection;
+    const gap = el.style.gap;
+
+    const gapPx = gap ? parseInt(gap) || 0 : 0;
+
+    if (flexDir === "column") {
+      el.style.display = "block";
+      el.style.flexWrap = "";
+      el.style.flexDirection = "";
+      el.style.gap = "";
+      if (gapPx > 0) {
+        Array.from(el.children).forEach((child, idx) => {
+          if (child instanceof HTMLElement && idx > 0) {
+            child.style.marginTop = gapPx + "px";
+          }
+        });
+      }
+      return;
+    }
+
+    const children = Array.from(el.children).filter(c => c instanceof HTMLElement) as HTMLElement[];
+    const hasWidthPercent = children.some(c => c.style.width && c.style.width.includes("%"));
+    const hasFlexOne = children.some(c => c.style.flex === "1" || c.style.flex?.startsWith("1 "));
+
+    if (flexWrap === "wrap" || hasWidthPercent) {
+      el.style.display = "block";
+      el.style.flexWrap = "";
+      el.style.gap = "";
+      el.style.overflow = el.style.overflow || "hidden";
+      children.forEach((child) => {
+        const existingWidth = child.style.width;
+        if (existingWidth && existingWidth.includes("%")) {
+          child.style.display = "inline-block";
+          child.style.verticalAlign = "top";
+          child.style.boxSizing = "border-box";
+          child.style.float = "left";
+        } else {
+          child.style.display = "block";
+          child.style.width = "100%";
+          child.style.boxSizing = "border-box";
+          child.style.clear = "both";
+        }
+      });
+      const clearDiv = document.createElement("div");
+      clearDiv.style.clear = "both";
+      el.appendChild(clearDiv);
+      return;
+    }
+
+    if (hasFlexOne || children.length >= 2) {
+      const jc = el.style.justifyContent;
+      const ai = el.style.alignItems;
+
+      el.style.display = "table";
+      el.style.width = el.style.width || "100%";
+      el.style.tableLayout = "auto";
+      el.style.borderCollapse = "separate";
+      el.style.borderSpacing = gapPx > 0 ? `${gapPx}px 0` : "0";
+      el.style.flexWrap = "";
+      el.style.gap = "";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+
+      children.forEach((child) => {
+        child.style.display = "table-cell";
+        child.style.verticalAlign = ai === "center" ? "middle" : (ai === "flex-end" ? "bottom" : "top");
+        child.style.boxSizing = "border-box";
+        if (child.style.flex === "1" || child.style.flex?.startsWith("1 ")) {
+          child.style.flex = "";
+        }
+        if (child.style.minWidth === "0" || child.style.minWidth === "0px") {
+          child.style.minWidth = "";
+        }
+      });
+
+      if (jc === "space-between" && children.length === 2) {
+        el.style.width = "100%";
+      }
+      return;
+    }
+
+    el.style.display = "block";
+    el.style.overflow = el.style.overflow || "hidden";
+    el.style.flexWrap = "";
+    el.style.gap = "";
+    children.forEach((child) => {
+      child.style.display = "inline-block";
+      child.style.verticalAlign = "top";
+      if (gapPx > 0) {
+        child.style.marginRight = gapPx + "px";
+      }
+    });
+  });
+}
+
 function generatePdfFromCanvas(canvas: HTMLCanvasElement, orientation: "p" | "l"): Blob {
   const imgWidth = orientation === "p" ? 210 : 297;
   const pageHeight = orientation === "p" ? 297 : 210;
@@ -99,59 +202,45 @@ export async function captureElementAsPdf(
 ): Promise<Blob | null> {
   await ensureFontsLoaded();
 
-  await convertAllImages(element);
-  await waitForImages(element);
-  await new Promise(r => setTimeout(r, 200));
+  const dir = window.getComputedStyle(element).direction || "ltr";
+  const fontFamily = element.style.fontFamily || FONT_FAMILY;
+  const padding = element.style.padding || "0";
+  const htmlContent = element.innerHTML;
 
-  const rect = element.getBoundingClientRect();
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = "position:absolute;left:-9999px;top:0;z-index:-1;overflow:visible;";
+
+  const container = document.createElement("div");
+  container.style.cssText = `position:relative;width:${A4_WIDTH_PX}px;min-width:${A4_WIDTH_PX}px;max-width:${A4_WIDTH_PX}px;background:white;font-family:${fontFamily};direction:${dir};padding:${padding};overflow:visible;box-sizing:border-box;color:#000;`;
+  container.innerHTML = htmlContent;
+
+  wrapper.appendChild(container);
+  document.body.appendChild(wrapper);
+
+  await convertAllImages(container);
+  await waitForImages(container);
+
+  replaceFlexWithCompatible(container);
+
+  await new Promise(r => setTimeout(r, 300));
 
   try {
-    const canvas = await html2canvas(element, {
+    const canvas = await html2canvas(container, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
-      height: element.scrollHeight,
-      windowWidth: A4_WIDTH_PX,
-      scrollX: -rect.left,
-      scrollY: -rect.top,
-      x: rect.left,
-      y: rect.top,
+      windowWidth: A4_WIDTH_PX + 100,
       logging: false,
-      onclone: (_doc: Document, clonedEl: HTMLElement) => {
-        let parent = clonedEl.parentElement;
-        while (parent && parent !== _doc.documentElement) {
-          parent.style.overflow = "visible";
-          parent.style.overflowX = "visible";
-          parent.style.overflowY = "visible";
-          parent.style.maxHeight = "none";
-          parent.style.maxWidth = "none";
-          parent.style.height = "auto";
-          parent.style.transform = "none";
-          parent.style.position = "static";
-          parent.style.clipPath = "none";
-          parent.style.clip = "auto";
-          parent = parent.parentElement;
-        }
-        _doc.body.style.overflow = "visible";
-        _doc.documentElement.style.overflow = "visible";
-
-        clonedEl.style.width = A4_WIDTH_PX + "px";
-        clonedEl.style.minWidth = A4_WIDTH_PX + "px";
-        clonedEl.style.maxWidth = A4_WIDTH_PX + "px";
-        clonedEl.style.overflow = "visible";
-        clonedEl.style.position = "relative";
-        clonedEl.style.left = "0";
-        clonedEl.style.top = "0";
-        clonedEl.style.transform = "none";
-      },
     });
 
     return generatePdfFromCanvas(canvas, orientation);
   } catch (err) {
     console.error("PDF capture error:", err);
     return null;
+  } finally {
+    document.body.removeChild(wrapper);
   }
 }
 
@@ -162,14 +251,22 @@ export async function captureHtmlAsPdf(
 ): Promise<Blob | null> {
   await ensureFontsLoaded();
 
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = "position:absolute;left:-9999px;top:0;z-index:-1;overflow:visible;";
+
   const tempDiv = document.createElement("div");
-  tempDiv.style.cssText = `position:fixed;left:0;top:0;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;z-index:2147483647;pointer-events:none;`;
+  tempDiv.style.cssText = `position:relative;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;color:#000;`;
   tempDiv.innerHTML = htmlContent;
-  document.body.appendChild(tempDiv);
+
+  wrapper.appendChild(tempDiv);
+  document.body.appendChild(wrapper);
 
   await convertAllImages(tempDiv);
   await waitForImages(tempDiv);
-  await new Promise(resolve => setTimeout(resolve, 250));
+
+  replaceFlexWithCompatible(tempDiv);
+
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   try {
     const canvas = await html2canvas(tempDiv, {
@@ -178,13 +275,13 @@ export async function captureHtmlAsPdf(
       allowTaint: true,
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
-      windowWidth: A4_WIDTH_PX,
+      windowWidth: A4_WIDTH_PX + 100,
       logging: false,
     });
 
     return generatePdfFromCanvas(canvas, orientation);
   } finally {
-    document.body.removeChild(tempDiv);
+    document.body.removeChild(wrapper);
   }
 }
 
