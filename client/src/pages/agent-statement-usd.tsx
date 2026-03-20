@@ -265,7 +265,7 @@ export default function AgentStatementUsdPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           td small { color: #000 !important; }
           .info-label { color: #000 !important; }
@@ -368,7 +368,7 @@ export default function AgentStatementUsdPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
         </style>
       </head>

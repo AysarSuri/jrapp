@@ -302,7 +302,7 @@ export default function ProductsPage() {
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
+      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Inter', -apple-system, sans-serif;
       padding: 18px 24px;
       font-size: 10pt;
       direction: ${dir};

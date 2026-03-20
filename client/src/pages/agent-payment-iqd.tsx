@@ -304,7 +304,7 @@ export default function AgentPaymentIqdPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; }

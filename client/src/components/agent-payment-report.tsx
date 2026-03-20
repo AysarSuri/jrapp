@@ -126,7 +126,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
         <title>${receiptTitle} - ${payment?.agentName || ""}</title>
         <style>
           ${printStyles}
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         </style>
       </head>
       <body>${content.innerHTML}</body>

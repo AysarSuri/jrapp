@@ -122,7 +122,7 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
         <title>${receiptTitle} - ${receipt?.customerName || ""}</title>
         <style>
           ${printStyles}
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         </style>
       </head>
       <body>${content.innerHTML}</body>

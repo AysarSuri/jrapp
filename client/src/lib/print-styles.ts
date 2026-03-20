@@ -16,7 +16,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Tajawal', 'Noto Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       padding: 24px;
       font-size: 11pt;
       direction: ${opts.direction};
