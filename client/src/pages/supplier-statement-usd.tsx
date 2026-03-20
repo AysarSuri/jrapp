@@ -13,8 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { usd, formatDate } from "@/lib/format-utils";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -544,14 +543,11 @@ export default function SupplierStatementUsdPage() {
       </table>
     `;
 
-    const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-    document.body.removeChild(tempDiv);
-
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF("p", "mm", "a4");
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-    return pdf.output("blob");
+    try {
+      return await captureElementAsPdf(tempDiv);
+    } finally {
+      document.body.removeChild(tempDiv);
+    }
   };
 
   const handleWhatsApp = async () => {

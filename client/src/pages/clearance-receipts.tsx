@@ -28,8 +28,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { usd, formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles } from "@/lib/print-styles";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { captureElementAsPdf } from "@/lib/pdf-utils";
 
 export default function ClearanceReceiptsPage() {
   const { t, i18n } = useTranslation();
@@ -666,12 +665,8 @@ export default function ClearanceReceiptsPage() {
                   try {
                     const content = printRef.current;
                     if (!content) return;
-                    const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-                    const imgWidth = 210;
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    const pdf = new jsPDF("p", "mm", "a4");
-                    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-                    const pdfBlob = pdf.output("blob");
+                    const pdfBlob = await captureElementAsPdf(content);
+                    if (!pdfBlob) return;
                     const fileName = `${t("Clearance Receipt")}_${viewReceipt.clearanceName}_${formatDate(viewReceipt.date)}.pdf`;
                     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
                     if (navigator.share && navigator.canShare?.({ files: [file] })) {

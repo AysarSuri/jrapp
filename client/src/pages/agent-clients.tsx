@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getModernPrintStyles } from "@/lib/print-styles";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
 type AgentClientWithDetails = AgentClient & {
@@ -275,24 +274,13 @@ ${clicheHtml}
       container.innerHTML = html.replace(/<!DOCTYPE.*?<body>/s, "").replace(/<\/body>.*<\/html>/s, "");
       document.body.appendChild(container);
 
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      document.body.removeChild(container);
-
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pdf = new jsPDF("p", "mm", "a4");
-      if (imgHeight > 297) {
-        let yOffset = 0;
-        while (yOffset < imgHeight) {
-          if (yOffset > 0) pdf.addPage();
-          pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, -yOffset, imgWidth, imgHeight);
-          yOffset += 297;
-        }
-      } else {
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
+      let pdfBlob: Blob | null;
+      try {
+        pdfBlob = await captureElementAsPdf(container);
+      } finally {
+        document.body.removeChild(container);
       }
-
-      const pdfBlob = pdf.output("blob");
+      if (!pdfBlob) return;
       const fileName = `${t("Agent Client Assignments Report")}_${today}.pdf`;
       const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 

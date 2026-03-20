@@ -10,8 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { playDeleteSound } from "@/lib/sounds";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -536,12 +535,8 @@ export default function ClearanceStatementIqdPage() {
                   try {
                     const content = printRef.current;
                     if (!content) return;
-                    const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-                    const imgWidth = 210;
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    const pdf = new jsPDF("p", "mm", "a4");
-                    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-                    const pdfBlob = pdf.output("blob");
+                    const pdfBlob = await captureElementAsPdf(content);
+                    if (!pdfBlob) return;
                     const title = viewEntry.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
                     const fileName = `${title}_${statement?.clearance?.name}_${formatDate(viewEntry.date)}.pdf`;
                     const file = new File([pdfBlob], fileName, { type: "application/pdf" });

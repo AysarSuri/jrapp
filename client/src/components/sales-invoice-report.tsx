@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Printer, MessageCircle } from "lucide-react";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { captureElementAsPdf } from "@/lib/pdf-utils";
 import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
@@ -215,20 +214,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
   const generatePdf = async (): Promise<Blob | null> => {
     const content = printRef.current;
     if (!content) return null;
-
-    const canvas = await html2canvas(content, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-
-    return pdf.output("blob");
+    return captureElementAsPdf(content);
   };
 
   const handleWhatsApp = async () => {
