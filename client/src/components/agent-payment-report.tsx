@@ -211,7 +211,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div ref={printRef} style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
+          <div ref={printRef} style={{ fontFamily: "'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 8 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }} />

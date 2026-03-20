@@ -482,7 +482,7 @@ export default function SupplierStatementUsdPage() {
     if (!statement || !printRef.current) return null;
 
     const tempDiv = document.createElement("div");
-    tempDiv.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;background:white;padding:15px;font-size:10pt;direction:" + (isRtl ? "rtl" : "ltr");
+    tempDiv.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;background:white;padding:15px;font-size:10pt;font-family:'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif;direction:" + (isRtl ? "rtl" : "ltr");
     document.body.appendChild(tempDiv);
 
     const oldDebtVal = parseFloat(statement.supplier.oldDebtUsd || "0");

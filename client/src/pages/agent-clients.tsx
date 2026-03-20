@@ -271,6 +271,7 @@ ${clicheHtml}
       container.style.left = "-9999px";
       container.style.top = "0";
       container.style.width = "794px";
+      container.style.fontFamily = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif";
       container.innerHTML = html.replace(/<!DOCTYPE.*?<body>/s, "").replace(/<\/body>.*<\/html>/s, "");
       document.body.appendChild(container);
 
