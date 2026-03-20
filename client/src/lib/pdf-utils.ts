@@ -71,11 +71,65 @@ async function waitForImages(container: HTMLElement, timeout = 3000): Promise<vo
   await Promise.all(promises);
 }
 
-function stripSvgElements(container: HTMLElement): void {
-  const svgs = container.querySelectorAll("svg");
-  svgs.forEach(svg => {
-    svg.remove();
+function svgToPngDataUri(svg: SVGElement): Promise<string | null> {
+  return new Promise((resolve) => {
+    try {
+      const svgClone = svg.cloneNode(true) as SVGElement;
+      if (!svgClone.getAttribute("xmlns")) {
+        svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgClone);
+      const svgDataUri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgStr);
+
+      const w = parseInt(svg.getAttribute("width") || "16") || 16;
+      const h = parseInt(svg.getAttribute("height") || "16") || 16;
+      const scale = 3;
+
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = w * scale;
+          canvas.height = h * scale;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w * scale, h * scale);
+            resolve(canvas.toDataURL("image/png"));
+            return;
+          }
+        } catch {}
+        resolve(null);
+      };
+      img.onerror = () => resolve(null);
+      setTimeout(() => resolve(null), 2000);
+      img.src = svgDataUri;
+    } catch {
+      resolve(null);
+    }
   });
+}
+
+async function convertSvgsToImages(container: HTMLElement): Promise<void> {
+  const svgs = Array.from(container.querySelectorAll("svg"));
+  const promises = svgs.map(async (svg) => {
+    const pngUri = await svgToPngDataUri(svg);
+    if (pngUri) {
+      const img = document.createElement("img");
+      img.src = pngUri;
+      const w = svg.getAttribute("width") || "16";
+      const h = svg.getAttribute("height") || "16";
+      img.style.width = w + (w.includes("px") || w.includes("%") ? "" : "px");
+      img.style.height = h + (h.includes("px") || h.includes("%") ? "" : "px");
+      img.style.display = "inline-block";
+      img.style.verticalAlign = "middle";
+      img.style.flexShrink = "0";
+      svg.parentNode?.replaceChild(img, svg);
+    } else {
+      svg.remove();
+    }
+  });
+  await Promise.all(promises);
 }
 
 function replaceFlexWithCompatible(container: HTMLElement): void {
@@ -114,6 +168,23 @@ function replaceFlexWithCompatible(container: HTMLElement): void {
     const hasFlexOne = children.some(c => c.style.flex === "1" || c.style.flex?.startsWith("1 "));
     const hasFlexShrink = children.some(c => c.style.flexShrink === "0");
 
+    if (display === "inline-flex") {
+      el.style.display = "inline-block";
+      el.style.gap = "";
+      el.style.flexWrap = "";
+      el.style.justifyContent = "";
+      el.style.alignItems = "";
+      el.style.whiteSpace = "nowrap";
+      children.forEach((child, idx) => {
+        child.style.display = "inline-block";
+        child.style.verticalAlign = ai === "center" ? "middle" : "top";
+        if (gapPx > 0 && idx > 0) {
+          child.style.marginLeft = gapPx + "px";
+        }
+      });
+      return;
+    }
+
     if (jc === "space-between" && children.length === 2 && !hasFlexOne && !hasWidthPercent) {
       el.style.display = "block";
       el.style.overflow = "hidden";
@@ -142,12 +213,11 @@ function replaceFlexWithCompatible(container: HTMLElement): void {
       el.style.flexWrap = "";
       el.style.justifyContent = "";
       el.style.alignItems = "";
-      children.forEach((child) => {
+      children.forEach((child, idx) => {
         child.style.display = "inline-block";
         child.style.verticalAlign = ai === "center" ? "middle" : "top";
-        if (gapPx > 0) {
-          child.style.marginLeft = Math.floor(gapPx / 2) + "px";
-          child.style.marginRight = Math.ceil(gapPx / 2) + "px";
+        if (gapPx > 0 && idx > 0) {
+          child.style.marginLeft = gapPx + "px";
         }
       });
       return;
@@ -292,9 +362,9 @@ export async function captureElementAsPdf(
   document.body.appendChild(wrapper);
 
   await convertAllImages(container);
+  await convertSvgsToImages(container);
   await waitForImages(container);
 
-  stripSvgElements(container);
   replaceFlexWithCompatible(container);
 
   await new Promise(r => setTimeout(r, 300));
@@ -337,9 +407,9 @@ export async function captureHtmlAsPdf(
   document.body.appendChild(wrapper);
 
   await convertAllImages(tempDiv);
+  await convertSvgsToImages(tempDiv);
   await waitForImages(tempDiv);
 
-  stripSvgElements(tempDiv);
   replaceFlexWithCompatible(tempDiv);
 
   await new Promise(resolve => setTimeout(resolve, 300));
