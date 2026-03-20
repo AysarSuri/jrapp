@@ -654,7 +654,7 @@ export default function ClearanceReceiptsPage() {
 
       {/* View Receipt Dialog - Printable Invoice */}
       <Dialog open={!!viewReceipt} onOpenChange={(open) => { if (!open) setViewReceipt(null); }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>{t('Clearance Receipt')}</span>
@@ -701,7 +701,7 @@ export default function ClearanceReceiptsPage() {
             </DialogTitle>
           </DialogHeader>
           {viewReceipt && (
-            <div ref={printRef} style={{ fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif", padding: 15 }}>
+            <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif", padding: 15 }}>
               {companyProfile?.cliche && (
                 <div style={{ textAlign: "center", marginBottom: 10 }}>
                   <img src={companyProfile.cliche} alt={companyProfile?.name || ""} style={{ width: "100%", height: 170, objectFit: "cover" }} />

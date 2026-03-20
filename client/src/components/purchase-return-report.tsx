@@ -251,7 +251,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{t("Purchase Return Report")}</span>
@@ -273,7 +273,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : returnData ? (
-          <div ref={printRef} style={{ fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
+          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />

@@ -185,7 +185,7 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{receiptTitle}</span>
@@ -207,7 +207,7 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div ref={printRef} style={{ fontFamily: "'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
+          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 8 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }} />

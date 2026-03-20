@@ -260,7 +260,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{t("Sales Invoice Report")}</span>
@@ -282,7 +282,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : invoice ? (
-          <div ref={printRef} style={{ position: "relative", fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
+          <div ref={printRef} style={{ position: "relative", width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
             {companyProfile?.logo && (
               <div style={{ position: "absolute", top: "58%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
                 <img src={companyProfile.logo} alt="" style={{ width: 300, height: 300, objectFit: "contain", opacity: 0.08 }} />
