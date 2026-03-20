@@ -132,7 +132,26 @@ async function convertSvgsToImages(container: HTMLElement): Promise<void> {
   await Promise.all(promises);
 }
 
+function wrapTextNodes(container: HTMLElement): void {
+  const allElements = container.querySelectorAll("*");
+  allElements.forEach(el => {
+    if (!(el instanceof HTMLElement)) return;
+    const display = el.style.display;
+    if (display !== "flex" && display !== "inline-flex") return;
+
+    const childNodes = Array.from(el.childNodes);
+    childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent && node.textContent.trim()) {
+        const span = document.createElement("span");
+        span.textContent = node.textContent;
+        el.replaceChild(span, node);
+      }
+    });
+  });
+}
+
 function replaceFlexWithCompatible(container: HTMLElement): void {
+  wrapTextNodes(container);
   const elements = Array.from(container.querySelectorAll("*")).reverse();
   elements.forEach(el => {
     if (!(el instanceof HTMLElement)) return;
