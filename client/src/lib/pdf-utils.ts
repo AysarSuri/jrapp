@@ -9,7 +9,6 @@ async function ensureFontsLoaded(): Promise<void> {
   if (document.fonts?.ready) {
     await document.fonts.ready;
   }
-
   const testChars = "پچڤگڵڕێۆژ فاتورة مبيعات فرۆشتن لیستی حسابی دۆلار";
   const fontFaces = [
     '400 16px "Noto Naskh Arabic"',
@@ -30,13 +29,13 @@ async function imageToDataUri(src: string): Promise<string> {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d");
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        const ctx = c.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
+          resolve(c.toDataURL("image/png"));
           return;
         }
       } catch {}
@@ -50,36 +49,17 @@ async function imageToDataUri(src: string): Promise<string> {
 
 async function convertAllImages(container: HTMLElement): Promise<void> {
   const imgs = container.querySelectorAll("img");
-  for (const img of Array.from(imgs)) {
+  const promises = Array.from(imgs).map(async (img) => {
     if (img.src && !img.src.startsWith("data:")) {
-      const dataUri = await imageToDataUri(img.src);
-      img.src = dataUri;
+      img.src = await imageToDataUri(img.src);
     }
-  }
-}
-
-function deepCopyComputedStyles(source: HTMLElement, target: HTMLElement): void {
-  const computed = window.getComputedStyle(source);
-  for (let i = 0; i < computed.length; i++) {
-    const prop = computed[i];
-    try {
-      (target.style as any)[prop] = computed.getPropertyValue(prop);
-    } catch {}
-  }
-
-  const sourceChildren = source.children;
-  const targetChildren = target.children;
-  for (let i = 0; i < sourceChildren.length && i < targetChildren.length; i++) {
-    if (sourceChildren[i] instanceof HTMLElement && targetChildren[i] instanceof HTMLElement) {
-      deepCopyComputedStyles(sourceChildren[i] as HTMLElement, targetChildren[i] as HTMLElement);
-    }
-  }
+  });
+  await Promise.all(promises);
 }
 
 async function waitForImages(container: HTMLElement, timeout = 3000): Promise<void> {
   const imgs = container.querySelectorAll("img");
   if (imgs.length === 0) return;
-
   const promises = Array.from(imgs).map(img => {
     if (img.complete && img.naturalWidth > 0) return Promise.resolve();
     return new Promise<void>((resolve) => {
@@ -91,10 +71,7 @@ async function waitForImages(container: HTMLElement, timeout = 3000): Promise<vo
   await Promise.all(promises);
 }
 
-function generatePdfFromCanvas(
-  canvas: HTMLCanvasElement,
-  orientation: "p" | "l"
-): Blob {
+function generatePdfFromCanvas(canvas: HTMLCanvasElement, orientation: "p" | "l"): Blob {
   const imgWidth = orientation === "p" ? 210 : 297;
   const pageHeight = orientation === "p" ? 297 : 210;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -113,7 +90,6 @@ function generatePdfFromCanvas(
       page++;
     }
   }
-
   return pdf.output("blob") as unknown as Blob;
 }
 
@@ -123,61 +99,59 @@ export async function captureElementAsPdf(
 ): Promise<Blob | null> {
   await ensureFontsLoaded();
 
-  const clone = element.cloneNode(true) as HTMLElement;
+  await convertAllImages(element);
+  await waitForImages(element);
+  await new Promise(r => setTimeout(r, 200));
 
-  deepCopyComputedStyles(element, clone);
-
-  clone.style.position = "fixed";
-  clone.style.left = "0px";
-  clone.style.top = "0px";
-  clone.style.width = A4_WIDTH_PX + "px";
-  clone.style.minWidth = A4_WIDTH_PX + "px";
-  clone.style.maxWidth = A4_WIDTH_PX + "px";
-  clone.style.background = "white";
-  clone.style.zIndex = "2147483647";
-  clone.style.overflow = "visible";
-  clone.style.pointerEvents = "none";
-  clone.style.opacity = "1";
-
-  const dir = window.getComputedStyle(element).direction;
-  if (dir) clone.style.direction = dir;
-
-  const origFontFamily = element.style.fontFamily;
-  if (origFontFamily) clone.style.fontFamily = origFontFamily;
-  else clone.style.fontFamily = FONT_FAMILY;
-
-  document.body.appendChild(clone);
-
-  await convertAllImages(clone);
-  await waitForImages(clone);
-  await new Promise(resolve => setTimeout(resolve, 250));
+  const rect = element.getBoundingClientRect();
 
   try {
-    const canvas = await html2canvas(clone, {
+    const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
+      height: element.scrollHeight,
       windowWidth: A4_WIDTH_PX,
+      scrollX: -rect.left,
+      scrollY: -rect.top,
+      x: rect.left,
+      y: rect.top,
       logging: false,
-      onclone: (doc: Document) => {
-        const allEls = doc.querySelectorAll("*");
-        allEls.forEach(el => {
-          if (el instanceof HTMLElement) {
-            const cs = window.getComputedStyle(el);
-            if (cs.display === "grid") {
-              el.style.display = "flex";
-              el.style.flexWrap = "wrap";
-            }
-          }
-        });
+      onclone: (_doc: Document, clonedEl: HTMLElement) => {
+        let parent = clonedEl.parentElement;
+        while (parent && parent !== _doc.documentElement) {
+          parent.style.overflow = "visible";
+          parent.style.overflowX = "visible";
+          parent.style.overflowY = "visible";
+          parent.style.maxHeight = "none";
+          parent.style.maxWidth = "none";
+          parent.style.height = "auto";
+          parent.style.transform = "none";
+          parent.style.position = "static";
+          parent.style.clipPath = "none";
+          parent.style.clip = "auto";
+          parent = parent.parentElement;
+        }
+        _doc.body.style.overflow = "visible";
+        _doc.documentElement.style.overflow = "visible";
+
+        clonedEl.style.width = A4_WIDTH_PX + "px";
+        clonedEl.style.minWidth = A4_WIDTH_PX + "px";
+        clonedEl.style.maxWidth = A4_WIDTH_PX + "px";
+        clonedEl.style.overflow = "visible";
+        clonedEl.style.position = "relative";
+        clonedEl.style.left = "0";
+        clonedEl.style.top = "0";
+        clonedEl.style.transform = "none";
       },
     });
 
     return generatePdfFromCanvas(canvas, orientation);
-  } finally {
-    document.body.removeChild(clone);
+  } catch (err) {
+    console.error("PDF capture error:", err);
+    return null;
   }
 }
 
