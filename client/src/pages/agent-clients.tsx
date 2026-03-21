@@ -353,7 +353,7 @@ ${clicheHtml}
           <p className="text-muted-foreground mt-1">{t('Assign clients to agents')}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setAddClientOpen(true)} className="gap-2 bg-primary text-white" data-testid="button-add-client">
+          <Button onClick={() => setAddClientOpen(true)} className="gap-2 h-11 text-base font-bold bg-primary text-white" data-testid="button-add-client">
             <UserPlus className="w-5 h-5" />
             {t('Add Client')}
           </Button>
