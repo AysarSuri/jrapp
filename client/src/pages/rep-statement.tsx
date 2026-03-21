@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Printer, Eye, Pencil, Trash2, FileText } from "lucide-react";
+import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import { getModernPrintStyles } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ import SalesInvoiceReport from "@/components/sales-invoice-report";
 import SalesReturnReport from "@/components/sales-return-report";
 import AgentPaymentReport from "@/components/agent-payment-report";
 import StatementEditDialog from "@/components/statement-edit-dialog";
+import { resolveUnitName } from "@/lib/language-utils";
 import type { AgentPayment } from "@shared/schema";
 
 interface CompanyProfileData {
@@ -56,6 +57,8 @@ interface StatementResponse {
   openingBalanceIqd: number;
 }
 
+type TabKey = "remaining" | "sales" | "returns" | "receipts" | "loads";
+
 export default function RepStatementPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
@@ -63,6 +66,7 @@ export default function RepStatementPage() {
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
   const [currency, setCurrency] = useState<"USD" | "IQD">("USD");
+  const [activeTab, setActiveTab] = useState<TabKey>("remaining");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -86,6 +90,10 @@ export default function RepStatementPage() {
     queryKey: ["/api/company-profile"],
   });
 
+  const { data: unitsList } = useQuery<any[]>({
+    queryKey: ["/api/units"],
+  });
+
   const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
     queryKey: ["/api/agent-statement", selectedRepId, fromDate, toDate],
     queryFn: async () => {
@@ -94,6 +102,56 @@ export default function RepStatementPage() {
       return res.json();
     },
     enabled: !!selectedRepId,
+  });
+
+  const { data: repProducts, isLoading: productsLoading } = useQuery<any[]>({
+    queryKey: ["/api/representative-products", selectedRepId],
+    queryFn: async () => {
+      const res = await fetch(`/api/representative-products/${selectedRepId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "remaining",
+  });
+
+  const { data: repSales, isLoading: salesLoading } = useQuery<any[]>({
+    queryKey: ["/api/rep-sales", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-sales/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "sales",
+  });
+
+  const { data: repReturns, isLoading: returnsLoading } = useQuery<any[]>({
+    queryKey: ["/api/rep-returns", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-returns/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "returns",
+  });
+
+  const { data: repReceipts, isLoading: receiptsLoading } = useQuery<{ receipts: any[]; payments: any[] }>({
+    queryKey: ["/api/rep-receipts", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-receipts/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "receipts",
+  });
+
+  const { data: repLoads, isLoading: loadsLoading } = useQuery<{ loads: any[]; items: any[] }>({
+    queryKey: ["/api/rep-loads", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-loads/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "loads",
   });
 
   const fmt = currency === "USD" ? usd : fmtIqd;
@@ -485,6 +543,572 @@ export default function RepStatementPage() {
     }
   };
 
+  const tabs: { key: TabKey; label: string; icon: any }[] = [
+    { key: "remaining", label: t("Remaining Products with Rep"), icon: Package },
+    { key: "sales", label: t("Sales by Representative"), icon: ShoppingCart },
+    { key: "returns", label: t("Returns by Representative"), icon: RotateCcw },
+    { key: "receipts", label: t("Receipts by Representative"), icon: Receipt },
+    { key: "loads", label: t("Product Loads for Rep"), icon: Truck },
+  ];
+
+  const renderRemainingTab = () => {
+    if (productsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    if (!repProducts || repProducts.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+          <Package className="w-10 h-10 mb-2" />
+          <p className="font-semibold">{t('No products found')}</p>
+        </div>
+      );
+    }
+    return (
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="text-sm font-bold">#</TableHead>
+              <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
+              <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
+              <TableHead className="text-sm font-bold">{t('Remaining (Big Unit)')}</TableHead>
+              <TableHead className="text-sm font-bold">{t('Remaining (Small Unit)')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {repProducts.map((p: any, i: number) => (
+              <TableRow key={p.productId} data-testid={`row-rep-product-${p.productId}`}>
+                <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                <TableCell className="text-sm font-semibold">{p.productName}</TableCell>
+                <TableCell className="font-mono text-sm font-semibold">{p.productCode}</TableCell>
+                <TableCell className="text-sm font-semibold">
+                  {p.remainingBig} {resolveUnitName(p.bigUnit, unitsList || [])}
+                </TableCell>
+                <TableCell className="text-sm font-semibold">
+                  {p.remainingSmall} {resolveUnitName(p.smallUnit, unitsList || [])}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
+  const renderSalesTab = () => {
+    if (salesLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    const salesUsd = (repSales || []).filter((s: any) => s.currency === "USD");
+    const salesIqd = (repSales || []).filter((s: any) => s.currency === "IQD");
+    const totalUsd = salesUsd.reduce((s: number, inv: any) => s + parseFloat(inv.subtotal || "0"), 0);
+    const totalIqd = salesIqd.reduce((s: number, inv: any) => s + parseFloat(inv.subtotal || "0"), 0);
+
+    if (!repSales || repSales.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><ShoppingCart className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No sales found')}</p></div>;
+    }
+    return (
+      <div className="space-y-6">
+        {salesUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">USD ({salesUsd.length})</h3>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {salesUsd.map((inv: any, i: number) => (
+                    <TableRow key={inv.id} data-testid={`row-rep-sale-usd-${inv.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{inv.invoiceNumber}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{formatDate(inv.date)}</TableCell>
+                      <TableCell className="text-sm font-semibold">{inv.customerName}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{usd(parseFloat(inv.subtotal || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{usd(parseFloat(inv.discount || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">{usd(parseFloat(inv.amountPaid || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">{usd(parseFloat(inv.remaining || "0"))}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold">{usd(totalUsd)}</TableCell>
+                    <TableCell colSpan={3}></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+        {salesIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">IQD ({salesIqd.length})</h3>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {salesIqd.map((inv: any, i: number) => (
+                    <TableRow key={inv.id} data-testid={`row-rep-sale-iqd-${inv.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{inv.invoiceNumber}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{formatDate(inv.date)}</TableCell>
+                      <TableCell className="text-sm font-semibold">{inv.customerName}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{fmtIqd(parseFloat(inv.subtotal || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{fmtIqd(parseFloat(inv.discount || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">{fmtIqd(parseFloat(inv.amountPaid || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">{fmtIqd(parseFloat(inv.remaining || "0"))}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold">{fmtIqd(totalIqd)}</TableCell>
+                    <TableCell colSpan={3}></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderReturnsTab = () => {
+    if (returnsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    const returnsUsd = (repReturns || []).filter((r: any) => r.currency === "USD");
+    const returnsIqd = (repReturns || []).filter((r: any) => r.currency === "IQD");
+    const totalUsd = returnsUsd.reduce((s: number, r: any) => s + parseFloat(r.subtotal || "0"), 0);
+    const totalIqd = returnsIqd.reduce((s: number, r: any) => s + parseFloat(r.subtotal || "0"), 0);
+
+    if (!repReturns || repReturns.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><RotateCcw className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No returns found')}</p></div>;
+    }
+    return (
+      <div className="space-y-6">
+        {returnsUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">USD ({returnsUsd.length})</h3>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Return Number Short')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {returnsUsd.map((r: any, i: number) => (
+                    <TableRow key={r.id} data-testid={`row-rep-return-usd-${r.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{r.returnNumber}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{formatDate(r.date)}</TableCell>
+                      <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{usd(parseFloat(r.subtotal || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{usd(parseFloat(r.discount || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">{usd(parseFloat(r.amountPaid || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">{usd(parseFloat(r.remaining || "0"))}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold">{usd(totalUsd)}</TableCell>
+                    <TableCell colSpan={3}></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+        {returnsIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">IQD ({returnsIqd.length})</h3>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Return Number Short')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {returnsIqd.map((r: any, i: number) => (
+                    <TableRow key={r.id} data-testid={`row-rep-return-iqd-${r.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{r.returnNumber}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{formatDate(r.date)}</TableCell>
+                      <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{fmtIqd(parseFloat(r.subtotal || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{fmtIqd(parseFloat(r.discount || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-green-600">{fmtIqd(parseFloat(r.amountPaid || "0"))}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-red-600">{fmtIqd(parseFloat(r.remaining || "0"))}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold">{fmtIqd(totalIqd)}</TableCell>
+                    <TableCell colSpan={3}></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderReceiptsTab = () => {
+    if (receiptsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    const allReceipts = repReceipts?.receipts || [];
+    const allPayments = repReceipts?.payments || [];
+    const receiptsUsd = allReceipts.filter((r: any) => r.currency === "USD");
+    const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
+    const paymentsUsd = allPayments.filter((p: any) => p.currency === "USD");
+    const paymentsIqd = allPayments.filter((p: any) => p.currency === "IQD");
+
+    if (allReceipts.length === 0 && allPayments.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><Receipt className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No receipts found')}</p></div>;
+    }
+
+    const renderReceiptTable = (data: any[], curr: string) => {
+      const fmtC = curr === "USD" ? usd : fmtIqd;
+      const total = data.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0);
+      return (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Receipt Number Short')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Amount')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Note')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((r: any, i: number) => (
+                <TableRow key={r.id} data-testid={`row-rep-receipt-${curr.toLowerCase()}-${r.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{r.receiptNumber}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{formatDate(r.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-green-600">{fmtC(parseFloat(r.amount || "0"))}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-orange-600">{fmtC(parseFloat(r.discount || "0"))}</TableCell>
+                  <TableCell className="text-sm font-semibold max-w-[150px] truncate">{r.note || "-"}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-green-700">{fmtC(total)}</TableCell>
+                <TableCell colSpan={2}></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      );
+    };
+
+    const renderPaymentTable = (data: any[], curr: string) => {
+      const fmtC = curr === "USD" ? usd : fmtIqd;
+      const total = data.reduce((s: number, p: any) => s + parseFloat(p.amount || "0"), 0);
+      return (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Payment Number Short')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Amount')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Note')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((p: any, i: number) => (
+                <TableRow key={p.id} data-testid={`row-rep-payment-${curr.toLowerCase()}-${p.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.paymentNumber}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{formatDate(p.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold">{p.agentName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-blue-600">{fmtC(parseFloat(p.amount || "0"))}</TableCell>
+                  <TableCell className="text-sm font-semibold max-w-[150px] truncate">{p.note || "-"}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-blue-700">{fmtC(total)}</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-6">
+        {receiptsUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Customer Receipts')} - USD ({receiptsUsd.length})</h3>
+            {renderReceiptTable(receiptsUsd, "USD")}
+          </div>
+        )}
+        {receiptsIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Customer Receipts')} - IQD ({receiptsIqd.length})</h3>
+            {renderReceiptTable(receiptsIqd, "IQD")}
+          </div>
+        )}
+        {paymentsUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Customer Payments')} - USD ({paymentsUsd.length})</h3>
+            {renderPaymentTable(paymentsUsd, "USD")}
+          </div>
+        )}
+        {paymentsIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Customer Payments')} - IQD ({paymentsIqd.length})</h3>
+            {renderPaymentTable(paymentsIqd, "IQD")}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderLoadsTab = () => {
+    if (loadsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    const loads = repLoads?.loads || [];
+    const items = repLoads?.items || [];
+
+    if (loads.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><Truck className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No loads found')}</p></div>;
+    }
+
+    return (
+      <div className="space-y-4">
+        {loads.map((load: any, loadIdx: number) => {
+          const loadItems = items.filter((item: any) => item.loadId === load.id);
+          return (
+            <Card key={load.id} className="border-border/50">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-base font-bold">
+                    {loadIdx + 1}. {t('Load Number')}: <span className="font-mono">{load.loadNumber}</span>
+                  </CardTitle>
+                  <div className="flex items-center gap-4 text-sm font-semibold text-muted-foreground">
+                    <span>{formatDate(load.date)}</span>
+                    <span>{load.time}</span>
+                  </div>
+                </div>
+                {load.note && <p className="text-sm text-muted-foreground mt-1">{load.note}</p>}
+              </CardHeader>
+              <CardContent className="pt-0 px-4 pb-4">
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-sm font-bold">#</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Unit')}</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Loaded Quantity')}</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Returned Quantity')}</TableHead>
+                        <TableHead className="text-sm font-bold">{t('Net Remaining')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadItems.map((item: any, i: number) => (
+                        <TableRow key={item.id} data-testid={`row-rep-load-item-${item.id}`}>
+                          <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                          <TableCell className="text-sm font-semibold">{item.productName}</TableCell>
+                          <TableCell className="font-mono text-sm font-semibold">{item.productCode}</TableCell>
+                          <TableCell className="text-sm font-semibold">{resolveUnitName(item.unit, unitsList || [])}</TableCell>
+                          <TableCell className="font-mono text-sm font-semibold text-blue-600">{item.quantity}</TableCell>
+                          <TableCell className="font-mono text-sm font-semibold text-orange-600">{item.returned}</TableCell>
+                          <TableCell className="font-mono text-sm font-bold text-green-600">{(item.quantity || 0) - (item.returned || 0)}</TableCell>
+                        </TableRow>
+                      ))}
+                      {loadItems.length > 0 && (
+                        <TableRow className="bg-muted/50 font-bold">
+                          <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                          <TableCell className="font-mono text-sm font-bold text-blue-700">{loadItems.reduce((s: number, i: any) => s + (i.quantity || 0), 0)}</TableCell>
+                          <TableCell className="font-mono text-sm font-bold text-orange-700">{loadItems.reduce((s: number, i: any) => s + (i.returned || 0), 0)}</TableCell>
+                          <TableCell className="font-mono text-sm font-bold text-green-700">{loadItems.reduce((s: number, i: any) => s + ((i.quantity || 0) - (i.returned || 0)), 0)}</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderStatementTab = () => {
+    if (statementLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    if (!statement) return null;
+
+    return (
+      <>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">{t('Opening Balance')}</p>
+              <p className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-rep-opening-balance">{fmt(openingBalance)}</p>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-5 py-3">
+              <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-1">{t('Total Debit')}</p>
+              <p className="font-mono text-lg font-bold text-red-700 dark:text-red-300" data-testid="text-rep-total-debit">{fmt(totalDebit)}</p>
+            </div>
+            <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-5 py-3">
+              <p className="text-sm text-green-600 dark:text-green-400 font-bold mb-1">{t('Total Credit')}</p>
+              <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-rep-total-credit">{fmt(totalCredit)}</p>
+            </div>
+            <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
+              <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                {finalBalance > 0 ? `${t('Remaining at')} ${statement?.agent?.name || ''}` : finalBalance < 0 ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}` : t('Zero Account')}
+              </p>
+              <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-rep-final-balance">{fmt(Math.abs(finalBalance))}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-rep-statement">
+              <Printer className="w-5 h-5" />
+              {t('Print')}
+            </Button>
+            <Button onClick={handlePrintDetails} disabled={entriesWithBalance.length === 0} className="bg-orange-600 text-white gap-2 h-11" data-testid="button-print-rep-details">
+              <FileText className="w-5 h-5" />
+              {t('Print Details')}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Time')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Type')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Description')}</TableHead>
+                <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} ({currencyLabel})</TableHead>
+                <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} ({currencyLabel})</TableHead>
+                <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Cumulative Balance')} ({currencyLabel})</TableHead>
+                <TableHead className="text-sm font-bold">{t('Actions')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {openingBalance !== 0 && (
+                <TableRow className="bg-blue-50 dark:bg-blue-950/20" data-testid="row-rep-opening-balance">
+                  <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                  <TableCell><Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Opening Balance')}</Badge></TableCell>
+                  <TableCell className="text-sm font-bold">{t('Opening Balance')}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-red-600">
+                    {openingBalance > 0 ? fmt(openingBalance) : ""}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-green-600">
+                    {openingBalance < 0 ? fmt(Math.abs(openingBalance)) : ""}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm font-bold text-blue-600">
+                    {fmt(openingBalance)}
+                  </TableCell>
+                  <TableCell>-</TableCell>
+                </TableRow>
+              )}
+              {entriesWithBalance.map((entry, i) => (
+                <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-rep-statement-${entry.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{formatDate(entry.date)}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{entry.reference || "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{entry.time}</TableCell>
+                  <TableCell>{typeBadge(entry.type)}</TableCell>
+                  <TableCell className="text-sm font-semibold max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-red-600">
+                    {entry.debit > 0 ? fmt(entry.debit) : ""}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-green-600">
+                    {entry.credit > 0 ? fmt(entry.credit) : ""}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm font-bold text-blue-600">
+                    {fmt(entry.balance)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-800" onClick={() => handleView(entry)} data-testid={`button-view-${entry.type}-${entry.id}`}>
+                        <Eye className="w-5 h-5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-800" onClick={() => handleEdit(entry)} data-testid={`button-edit-${entry.type}-${entry.id}`}>
+                        <Pencil className="w-5 h-5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-800" onClick={() => setDeleteEntry({ id: entry.id, type: entry.type, reference: entry.reference })} data-testid={`button-delete-${entry.type}-${entry.id}`}>
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredEntries.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                    {t('No transactions found')}
+                  </TableCell>
+                </TableRow>
+              )}
+              {filteredEntries.length > 0 && (
+                <TableRow className="bg-muted/50 font-bold">
+                  <TableCell colSpan={6} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                  <TableCell className="font-mono text-sm font-bold text-red-700">{fmt(totalDebit)}</TableCell>
+                  <TableCell className="font-mono text-sm font-bold text-green-700">{fmt(totalCredit)}</TableCell>
+                  <TableCell className="font-mono text-sm font-bold text-blue-700">{fmt(finalBalance)}</TableCell>
+                  <TableCell />
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -544,140 +1168,40 @@ export default function RepStatementPage() {
               <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-rep-statement-to-date" />
             </div>
           </div>
-          {selectedRepId && statement && (
-            <div className="flex items-center gap-4 mt-4">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">{t('Opening Balance')}</p>
-                  <p className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-rep-opening-balance">{fmt(openingBalance)}</p>
-                </div>
-                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-5 py-3">
-                  <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-1">{t('Total Debit')}</p>
-                  <p className="font-mono text-lg font-bold text-red-700 dark:text-red-300" data-testid="text-rep-total-debit">{fmt(totalDebit)}</p>
-                </div>
-                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-5 py-3">
-                  <p className="text-sm text-green-600 dark:text-green-400 font-bold mb-1">{t('Total Credit')}</p>
-                  <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-rep-total-credit">{fmt(totalCredit)}</p>
-                </div>
-                <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
-                  <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                    {finalBalance > 0 ? `${t('Remaining at')} ${statement?.agent?.name || ''}` : finalBalance < 0 ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}` : t('Zero Account')}
-                  </p>
-                  <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-rep-final-balance">{fmt(Math.abs(finalBalance))}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-rep-statement">
-                  <Printer className="w-5 h-5" />
-                  {t('Print')}
-                </Button>
-                <Button onClick={handlePrintDetails} disabled={entriesWithBalance.length === 0} className="bg-orange-600 text-white gap-2 h-11" data-testid="button-print-rep-details">
-                  <FileText className="w-5 h-5" />
-                  {t('Print Details')}
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {selectedRepId && statementLoading && (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {selectedRepId && (
+        <>
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <Button
+                  key={tab.key}
+                  variant={isActive ? "default" : "outline"}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`h-10 px-4 text-sm font-bold whitespace-nowrap gap-2 ${isActive ? "bg-primary text-white" : ""}`}
+                  data-testid={`tab-${tab.key}`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </Button>
+              );
+            })}
+          </div>
 
-      {selectedRepId && statement && !statementLoading && (
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="pt-6 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-sm font-bold">#</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Time')}</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Type')}</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Description')}</TableHead>
-                  <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} ({currencyLabel})</TableHead>
-                  <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} ({currencyLabel})</TableHead>
-                  <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Cumulative Balance')} ({currencyLabel})</TableHead>
-                  <TableHead className="text-sm font-bold">{t('Actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {openingBalance !== 0 && (
-                  <TableRow className="bg-blue-50 dark:bg-blue-950/20" data-testid="row-rep-opening-balance">
-                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
-                    <TableCell><Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Opening Balance')}</Badge></TableCell>
-                    <TableCell className="text-sm font-bold">{t('Opening Balance')}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-red-600">
-                      {openingBalance > 0 ? fmt(openingBalance) : ""}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-green-600">
-                      {openingBalance < 0 ? fmt(Math.abs(openingBalance)) : ""}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-blue-600">
-                      {fmt(openingBalance)}
-                    </TableCell>
-                    <TableCell>-</TableCell>
-                  </TableRow>
-                )}
-                {entriesWithBalance.map((entry, i) => (
-                  <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-rep-statement-${entry.id}`}>
-                    <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">{formatDate(entry.date)}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">{entry.reference || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">{entry.time}</TableCell>
-                    <TableCell>{typeBadge(entry.type)}</TableCell>
-                    <TableCell className="text-sm font-semibold max-w-[200px] truncate">{entry.description || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-red-600">
-                      {entry.debit > 0 ? fmt(entry.debit) : ""}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-green-600">
-                      {entry.credit > 0 ? fmt(entry.credit) : ""}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-blue-600">
-                      {fmt(entry.balance)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-800" onClick={() => handleView(entry)} data-testid={`button-view-${entry.type}-${entry.id}`}>
-                          <Eye className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-800" onClick={() => handleEdit(entry)} data-testid={`button-edit-${entry.type}-${entry.id}`}>
-                          <Pencil className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-800" onClick={() => setDeleteEntry({ id: entry.id, type: entry.type, reference: entry.reference })} data-testid={`button-delete-${entry.type}-${entry.id}`}>
-                          <Trash2 className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredEntries.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                      {t('No transactions found')}
-                    </TableCell>
-                  </TableRow>
-                )}
-                {filteredEntries.length > 0 && (
-                  <TableRow className="bg-muted/50 font-bold">
-                    <TableCell colSpan={6} className="text-end text-sm font-bold">{t('Total')}</TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-red-700">{fmt(totalDebit)}</TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-green-700">{fmt(totalCredit)}</TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-blue-700">{fmt(finalBalance)}</TableCell>
-                    <TableCell />
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+          <Card className="border-border/50 shadow-sm">
+            <CardContent className="pt-6">
+              {activeTab === "remaining" && renderRemainingTab()}
+              {activeTab === "sales" && renderSalesTab()}
+              {activeTab === "returns" && renderReturnsTab()}
+              {activeTab === "receipts" && renderReceiptsTab()}
+              {activeTab === "loads" && renderLoadsTab()}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <SalesInvoiceReport invoiceId={reportInvoiceId} open={reportInvoiceOpen} onOpenChange={setReportInvoiceOpen} currency={currency} />

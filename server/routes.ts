@@ -160,6 +160,10 @@ export async function registerRoutes(
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',
     '/api/agent-product-loads': 'agent_management',
+    '/api/rep-sales': 'agent_management',
+    '/api/rep-returns': 'agent_management',
+    '/api/rep-receipts': 'agent_management',
+    '/api/rep-loads': 'agent_management',
     '/api/agent-locations': 'agent_management',
     '/api/products': 'material_management',
     '/api/units': 'material_management',
@@ -4706,6 +4710,71 @@ export async function registerRoutes(
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to clear all tables" });
     }
+  });
+
+  app.get('/api/rep-sales/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const data = await db.select().from(salesInvoices)
+        .where(sql`${salesInvoices.representativeName} = ${rep.name} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
+        .orderBy(sql`${salesInvoices.date} DESC, ${salesInvoices.time} DESC`);
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/rep-returns/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const data = await db.select().from(salesReturns)
+        .where(sql`${salesReturns.representativeName} = ${rep.name} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`)
+        .orderBy(sql`${salesReturns.date} DESC, ${salesReturns.time} DESC`);
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/rep-receipts/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const receipts = await db.select().from(customerReceipts)
+        .where(sql`${customerReceipts.representativeName} = ${rep.name} AND ${customerReceipts.date} >= ${fromDate} AND ${customerReceipts.date} <= ${toDate}`)
+        .orderBy(sql`${customerReceipts.date} DESC, ${customerReceipts.time} DESC`);
+      const payments = await db.select().from(agentPayments)
+        .where(sql`${agentPayments.representativeName} = ${rep.name} AND ${agentPayments.date} >= ${fromDate} AND ${agentPayments.date} <= ${toDate}`)
+        .orderBy(sql`${agentPayments.date} DESC, ${agentPayments.time} DESC`);
+      res.json({ receipts, payments });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/rep-loads/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const loads = await db.select().from(agentProductLoads)
+        .where(sql`${agentProductLoads.agentName} = ${rep.name} AND ${agentProductLoads.date} >= ${fromDate} AND ${agentProductLoads.date} <= ${toDate}`)
+        .orderBy(sql`${agentProductLoads.date} DESC`);
+      const loadIds = loads.map(l => l.id);
+      let items: any[] = [];
+      if (loadIds.length > 0) {
+        items = await db.select().from(agentProductLoadItems)
+          .where(sql`${agentProductLoadItems.loadId} IN (${sql.join(loadIds.map(id => sql`${id}`), sql`, `)})`);
+      }
+      res.json({ loads, items });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
   return httpServer;

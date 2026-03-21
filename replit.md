@@ -91,6 +91,16 @@ Preferred communication style: Simple, everyday language.
 | `shadcn/ui` (Radix UI) | UI component library |
 | `tailwindcss` | Utility-first CSS framework |
 
+### Rep Statement Page (Tabbed)
+The representative statement page (`client/src/pages/rep-statement.tsx`) has 5 horizontal tabs:
+1. **Remaining Products** — Products remaining with the representative (uses `/api/representative-products/:id`)
+2. **Sales by Rep** — Sales invoices filtered by rep name + date range (uses `/api/rep-sales/:id`)
+3. **Returns by Rep** — Sales returns filtered by rep name + date range (uses `/api/rep-returns/:id`)
+4. **Receipts by Rep** — Customer receipts + payments filtered by rep name + date range (uses `/api/rep-receipts/:id`)
+5. **Product Loads** — Agent product loads with quantity/returned, filtered by rep name + date range (uses `/api/rep-loads/:id`)
+
+Tab 1 works by rep name only. Tabs 2-5 filter by rep name AND from/to dates from the form.
+
 ### Environment Variables
 | Variable | Required | Purpose |
 |----------|----------|---------|
