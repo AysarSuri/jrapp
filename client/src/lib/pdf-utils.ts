@@ -1,4 +1,4 @@
-import { toCanvas } from "html-to-image";
+import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
 const FONT_FAMILY = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Noto Kufi Arabic','Segoe UI',sans-serif";
@@ -20,7 +20,7 @@ async function ensureFontsLoaded(): Promise<void> {
     await Promise.all(fontFaces.map(f => document.fonts.load(f, testChars).catch(() => {})));
     await document.fonts.ready;
   } catch {}
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await new Promise(resolve => setTimeout(resolve, 150));
 }
 
 function generatePdfFromCanvas(canvas: HTMLCanvasElement, orientation: "p" | "l"): Blob {
@@ -45,19 +45,21 @@ function generatePdfFromCanvas(canvas: HTMLCanvasElement, orientation: "p" | "l"
   return pdf.output("blob") as unknown as Blob;
 }
 
-function removeOverflowConstraints(element: HTMLElement): Array<{ el: HTMLElement; overflow: string; overflowX: string; overflowY: string; maxHeight: string; clipPath: string }> {
-  const saved: Array<{ el: HTMLElement; overflow: string; overflowX: string; overflowY: string; maxHeight: string; clipPath: string }> = [];
+function removeOverflowConstraints(element: HTMLElement) {
+  const saved: Array<{ el: HTMLElement; styles: Record<string, string> }> = [];
   let parent = element.parentElement;
   while (parent && parent !== document.body) {
     const cs = getComputedStyle(parent);
-    if (cs.overflow !== "visible" || cs.overflowX !== "visible" || cs.overflowY !== "visible" || cs.maxHeight !== "none" || cs.clipPath !== "none") {
+    if (cs.overflow !== "visible" || cs.overflowX !== "visible" || cs.overflowY !== "visible" || cs.clipPath !== "none") {
       saved.push({
         el: parent,
-        overflow: parent.style.overflow,
-        overflowX: parent.style.overflowX,
-        overflowY: parent.style.overflowY,
-        maxHeight: parent.style.maxHeight,
-        clipPath: parent.style.clipPath,
+        styles: {
+          overflow: parent.style.overflow,
+          overflowX: parent.style.overflowX,
+          overflowY: parent.style.overflowY,
+          maxHeight: parent.style.maxHeight,
+          clipPath: parent.style.clipPath,
+        },
       });
       parent.style.overflow = "visible";
       parent.style.overflowX = "visible";
@@ -70,13 +72,83 @@ function removeOverflowConstraints(element: HTMLElement): Array<{ el: HTMLElemen
   return saved;
 }
 
-function restoreOverflowConstraints(saved: Array<{ el: HTMLElement; overflow: string; overflowX: string; overflowY: string; maxHeight: string; clipPath: string }>) {
-  saved.forEach(({ el, overflow, overflowX, overflowY, maxHeight, clipPath }) => {
-    el.style.overflow = overflow;
-    el.style.overflowX = overflowX;
-    el.style.overflowY = overflowY;
-    el.style.maxHeight = maxHeight;
-    el.style.clipPath = clipPath;
+function restoreOverflowConstraints(saved: Array<{ el: HTMLElement; styles: Record<string, string> }>) {
+  saved.forEach(({ el, styles }) => {
+    Object.entries(styles).forEach(([k, v]) => {
+      (el.style as any)[k] = v;
+    });
+  });
+}
+
+function svgToPngDataUri(svg: SVGElement): Promise<string | null> {
+  return new Promise((resolve) => {
+    try {
+      const svgClone = svg.cloneNode(true) as SVGElement;
+      if (!svgClone.getAttribute("xmlns")) {
+        svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+      const w = parseInt(svg.getAttribute("width") || "16") || 16;
+      const h = parseInt(svg.getAttribute("height") || "16") || 16;
+      const svgStr = new XMLSerializer().serializeToString(svgClone);
+      const svgDataUri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgStr);
+      const scale = 3;
+
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = w * scale;
+          canvas.height = h * scale;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w * scale, h * scale);
+            resolve(canvas.toDataURL("image/png"));
+            return;
+          }
+        } catch {}
+        resolve(null);
+      };
+      img.onerror = () => resolve(null);
+      setTimeout(() => resolve(null), 2000);
+      img.src = svgDataUri;
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+async function replaceSvgsWithImages(container: HTMLElement): Promise<Array<{ img: HTMLImageElement; svg: SVGElement; parent: Node }>> {
+  const svgs = Array.from(container.querySelectorAll("svg"));
+  const replacements: Array<{ img: HTMLImageElement; svg: SVGElement; parent: Node }> = [];
+
+  const promises = svgs.map(async (svg) => {
+    const parent = svg.parentNode;
+    if (!parent) return;
+
+    const pngUri = await svgToPngDataUri(svg);
+    if (pngUri) {
+      const img = document.createElement("img");
+      img.src = pngUri;
+      const w = svg.getAttribute("width") || "16";
+      const h = svg.getAttribute("height") || "16";
+      img.style.width = w + (w.includes("px") || w.includes("%") ? "" : "px");
+      img.style.height = h + (h.includes("px") || h.includes("%") ? "" : "px");
+      img.style.display = "inline-block";
+      img.style.verticalAlign = "middle";
+      img.style.flexShrink = "0";
+      parent.replaceChild(img, svg);
+      replacements.push({ img, svg, parent });
+    }
+  });
+  await Promise.all(promises);
+  return replacements;
+}
+
+function restoreSvgs(replacements: Array<{ img: HTMLImageElement; svg: SVGElement; parent: Node }>) {
+  replacements.forEach(({ img, svg, parent }) => {
+    try {
+      parent.replaceChild(svg, img);
+    } catch {}
   });
 }
 
@@ -86,58 +158,30 @@ export async function captureElementAsPdf(
 ): Promise<Blob | null> {
   await ensureFontsLoaded();
 
-  const saved = removeOverflowConstraints(element);
+  const overflowSaved = removeOverflowConstraints(element);
+  const svgReplacements = await replaceSvgsWithImages(element);
+
+  await new Promise(r => setTimeout(r, 300));
 
   try {
-    const canvas = await toCanvas(element, {
-      pixelRatio: 2,
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
       backgroundColor: "#ffffff",
       width: element.scrollWidth || A4_WIDTH_PX,
-      height: element.scrollHeight,
-      cacheBust: true,
-      skipAutoScale: true,
-      filter: (node: HTMLElement) => {
-        if (node.tagName === "NOSCRIPT") return false;
-        return true;
-      },
+      windowWidth: Math.max(element.scrollWidth || A4_WIDTH_PX, A4_WIDTH_PX) + 100,
+      logging: false,
+      imageTimeout: 10000,
     });
-
-    if (!canvas || canvas.width < 10 || canvas.height < 10) {
-      console.error("html-to-image produced empty canvas, falling back to html2canvas");
-      const html2canvas = (await import("html2canvas")).default;
-      const fallbackCanvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        width: A4_WIDTH_PX,
-        windowWidth: A4_WIDTH_PX + 100,
-        logging: false,
-      });
-      return generatePdfFromCanvas(fallbackCanvas, orientation);
-    }
 
     return generatePdfFromCanvas(canvas, orientation);
   } catch (err) {
-    console.error("html-to-image error:", err);
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const fallbackCanvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        width: A4_WIDTH_PX,
-        windowWidth: A4_WIDTH_PX + 100,
-        logging: false,
-      });
-      return generatePdfFromCanvas(fallbackCanvas, orientation);
-    } catch (err2) {
-      console.error("html2canvas also failed:", err2);
-      return null;
-    }
+    console.error("PDF capture error:", err);
+    return null;
   } finally {
-    restoreOverflowConstraints(saved);
+    restoreSvgs(svgReplacements);
+    restoreOverflowConstraints(overflowSaved);
   }
 }
 
@@ -173,7 +217,7 @@ export async function captureHtmlAsPdf(
   await ensureFontsLoaded();
 
   const wrapper = document.createElement("div");
-  wrapper.style.cssText = "position:fixed;left:0;top:0;z-index:99999;opacity:0.01;pointer-events:none;overflow:visible;";
+  wrapper.style.cssText = "position:absolute;left:-9999px;top:0;z-index:-1;overflow:visible;";
 
   const tempDiv = document.createElement("div");
   tempDiv.style.cssText = `position:relative;width:${A4_WIDTH_PX}px;background:white;padding:20px 25px;box-sizing:border-box;font-size:10pt;font-family:${FONT_FAMILY};direction:${isRtl ? "rtl" : "ltr"};overflow:visible;color:#000;`;
@@ -183,42 +227,31 @@ export async function captureHtmlAsPdf(
   document.body.appendChild(wrapper);
 
   const imgs = tempDiv.querySelectorAll("img");
-  const promises = Array.from(imgs).map(async (img) => {
+  const imgPromises = Array.from(imgs).map(async (img) => {
     if (img.src && !img.src.startsWith("data:")) {
       const dataUri = await imageToDataUri(img.src);
       if (dataUri.startsWith("data:")) img.src = dataUri;
     }
   });
-  await Promise.all(promises);
+  await Promise.all(imgPromises);
+
+  const svgReplacements = await replaceSvgsWithImages(tempDiv);
 
   await new Promise(resolve => setTimeout(resolve, 500));
 
   try {
-    const canvas = await toCanvas(tempDiv, {
-      pixelRatio: 2,
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
       backgroundColor: "#ffffff",
       width: A4_WIDTH_PX,
-      cacheBust: true,
+      windowWidth: A4_WIDTH_PX + 100,
+      logging: false,
+      imageTimeout: 10000,
     });
 
     return generatePdfFromCanvas(canvas, orientation);
-  } catch (err) {
-    console.error("captureHtmlAsPdf error:", err);
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        width: A4_WIDTH_PX,
-        windowWidth: A4_WIDTH_PX + 100,
-        logging: false,
-      });
-      return generatePdfFromCanvas(canvas, orientation);
-    } catch {
-      return null;
-    }
   } finally {
     document.body.removeChild(wrapper);
   }
