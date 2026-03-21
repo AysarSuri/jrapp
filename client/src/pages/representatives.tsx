@@ -52,18 +52,18 @@ export default function RepresentativesPage() {
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
     resolver: zodResolver(insertRepresentativeSchema),
-    defaultValues: { name: "", mobile: "", agreementType: "commission", hidden: 0 },
+    defaultValues: { name: "", mobile: "", agreementType: "commission", hidden: 0, debtUsd: "0", debtIqd: "0" },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "", mobile: "", agreementType: "commission", hidden: 0 });
+    form.reset({ name: "", mobile: "", agreementType: "commission", hidden: 0, debtUsd: "0", debtIqd: "0" });
     setOpen(true);
   };
 
   const openEditDialog = (item: Representative) => {
     setEditing(item);
-    form.reset({ name: item.name, mobile: item.mobile || "", agreementType: item.agreementType || "commission", hidden: item.hidden || 0 });
+    form.reset({ name: item.name, mobile: item.mobile || "", agreementType: item.agreementType || "commission", hidden: item.hidden || 0, debtUsd: item.debtUsd || "0", debtIqd: item.debtIqd || "0" });
     setOpen(true);
   };
 
@@ -163,6 +163,42 @@ export default function RepresentativesPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="debtUsd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Opening Balance')} (USD)</FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-representative-debt-usd"
+                          type="number"
+                          step="any"
+                          placeholder="0"
+                          className="h-11 text-base font-semibold"
+                          {...field}
+                          value={field.value ?? "0"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="debtIqd" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-bold">{t('Opening Balance')} (IQD)</FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-representative-debt-iqd"
+                          type="number"
+                          step="any"
+                          placeholder="0"
+                          className="h-11 text-base font-semibold"
+                          {...field}
+                          value={field.value ?? "0"}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <FormField control={form.control} name="hidden" render={({ field }) => (
                   <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-md border p-3">
                     <FormControl>
