@@ -333,6 +333,10 @@ export default function AgentProductLoadPage() {
                           products={productsList || []}
                           value={item.productId}
                           onSelect={(val) => selectProduct(index, val)}
+                          onAfterSelect={() => {
+                            const qtyInput = document.querySelector(`[data-testid="input-load-quantity-${index}"]`) as HTMLInputElement;
+                            if (qtyInput) qtyInput.focus();
+                          }}
                           placeholder={t('Select product...')}
                           data-testid={`select-load-product-name-${index}`}
                         />
