@@ -34,6 +34,7 @@ interface LoadItem {
   productCode: string;
   productName: string;
   quantity: string;
+  returned: string;
   unit: string;
 }
 
@@ -42,6 +43,7 @@ const emptyItem = (): LoadItem => ({
   productCode: "",
   productName: "",
   quantity: "",
+  returned: "",
   unit: "",
 });
 
@@ -178,6 +180,7 @@ export default function AgentProductLoadPage() {
         productName: item.productName,
         productCode: item.productCode,
         quantity: parseInt(item.quantity),
+        returned: parseInt(item.returned) || 0,
         unit: item.unit,
       })),
     }, {
@@ -320,6 +323,7 @@ export default function AgentProductLoadPage() {
                     <TableHead>{t('Product Name')}</TableHead>
                     <TableHead className="w-32">{t('Product Code')}</TableHead>
                     <TableHead className="w-36">{t('Quantity')}</TableHead>
+                    <TableHead className="w-36">{t('Returned')}</TableHead>
                     <TableHead className="w-36">{t('Unit')}</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
@@ -357,6 +361,17 @@ export default function AgentProductLoadPage() {
                           value={item.quantity}
                           onChange={(e) => updateItem(index, "quantity", e.target.value)}
                           data-testid={`input-load-quantity-${index}`}
+                          className="font-mono"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          value={item.returned}
+                          onChange={(e) => updateItem(index, "returned", e.target.value)}
+                          data-testid={`input-load-returned-${index}`}
                           className="font-mono"
                         />
                       </TableCell>
@@ -512,6 +527,7 @@ export default function AgentProductLoadPage() {
                       <TableHead>{t('Product Name')}</TableHead>
                       <TableHead>{t('Product Code')}</TableHead>
                       <TableHead>{t('Quantity')}</TableHead>
+                      <TableHead>{t('Returned')}</TableHead>
                       <TableHead>{t('Unit')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -522,6 +538,7 @@ export default function AgentProductLoadPage() {
                         <TableCell>{getProductNameByLang(item.productName)}</TableCell>
                         <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
                         <TableCell className="font-mono">{item.quantity}</TableCell>
+                        <TableCell className="font-mono">{item.returned || 0}</TableCell>
                         <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
                       </TableRow>
                     ))}

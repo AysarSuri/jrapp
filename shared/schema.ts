@@ -760,6 +760,7 @@ export const agentProductLoadItems = pgTable("agent_product_load_items", {
   productName: text("product_name").notNull(),
   productCode: text("product_code").notNull(),
   quantity: integer("quantity").notNull().default(0),
+  returned: integer("returned").notNull().default(0),
   unit: text("unit").notNull(),
 });
 
