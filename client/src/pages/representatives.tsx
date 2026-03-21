@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertRepresentativeSchema, type Representative } from "@shared/schema";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { useRepresentatives, useCreateRepresentative, useUpdateRepresentative, useDeleteRepresentative } from "@/hooks/use-representatives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +23,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff, Package } from "lucide-react";
 import { IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { resolveUnitName } from "@/lib/language-utils";
+import { useUnits } from "@/hooks/use-units";
 
 export default function RepresentativesPage() {
   const { t } = useTranslation();
@@ -38,6 +41,14 @@ export default function RepresentativesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Representative | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [productsRepId, setProductsRepId] = useState<number | null>(null);
+  const [productsRepName, setProductsRepName] = useState("");
+  const { data: unitsData } = useUnits();
+  const unitsList = unitsData || [];
+  const { data: repProducts, isLoading: productsLoading } = useQuery<any[]>({
+    queryKey: ['/api/representative-products', productsRepId],
+    enabled: !!productsRepId,
+  });
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
     resolver: zodResolver(insertRepresentativeSchema),
@@ -255,6 +266,9 @@ export default function RepresentativesPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => { setProductsRepId(item.id); setProductsRepName(item.name); }} data-testid={`button-products-representative-${item.id}`}>
+                            <Package className="h-5 w-5 text-indigo-600" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-representative-${item.id}`}>
                             <Pencil className="h-5 w-5" />
                           </Button>
@@ -289,6 +303,52 @@ export default function RepresentativesPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!productsRepId} onOpenChange={(v) => { if (!v) setProductsRepId(null); }}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('Representative Products')} - {productsRepName}</DialogTitle>
+            <DialogDescription>{t('All products remaining with this representative')}</DialogDescription>
+          </DialogHeader>
+          {productsLoading ? (
+            <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+          ) : !repProducts || repProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+              <Package className="w-10 h-10 mb-2" />
+              <p className="font-semibold">{t('No products found')}</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-sm font-bold">#</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining (Big Unit)')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Remaining (Small Unit)')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {repProducts.map((p: any, i: number) => (
+                    <TableRow key={p.productId} data-testid={`row-rep-product-${p.productId}`}>
+                      <TableCell className="font-mono text-xs">{i + 1}</TableCell>
+                      <TableCell className="text-sm font-semibold">{p.productName}</TableCell>
+                      <TableCell className="font-mono text-sm">{p.productCode}</TableCell>
+                      <TableCell className="text-sm font-semibold">
+                        {p.remainingBig} {resolveUnitName(p.bigUnit, unitsList)}
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold">
+                        {p.remainingSmall} {resolveUnitName(p.smallUnit, unitsList)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

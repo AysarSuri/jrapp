@@ -155,6 +155,7 @@ export async function registerRoutes(
     '/api/supplier-adjustments': 'supplier_management',
     '/api/customer-debts': 'sales_management',
     '/api/representatives': 'agent_management',
+    '/api/representative-products': 'agent_management',
     '/api/supplier-debts': 'supplier_management',
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',
@@ -931,6 +932,102 @@ export async function registerRoutes(
       res.json({ message: "Deleted" });
     } catch {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/representative-products/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string, 10);
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const repName = rep.name;
+
+      const loads = await db.select().from(agentProductLoads).where(eq(agentProductLoads.agentName, repName));
+      const loadIds = loads.map(l => l.id);
+      let loadItems: any[] = [];
+      if (loadIds.length > 0) {
+        loadItems = await db.select().from(agentProductLoadItems).where(sql`${agentProductLoadItems.loadId} IN (${sql.join(loadIds.map(id => sql`${id}`), sql`, `)})`);
+      }
+
+      const invoices = await db.select().from(salesInvoices).where(eq(salesInvoices.representativeName, repName));
+      const invoiceIds = invoices.map(i => i.id);
+      let invoiceItems: any[] = [];
+      if (invoiceIds.length > 0) {
+        invoiceItems = await db.select().from(salesInvoiceItems).where(sql`${salesInvoiceItems.invoiceId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
+      }
+
+      const returns = await db.select().from(salesReturns).where(eq(salesReturns.representativeName, repName));
+      const returnIds = returns.map(r => r.id);
+      let returnItems: any[] = [];
+      if (returnIds.length > 0) {
+        returnItems = await db.select().from(salesReturnItems).where(sql`${salesReturnItems.returnId} IN (${sql.join(returnIds.map(id => sql`${id}`), sql`, `)})`);
+      }
+
+      const allProducts = await db.select().from(products);
+      const productMap = new Map(allProducts.map(p => [p.id, p]));
+
+      const productTotals = new Map<number, { loadQtyBig: number; loadQtySmall: number; loadReturnedBig: number; loadReturnedSmall: number; invoiceQtyBig: number; invoiceQtySmall: number; returnQtyBig: number; returnQtySmall: number }>();
+
+      const ensureProduct = (productId: number) => {
+        if (!productTotals.has(productId)) {
+          productTotals.set(productId, { loadQtyBig: 0, loadQtySmall: 0, loadReturnedBig: 0, loadReturnedSmall: 0, invoiceQtyBig: 0, invoiceQtySmall: 0, returnQtyBig: 0, returnQtySmall: 0 });
+        }
+        return productTotals.get(productId)!;
+      };
+
+      const addToUnit = (totals: any, field: string, qty: number, unit: string, product: any) => {
+        if (unit === product.bigUnit) {
+          totals[field + 'Big'] += qty;
+        } else {
+          totals[field + 'Small'] += qty;
+        }
+      };
+
+      for (const item of loadItems) {
+        const prod = productMap.get(item.productId);
+        if (!prod) continue;
+        const totals = ensureProduct(item.productId);
+        addToUnit(totals, 'loadQty', item.quantity || 0, item.unit, prod);
+        addToUnit(totals, 'loadReturned', item.returned || 0, item.unit, prod);
+      }
+
+      for (const item of invoiceItems) {
+        const prod = item.productId ? productMap.get(item.productId) : null;
+        if (!prod) continue;
+        const totals = ensureProduct(item.productId!);
+        const qty = parseFloat(item.quantity || "0") + parseFloat(item.gift || "0");
+        addToUnit(totals, 'invoiceQty', qty, item.unit, prod);
+      }
+
+      for (const item of returnItems) {
+        const prod = item.productId ? productMap.get(item.productId) : null;
+        if (!prod) continue;
+        const totals = ensureProduct(item.productId!);
+        const qty = parseFloat(item.quantity || "0");
+        addToUnit(totals, 'returnQty', qty, item.unit, prod);
+      }
+
+      const result: any[] = [];
+      for (const [productId, totals] of productTotals) {
+        const prod = productMap.get(productId);
+        if (!prod) continue;
+        const remainingBig = (totals.loadQtyBig + totals.returnQtyBig) - (totals.invoiceQtyBig + totals.loadReturnedBig);
+        const remainingSmall = (totals.loadQtySmall + totals.returnQtySmall) - (totals.invoiceQtySmall + totals.loadReturnedSmall);
+        if (remainingBig === 0 && remainingSmall === 0) continue;
+        result.push({
+          productId,
+          productName: prod.name,
+          productCode: prod.barcode,
+          bigUnit: prod.bigUnit,
+          smallUnit: prod.smallUnit,
+          conversionFactor: prod.conversionFactor,
+          remainingBig,
+          remainingSmall,
+        });
+      }
+      res.json(result);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "Internal server error" });
     }
   });
 
