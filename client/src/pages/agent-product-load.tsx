@@ -12,6 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { SearchSelect } from "@/components/search-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -376,12 +377,40 @@ export default function AgentProductLoadPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
+                        <Select
                           value={item.unit}
-                          readOnly
-                          className="bg-muted/50"
-                          data-testid={`input-load-unit-${index}`}
-                        />
+                          onValueChange={(val) => updateItem(index, "unit", val)}
+                        >
+                          <SelectTrigger data-testid={`select-load-unit-${index}`}>
+                            <SelectValue placeholder={t('Unit')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {item.productId && productsList?.find(p => p.id === item.productId) ? (() => {
+                              const prod = productsList.find(p => p.id === item.productId)!;
+                              const sameUnit = prod.bigUnit === prod.smallUnit;
+                              return sameUnit ? (
+                                <SelectItem value={prod.bigUnit}>
+                                  {resolveUnitName(prod.bigUnit, unitsList)}
+                                </SelectItem>
+                              ) : (
+                                <>
+                                  <SelectItem value={prod.bigUnit}>
+                                    {resolveUnitName(prod.bigUnit, unitsList)}
+                                  </SelectItem>
+                                  <SelectItem value={prod.smallUnit}>
+                                    {resolveUnitName(prod.smallUnit, unitsList)}
+                                  </SelectItem>
+                                </>
+                              );
+                            })() : (
+                              item.unit ? (
+                                <SelectItem value={item.unit}>
+                                  {resolveUnitName(item.unit, unitsList)}
+                                </SelectItem>
+                              ) : null
+                            )}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Button
