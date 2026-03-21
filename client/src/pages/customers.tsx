@@ -12,8 +12,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { SearchSelect } from "@/components/search-select";
-import { Plus, Search, Loader2, Pencil, Trash2, X, Save, Printer } from "lucide-react";
+import { Plus, Search, Loader2, Pencil, Trash2, X, Save, Printer, UserPlus } from "lucide-react";
 import { IconCustomers, IconAddress, IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +57,9 @@ export default function CustomersPage() {
   const [oldDebtIqd, setOldDebtIqd] = useState("0");
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addNames, setAddNames] = useState<string[]>([""]);
+  const [isAddingBatch, setIsAddingBatch] = useState(false);
   const fv = loadFieldVisibility();
 
   const { data: agentsList } = useQuery<{ id: string; name: string; mobile: string }[]>({
@@ -184,6 +190,32 @@ export default function CustomersPage() {
         toast({ title: t("Failed to delete customer"), description: err.message, variant: "destructive" });
       },
     });
+  };
+
+  const handleBatchAdd = async () => {
+    const validNames = addNames.filter(n => n.trim());
+    if (validNames.length === 0) {
+      toast({ title: t("Please enter at least one customer name"), variant: "destructive" });
+      return;
+    }
+    setIsAddingBatch(true);
+    let successCount = 0;
+    for (const customerName of validNames) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          createClient(
+            { name: customerName.trim(), type: "customer" as const, contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0" },
+            { onSuccess: () => { successCount++; resolve(); }, onError: (err) => reject(err) }
+          );
+        });
+      } catch {}
+    }
+    setIsAddingBatch(false);
+    if (successCount > 0) {
+      toast({ title: t("Customers added successfully") + ` (${successCount})` });
+      setAddNames([""]);
+      setShowAddDialog(false);
+    }
   };
 
   const customers = allClients?.filter((c: Client) => c.type === "customer") || [];
@@ -495,9 +527,19 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Customers")}</h1>
-        <p className="text-muted-foreground mt-1">{t("Manage your customers")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t("Customers")}</h1>
+          <p className="text-muted-foreground mt-1">{t("Manage your customers")}</p>
+        </div>
+        <Button
+          onClick={() => { setAddNames([""]); setShowAddDialog(true); }}
+          className="h-11 bg-primary text-white gap-2"
+          data-testid="button-add-customers-dialog"
+        >
+          <UserPlus className="w-5 h-5" />
+          {t("Add Customers")}
+        </Button>
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -781,6 +823,75 @@ export default function CustomersPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">{t("Add Customers")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto py-2">
+            {addNames.map((n, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-sm font-bold text-muted-foreground w-6 text-center">{i + 1}</span>
+                <Input
+                  data-testid={`input-batch-name-${i}`}
+                  className="h-11 text-base font-semibold flex-1"
+                  placeholder={t("Customer name...")}
+                  value={n}
+                  onChange={(e) => {
+                    const updated = [...addNames];
+                    updated[i] = e.target.value;
+                    setAddNames(updated);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (i === addNames.length - 1) {
+                        setAddNames([...addNames, ""]);
+                        setTimeout(() => {
+                          const next = document.querySelector(`[data-testid="input-batch-name-${i + 1}"]`) as HTMLInputElement;
+                          next?.focus();
+                        }, 50);
+                      }
+                    }
+                  }}
+                />
+                {addNames.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive h-9 w-9"
+                    onClick={() => setAddNames(addNames.filter((_, idx) => idx !== i))}
+                    data-testid={`button-remove-batch-${i}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={() => setAddNames([...addNames, ""])}
+              data-testid="button-add-another-name"
+            >
+              <Plus className="w-4 h-4" />
+              {t("Add Another")}
+            </Button>
+            <Button
+              onClick={handleBatchAdd}
+              disabled={isAddingBatch}
+              className="flex-1 bg-primary text-white gap-2"
+              data-testid="button-save-batch-customers"
+            >
+              {isAddingBatch ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {t("Save All")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
