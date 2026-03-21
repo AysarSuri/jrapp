@@ -21,7 +21,6 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/agent-payment-usd", "/agent-payment-iqd",
       "/agent-statement-usd", "/agent-statement-iqd",
       "/customer-debts",
-      "/representatives",
     ],
   },
   {
@@ -41,6 +40,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Agent Management",
     routes: [
       "/agent-management", "/agent-clients", "/agent-product-load", "/agent-gps",
+      "/representatives",
     ],
   },
   {

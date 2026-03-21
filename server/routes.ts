@@ -154,7 +154,7 @@ export async function registerRoutes(
     '/api/supplier-payments': 'supplier_management',
     '/api/supplier-adjustments': 'supplier_management',
     '/api/customer-debts': 'sales_management',
-    '/api/representatives': 'sales_management',
+    '/api/representatives': 'agent_management',
     '/api/supplier-debts': 'supplier_management',
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',

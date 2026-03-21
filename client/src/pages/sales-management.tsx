@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Undo2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
-import { IconCustomers, IconExpenseEntry, IconDollar, IconDinar, IconPosUsd, IconDebtReceipt, IconAgent } from "@/components/erp-icons";
+import { IconCustomers, IconExpenseEntry, IconDollar, IconDinar, IconPosUsd, IconDebtReceipt } from "@/components/erp-icons";
 
 export default function SalesManagementPage() {
   const { t, i18n } = useTranslation();
@@ -106,15 +106,6 @@ export default function SalesManagementPage() {
       bg: "bg-indigo-50 dark:bg-indigo-900/20",
       iconColor: "text-indigo-600 dark:text-indigo-400",
       hoverBorder: "hover:border-indigo-300 dark:hover:border-indigo-700",
-    },
-    {
-      href: "/representatives",
-      icon: IconAgent,
-      label: "Representatives",
-      gradient: "from-gray-500 to-gray-600",
-      bg: "bg-gray-50 dark:bg-gray-900/20",
-      iconColor: "text-gray-600 dark:text-gray-400",
-      hoverBorder: "hover:border-gray-300 dark:hover:border-gray-700",
     },
     {
       href: "/customer-debts",

@@ -255,6 +255,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-clients",
     "/agent-product-load",
     "/agent-gps",
+    "/representatives",
   ];
 
   const materialSubRoutes = [
@@ -287,7 +288,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-statement-usd",
     "/agent-statement-iqd",
     "/customer-debts",
-    "/representatives",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -422,6 +422,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-clients", icon: IconAgentClients, label: "Agent Clients" },
     { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load" },
     { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS" },
+    { href: "/representatives", icon: IconAgent, label: "Representatives" },
   ];
 
   const materialNavItems: NavItem[] = [
@@ -451,7 +452,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD" },
     { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD" },
     { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts" },
-    { href: "/representatives", icon: IconAgent, label: "Representatives" },
   ];
 
   const sidebarItems: NavEntry[] = [
