@@ -26,6 +26,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
+import ProductSearchSelect from "@/components/product-search-select";
 import { formatDate } from "@/lib/format-utils";
 
 interface LoadItem {
@@ -328,11 +329,11 @@ export default function AgentProductLoadPage() {
                     <TableRow key={index}>
                       <TableCell className="font-mono text-xs">{index + 1}</TableCell>
                       <TableCell>
-                        <SearchSelect
-                          items={prodList.map(p => ({ id: p.id, name: getProductName(p) }))}
-                          value={item.productId ? String(item.productId) : ""}
-                          onValueChange={(val) => selectProduct(index, val)}
-                          placeholder={t('Select')}
+                        <ProductSearchSelect
+                          products={productsList || []}
+                          value={item.productId}
+                          onSelect={(val) => selectProduct(index, val)}
+                          placeholder={t('Select product...')}
                           data-testid={`select-load-product-name-${index}`}
                         />
                       </TableCell>
