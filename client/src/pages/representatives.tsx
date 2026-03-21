@@ -21,7 +21,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Loader2, Trash2, Pencil, Phone } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff } from "lucide-react";
 import { IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,18 +41,18 @@ export default function RepresentativesPage() {
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
     resolver: zodResolver(insertRepresentativeSchema),
-    defaultValues: { name: "", mobile: "", agreementType: "commission" },
+    defaultValues: { name: "", mobile: "", agreementType: "commission", hidden: 0 },
   });
 
   const openCreateDialog = () => {
     setEditing(null);
-    form.reset({ name: "", mobile: "", agreementType: "commission" });
+    form.reset({ name: "", mobile: "", agreementType: "commission", hidden: 0 });
     setOpen(true);
   };
 
   const openEditDialog = (item: Representative) => {
     setEditing(item);
-    form.reset({ name: item.name, mobile: item.mobile || "", agreementType: item.agreementType || "commission" });
+    form.reset({ name: item.name, mobile: item.mobile || "", agreementType: item.agreementType || "commission", hidden: item.hidden || 0 });
     setOpen(true);
   };
 
@@ -151,6 +152,18 @@ export default function RepresentativesPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
+                <FormField control={form.control} name="hidden" render={({ field }) => (
+                  <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-md border p-3">
+                    <FormControl>
+                      <Checkbox
+                        data-testid="checkbox-representative-hidden"
+                        checked={field.value === 1}
+                        onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-base font-bold cursor-pointer">{t('Hide')}</FormLabel>
+                  </FormItem>
+                )} />
                 <DialogFooter className="pt-4">
                   <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
                   <Button type="submit" disabled={isSaving} data-testid="button-save-representative">
@@ -201,6 +214,7 @@ export default function RepresentativesPage() {
                     <TableHead>{t('Representative Name')}</TableHead>
                     <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Agreement Type')}</TableHead>
+                    <TableHead>{t('Hide')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -228,6 +242,16 @@ export default function RepresentativesPage() {
                         <Badge variant={item.agreementType === 'monthly_salary' ? 'default' : 'secondary'}>
                           {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {item.hidden === 1 ? (
+                          <Badge variant="destructive" className="gap-1">
+                            <EyeOff className="h-3 w-3" />
+                            {t('Hidden')}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

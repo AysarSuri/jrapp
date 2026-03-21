@@ -72,6 +72,7 @@ export const representatives = pgTable("representatives", {
   agreementType: text("agreement_type").notNull().default("commission"),
   debtUsd: numeric("debt_usd").notNull().default("0"),
   debtIqd: numeric("debt_iqd").notNull().default("0"),
+  hidden: integer("hidden").notNull().default(0),
 });
 
 export type Representative = typeof representatives.$inferSelect;
