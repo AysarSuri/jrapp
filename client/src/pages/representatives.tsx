@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertRepresentativeSchema, type Representative } from "@shared/routes";
+import { insertRepresentativeSchema, type Representative } from "@shared/schema";
 import { z } from "zod";
 import { useRepresentatives, useCreateRepresentative, useUpdateRepresentative, useDeleteRepresentative } from "@/hooks/use-representatives";
 import { Button } from "@/components/ui/button";

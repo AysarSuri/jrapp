@@ -21,6 +21,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/agent-payment-usd", "/agent-payment-iqd",
       "/agent-statement-usd", "/agent-statement-iqd",
       "/customer-debts",
+      "/representatives",
     ],
   },
   {

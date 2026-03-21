@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertRepresentative } from "@shared/routes";
+import { api } from "@shared/routes";
+import { insertRepresentativeSchema } from "@shared/schema";
+import { z } from "zod";
+
+type InsertRepresentative = z.infer<typeof insertRepresentativeSchema>;
 
 export function useRepresentatives() {
   return useQuery({

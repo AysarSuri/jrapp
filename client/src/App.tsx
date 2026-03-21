@@ -27,6 +27,7 @@ import SupplierAdjustmentsPage from "@/pages/supplier-adjustments";
 import SupplierManagementPage from "@/pages/supplier-management";
 import SupplierDebtsPage from "@/pages/supplier-debts";
 import CustomerDebtsPage from "@/pages/customer-debts";
+import RepresentativesPage from "@/pages/representatives";
 import SalesManagementPage from "@/pages/sales-management";
 import BankManagementPage from "@/pages/bank-management";
 import ClearanceManagementPage from "@/pages/clearance-management";
@@ -198,6 +199,9 @@ function Router() {
       </Route>
       <Route path="/customer-debts">
         <ProtectedRoute component={CustomerDebtsPage} />
+      </Route>
+      <Route path="/representatives">
+        <ProtectedRoute component={RepresentativesPage} />
       </Route>
       <Route path="/sales-management">
         <ProtectedRoute component={SalesManagementPage} />
