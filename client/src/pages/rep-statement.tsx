@@ -59,9 +59,8 @@ interface StatementResponse {
 export default function RepStatementPage() {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
-  const firstOfMonth = today.slice(0, 8) + "01";
   const [selectedRepId, setSelectedRepId] = useState<string>("");
-  const [fromDate, setFromDate] = useState(firstOfMonth);
+  const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
   const [currency, setCurrency] = useState<"USD" | "IQD">("USD");
   const queryClient = useQueryClient();
