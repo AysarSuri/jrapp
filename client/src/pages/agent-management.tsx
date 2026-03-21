@@ -9,6 +9,15 @@ export default function AgentManagementPage() {
 
   const sections = [
     {
+      href: "/representatives",
+      icon: IconAgent,
+      label: "Representatives",
+      gradient: "from-gray-500 to-gray-600",
+      bg: "bg-gray-50 dark:bg-gray-900/20",
+      iconColor: "text-gray-600 dark:text-gray-400",
+      hoverBorder: "hover:border-gray-300 dark:hover:border-gray-700",
+    },
+    {
       href: "/agent-clients",
       icon: IconCustomers,
       label: "Agent Clients",
@@ -34,15 +43,6 @@ export default function AgentManagementPage() {
       bg: "bg-orange-50 dark:bg-orange-900/20",
       iconColor: "text-orange-600 dark:text-orange-400",
       hoverBorder: "hover:border-orange-300 dark:hover:border-orange-700",
-    },
-    {
-      href: "/representatives",
-      icon: IconAgent,
-      label: "Representatives",
-      gradient: "from-gray-500 to-gray-600",
-      bg: "bg-gray-50 dark:bg-gray-900/20",
-      iconColor: "text-gray-600 dark:text-gray-400",
-      hoverBorder: "hover:border-gray-300 dark:hover:border-gray-700",
     },
   ];
 
