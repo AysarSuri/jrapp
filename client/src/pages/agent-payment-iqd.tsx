@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAgentPayments, useCreateAgentPayment, useUpdateAgentPayment, useDeleteAgentPayment } from "@/hooks/use-agent-payments";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, Bank, TransferOffice } from "@shared/schema";
+import type { Client, Bank, TransferOffice, Representative } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -71,6 +71,7 @@ export default function AgentPaymentIqdPage() {
     setAmount(p.amount || "");
     setNote(p.note || "");
     setReference(p.reference || "");
+    setRepresentativeName(p.representativeName || "");
     setDate(p.date);
     setTime(p.time);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -97,11 +98,16 @@ export default function AgentPaymentIqdPage() {
     queryKey: ["/api/company-profile"],
   });
 
+  const { data: representativesList } = useQuery<Representative[]>({
+    queryKey: ["/api/representatives"],
+  });
+
   const [paymentNumber, setPaymentNumber] = useState("");
   const [agentId, setAgentId] = useState<string>("");
   const [agentName, setAgentName] = useState("");
   const [paymentSource, setPaymentSource] = useState<string>("");
   const [paymentSourceName, setPaymentSourceName] = useState("");
+  const [representativeName, setRepresentativeName] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
@@ -201,6 +207,7 @@ export default function AgentPaymentIqdPage() {
     setAgentName("");
     setPaymentSource("");
     setPaymentSourceName("");
+    setRepresentativeName("");
     setAmount("");
     setNote("");
     setReference("");
@@ -230,6 +237,7 @@ export default function AgentPaymentIqdPage() {
         agentName,
         paymentSource: paymentSource.split(":")[0],
         paymentSourceName,
+        representativeName: representativeName || null,
         amount: amount || "0",
         note: note || null,
         reference: reference || null,
@@ -251,6 +259,7 @@ export default function AgentPaymentIqdPage() {
         agentName,
         paymentSource: paymentSource.split(":")[0],
         paymentSourceName,
+        representativeName: representativeName || null,
         amount: amount || "0",
         currency: "IQD",
         note: note || null,
@@ -452,6 +461,19 @@ export default function AgentPaymentIqdPage() {
                   onValueChange={(v) => selectPaymentSource(v || "")}
                   placeholder={t('Select bank or transfer office...')}
                   data-testid="select-agent-payment-source"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Via Representative')}</Label>
+                <SearchSelect
+                  items={(representativesList || []).filter(r => !r.hidden).map(r => ({ id: r.name, name: r.name }))}
+                  value={representativeName}
+                  onValueChange={(v) => setRepresentativeName(v || "")}
+                  placeholder={t('Select representative...')}
+                  data-testid="select-payment-representative"
                 />
               </div>
             </div>
