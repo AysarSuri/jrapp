@@ -234,10 +234,22 @@ export default function AgentProductLoadPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <IconSupplierList className="w-5 h-5 text-indigo-600" />
-            {t('New Product Load')}
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <IconSupplierList className="w-5 h-5 text-indigo-600" />
+              {t('New Product Load')}
+            </CardTitle>
+            <div className="flex gap-3">
+              <Button onClick={handleSubmit} disabled={isSaving} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white" data-testid="button-save-load">
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {t('Save')}
+              </Button>
+              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-load">
+                <RotateCcw className="w-5 h-5" />
+                {t('Reset')}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -369,16 +381,6 @@ export default function AgentProductLoadPage() {
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button onClick={handleSubmit} disabled={isSaving} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white" data-testid="button-save-load">
-              {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              {t('Save')}
-            </Button>
-            <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-load">
-              <RotateCcw className="w-5 h-5" />
-              {t('Reset')}
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
