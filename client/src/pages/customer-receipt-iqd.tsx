@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useCustomerReceipts, useCreateCustomerReceipt, useUpdateCustomerReceipt, useDeleteCustomerReceipt } from "@/hooks/use-customer-receipts";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, Bank, TransferOffice, CustomerReceipt } from "@shared/schema";
+import type { Client, Bank, TransferOffice, CustomerReceipt, Representative } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -64,11 +64,16 @@ export default function CustomerReceiptIqdPage() {
     queryKey: ["/api/company-profile"],
   });
 
+  const { data: representativesList } = useQuery<Representative[]>({
+    queryKey: ["/api/representatives"],
+  });
+
   const [receiptNumber, setReceiptNumber] = useState("");
   const [customerId, setCustomerId] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [paymentSource, setPaymentSource] = useState<string>("");
   const [paymentSourceName, setPaymentSourceName] = useState("");
+  const [representativeName, setRepresentativeName] = useState("");
   const [amount, setAmount] = useState("");
   const [discount, setDiscount] = useState("");
   const [note, setNote] = useState("");
@@ -149,6 +154,7 @@ export default function CustomerReceiptIqdPage() {
     setCustomerName("");
     setPaymentSource("");
     setPaymentSourceName("");
+    setRepresentativeName("");
     setAmount("");
     setDiscount("");
     setNote("");
@@ -177,6 +183,7 @@ export default function CustomerReceiptIqdPage() {
     setDiscount(r.discount);
     setNote(r.note || "");
     setReference(r.reference || "");
+    setRepresentativeName(r.representativeName || "");
     setDate(r.date);
     setTime(r.time || "00:00");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -204,6 +211,7 @@ export default function CustomerReceiptIqdPage() {
         customerName,
         paymentSource: paymentSource.split(":")[0],
         paymentSourceName,
+        representativeName: representativeName || null,
         amount: amount || "0",
         discount: discount || "0",
         currency: "IQD",
@@ -227,6 +235,7 @@ export default function CustomerReceiptIqdPage() {
         customerName,
         paymentSource: paymentSource.split(":")[0],
         paymentSourceName,
+        representativeName: representativeName || null,
         amount: amount || "0",
         discount: discount || "0",
         currency: "IQD",
@@ -461,6 +470,19 @@ export default function CustomerReceiptIqdPage() {
                   onValueChange={(v) => selectPaymentSource(v || "")}
                   placeholder={t('Select account where amount was received...')}
                   data-testid="select-receipt-source"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Via Representative')}</Label>
+                <SearchSelect
+                  items={(representativesList || []).filter(r => !r.hidden).map(r => ({ id: r.name, name: r.name }))}
+                  value={representativeName}
+                  onValueChange={(v) => setRepresentativeName(v || "")}
+                  placeholder={t('Select representative...')}
+                  data-testid="select-receipt-representative"
                 />
               </div>
             </div>

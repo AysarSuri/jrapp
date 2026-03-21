@@ -589,6 +589,7 @@ export const customerReceipts = pgTable("customer_receipts", {
   remaining: numeric("remaining").notNull().default("0"),
   note: text("note"),
   reference: text("reference"),
+  representativeName: text("representative_name"),
   date: text("date").notNull(),
   time: text("time").notNull().default("00:00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
