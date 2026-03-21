@@ -153,6 +153,7 @@ export async function registerRoutes(
     '/api/purchase-returns': 'supplier_management',
     '/api/supplier-payments': 'supplier_management',
     '/api/supplier-adjustments': 'supplier_management',
+    '/api/customer-debts': 'sales_management',
     '/api/supplier-debts': 'supplier_management',
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',
@@ -1413,6 +1414,91 @@ export async function registerRoutes(
       res.json(results);
     } catch (error: any) {
       console.error("Error fetching supplier debts:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/customer-debts', requireAuth, async (_req, res) => {
+    try {
+      const customers = await db.select().from(clients).where(eq(clients.type, "customer"));
+      const allSalesInvoices = await db.select().from(salesInvoices);
+      const allSalesReturns = await db.select().from(salesReturns);
+      const allCustomerReceipts = await db.select().from(customerReceipts);
+      const allAgentPayments = await db.select().from(agentPayments);
+
+      const results = customers.map(customer => {
+        const cInvoices = allSalesInvoices.filter(i => i.customerId === customer.id);
+        const cReturns = allSalesReturns.filter(r => r.customerId === customer.id);
+        const cReceipts = allCustomerReceipts.filter(r => r.customerId === customer.id);
+        const cPayments = allAgentPayments.filter(p => p.agentId === customer.id);
+
+        const oldDebtUsd = parseFloat(customer.oldDebtUsd || "0");
+        const oldDebtIqd = parseFloat(customer.oldDebtIqd || "0");
+
+        let totalDebitUsd = oldDebtUsd > 0 ? oldDebtUsd : 0;
+        let totalDebitIqd = oldDebtIqd > 0 ? oldDebtIqd : 0;
+        let totalCreditUsd = oldDebtUsd < 0 ? Math.abs(oldDebtUsd) : 0;
+        let totalCreditIqd = oldDebtIqd < 0 ? Math.abs(oldDebtIqd) : 0;
+
+        for (const inv of cInvoices) {
+          const amount = parseFloat(inv.remaining || "0");
+          if (inv.currency === "USD") totalDebitUsd += amount;
+          else totalDebitIqd += amount;
+        }
+        for (const pay of cPayments) {
+          const amount = parseFloat(pay.amount || "0");
+          if (pay.currency === "USD") totalDebitUsd += amount;
+          else totalDebitIqd += amount;
+        }
+        for (const ret of cReturns) {
+          const amount = parseFloat(ret.remaining || "0");
+          if (ret.currency === "USD") totalCreditUsd += amount;
+          else totalCreditIqd += amount;
+        }
+        for (const rec of cReceipts) {
+          const amount = parseFloat(rec.amount || "0") + parseFloat(rec.discount || "0");
+          if (rec.currency === "USD") totalCreditUsd += amount;
+          else totalCreditIqd += amount;
+        }
+
+        const remainingUsd = totalDebitUsd - totalCreditUsd;
+        const remainingIqd = totalDebitIqd - totalCreditIqd;
+
+        const sortedInvoices = [...cInvoices].sort((a, b) => {
+          const da = `${a.date} ${a.time}`;
+          const db2 = `${b.date} ${b.time}`;
+          return db2.localeCompare(da);
+        });
+        const lastInvoiceUsd = sortedInvoices.find(i => i.currency === "USD") || null;
+        const lastInvoiceIqd = sortedInvoices.find(i => i.currency === "IQD") || null;
+
+        const allCredits = [
+          ...cReceipts.map(r => ({ date: r.date, time: r.time, amountUsd: r.currency === "USD" ? parseFloat(r.amount || "0") : 0, amountIqd: r.currency === "IQD" ? parseFloat(r.amount || "0") : 0 })),
+        ].sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+        const lastReceiptUsd = allCredits.find(c => c.amountUsd > 0) || null;
+        const lastReceiptIqd = allCredits.find(c => c.amountIqd > 0) || null;
+
+        return {
+          id: customer.id,
+          name: customer.name,
+          address: customer.address || "",
+          mobile: customer.contact || "",
+          remainingUsd,
+          remainingIqd,
+          lastInvoiceAmountUsd: lastInvoiceUsd ? parseFloat(lastInvoiceUsd.remaining || "0") : null,
+          lastInvoiceDateUsd: lastInvoiceUsd?.date || null,
+          lastInvoiceAmountIqd: lastInvoiceIqd ? parseFloat(lastInvoiceIqd.remaining || "0") : null,
+          lastInvoiceDateIqd: lastInvoiceIqd?.date || null,
+          lastReceiptAmountUsd: lastReceiptUsd?.amountUsd || null,
+          lastReceiptDateUsd: lastReceiptUsd?.date || null,
+          lastReceiptAmountIqd: lastReceiptIqd?.amountIqd || null,
+          lastReceiptDateIqd: lastReceiptIqd?.date || null,
+        };
+      });
+
+      res.json(results);
+    } catch (error: any) {
+      console.error("Error fetching customer debts:", error);
       res.status(500).json({ message: error.message });
     }
   });

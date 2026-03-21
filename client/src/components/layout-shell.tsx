@@ -286,6 +286,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-payment-iqd",
     "/agent-statement-usd",
     "/agent-statement-iqd",
+    "/customer-debts",
   ];
 
   const isSupplierSection = supplierSubRoutes.includes(location);
@@ -448,6 +449,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-payment-iqd", icon: IconPaymentIqd, label: "Customer Payment IQD" },
     { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD" },
     { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD" },
+    { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts" },
   ];
 
   const sidebarItems: NavEntry[] = [

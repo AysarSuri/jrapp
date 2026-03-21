@@ -20,6 +20,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/customer-receipt-usd", "/customer-receipt-iqd",
       "/agent-payment-usd", "/agent-payment-iqd",
       "/agent-statement-usd", "/agent-statement-iqd",
+      "/customer-debts",
     ],
   },
   {
