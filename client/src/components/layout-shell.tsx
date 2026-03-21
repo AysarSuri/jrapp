@@ -419,10 +419,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const agentManagementNavItems: NavItem[] = [
+    { href: "/representatives", icon: IconAgent, label: "Representatives" },
     { href: "/agent-clients", icon: IconAgentClients, label: "Agent Clients" },
     { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load" },
     { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS" },
-    { href: "/representatives", icon: IconAgent, label: "Representatives" },
   ];
 
   const materialNavItems: NavItem[] = [
