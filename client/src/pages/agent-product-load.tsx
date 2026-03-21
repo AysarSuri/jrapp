@@ -304,8 +304,8 @@ export default function AgentProductLoadPage() {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>{t('Product Code')}</TableHead>
                     <TableHead>{t('Product Name')}</TableHead>
+                    <TableHead>{t('Product Code')}</TableHead>
                     <TableHead className="w-28">{t('Quantity')}</TableHead>
                     <TableHead className="w-28">{t('Unit')}</TableHead>
                     <TableHead className="w-12"></TableHead>
@@ -316,20 +316,20 @@ export default function AgentProductLoadPage() {
                     <TableRow key={index}>
                       <TableCell className="font-mono text-xs">{index + 1}</TableCell>
                       <TableCell>
-                        <ProductCodeSearchSelect
-                          products={productsList || []}
-                          value={item.productCode}
-                          onSelect={(val) => selectProduct(index, val)}
-                          data-testid={`select-load-product-code-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell>
                         <SearchSelect
                           items={prodList.map(p => ({ id: p.id, name: getProductName(p) }))}
                           value={item.productId ? String(item.productId) : ""}
                           onValueChange={(val) => selectProduct(index, val)}
                           placeholder={t('Select')}
                           data-testid={`select-load-product-name-${index}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <ProductCodeSearchSelect
+                          products={productsList || []}
+                          value={item.productCode}
+                          onSelect={(val) => selectProduct(index, val)}
+                          data-testid={`select-load-product-code-${index}`}
                         />
                       </TableCell>
                       <TableCell>
@@ -502,8 +502,8 @@ export default function AgentProductLoadPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>#</TableHead>
-                      <TableHead>{t('Product Code')}</TableHead>
                       <TableHead>{t('Product Name')}</TableHead>
+                      <TableHead>{t('Product Code')}</TableHead>
                       <TableHead>{t('Quantity')}</TableHead>
                       <TableHead>{t('Unit')}</TableHead>
                     </TableRow>
@@ -512,8 +512,8 @@ export default function AgentProductLoadPage() {
                     {detailItems.map((item, i) => (
                       <TableRow key={item.id}>
                         <TableCell>{i + 1}</TableCell>
-                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
                         <TableCell>{getProductNameByLang(item.productName)}</TableCell>
+                        <TableCell className="font-mono text-sm">{item.productCode}</TableCell>
                         <TableCell className="font-mono">{item.quantity}</TableCell>
                         <TableCell>{resolveUnitName(item.unit, unitsList)}</TableCell>
                       </TableRow>
