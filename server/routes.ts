@@ -4187,12 +4187,17 @@ export async function registerRoutes(
   app.get('/api/agent-statement/:id', requireAuth, async (req, res) => {
     try {
       const agentId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
       const [agent] = await db.select().from(representatives).where(eq(representatives.id, agentId));
       if (!agent) return res.status(404).json({ message: "Agent not found" });
 
-      const invoices = await db.select().from(salesInvoices).where(eq(salesInvoices.representativeId, agentId)).orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
-      const returns = await db.select().from(salesReturns).where(eq(salesReturns.representativeId, agentId)).orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
-      const payments = await storage.getAgentPaymentsByAgentId(agentId);
+      const oldDebtUsd = parseFloat(agent.debtUsd || "0");
+      const oldDebtIqd = parseFloat(agent.debtIqd || "0");
+
+      const allInvoices = await db.select().from(salesInvoices).where(eq(salesInvoices.representativeId, agentId)).orderBy(sql`${salesInvoices.date} ASC, ${salesInvoices.time} ASC`);
+      const allReturns = await db.select().from(salesReturns).where(eq(salesReturns.representativeId, agentId)).orderBy(sql`${salesReturns.date} ASC, ${salesReturns.time} ASC`);
+      const allPayments = await storage.getAgentPaymentsByAgentId(agentId);
 
       type AgentStatementEntry = {
         id: number;
@@ -4206,56 +4211,69 @@ export async function registerRoutes(
         credit: number;
       };
 
+      let preUsdDebit = 0, preUsdCredit = 0, preIqdDebit = 0, preIqdCredit = 0;
       const entries: AgentStatementEntry[] = [];
 
-      for (const inv of invoices) {
+      for (const inv of allInvoices) {
         const remaining = parseFloat(inv.remaining || "0");
-        if (remaining > 0) {
-          entries.push({
-            id: inv.id,
-            date: inv.date,
-            time: inv.time || "00:00",
-            type: "sales_invoice",
-            description: `${inv.invoiceNumber} - ${inv.customerName}`,
-            reference: inv.invoiceNumber,
-            currency: inv.currency,
-            debit: remaining,
-            credit: 0,
-          });
+        if (remaining <= 0) continue;
+        const entry = {
+          id: inv.id,
+          date: inv.date,
+          time: inv.time || "00:00",
+          type: "sales_invoice",
+          description: `${inv.invoiceNumber} - ${inv.customerName}`,
+          reference: inv.invoiceNumber,
+          currency: inv.currency,
+          debit: remaining,
+          credit: 0,
+        };
+        if (inv.date < fromDate) {
+          if (inv.currency === "USD") preUsdDebit += remaining; else preIqdDebit += remaining;
+        } else if (inv.date <= toDate) {
+          entries.push(entry);
         }
       }
 
-      for (const ret of returns) {
+      for (const ret of allReturns) {
         const subtotal = parseFloat(ret.subtotal || "0");
-        if (subtotal > 0) {
-          entries.push({
-            id: ret.id,
-            date: ret.date,
-            time: ret.time || "00:00",
-            type: "sales_return",
-            description: `${ret.returnNumber} - ${ret.customerName}`,
-            reference: ret.returnNumber,
-            currency: ret.currency,
-            debit: 0,
-            credit: subtotal,
-          });
+        if (subtotal <= 0) continue;
+        const entry = {
+          id: ret.id,
+          date: ret.date,
+          time: ret.time || "00:00",
+          type: "sales_return",
+          description: `${ret.returnNumber} - ${ret.customerName}`,
+          reference: ret.returnNumber,
+          currency: ret.currency,
+          debit: 0,
+          credit: subtotal,
+        };
+        if (ret.date < fromDate) {
+          if (ret.currency === "USD") preUsdCredit += subtotal; else preIqdCredit += subtotal;
+        } else if (ret.date <= toDate) {
+          entries.push(entry);
         }
       }
 
-      for (const pay of payments) {
+      for (const pay of allPayments) {
         const amount = parseFloat(pay.amount || "0");
-        if (amount > 0) {
-          entries.push({
-            id: pay.id,
-            date: pay.date,
-            time: pay.time || "00:00",
-            type: "agent_payment",
-            description: pay.paymentSourceName,
-            reference: pay.reference,
-            currency: pay.currency,
-            debit: 0,
-            credit: amount,
-          });
+        if (amount <= 0) continue;
+        const entry = {
+          id: pay.id,
+          date: pay.date,
+          time: pay.time || "00:00",
+          type: "agent_payment",
+          description: pay.paymentSourceName,
+          reference: pay.reference,
+          currency: pay.currency,
+          debit: 0,
+          credit: amount,
+        };
+        if (pay.date < fromDate) {
+          if (pay.currency === "USD") preUsdCredit += amount; else preIqdCredit += amount;
+        } else if (pay.date <= toDate) {
+          entries.push(entry);
         }
       }
 
@@ -4265,7 +4283,10 @@ export async function registerRoutes(
         return a.time.localeCompare(b.time);
       });
 
-      res.json({ agent, entries });
+      const openingBalanceUsd = oldDebtUsd + preUsdDebit - preUsdCredit;
+      const openingBalanceIqd = oldDebtIqd + preIqdDebit - preIqdCredit;
+
+      res.json({ agent, entries, openingBalanceUsd, openingBalanceIqd });
     } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }

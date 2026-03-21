@@ -84,6 +84,7 @@ import WarehouseTransferPage from "@/pages/warehouse-transfer";
 import AgentProductLoadPage from "@/pages/agent-product-load";
 import AgentClientsPage from "@/pages/agent-clients";
 import AgentGpsPage from "@/pages/agent-gps";
+import RepStatementPage from "@/pages/rep-statement";
 import AgentManagementPage from "@/pages/agent-management";
 import MaterialManagementPage from "@/pages/material-management";
 import ProductDamagePage from "@/pages/product-damage";
@@ -368,6 +369,9 @@ function Router() {
       </Route>
       <Route path="/agent-gps">
         <ProtectedRoute component={AgentGpsPage} />
+      </Route>
+      <Route path="/rep-statement">
+        <ProtectedRoute component={RepStatementPage} />
       </Route>
       <Route path="/product-damage">
         <ProtectedRoute component={ProductDamagePage} />

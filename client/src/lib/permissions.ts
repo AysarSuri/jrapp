@@ -40,7 +40,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Agent Management",
     routes: [
       "/agent-management", "/agent-clients", "/agent-product-load", "/agent-gps",
-      "/representatives",
+      "/representatives", "/rep-statement",
     ],
   },
   {

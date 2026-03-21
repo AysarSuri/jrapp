@@ -1,0 +1,705 @@
+import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { usd, fmtIqd, formatDate } from "@/lib/format-utils";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { SearchSelect } from "@/components/search-select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Loader2, Printer, Eye, Pencil, Trash2, FileText } from "lucide-react";
+import { DateInput } from "@/components/ui/date-input";
+import { getModernPrintStyles } from "@/lib/print-styles";
+import { useToast } from "@/hooks/use-toast";
+import SalesInvoiceReport from "@/components/sales-invoice-report";
+import SalesReturnReport from "@/components/sales-return-report";
+import AgentPaymentReport from "@/components/agent-payment-report";
+import StatementEditDialog from "@/components/statement-edit-dialog";
+import type { AgentPayment } from "@shared/schema";
+
+interface CompanyProfileData {
+  id: number;
+  name: string;
+  logo?: string;
+  primaryColor?: string;
+}
+
+interface StatementEntry {
+  id: number;
+  date: string;
+  time: string;
+  type: string;
+  description: string | null;
+  reference: string | null;
+  currency: string;
+  debit: number;
+  credit: number;
+}
+
+interface RepData {
+  id: number;
+  name: string;
+  debtUsd: string;
+  debtIqd: string;
+}
+
+interface StatementResponse {
+  agent: RepData;
+  entries: StatementEntry[];
+  openingBalanceUsd: number;
+  openingBalanceIqd: number;
+}
+
+export default function RepStatementPage() {
+  const { t } = useTranslation();
+  const today = new Date().toISOString().split("T")[0];
+  const firstOfMonth = today.slice(0, 8) + "01";
+  const [selectedRepId, setSelectedRepId] = useState<string>("");
+  const [fromDate, setFromDate] = useState(firstOfMonth);
+  const [toDate, setToDate] = useState(today);
+  const [currency, setCurrency] = useState<"USD" | "IQD">("USD");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [reportInvoiceId, setReportInvoiceId] = useState<number | null>(null);
+  const [reportInvoiceOpen, setReportInvoiceOpen] = useState(false);
+  const [reportReturnId, setReportReturnId] = useState<number | null>(null);
+  const [reportReturnOpen, setReportReturnOpen] = useState(false);
+  const [reportPayment, setReportPayment] = useState<AgentPayment | null>(null);
+  const [reportPaymentOpen, setReportPaymentOpen] = useState(false);
+  const [deleteEntry, setDeleteEntry] = useState<{ id: number; type: string; reference: string | null } | null>(null);
+  const [editEntry, setEditEntry] = useState<{ id: number; type: string; currency: string; reference: string | null } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const { data: repsList } = useQuery<RepData[]>({
+    queryKey: ["/api/representatives"],
+  });
+
+  const reps = (repsList || []).filter((r: any) => r.hidden !== 1 && r.hidden !== true);
+
+  const { data: companyProfile } = useQuery<CompanyProfileData>({
+    queryKey: ["/api/company-profile"],
+  });
+
+  const { data: statement, isLoading: statementLoading } = useQuery<StatementResponse>({
+    queryKey: ["/api/agent-statement", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/agent-statement/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId,
+  });
+
+  const fmt = currency === "USD" ? usd : fmtIqd;
+  const currencyLabel = currency === "USD" ? "$" : "IQD";
+  const filteredEntries = statement?.entries?.filter(e => e.currency === currency) || [];
+  const openingBalance = currency === "USD" ? (statement?.openingBalanceUsd || 0) : (statement?.openingBalanceIqd || 0);
+
+  const invoiceItemsRef = useRef<Record<number, any[]>>({});
+  const invoiceDataRef = useRef<Record<number, any>>({});
+  const entryIdsKey = filteredEntries.map(e => `${e.id}-${e.type}`).join(",");
+
+  useEffect(() => {
+    if (!filteredEntries.length) return;
+    const invoiceEntries = filteredEntries.filter(e => e.type === "sales_invoice" || e.type === "sales_return");
+    if (!invoiceEntries.length) return;
+    const fetchAll = async () => {
+      const newItemsMap: Record<number, any[]> = {};
+      const newDataMap: Record<number, any> = {};
+      await Promise.all(invoiceEntries.map(async (entry) => {
+        try {
+          const endpoint = entry.type === "sales_invoice" ? "sales-invoices" : "sales-returns";
+          const [invRes, itemsRes] = await Promise.all([
+            fetch(`/api/${endpoint}/${entry.id}`, { credentials: "include" }),
+            fetch(`/api/${endpoint}/${entry.id}/items`, { credentials: "include" }),
+          ]);
+          if (invRes.ok && itemsRes.ok) {
+            newDataMap[entry.id] = await invRes.json();
+            newItemsMap[entry.id] = await itemsRes.json();
+          }
+        } catch {}
+      }));
+      invoiceItemsRef.current = newItemsMap;
+      invoiceDataRef.current = newDataMap;
+    };
+    fetchAll();
+  }, [entryIdsKey]);
+
+  let runningBalance = openingBalance;
+  const entriesWithBalance = filteredEntries.map((entry) => {
+    runningBalance += entry.debit - entry.credit;
+    return { ...entry, balance: runningBalance };
+  });
+
+  const totalDebit = filteredEntries.reduce((s, e) => s + e.debit, 0);
+  const totalCredit = filteredEntries.reduce((s, e) => s + e.credit, 0);
+  const finalBalance = openingBalance + totalDebit - totalCredit;
+
+  const typeBadge = (type: string) => {
+    if (type === "sales_invoice") return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{t('Sales Invoice')}</Badge>;
+    if (type === "sales_return") return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">{t('Sales Return')}</Badge>;
+    if (type === "agent_payment") return <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Agent Payment')}</Badge>;
+    return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">{t('Payment')}</Badge>;
+  };
+
+  const isRtl = i18n.language === "ar" || i18n.language === "ckb";
+
+  const typeLabel = (type: string) => {
+    if (type === "sales_invoice") return t('Sales Invoice');
+    if (type === "sales_return") return t('Sales Return');
+    if (type === "agent_payment") return t('Agent Payment');
+    return t('Payment');
+  };
+
+  const handleView = async (entry: StatementEntry & { balance: number }) => {
+    try {
+      if (entry.type === "sales_invoice") {
+        setReportInvoiceId(entry.id);
+        setReportInvoiceOpen(true);
+      } else if (entry.type === "sales_return") {
+        setReportReturnId(entry.id);
+        setReportReturnOpen(true);
+      } else if (entry.type === "agent_payment") {
+        const res = await fetch(`/api/agent-payments`, { credentials: "include" });
+        if (!res.ok) throw new Error();
+        const all = await res.json();
+        const pay = all.find((p: any) => p.id === entry.id);
+        if (pay) { setReportPayment(pay); setReportPaymentOpen(true); }
+      }
+    } catch {
+      toast({ title: t("Failed to load data"), variant: "destructive" });
+    }
+  };
+
+  const handleEdit = (entry: StatementEntry & { balance: number }) => {
+    if (entry.type === "sales_invoice" || entry.type === "sales_return") {
+      let path = "";
+      if (entry.type === "sales_invoice") path = `/sales-invoice-${entry.currency.toLowerCase()}?editId=${entry.id}`;
+      else if (entry.type === "sales_return") path = `/sales-return-${entry.currency.toLowerCase()}?editId=${entry.id}`;
+      if (path) window.open(path, "_blank");
+    } else {
+      setEditEntry({ id: entry.id, type: entry.type, currency: entry.currency, reference: entry.reference });
+      setEditOpen(true);
+    }
+  };
+
+  const getDeleteApi = (type: string) => {
+    if (type === "sales_invoice") return "/api/sales-invoices";
+    if (type === "sales_return") return "/api/sales-returns";
+    if (type === "agent_payment") return "/api/agent-payments";
+    return "";
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEntry) return;
+    try {
+      const api = getDeleteApi(deleteEntry.type);
+      await apiRequest("DELETE", `${api}/${deleteEntry.id}`);
+      toast({ title: t("Deleted successfully") });
+      queryClient.invalidateQueries({ queryKey: ["/api/agent-statement"] });
+    } catch (err: any) {
+      toast({ title: t("Failed to delete invoice"), description: err?.message, variant: "destructive" });
+    }
+    setDeleteEntry(null);
+  };
+
+  const fontLink = `<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+
+  const handlePrint = () => {
+    if (!statement || !entriesWithBalance.length) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = statement.agent?.name || "";
+    const numAlign = isRtl ? "left" : "right";
+
+    const rows = entriesWithBalance.map((entry, i) => `
+      <tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(entry.date)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-weight:700;font-size:9pt;">${entry.reference || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">${entry.time}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${typeLabel(entry.type)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${entry.description || "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;font-size:9pt;">${entry.debit > 0 ? fmt(entry.debit) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;font-size:9pt;">${entry.credit > 0 ? fmt(entry.credit) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:800;color:#1e40af;font-size:9pt;">${fmt(entry.balance)}</td>
+      </tr>
+    `).join("");
+
+    const openingRow = openingBalance !== 0 ? `
+      <tr style="background:#eff6ff;">
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;">-</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:700;color:#1e40af;">${t('Opening Balance')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:700;">${t('Opening Balance')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#dc2626;font-size:9pt;">${openingBalance > 0 ? fmt(openingBalance) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:700;color:#16a34a;font-size:9pt;">${openingBalance < 0 ? fmt(Math.abs(openingBalance)) : ""}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:${numAlign};font-family:monospace;font-weight:800;color:#1e40af;font-size:9pt;">${fmt(openingBalance)}</td>
+      </tr>
+    ` : "";
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Rep Statement")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#000;font-weight:600;flex-wrap:wrap;direction:${dir};">
+                <span>${t("Representative Name")}: <strong style="color:#64748b">${repName}</strong></span>
+                <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
+                <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
+              </div>
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#000;font-weight:600;flex-wrap:wrap;margin-top:6px;direction:${dir};">
+                <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${fmt(openingBalance)}</strong></span>
+                <span style="color:#dc2626;">${t("Total Debit")}: <strong>${fmt(totalDebit)}</strong></span>
+                <span style="color:#16a34a;">${t("Total Credit")}: <strong>${fmt(totalCredit)}</strong></span>
+                <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${repName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${fmt(Math.abs(finalBalance))}</strong></span>
+              </div>
+            </div>
+            <div style="background:#64748b;color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+              <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Rep Statement")}</h1>
+              <div style="font-size:10pt;font-weight:700;margin-top:3px;">${currency}</div>
+            </div>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Time")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Type")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Description")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Debit")} (${currencyLabel})</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Credit")} (${currencyLabel})</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:${numAlign};">${t("Cumulative Balance")} (${currencyLabel})</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${openingRow}
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="6" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:${numAlign};">${fmt(totalDebit)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#16a34a;text-align:${numAlign};">${fmt(totalCredit)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:${numAlign};">${fmt(finalBalance)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 500);
+    }
+  };
+
+  const handlePrintDetails = () => {
+    if (!statement || !entriesWithBalance.length) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = statement.agent?.name || "";
+    const numAlign = isRtl ? "left" : "right";
+
+    const invoiceItemsMap = invoiceItemsRef.current;
+    const invoiceDataMap = invoiceDataRef.current;
+
+    const allEntries = [...entriesWithBalance].sort((a, b) => {
+      const da = new Date(`${a.date}T${a.time || "00:00:00"}`).getTime();
+      const db2 = new Date(`${b.date}T${b.time || "00:00:00"}`).getTime();
+      return da - db2;
+    });
+
+    let seqNum = 0;
+    let cumBalance = openingBalance;
+    const allEntriesWithCum = allEntries.map(e => {
+      cumBalance += e.debit - e.credit;
+      return { ...e, cumBalance };
+    });
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Details")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 portrait; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#000;font-weight:600;flex-wrap:wrap;direction:${dir};">
+                <span>${t("Representative Name")}: <strong style="color:#64748b">${repName}</strong></span>
+                <span>${t("From Date")}: <strong>${formatDate(fromDate)}</strong></span>
+                <span>${t("To Date")}: <strong>${formatDate(toDate)}</strong></span>
+              </div>
+              <div style="display:flex;justify-content:center;gap:20px;font-size:10pt;color:#000;font-weight:600;flex-wrap:wrap;margin-top:6px;direction:${dir};">
+                <span style="color:#1e40af;">${t("Opening Balance")}: <strong>${fmt(openingBalance)}</strong></span>
+                <span style="color:#dc2626;">${t("Total Debit")}: <strong>${fmt(totalDebit)}</strong></span>
+                <span style="color:#16a34a;">${t("Total Credit")}: <strong>${fmt(totalCredit)}</strong></span>
+                <span style="color:${finalBalance > 0 ? '#dc2626' : finalBalance < 0 ? '#16a34a' : '#1e40af'};">${finalBalance > 0 ? `${t("Remaining at")} ${repName}` : finalBalance < 0 ? `${t("Remaining at")} ${companyProfile?.name || t("Company")}` : t("Zero Account")}: <strong>${fmt(Math.abs(finalBalance))}</strong></span>
+              </div>
+            </div>
+            <div style="background:#64748b;color:#fff;padding:10px 14px;border-radius:8px;min-width:130px;text-align:center;">
+              <h1 style="font-size:11pt;margin:0;font-weight:800;line-height:1.3;">${t("Rep Statement")}</h1>
+              <div style="font-size:10pt;font-weight:700;margin-top:3px;">${currency}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="direction:${dir};">
+          <div style="margin-bottom:14px;border:1px solid #93c5fd;border-radius:6px;overflow:hidden;">
+            <div style="background:#eff6ff;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#1e40af;">
+              <span>${t("Opening Balance")}</span>
+              <span style="display:flex;align-items:center;">
+                <span style="font-family:monospace;font-size:10pt;font-weight:900;min-width:100px;text-align:left;">${fmt(openingBalance)}</span>
+                <span style="width:40px;"></span>
+                <span style="color:#64748b;font-size:9pt;font-weight:700;white-space:nowrap;min-width:140px;text-align:left;">${t("Cumulative Balance")}: ${fmt(openingBalance)}</span>
+              </span>
+            </div>
+          </div>
+          ${allEntriesWithCum.map(entry => {
+            seqNum++;
+            const isInvoice = entry.type === "sales_invoice" || entry.type === "sales_return";
+            const isReturn = entry.type === "sales_return";
+            const isPayment = entry.type === "agent_payment";
+
+            if (isInvoice) {
+              const items = invoiceItemsMap[entry.id] || [];
+              const inv = invoiceDataMap[entry.id];
+              const hasGift = items.some((item: any) => parseFloat(item.gift || "0") > 0);
+              const colCount = hasGift ? 5 : 4;
+              const amountPaid = parseFloat(inv?.amountPaid || "0");
+              const discount = parseFloat(inv?.discount || "0");
+              const remaining = parseFloat(inv?.remaining || "0");
+              return `
+                <div style="margin-bottom:14px;border:1px solid ${isReturn ? '#fecaca' : '#e2e8f0'};border-radius:6px;overflow:hidden;">
+                  <div style="background:${isReturn ? '#fef2f2' : '#f1f5f9'};padding:5px 8px;font-size:9pt;font-weight:700;direction:${dir};text-align:right;color:${isReturn ? '#dc2626' : '#000'};">
+                    <span>${seqNum}. ${isReturn ? t("Returns") : t("Sales Invoice")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}</span>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                    <thead>
+                      <tr style="background:${isReturn ? '#fecaca' : '#e2e8f0'};color:${isReturn ? '#dc2626' : '#000'};">
+                        <th style="padding:3px 6px;font-weight:700;width:45%;">${t("Product Name")}</th>
+                        <th style="padding:3px 4px;font-weight:700;text-align:center;width:50px;">${t("Quantity")}</th>
+                        ${hasGift ? `<th style="padding:3px 4px;font-weight:700;text-align:center;width:45px;">${t("Gift")}</th>` : ""}
+                        <th style="padding:3px 4px;font-weight:700;text-align:${numAlign};width:65px;">${t("Price")}</th>
+                        <th style="padding:3px 4px;font-weight:700;text-align:${numAlign};width:70px;">${t("Amount")}</th>
+                        <th style="padding:3px 6px;font-weight:700;text-align:${numAlign};min-width:80px;"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map((item: any) => `
+                        <tr style="color:${isReturn ? '#dc2626' : 'inherit'};">
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;width:45%;">${item.productName || "-"}</td>
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;width:50px;">${item.quantity || "0"}</td>
+                          ${hasGift ? `<td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:center;font-family:monospace;width:45px;">${item.gift || "0"}</td>` : ""}
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;width:65px;">${fmt(parseFloat(item.price || "0"))}</td>
+                          <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;text-align:${numAlign};font-family:monospace;font-weight:700;width:70px;">${fmt(parseFloat(item.amount || "0"))}</td>
+                          <td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;"></td>
+                        </tr>
+                      `).join("")}
+                      <tr style="background:#f8fafc;font-weight:700;font-size:9pt;">
+                        <td colspan="${colCount + 1}" style="padding:4px 6px;">
+                          <div style="display:flex;align-items:center;gap:36px;direction:ltr;">
+                            <span style="color:#64748b;white-space:nowrap;">${t("Cumulative Balance")}: <span style="font-family:monospace;">${fmt(entry.cumBalance)}</span></span>
+                            <span style="color:${isReturn ? '#dc2626' : '#2563eb'};font-family:monospace;">${remaining > 0 ? `${t("Remaining")}: ${fmt(remaining)}` : ""}</span>
+                            ${!isReturn && discount > 0 ? `<span style="color:#d97706;">${t("Discount")}: <span style="font-family:monospace;">${fmt(discount)}</span></span>` : ""}
+                            ${!isReturn && amountPaid > 0 ? `<span style="color:#16a34a;">${t("Amount Received")}: <span style="font-family:monospace;">${fmt(amountPaid)}</span></span>` : ""}
+                            ${isReturn && amountPaid > 0 ? `<span style="color:#dc2626;">${t("Amount Paid")}: <span style="font-family:monospace;">${fmt(amountPaid)}</span></span>` : ""}
+                            <span style="color:${isReturn ? '#dc2626' : '#64748b'};">${t("Total")}: <span style="font-family:monospace;">${fmt(entry.debit || entry.credit)}</span></span>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            }
+
+            if (isPayment) {
+              return `
+                <div style="margin-bottom:14px;border:1px solid #bbf7d0;border-radius:6px;overflow:hidden;">
+                  <div style="background:#f0fdf4;padding:8px 12px;font-size:9pt;font-weight:700;direction:${dir};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;color:#16a34a;">
+                    <span>${seqNum}. ${t("Agent Payment")} &nbsp;&nbsp; ${t("Invoice Number")}: ${entry.reference || "-"} &nbsp;&nbsp; ${t("Date")}: ${formatDate(entry.date)}${entry.description ? ` &nbsp;&nbsp; ${entry.description}` : ""}</span>
+                    <span style="display:flex;align-items:center;">
+                      <span style="font-family:monospace;font-size:10pt;font-weight:700;min-width:100px;text-align:left;">${fmt(entry.credit)}</span>
+                      <span style="width:40px;"></span>
+                      <span style="color:#64748b;font-size:10pt;font-weight:700;white-space:nowrap;min-width:140px;text-align:left;">${t("Cumulative Balance")}: ${fmt(entry.cumBalance)}</span>
+                    </span>
+                  </div>
+                </div>
+              `;
+            }
+
+            return "";
+          }).join("")}
+          ${allEntriesWithCum.length === 0 ? `<p style="text-align:center;color:#999;font-size:9pt;">${t("No data")}</p>` : ""}
+        </div>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      setTimeout(() => win.print(), 500);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
+          <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+            <FileText className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          {t('Rep Statement')}
+        </h1>
+        <p className="text-muted-foreground mt-1">{t('Representative account ledger')}</p>
+      </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">{t('Select Representative')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <Label className="text-base font-bold mb-1 block">{t('Representative Name')}</Label>
+              <SearchSelect
+                items={reps.map((r: any) => ({ id: r.id, name: r.name }))}
+                value={selectedRepId}
+                onValueChange={setSelectedRepId}
+                placeholder={t('Select representative...')}
+                data-testid="select-rep-statement"
+                className="h-11 text-base font-semibold"
+              />
+            </div>
+            <div>
+              <Label className="text-base font-bold mb-1 block">{t('Currency')}</Label>
+              <div className="flex gap-1 h-11">
+                <Button
+                  variant={currency === "USD" ? "default" : "outline"}
+                  onClick={() => setCurrency("USD")}
+                  className={`h-11 px-5 text-base font-bold ${currency === "USD" ? "bg-primary text-white" : ""}`}
+                  data-testid="button-currency-usd"
+                >
+                  USD
+                </Button>
+                <Button
+                  variant={currency === "IQD" ? "default" : "outline"}
+                  onClick={() => setCurrency("IQD")}
+                  className={`h-11 px-5 text-base font-bold ${currency === "IQD" ? "bg-primary text-white" : ""}`}
+                  data-testid="button-currency-iqd"
+                >
+                  IQD
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label className="text-base font-bold mb-1 block">{t('From Date')}</Label>
+              <DateInput value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-rep-statement-from-date" />
+            </div>
+            <div>
+              <Label className="text-base font-bold mb-1 block">{t('To Date')}</Label>
+              <DateInput value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-rep-statement-to-date" />
+            </div>
+          </div>
+          {selectedRepId && statement && (
+            <div className="flex items-center gap-4 mt-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-bold mb-1">{t('Opening Balance')}</p>
+                  <p className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-rep-opening-balance">{fmt(openingBalance)}</p>
+                </div>
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-red-600 dark:text-red-400 font-bold mb-1">{t('Total Debit')}</p>
+                  <p className="font-mono text-lg font-bold text-red-700 dark:text-red-300" data-testid="text-rep-total-debit">{fmt(totalDebit)}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-5 py-3">
+                  <p className="text-sm text-green-600 dark:text-green-400 font-bold mb-1">{t('Total Credit')}</p>
+                  <p className="font-mono text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-rep-total-credit">{fmt(totalCredit)}</p>
+                </div>
+                <div className={`rounded-lg px-5 py-3 border ${finalBalance > 0 ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : finalBalance < 0 ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
+                  <p className={`text-sm font-bold mb-1 ${finalBalance > 0 ? 'text-red-600 dark:text-red-400' : finalBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                    {finalBalance > 0 ? `${t('Remaining at')} ${statement?.agent?.name || ''}` : finalBalance < 0 ? `${t('Remaining at')} ${companyProfile?.name || t('Company')}` : t('Zero Account')}
+                  </p>
+                  <p className={`font-mono text-lg font-bold ${finalBalance > 0 ? 'text-red-700 dark:text-red-300' : finalBalance < 0 ? 'text-green-700 dark:text-green-300' : 'text-blue-700 dark:text-blue-300'}`} data-testid="text-rep-final-balance">{fmt(Math.abs(finalBalance))}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handlePrint} disabled={entriesWithBalance.length === 0} className="bg-primary text-white gap-2 h-11" data-testid="button-print-rep-statement">
+                  <Printer className="w-5 h-5" />
+                  {t('Print')}
+                </Button>
+                <Button onClick={handlePrintDetails} disabled={entriesWithBalance.length === 0} className="bg-orange-600 text-white gap-2 h-11" data-testid="button-print-rep-details">
+                  <FileText className="w-5 h-5" />
+                  {t('Print Details')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedRepId && statementLoading && (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {selectedRepId && statement && !statementLoading && (
+        <Card className="border-border/50 shadow-sm">
+          <CardContent className="pt-6 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-sm font-bold">#</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Time')}</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Type')}</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Description')}</TableHead>
+                  <TableHead className="text-sm font-bold text-red-700 dark:text-red-400">{t('Debit')} ({currencyLabel})</TableHead>
+                  <TableHead className="text-sm font-bold text-green-700 dark:text-green-400">{t('Credit')} ({currencyLabel})</TableHead>
+                  <TableHead className="text-sm font-bold text-blue-700 dark:text-blue-400">{t('Cumulative Balance')} ({currencyLabel})</TableHead>
+                  <TableHead className="text-sm font-bold">{t('Actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {openingBalance !== 0 && (
+                  <TableRow className="bg-blue-50 dark:bg-blue-950/20" data-testid="row-rep-opening-balance">
+                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">-</TableCell>
+                    <TableCell><Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{t('Opening Balance')}</Badge></TableCell>
+                    <TableCell className="text-sm font-bold">{t('Opening Balance')}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-red-600">
+                      {openingBalance > 0 ? fmt(openingBalance) : ""}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-green-600">
+                      {openingBalance < 0 ? fmt(Math.abs(openingBalance)) : ""}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm font-bold text-blue-600">
+                      {fmt(openingBalance)}
+                    </TableCell>
+                    <TableCell>-</TableCell>
+                  </TableRow>
+                )}
+                {entriesWithBalance.map((entry, i) => (
+                  <TableRow key={`${entry.type}-${entry.id}`} data-testid={`row-rep-statement-${entry.id}`}>
+                    <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">{formatDate(entry.date)}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">{entry.reference || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">{entry.time}</TableCell>
+                    <TableCell>{typeBadge(entry.type)}</TableCell>
+                    <TableCell className="text-sm font-semibold max-w-[200px] truncate">{entry.description || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-red-600">
+                      {entry.debit > 0 ? fmt(entry.debit) : ""}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-green-600">
+                      {entry.credit > 0 ? fmt(entry.credit) : ""}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm font-bold text-blue-600">
+                      {fmt(entry.balance)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-800" onClick={() => handleView(entry)} data-testid={`button-view-${entry.type}-${entry.id}`}>
+                          <Eye className="w-5 h-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-800" onClick={() => handleEdit(entry)} data-testid={`button-edit-${entry.type}-${entry.id}`}>
+                          <Pencil className="w-5 h-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-800" onClick={() => setDeleteEntry({ id: entry.id, type: entry.type, reference: entry.reference })} data-testid={`button-delete-${entry.type}-${entry.id}`}>
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredEntries.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                      {t('No transactions found')}
+                    </TableCell>
+                  </TableRow>
+                )}
+                {filteredEntries.length > 0 && (
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={6} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold text-red-700">{fmt(totalDebit)}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold text-green-700">{fmt(totalCredit)}</TableCell>
+                    <TableCell className="font-mono text-sm font-bold text-blue-700">{fmt(finalBalance)}</TableCell>
+                    <TableCell />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      <SalesInvoiceReport invoiceId={reportInvoiceId} open={reportInvoiceOpen} onOpenChange={setReportInvoiceOpen} currency={currency} />
+      <SalesReturnReport returnId={reportReturnId} open={reportReturnOpen} onOpenChange={setReportReturnOpen} currency={currency} />
+      <AgentPaymentReport payment={reportPayment} open={reportPaymentOpen} onOpenChange={setReportPaymentOpen} />
+      <StatementEditDialog entry={editEntry} open={editOpen} onOpenChange={setEditOpen} />
+
+      <AlertDialog open={!!deleteEntry} onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete invoice")} {deleteEntry?.reference ? `#${deleteEntry.reference}` : `#${deleteEntry?.id}`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 text-white hover:bg-red-700">{t("Delete")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

@@ -256,6 +256,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-product-load",
     "/agent-gps",
     "/representatives",
+    "/rep-statement",
   ];
 
   const materialSubRoutes = [
@@ -423,6 +424,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-clients", icon: IconAgentClients, label: "Agent Clients" },
     { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load" },
     { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS" },
+    { href: "/rep-statement", icon: IconStatementUsd, label: "Rep Statement" },
   ];
 
   const materialNavItems: NavItem[] = [
