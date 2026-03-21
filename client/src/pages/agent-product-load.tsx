@@ -112,6 +112,10 @@ export default function AgentProductLoadPage() {
           productName: product.name,
           unit: product.bigUnit,
         };
+        const lastItem = updated[updated.length - 1];
+        if (lastItem.productId !== null) {
+          updated.push(emptyItem());
+        }
         return updated;
       });
     }
