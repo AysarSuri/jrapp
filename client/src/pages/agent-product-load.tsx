@@ -305,9 +305,9 @@ export default function AgentProductLoadPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>{t('Product Name')}</TableHead>
-                    <TableHead>{t('Product Code')}</TableHead>
-                    <TableHead className="w-28">{t('Quantity')}</TableHead>
-                    <TableHead className="w-28">{t('Unit')}</TableHead>
+                    <TableHead className="w-32">{t('Product Code')}</TableHead>
+                    <TableHead className="w-36">{t('Quantity')}</TableHead>
+                    <TableHead className="w-36">{t('Unit')}</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
