@@ -113,6 +113,9 @@ export default function CustomerReceiptIqdPage() {
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {
       setCustomerName(customer.name);
+      if (customer.representativeName) {
+        setRepresentativeName(customer.representativeName);
+      }
     }
   }, [customers]);
 
