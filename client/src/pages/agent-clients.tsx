@@ -11,7 +11,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle } from "lucide-react";
+import { Save, Loader2, Trash2, RotateCcw, ChevronLeft, ChevronRight, Printer, MessageCircle, Plus, UserPlus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { IconCustomers, IconAgent } from "@/components/erp-icons";
 import { SearchSelect } from "@/components/search-select";
 import {
@@ -59,6 +63,10 @@ export default function AgentClientsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [addClientOpen, setAddClientOpen] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientContact, setNewClientContact] = useState("");
+  const [newClientAddress, setNewClientAddress] = useState("");
 
   const agents = agentsList || [];
   const addresses = addressesList || [];
@@ -102,6 +110,37 @@ export default function AgentClientsPage() {
       toast({ title: t("Failed to remove assignment"), variant: "destructive" });
     },
   });
+
+  const addClientMutation = useMutation({
+    mutationFn: (data: { name: string; type: string; contact: string; address: string }) =>
+      apiRequest("POST", "/api/clients", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      toast({ title: t("Client added successfully") });
+      setNewClientName("");
+      setNewClientContact("");
+      setNewClientAddress("");
+      setAddClientOpen(false);
+    },
+    onError: (error: any) => {
+      let msg = t("Failed to add client");
+      try { if (error?.message) msg = error.message; } catch {}
+      toast({ title: msg, variant: "destructive" });
+    },
+  });
+
+  const handleAddClient = () => {
+    if (!newClientName.trim()) {
+      toast({ title: t("Please enter client name"), variant: "destructive" });
+      return;
+    }
+    addClientMutation.mutate({
+      name: newClientName.trim(),
+      type: "customer",
+      contact: newClientContact.trim(),
+      address: newClientAddress,
+    });
+  };
 
   const selectAgent = useCallback((id: string) => {
     setSelectedAgentId(id);
@@ -314,6 +353,10 @@ ${clicheHtml}
           <p className="text-muted-foreground mt-1">{t('Assign clients to agents')}</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setAddClientOpen(true)} className="gap-2 bg-primary text-white" data-testid="button-add-client">
+            <UserPlus className="w-5 h-5" />
+            {t('Add Client')}
+          </Button>
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-clients">
             <RotateCcw className="h-5 w-5" />
             {t('Reset')}
@@ -646,6 +689,65 @@ ${clicheHtml}
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={addClientOpen} onOpenChange={setAddClientOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              {t('Add Client')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-base font-bold">{t('Client Name')}</Label>
+              <Input
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+                placeholder={t('Enter client name')}
+                className="h-11 text-base font-semibold"
+                data-testid="input-new-client-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-base font-bold">{t('Mobile')}</Label>
+              <Input
+                value={newClientContact}
+                onChange={(e) => setNewClientContact(e.target.value)}
+                placeholder={t('Enter mobile number')}
+                className="h-11 text-base font-semibold"
+                dir="ltr"
+                data-testid="input-new-client-contact"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-base font-bold">{t('Address')}</Label>
+              <AddressSearchSelect
+                addresses={addresses}
+                value={newClientAddress}
+                onValueChange={setNewClientAddress}
+                placeholder={t('Select address')}
+                data-testid="select-new-client-address"
+                inputClassName="h-11 text-base font-semibold"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddClientOpen(false)} data-testid="button-cancel-add-client">
+              {t('Cancel')}
+            </Button>
+            <Button
+              onClick={handleAddClient}
+              disabled={addClientMutation.isPending}
+              className="gap-2 bg-primary text-white"
+              data-testid="button-save-new-client"
+            >
+              {addClientMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {t('Save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
