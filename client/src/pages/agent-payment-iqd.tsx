@@ -156,6 +156,7 @@ export default function AgentPaymentIqdPage() {
     if (!id) {
       setAgentId("");
       setAgentName("");
+      setRepresentativeName("");
       return;
     }
     setAgentId(id);
@@ -163,6 +164,16 @@ export default function AgentPaymentIqdPage() {
     if (customer) {
       setAgentName(customer.name);
     }
+    fetch(`/api/customer-representative/${id}`, { credentials: "include" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.representativeName) {
+          setRepresentativeName(data.representativeName);
+        } else {
+          setRepresentativeName("");
+        }
+      })
+      .catch(() => {});
   }, [customers]);
 
   const selectPaymentSource = useCallback((val: string) => {

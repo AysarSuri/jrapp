@@ -116,16 +116,24 @@ export default function CustomerReceiptUsdPage() {
     if (!id) {
       setCustomerId("");
       setCustomerName("");
+      setRepresentativeName("");
       return;
     }
     setCustomerId(id);
     const customer = customers?.find(c => c.id === parseInt(id));
     if (customer) {
       setCustomerName(customer.name);
-      if (customer.representativeName) {
-        setRepresentativeName(customer.representativeName);
-      }
     }
+    fetch(`/api/customer-representative/${id}`, { credentials: "include" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.representativeName) {
+          setRepresentativeName(data.representativeName);
+        } else {
+          setRepresentativeName("");
+        }
+      })
+      .catch(() => {});
   }, [customers]);
 
   const selectPaymentSource = useCallback((val: string) => {

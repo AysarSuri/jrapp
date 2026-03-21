@@ -3068,6 +3068,22 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/customer-representative/:customerId', requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId, 10);
+      if (!customerId) return res.status(400).json({ message: "customerId required" });
+      const [row] = await db.select({ representativeName: salesInvoices.representativeName })
+        .from(salesInvoices)
+        .where(sql`${salesInvoices.customerId} = ${customerId} AND ${salesInvoices.representativeName} IS NOT NULL AND ${salesInvoices.representativeName} != ''`)
+        .orderBy(sql`${salesInvoices.createdAt} DESC`)
+        .limit(1);
+      res.json({ representativeName: row?.representativeName || null });
+    } catch (err) {
+      console.error("Error fetching customer representative:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Customer Receipts
   app.get('/api/customer-receipts/next-number', requireAuth, async (_req, res) => {
     try {
