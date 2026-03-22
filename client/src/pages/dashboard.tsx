@@ -17,7 +17,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useInvoices } from "@/hooks/use-invoices";
 
-// Mock data for visualization since we might not have enough real data yet
 const salesData = [
   { name: 'Jan', total: 1200 },
   { name: 'Feb', total: 2100 },
@@ -43,86 +42,84 @@ export default function Dashboard() {
   const { data: invoices } = useInvoices();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-bold">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('Dashboard')}</h1>
-          <p className="text-muted-foreground mt-1">Overview of your business performance</p>
+          <p className="text-muted-foreground mt-1 font-semibold">Overview of your business performance</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Sales')}</CardTitle>
+            <CardTitle className="text-sm font-bold">{t('Total Sales')}</CardTitle>
             <IconDollar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-emerald-500 flex items-center font-medium">
+            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold">
                 <TrendingUp className="w-3 h-3 mr-1" /> +20.1%
               </span>
-              <span className="ml-2">from last month</span>
+              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Active Clients')}</CardTitle>
+            <CardTitle className="text-sm font-bold">{t('Active Clients')}</CardTitle>
             <IconCustomers className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-emerald-500 flex items-center font-medium">
+            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold">
                 <TrendingUp className="w-3 h-3 mr-1" /> +180.1%
               </span>
-              <span className="ml-2">from last month</span>
+              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Products')}</CardTitle>
+            <CardTitle className="text-sm font-bold">{t('Products')}</CardTitle>
             <IconProduct className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-rose-500 flex items-center font-medium">
+            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
+              <span className="text-rose-500 flex items-center font-bold">
                 <TrendingDown className="w-3 h-3 mr-1" /> -4.5%
               </span>
-              <span className="ml-2">from last month</span>
+              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Net Profit')}</CardTitle>
+            <CardTitle className="text-sm font-bold">{t('Net Profit')}</CardTitle>
             <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$12,234.00</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-emerald-500 flex items-center font-medium">
+            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold">
                 <TrendingUp className="w-3 h-3 mr-1" /> +12.3%
               </span>
-              <span className="ml-2">from last month</span>
+              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 hover:shadow-md transition-all">
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle className="font-bold">Revenue Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[300px]">
@@ -141,6 +138,7 @@ export default function Dashboard() {
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
+                    fontWeight={700}
                   />
                   <YAxis 
                     stroke="#888888" 
@@ -148,9 +146,10 @@ export default function Dashboard() {
                     tickLine={false} 
                     axisLine={false} 
                     tickFormatter={(value) => `$${value}`} 
+                    fontWeight={700}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))', fontWeight: 700 }}
                   />
                   <Area 
                     type="monotone" 
@@ -168,7 +167,7 @@ export default function Dashboard() {
 
         <Card className="col-span-3 hover:shadow-md transition-all">
           <CardHeader>
-            <CardTitle>Monthly Sales</CardTitle>
+            <CardTitle className="font-bold">Monthly Sales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -181,15 +180,17 @@ export default function Dashboard() {
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
+                    fontWeight={700}
                   />
                   <YAxis 
                     stroke="#888888" 
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
+                    fontWeight={700}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))', fontWeight: 700 }}
                     cursor={{fill: 'hsl(var(--muted))'}}
                   />
                   <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -200,11 +201,10 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Recent Activity */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle className="font-bold">Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -214,16 +214,16 @@ export default function Dashboard() {
                     $
                   </div>
                   <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{tx.type} - {tx.reference}</p>
-                    <p className="text-sm text-muted-foreground">{formatDate(tx.date)}</p>
+                    <p className="text-sm font-bold leading-none">{tx.type} - {tx.reference}</p>
+                    <p className="text-sm text-muted-foreground font-semibold">{formatDate(tx.date)}</p>
                   </div>
-                  <div className="ml-auto font-medium">
+                  <div className="ml-auto font-bold">
                     {tx.type === 'deposit' ? '+' : '-'}${tx.amount}
                   </div>
                 </div>
               ))}
               {!transactions?.length && (
-                <p className="text-muted-foreground text-sm">No recent transactions.</p>
+                <p className="text-muted-foreground text-sm font-semibold">No recent transactions.</p>
               )}
             </div>
           </CardContent>
@@ -231,7 +231,7 @@ export default function Dashboard() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+            <CardTitle className="font-bold">Recent Invoices</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -241,16 +241,16 @@ export default function Dashboard() {
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{inv.type} #{inv.id}</p>
-                    <p className="text-sm text-muted-foreground">{inv.status} - {formatDate(inv.date)}</p>
+                    <p className="text-sm font-bold leading-none">{inv.type} #{inv.id}</p>
+                    <p className="text-sm text-muted-foreground font-semibold">{inv.status} - {formatDate(inv.date)}</p>
                   </div>
-                  <div className="ml-auto font-medium">
+                  <div className="ml-auto font-bold">
                     ${inv.total}
                   </div>
                 </div>
               ))}
               {!invoices?.length && (
-                <p className="text-muted-foreground text-sm">No recent invoices.</p>
+                <p className="text-muted-foreground text-sm font-semibold">No recent invoices.</p>
               )}
             </div>
           </CardContent>
