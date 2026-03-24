@@ -501,23 +501,23 @@ export function LayoutShell({ children }: LayoutShellProps) {
       <Link key={item.href} href={item.href} data-testid={testId} className={`
         flex items-center gap-3 ${indent ? 'px-4 py-2.5 ms-6' : 'px-4 py-3'} rounded-xl transition-all duration-200
         ${isActive
-          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-md shadow-orange-500/20 font-medium"
+          : "text-[hsl(var(--sidebar-foreground))]/70 hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]"
         }
       `}>
-        <item.icon className={`w-5 h-5 ${isActive ? "text-primary-foreground" : ""}`} />
+        <item.icon className={`w-5 h-5 ${isActive ? "text-[hsl(var(--sidebar-primary-foreground))]" : ""}`} />
         <span className={`${indent ? "text-sm" : ""}`}>{t(item.label)}</span>
       </Link>
     );
   };
 
   const renderSidebar = () => (
-    <div className="flex flex-col h-full bg-card border-r border-border">
-      <div className="p-6 border-b border-border/50">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-yellow-500 bg-clip-text text-transparent">
+    <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))]">
+      <div className="p-6 border-b border-[hsl(var(--sidebar-border))]">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">
           ProERP
         </h1>
-        <p className="text-xs text-muted-foreground mt-1">Enterprise Management</p>
+        <p className="text-xs text-[hsl(var(--sidebar-foreground))]/60 mt-1">Enterprise Management</p>
       </div>
 
       <nav ref={sidebarScrollRef} className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -571,14 +571,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                     ${isLandingActive
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 font-medium"
+                      ? "bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-md shadow-orange-500/20 font-medium"
                       : isActiveSection
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "bg-[hsl(var(--sidebar-accent))] text-orange-400 font-medium"
+                        : "text-[hsl(var(--sidebar-foreground))]/70 hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]"
                     }
                   `}
                 >
-                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-primary-foreground" : ""}`} />
+                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-[hsl(var(--sidebar-primary-foreground))]" : ""}`} />
                   <span className="flex-1 text-start">{t(entry.label)}</span>
                   <ChevronDown
                     onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
@@ -597,16 +597,16 @@ export function LayoutShell({ children }: LayoutShellProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border/50 bg-muted/20">
+      <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
         <div className="flex items-center gap-3 px-4 py-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary/20 to-primary/10 flex items-center justify-center text-primary font-bold">
+          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">
             {user?.username?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.username}</p>
-            <p className="text-xs text-muted-foreground truncate capitalize">{user?.role}</p>
+            <p className="text-sm font-medium truncate text-[hsl(var(--sidebar-foreground))]">{user?.username}</p>
+            <p className="text-xs text-[hsl(var(--sidebar-foreground))]/50 truncate capitalize">{user?.role}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-[hsl(var(--sidebar-foreground))]/60 hover:text-destructive">
             <LogOut className="w-5 h-5" />
           </Button>
         </div>

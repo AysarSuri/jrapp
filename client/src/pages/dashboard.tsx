@@ -51,73 +51,77 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary">
+        <Card className="hover:shadow-lg transition-all duration-300 rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold">{t('Total Sales')}</CardTitle>
-            <IconDollar className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('Total Sales')}</CardTitle>
+            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <IconDollar className="h-5 w-5 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
-              <span className="text-emerald-500 flex items-center font-bold">
+            <p className="text-xs text-muted-foreground flex items-center mt-2 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                 <TrendingUp className="w-3 h-3 mr-1" /> +20.1%
               </span>
-              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+        <Card className="hover:shadow-lg transition-all duration-300 rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold">{t('Active Clients')}</CardTitle>
-            <IconCustomers className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('Active Clients')}</CardTitle>
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <IconCustomers className="h-5 w-5 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
-              <span className="text-emerald-500 flex items-center font-bold">
+            <p className="text-xs text-muted-foreground flex items-center mt-2 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                 <TrendingUp className="w-3 h-3 mr-1" /> +180.1%
               </span>
-              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
+        <Card className="hover:shadow-lg transition-all duration-300 rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold">{t('Products')}</CardTitle>
-            <IconProduct className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('Products')}</CardTitle>
+            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <IconProduct className="h-5 w-5 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
-              <span className="text-rose-500 flex items-center font-bold">
+            <p className="text-xs text-muted-foreground flex items-center mt-2 font-bold">
+              <span className="text-rose-500 flex items-center font-bold bg-rose-50 dark:bg-rose-900/20 px-2 py-0.5 rounded-full">
                 <TrendingDown className="w-3 h-3 mr-1" /> -4.5%
               </span>
-              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-purple-500">
+        <Card className="hover:shadow-lg transition-all duration-300 rounded-2xl shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold">{t('Net Profit')}</CardTitle>
-            <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('Net Profit')}</CardTitle>
+            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <ArrowUpRight className="h-5 w-5 text-emerald-500" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$12,234.00</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1 font-bold">
-              <span className="text-emerald-500 flex items-center font-bold">
+            <p className="text-xs text-muted-foreground flex items-center mt-2 font-bold">
+              <span className="text-emerald-500 flex items-center font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                 <TrendingUp className="w-3 h-3 mr-1" /> +12.3%
               </span>
-              <span className="ml-2 font-semibold">from last month</span>
             </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 hover:shadow-md transition-all">
+        <Card className="col-span-4 hover:shadow-md transition-all rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="font-bold">Revenue Overview</CardTitle>
           </CardHeader>
@@ -165,7 +169,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 hover:shadow-md transition-all">
+        <Card className="col-span-3 hover:shadow-md transition-all rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="font-bold">Monthly Sales</CardTitle>
           </CardHeader>
@@ -202,7 +206,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="font-bold">Recent Transactions</CardTitle>
           </CardHeader>
@@ -229,7 +233,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle className="font-bold">Recent Invoices</CardTitle>
           </CardHeader>
