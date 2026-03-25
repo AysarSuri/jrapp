@@ -569,7 +569,7 @@ export default function AgentStatementIqdPage() {
             <div className="flex-1 min-w-[200px] max-w-md">
               <Label className="text-base font-bold mb-1 block">{t('Customer Name')}</Label>
               <SearchSelect
-                items={customers.map((c: any) => ({ id: c.id, name: c.name }))}
+                items={customers.map((c: any) => ({ id: c.id, name: c.name, subtitle: [c.address, c.contact].filter(Boolean).join(" • ") || undefined }))}
                 value={selectedCustomerId}
                 onValueChange={setSelectedCustomerId}
                 placeholder={t('Select customer...')}

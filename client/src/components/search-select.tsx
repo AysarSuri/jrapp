@@ -6,6 +6,7 @@ import { Search, X, ChevronDown } from "lucide-react";
 interface SearchSelectItem {
   id: number | string;
   name: string;
+  subtitle?: string;
 }
 
 interface SearchSelectProps {
@@ -45,7 +46,8 @@ export function SearchSelect({
   const selectedItem = items.find(item => String(item.id) === value);
 
   const filtered = items.filter(item =>
-    item.name.toLowerCase().includes(searchText.toLowerCase())
+    item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (item.subtitle && item.subtitle.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   useEffect(() => {
@@ -160,7 +162,10 @@ export function SearchSelect({
                 onClick={() => handleSelect(String(item.id))}
                 data-testid={testId ? `${testId}-${item.id}` : undefined}
               >
-                {item.name}
+                <span>{item.name}</span>
+                {item.subtitle && (
+                  <span className="text-xs text-muted-foreground block">{item.subtitle}</span>
+                )}
               </button>
             ))
           )}
