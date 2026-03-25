@@ -474,6 +474,7 @@ export default function SalesInvoiceUsdPage() {
   };
 
   const selectRepresentative = (repId: string) => {
+    if (!repId) { setRepresentativeId(null); setRepresentativeName(""); setRepresentativeMobile(""); return; }
     const rep = representativesList?.find(r => r.id === repId);
     if (rep) {
       setRepresentativeId(rep.repId);
@@ -617,7 +618,13 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Name')}</Label>
-              <Input value={representativeName} onChange={(e) => setRepresentativeName(e.target.value)} placeholder={t('Representative name...')} readOnly className="bg-muted/50" data-testid="input-sales-rep-name" />
+              <SearchSelect
+                items={representativesList || []}
+                value={representativesList?.find(r => r.repId === representativeId)?.id || ""}
+                onValueChange={selectRepresentative}
+                placeholder={t('Select Representative')}
+                data-testid="select-sales-rep-name"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
