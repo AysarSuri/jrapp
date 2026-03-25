@@ -52,14 +52,12 @@ export function SearchSelect({
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
-        if (!value || value === "all") {
-          setSearchText("");
-        }
+        setSearchText("");
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [value]);
+  }, []);
 
   const handleSelect = (id: string) => {
     onValueChange(id);
@@ -96,13 +94,29 @@ export function SearchSelect({
               setSearchText("");
             }
           }}
+          onBlur={() => {
+            setTimeout(() => {
+              if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+                setIsOpen(false);
+                setSearchText("");
+              }
+            }, 150);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && isOpen) {
               e.preventDefault();
               e.stopPropagation();
               if (filtered.length > 0) {
                 handleSelect(String(filtered[0].id));
+              } else {
+                setIsOpen(false);
+                setSearchText("");
               }
+            }
+            if (e.key === "Escape") {
+              setIsOpen(false);
+              setSearchText("");
+              inputRef.current?.blur();
             }
           }}
           className={`${isRtl ? "pr-8 pl-8" : "pl-8 pr-8"} h-11 text-base ${inputClassName}`}
