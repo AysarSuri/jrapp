@@ -19,8 +19,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
+import { formatDate } from "@/lib/format-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
 type AgentClientWithDetails = AgentClient & {
@@ -34,7 +35,7 @@ export default function AgentClientsPage() {
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const printRef = useRef<HTMLDivElement>(null);
 
-  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null }>({
+  const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null; address: string | null; mobile1: string | null; primaryColor: string | null }>({
     queryKey: ["/api/company-profile"],
   });
   const { data: agentsList } = useQuery<{ id: string; name: string }[]>({
@@ -190,22 +191,28 @@ export default function AgentClientsPage() {
 
     agentNames.forEach(agentName => {
       const cls = grouped[agentName];
-      tableRows += `<tr><td colspan="5" style="background:#7c3aed; color:white; font-weight:700; padding:10px 12px; font-size:13pt; border:none;">${agentName} (${cls.length})</td></tr>`;
+      tableRows += `<tr><td colspan="4" style="background:${accent}; color:white; font-weight:700; padding:10px 12px; font-size:12pt; border:none;">${agentName} (${cls.length})</td></tr>`;
       cls.forEach(c => {
         tableRows += `<tr>
-          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-family:monospace; font-size:10pt; text-align:center; width:40px;">${globalIndex}</td>
-          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-weight:600; font-size:11pt;">${c.clientName}</td>
-          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-size:10pt; color:#555;">${c.clientAddress || "-"}</td>
-          <td style="padding:8px 12px; border-bottom:1px solid #e5e7eb; font-size:10pt; color:#555; direction:ltr;">${c.clientContact || "-"}</td>
+          <td class="num">${globalIndex}</td>
+          <td class="name-cell">${c.clientName}</td>
+          <td>${c.clientAddress || "-"}</td>
+          <td style="direction:ltr;">${c.clientContact || "-"}</td>
         </tr>`;
         globalIndex++;
       });
     });
 
-    const today = new Date().toISOString().split("T")[0];
-    const clicheHtml = companyProfile?.cliche
-      ? `<div style="text-align:center; margin-bottom:10px;"><img src="${companyProfile.cliche}" alt="" style="width:100%; max-height:160px; object-fit:cover; border-radius:6px;" /></div>`
-      : "";
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const accent = companyProfile?.primaryColor || "#7c3aed";
+    const companyName = esc(companyProfile?.name || "");
+    const companyLogo = companyProfile?.logo || "";
+    const companyAddress = esc(companyProfile?.address || "");
+    const companyMobile = esc(companyProfile?.mobile1 || "");
+    const today = formatDate(new Date());
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const title = t("Agent Client Assignments Report");
 
     const filterLabel = historyFilter && historyFilter !== "all"
       ? agents.find(a => a.id === historyFilter)?.name || t("All Agents")
@@ -214,33 +221,79 @@ export default function AgentClientsPage() {
     return { html: `<!DOCTYPE html>
 <html dir="${dir}" lang="${i18n.language}">
 <head>
-        ${PRINT_FONT_LINKS}
-<meta charset="UTF-8" />
-<title>${t("Agent Client Assignments Report")}</title>
-<style>${printStyles}
-  body { font-family: Arial, sans-serif; padding: 15px; }
-  @media print { body { padding: 0; } }
-</style>
+  ${PRINT_FONT_LINKS}
+  <meta charset="UTF-8" />
+  <title>${title} — ${companyName}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, sans-serif;
+      padding: 18px 24px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; margin-bottom: 14px;
+      border: 2px solid #e2e8f0; border-radius: 14px; background: linear-gradient(135deg, #fafbfc, #f8fafc);
+    }
+    .header-center { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center; }
+    .header-center img { width: 60px; height: 60px; object-fit: contain; border-radius: 10px; }
+    .header-center .company-name { font-size: 18pt; font-weight: 800; color: ${accent}; }
+    .header-right { text-align: ${dir === "rtl" ? "right" : "left"}; min-width: 180px; }
+    .header-right .report-title { font-size: 16pt; font-weight: 800; color: ${accent}; margin-bottom: 2px; }
+    .header-right .report-date { font-size: 9pt; color: #64748b; font-weight: 500; }
+    .header-left { text-align: ${dir === "rtl" ? "left" : "right"}; min-width: 200px; display: flex; flex-direction: column; gap: 3px; font-size: 8.5pt; color: #64748b; }
+    .header-left .contact-item { display: flex; align-items: center; gap: 5px; justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"}; }
+    .summary-row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .stat-card { flex: 1; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .stat-card.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .stat-card.purple { background: #faf5ff; border: 1px solid #e9d5ff; }
+    .stat-label { font-size: 8.5pt; color: #64748b; font-weight: 600; }
+    .stat-value { font-size: 13pt; font-weight: 800; color: #1a1a2e; }
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    thead { background: #f1f5f9; }
+    th { padding: 8px 10px; text-align: ${dir === "rtl" ? "right" : "left"}; font-weight: 700; color: #334155; border-bottom: 2px solid #e2e8f0; font-size: 9pt; }
+    td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; }
+    tr:nth-child(even) { background: #fafbfc; }
+    .num { text-align: center; color: #94a3b8; font-weight: 600; width: 35px; }
+    .name-cell { font-weight: 700; }
+    .footer { margin-top: 16px; text-align: center; font-size: 8pt; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+    @media print { body { padding: 10px 14px; } @page { margin: 8mm; } }
+  </style>
 </head>
 <body>
-${clicheHtml}
-<div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #333; padding-bottom:10px;">
-  <h1 style="font-size:18pt; margin-bottom:3px; font-weight:700;">${t("Agent Client Assignments Report")}</h1>
-  <p style="font-size:11pt; color:#666;">${t("Date")}: ${today} | ${t("Filter")}: ${filterLabel} | ${t("Total")}: ${dataToUse.length}</p>
-</div>
-<table style="width:100%; border-collapse:collapse; margin-top:10px;">
-  <thead>
-    <tr style="background:#f3f4f6;">
-      <th style="padding:10px 12px; text-align:center; border-bottom:2px solid #d1d5db; font-size:10pt; width:40px;">#</th>
-      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Client Name")}</th>
-      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Address")}</th>
-      <th style="padding:10px 12px; text-align:${isRtl ? "right" : "left"}; border-bottom:2px solid #d1d5db; font-size:10pt;">${t("Mobile")}</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${tableRows}
-  </tbody>
-</table>
+  <div class="header-row">
+    <div class="header-right">
+      <div class="report-title">${title}</div>
+      <div class="report-date">${today} — ${timeStr}</div>
+    </div>
+    <div class="header-center">
+      ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
+      <span class="company-name">${companyName}</span>
+    </div>
+    <div class="header-left">
+      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
+      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="stat-card blue"><span class="stat-label">${t("Total Clients")}</span><span class="stat-value">${dataToUse.length}</span></div>
+    <div class="stat-card purple"><span class="stat-label">${t("Filter")}</span><span class="stat-value">${filterLabel}</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:center">#</th>
+        <th>${t("Client Name")}</th>
+        <th>${t("Address")}</th>
+        <th>${t("Mobile")}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+    </tbody>
+  </table>
+  <div class="footer">${companyName} — ${today}</div>
 </body>
 </html>`, today, filterLabel, count: dataToUse.length };
   };
@@ -251,11 +304,7 @@ ${clicheHtml}
       return;
     }
     const { html } = buildReportHtml();
-    const printWindow = window.open("", "_blank", "width=794,height=1123");
-    if (!printWindow) return;
-    printWindow.document.write(html);
-    printWindow.document.close();
-    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
+    openPrintWindow(html);
   };
 
   const handleWhatsAppReport = async () => {
