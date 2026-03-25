@@ -298,53 +298,56 @@ export default function SettingsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-base font-bold flex items-center gap-2">
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
                         <FileText className="h-5 w-5 text-orange-500" />
                         {t('Invoice Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(ACM)</span>
                       </Label>
-                      <Input
-                        value={printerSettings.invoicePrinter}
-                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, invoicePrinter: e.target.value }))}
-                        placeholder={t('Enter invoice printer name...')}
-                        className="h-11 text-base font-semibold"
-                        data-testid="input-settings-invoice-printer"
-                      />
-                      <p className="text-xs text-muted-foreground">{t('Thermal receipt printer for invoices')}</p>
+                      <div className="flex-1">
+                        <Input
+                          value={printerSettings.invoicePrinter}
+                          onChange={(e) => setPrinterSettings(prev => ({ ...prev, invoicePrinter: e.target.value }))}
+                          placeholder={t('Enter invoice printer name...')}
+                          className="h-11 text-base font-semibold"
+                          data-testid="input-settings-invoice-printer"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-base font-bold flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
                         <BarChart3 className="h-5 w-5 text-green-500" />
                         {t('Reports Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(A4)</span>
                       </Label>
-                      <Input
-                        value={printerSettings.reportsPrinter}
-                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, reportsPrinter: e.target.value }))}
-                        placeholder={t('Enter reports printer name...')}
-                        className="h-11 text-base font-semibold"
-                        data-testid="input-settings-reports-printer"
-                      />
-                      <p className="text-xs text-muted-foreground">{t('A4 paper printer for reports')}</p>
+                      <div className="flex-1">
+                        <Input
+                          value={printerSettings.reportsPrinter}
+                          onChange={(e) => setPrinterSettings(prev => ({ ...prev, reportsPrinter: e.target.value }))}
+                          placeholder={t('Enter reports printer name...')}
+                          className="h-11 text-base font-semibold"
+                          data-testid="input-settings-reports-printer"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-base font-bold flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
                         <StickyNote className="h-5 w-5 text-purple-500" />
                         {t('Barcode Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(STICKER)</span>
                       </Label>
-                      <Input
-                        value={printerSettings.barcodePrinter}
-                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, barcodePrinter: e.target.value }))}
-                        placeholder={t('Enter barcode printer name...')}
-                        className="h-11 text-base font-semibold"
-                        data-testid="input-settings-barcode-printer"
-                      />
-                      <p className="text-xs text-muted-foreground">{t('Sticker printer for barcodes')}</p>
+                      <div className="flex-1">
+                        <Input
+                          value={printerSettings.barcodePrinter}
+                          onChange={(e) => setPrinterSettings(prev => ({ ...prev, barcodePrinter: e.target.value }))}
+                          placeholder={t('Enter barcode printer name...')}
+                          className="h-11 text-base font-semibold"
+                          data-testid="input-settings-barcode-printer"
+                        />
+                      </div>
                     </div>
                   </div>
 
