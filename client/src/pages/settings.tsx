@@ -9,12 +9,16 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone } from "lucide-react";
 import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar } from "@/components/erp-icons";
 
+const DEVICE_NAME_KEY = "erp_device_name";
+const DEVICE_TYPE_KEY = "erp_device_type";
 const PRINTER_SETTINGS_KEY = "erp_printer_settings";
 const GENERAL_SETTINGS_KEY = "erp_general_settings";
 const FIELD_VISIBILITY_KEY = "erp_field_visibility";
+
+type DeviceType = "desktop" | "mobile" | "pos_android";
 
 interface PrinterSettings {
   invoicePrinter: string;
@@ -86,6 +90,23 @@ const defaultFieldVisibility: FieldVisibilitySettings = {
   purchaseInvoice_amountReceived: true,
 };
 
+function detectDeviceType(): DeviceType {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/android/.test(ua) && /mobile/.test(ua)) return "pos_android";
+  if (/mobile|iphone|ipod/.test(ua)) return "mobile";
+  if (/android|ipad|tablet/.test(ua)) return "pos_android";
+  return "desktop";
+}
+
+export function loadDeviceName(): string {
+  return localStorage.getItem(DEVICE_NAME_KEY) || "";
+}
+
+export function loadDeviceType(): DeviceType {
+  const saved = localStorage.getItem(DEVICE_TYPE_KEY) as DeviceType | null;
+  return saved || detectDeviceType();
+}
+
 function loadPrinterSettings(): PrinterSettings {
   try {
     const saved = localStorage.getItem(PRINTER_SETTINGS_KEY);
@@ -129,6 +150,8 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<SettingsTab>("printers");
 
+  const [deviceName, setDeviceName] = useState<string>(loadDeviceName);
+  const [deviceType, setDeviceType] = useState<DeviceType>(loadDeviceType);
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>(loadPrinterSettings);
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
   const [fieldVisibility, setFieldVisibility] = useState<FieldVisibilitySettings>(loadFieldVisibility);
@@ -139,7 +162,15 @@ export default function SettingsPage() {
     { key: "field_visibility", label: t("Show & Hide Fields"), icon: Eye },
   ];
 
+  const deviceTypeOptions: { value: DeviceType; label: string; icon: typeof Monitor }[] = [
+    { value: "desktop", label: t("Desktop / Laptop"), icon: Monitor },
+    { value: "mobile", label: t("Mobile Phone"), icon: Smartphone },
+    { value: "pos_android", label: t("POS / Android Cashier"), icon: TabletSmartphone },
+  ];
+
   const handleSavePrinterSettings = () => {
+    localStorage.setItem(DEVICE_NAME_KEY, deviceName);
+    localStorage.setItem(DEVICE_TYPE_KEY, deviceType);
     savePrinterSettings(printerSettings);
     toast({ title: t("Settings saved successfully") });
   };
@@ -204,72 +235,128 @@ export default function SettingsPage() {
 
         <div className="flex-1">
           {activeTab === "printers" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Printer className="h-5 w-5 text-blue-600" />
-                  {t('Printer Settings')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-base font-bold flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-orange-500" />
-                      {t('Invoice Printer')}
-                      <span className="text-xs font-normal text-muted-foreground">(ACM)</span>
-                    </Label>
-                    <Input
-                      value={printerSettings.invoicePrinter}
-                      onChange={(e) => setPrinterSettings(prev => ({ ...prev, invoicePrinter: e.target.value }))}
-                      placeholder={t('Enter invoice printer name...')}
-                      className="h-11 text-base font-semibold"
-                      data-testid="input-settings-invoice-printer"
-                    />
-                    <p className="text-xs text-muted-foreground">{t('Thermal receipt printer for invoices')}</p>
+            <div className="space-y-6">
+              <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                    <Monitor className="h-5 w-5" />
+                    {t('Device Identification')}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">{t('Set a name for this device so printer settings are unique per computer/phone')}</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-base font-bold">{t('Device Name')}</Label>
+                      <Input
+                        value={deviceName}
+                        onChange={(e) => setDeviceName(e.target.value)}
+                        placeholder={t('e.g. Office PC, Warehouse Laptop, Android POS...')}
+                        className="h-11 text-base font-semibold"
+                        data-testid="input-settings-device-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-base font-bold">{t('Device Type')}</Label>
+                      <div className="flex gap-2">
+                        {deviceTypeOptions.map(opt => (
+                          <Button
+                            key={opt.value}
+                            variant={deviceType === opt.value ? "default" : "outline"}
+                            className={`flex-1 gap-2 ${deviceType === opt.value ? "bg-blue-600 text-white hover:bg-blue-700" : ""}`}
+                            onClick={() => setDeviceType(opt.value)}
+                            data-testid={`button-device-type-${opt.value}`}
+                          >
+                            <opt.icon className="h-5 w-5" />
+                            <span className="text-xs font-semibold">{opt.label}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {deviceName && (
+                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 rounded-lg px-3 py-2">
+                      {deviceType === "desktop" && <Monitor className="h-4 w-4" />}
+                      {deviceType === "mobile" && <Smartphone className="h-4 w-4" />}
+                      {deviceType === "pos_android" && <TabletSmartphone className="h-4 w-4" />}
+                      {t('Current device')}: <span className="font-bold">{deviceName}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Printer className="h-5 w-5 text-blue-600" />
+                    {t('Printer Settings')}
+                    {deviceName && (
+                      <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        {deviceName}
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-base font-bold flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-orange-500" />
+                        {t('Invoice Printer')}
+                        <span className="text-xs font-normal text-muted-foreground">(ACM)</span>
+                      </Label>
+                      <Input
+                        value={printerSettings.invoicePrinter}
+                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, invoicePrinter: e.target.value }))}
+                        placeholder={t('Enter invoice printer name...')}
+                        className="h-11 text-base font-semibold"
+                        data-testid="input-settings-invoice-printer"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('Thermal receipt printer for invoices')}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-base font-bold flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-green-500" />
+                        {t('Reports Printer')}
+                        <span className="text-xs font-normal text-muted-foreground">(A4)</span>
+                      </Label>
+                      <Input
+                        value={printerSettings.reportsPrinter}
+                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, reportsPrinter: e.target.value }))}
+                        placeholder={t('Enter reports printer name...')}
+                        className="h-11 text-base font-semibold"
+                        data-testid="input-settings-reports-printer"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('A4 paper printer for reports')}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-base font-bold flex items-center gap-2">
+                        <StickyNote className="h-5 w-5 text-purple-500" />
+                        {t('Barcode Printer')}
+                        <span className="text-xs font-normal text-muted-foreground">(STICKER)</span>
+                      </Label>
+                      <Input
+                        value={printerSettings.barcodePrinter}
+                        onChange={(e) => setPrinterSettings(prev => ({ ...prev, barcodePrinter: e.target.value }))}
+                        placeholder={t('Enter barcode printer name...')}
+                        className="h-11 text-base font-semibold"
+                        data-testid="input-settings-barcode-printer"
+                      />
+                      <p className="text-xs text-muted-foreground">{t('Sticker printer for barcodes')}</p>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-base font-bold flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-green-500" />
-                      {t('Reports Printer')}
-                      <span className="text-xs font-normal text-muted-foreground">(A4)</span>
-                    </Label>
-                    <Input
-                      value={printerSettings.reportsPrinter}
-                      onChange={(e) => setPrinterSettings(prev => ({ ...prev, reportsPrinter: e.target.value }))}
-                      placeholder={t('Enter reports printer name...')}
-                      className="h-11 text-base font-semibold"
-                      data-testid="input-settings-reports-printer"
-                    />
-                    <p className="text-xs text-muted-foreground">{t('A4 paper printer for reports')}</p>
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={handleSavePrinterSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-printers">
+                      <Save className="h-5 w-5" />
+                      {t('Save Settings')}
+                    </Button>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-base font-bold flex items-center gap-2">
-                      <StickyNote className="h-5 w-5 text-purple-500" />
-                      {t('Barcode Printer')}
-                      <span className="text-xs font-normal text-muted-foreground">(STICKER)</span>
-                    </Label>
-                    <Input
-                      value={printerSettings.barcodePrinter}
-                      onChange={(e) => setPrinterSettings(prev => ({ ...prev, barcodePrinter: e.target.value }))}
-                      placeholder={t('Enter barcode printer name...')}
-                      className="h-11 text-base font-semibold"
-                      data-testid="input-settings-barcode-printer"
-                    />
-                    <p className="text-xs text-muted-foreground">{t('Sticker printer for barcodes')}</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4">
-                  <Button onClick={handleSavePrinterSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-printers">
-                    <Save className="h-5 w-5" />
-                    {t('Save Settings')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === "general" && (
