@@ -261,6 +261,8 @@ export default function RepresentativesPage() {
                     <TableHead>{t('Representative Name')}</TableHead>
                     <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Agreement Type')}</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>
                     <TableHead>{t('Hide')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
@@ -290,6 +292,8 @@ export default function RepresentativesPage() {
                           {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell>
                         {item.hidden === 1 ? (
                           <Badge variant="destructive" className="gap-1">
