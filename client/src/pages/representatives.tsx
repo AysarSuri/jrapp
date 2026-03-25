@@ -411,9 +411,6 @@ export default function RepresentativesPage() {
                     <TableHead>{t('Agreement Type')}</TableHead>
                     <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>
                     <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>
-                    <TableHead className="text-right">{t('Final Balance')} (USD)</TableHead>
-                    <TableHead className="text-right">{t('Final Balance')} (IQD)</TableHead>
-                    <TableHead>{t('Status')}</TableHead>
                     <TableHead>{t('Hide')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
@@ -445,40 +442,6 @@ export default function RepresentativesPage() {
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
-                      {(() => {
-                        const bal = repBalances?.[item.id];
-                        const bUsd = bal?.balanceUsd ?? 0;
-                        const bIqd = bal?.balanceIqd ?? 0;
-                        const hasPositive = bUsd > 0 || bIqd > 0;
-                        const hasNegative = bUsd < 0 || bIqd < 0;
-                        return (
-                          <>
-                            <TableCell className={`text-right font-mono text-sm font-semibold ${bUsd > 0 ? 'text-green-600' : bUsd < 0 ? 'text-red-600' : ''}`}>
-                              {bUsd !== 0 ? `${bUsd < 0 ? '-' : ''}$${Math.abs(bUsd).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
-                            </TableCell>
-                            <TableCell className={`text-right font-mono text-sm font-semibold ${bIqd > 0 ? 'text-green-600' : bIqd < 0 ? 'text-red-600' : ''}`}>
-                              {bIqd !== 0 ? `${bIqd < 0 ? '-' : ''}${Math.abs(bIqd).toLocaleString()} IQD` : '-'}
-                            </TableCell>
-                            <TableCell>
-                              {hasPositive && (
-                                <Badge className="gap-1 text-xs bg-green-600 text-white">
-                                  {t('Remaining at him')}
-                                </Badge>
-                              )}
-                              {hasNegative && (
-                                <Badge variant="destructive" className="gap-1 text-xs">
-                                  {t('Remaining at us')}
-                                </Badge>
-                              )}
-                              {!hasPositive && !hasNegative && (
-                                <Badge variant="secondary" className="gap-1 text-xs">
-                                  {t('Zero Account')}
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </>
-                        );
-                      })()}
                       <TableCell>
                         {item.hidden === 1 ? (
                           <Badge variant="destructive" className="gap-1">
