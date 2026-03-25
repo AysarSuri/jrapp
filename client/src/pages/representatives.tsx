@@ -6,6 +6,7 @@ import { insertRepresentativeSchema, type Representative } from "@shared/schema"
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useRepresentatives, useCreateRepresentative, useUpdateRepresentative, useDeleteRepresentative } from "@/hooks/use-representatives";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -212,6 +213,7 @@ export default function RepresentativesPage() {
           setOpen(false);
           setEditing(null);
           form.reset();
+          queryClient.invalidateQueries({ queryKey: ["/api/rep-balances"] });
           toast({ title: t("Representative updated successfully") });
         },
         onError: (err) => {
@@ -223,6 +225,7 @@ export default function RepresentativesPage() {
         onSuccess: () => {
           setOpen(false);
           form.reset();
+          queryClient.invalidateQueries({ queryKey: ["/api/rep-balances"] });
           toast({ title: t("Representative added successfully") });
         },
         onError: (err) => {
@@ -235,6 +238,7 @@ export default function RepresentativesPage() {
   const handleDelete = (id: number) => {
     deleteRep(id, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/rep-balances"] });
         toast({ title: t("Representative deleted successfully") });
       },
       onError: (err) => {
@@ -405,6 +409,8 @@ export default function RepresentativesPage() {
                     <TableHead>{t('Representative Name')}</TableHead>
                     <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Agreement Type')}</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>
+                    <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>
                     <TableHead className="text-right">{t('Final Balance')} (USD)</TableHead>
                     <TableHead className="text-right">{t('Final Balance')} (IQD)</TableHead>
                     <TableHead>{t('Status')}</TableHead>
@@ -437,6 +443,8 @@ export default function RepresentativesPage() {
                           {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
                       {(() => {
                         const bal = repBalances?.[item.id];
                         const bUsd = bal?.balanceUsd ?? 0;
