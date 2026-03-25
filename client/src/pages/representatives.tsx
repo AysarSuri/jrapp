@@ -28,6 +28,7 @@ import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff, Package, Printer 
 import { IconAgent } from "@/components/erp-icons";
 import { usd, formatDate } from "@/lib/format-utils";
 import { PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
+import { loadFieldVisibility } from "@/pages/settings";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,7 @@ export default function RepresentativesPage() {
   const { mutate: updateRep, isPending: isUpdating } = useUpdateRepresentative();
   const { mutate: deleteRep } = useDeleteRepresentative();
   const { toast } = useToast();
+  const fv = loadFieldVisibility();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Representative | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,10 +77,10 @@ export default function RepresentativesPage() {
       <tr>
         <td class="num">${i + 1}</td>
         <td class="name-cell">${esc(item.name)}</td>
-        <td class="mono">${esc(item.mobile || '-')}</td>
-        <td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>
-        <td class="mono price-usd" style="color:${dUsd < 0 ? '#dc2626' : '#166534'}">$${dUsd.toFixed(2)}</td>
-        <td class="mono price-iqd" style="color:${dIqd < 0 ? '#dc2626' : '#9333ea'}">${dIqd.toLocaleString()} IQD</td>
+        ${fv.rep_mobile ? `<td class="mono">${esc(item.mobile || '-')}</td>` : ""}
+        ${fv.rep_agreementType ? `<td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>` : ""}
+        ${fv.rep_debtUsd ? `<td class="mono price-usd" style="color:${dUsd < 0 ? '#dc2626' : '#166534'}">$${dUsd.toFixed(2)}</td>` : ""}
+        ${fv.rep_debtIqd ? `<td class="mono price-iqd" style="color:${dIqd < 0 ? '#dc2626' : '#9333ea'}">${dIqd.toLocaleString()} IQD</td>` : ""}
         <td>${item.hidden === 1 ? esc(t('Hidden')) : '-'}</td>
       </tr>`;
     }).join("");
@@ -151,27 +153,27 @@ export default function RepresentativesPage() {
   </div>
   <div class="summary-row">
     <div class="stat-card blue"><span class="stat-label">${t('Total Representatives')}</span><span class="stat-value">${filtered.length}</span></div>
-    <div class="stat-card green"><span class="stat-label">${t('Opening Balance')} (USD)</span><span class="stat-value">$${totalUsd.toFixed(2)}</span></div>
-    <div class="stat-card orange"><span class="stat-label">${t('Opening Balance')} (IQD)</span><span class="stat-value">${totalIqd.toLocaleString()} IQD</span></div>
+    ${fv.rep_debtUsd ? `<div class="stat-card green"><span class="stat-label">${t('Opening Balance')} (USD)</span><span class="stat-value">$${totalUsd.toFixed(2)}</span></div>` : ""}
+    ${fv.rep_debtIqd ? `<div class="stat-card orange"><span class="stat-label">${t('Opening Balance')} (IQD)</span><span class="stat-value">${totalIqd.toLocaleString()} IQD</span></div>` : ""}
   </div>
   <table>
     <thead>
       <tr>
         <th>#</th>
         <th>${t('Representative Name')}</th>
-        <th>${t('Mobile')}</th>
-        <th>${t('Agreement Type')}</th>
-        <th style="text-align:right">${t('Opening Balance')} (USD)</th>
-        <th style="text-align:right">${t('Opening Balance')} (IQD)</th>
+        ${fv.rep_mobile ? `<th>${t('Mobile')}</th>` : ""}
+        ${fv.rep_agreementType ? `<th>${t('Agreement Type')}</th>` : ""}
+        ${fv.rep_debtUsd ? `<th style="text-align:right">${t('Opening Balance')} (USD)</th>` : ""}
+        ${fv.rep_debtIqd ? `<th style="text-align:right">${t('Opening Balance')} (IQD)</th>` : ""}
         <th>${t('Status')}</th>
       </tr>
     </thead>
     <tbody>
       ${tableRows}
       <tr class="totals-row">
-        <td colspan="4" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
-        <td class="price-usd" style="color:${totalUsd < 0 ? '#dc2626' : '#166534'}">$${totalUsd.toFixed(2)}</td>
-        <td class="price-iqd" style="color:${totalIqd < 0 ? '#dc2626' : '#9333ea'}">${totalIqd.toLocaleString()} IQD</td>
+        <td colspan="${2 + (fv.rep_mobile ? 1 : 0) + (fv.rep_agreementType ? 1 : 0)}" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
+        ${fv.rep_debtUsd ? `<td class="price-usd" style="color:${totalUsd < 0 ? '#dc2626' : '#166534'}">$${totalUsd.toFixed(2)}</td>` : ""}
+        ${fv.rep_debtIqd ? `<td class="price-iqd" style="color:${totalIqd < 0 ? '#dc2626' : '#9333ea'}">${totalIqd.toLocaleString()} IQD</td>` : ""}
         <td></td>
       </tr>
     </tbody>
@@ -279,66 +281,76 @@ export default function RepresentativesPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="mobile" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Mobile')}</FormLabel>
-                    <FormControl><Input data-testid="input-representative-mobile" placeholder={t('Mobile number...')} {...field} value={field.value || ""} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="agreementType" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Agreement Type')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue="commission">
-                      <FormControl>
-                        <SelectTrigger data-testid="select-agreement-type">
-                          <SelectValue placeholder={t('Select agreement type')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="commission">{t('Commission')}</SelectItem>
-                        <SelectItem value="monthly_salary">{t('Monthly Salary')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="debtUsd" render={({ field }) => (
+                {fv.rep_mobile && (
+                  <FormField control={form.control} name="mobile" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-bold">{t('Opening Balance')} (USD)</FormLabel>
-                      <FormControl>
-                        <Input
-                          data-testid="input-representative-debt-usd"
-                          type="number"
-                          step="any"
-                          placeholder="0"
-                          className="h-11 text-base font-semibold"
-                          {...field}
-                          value={field.value ?? "0"}
-                        />
-                      </FormControl>
+                      <FormLabel>{t('Mobile')}</FormLabel>
+                      <FormControl><Input data-testid="input-representative-mobile" placeholder={t('Mobile number...')} {...field} value={field.value || ""} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField control={form.control} name="debtIqd" render={({ field }) => (
+                )}
+                {fv.rep_agreementType && (
+                  <FormField control={form.control} name="agreementType" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-bold">{t('Opening Balance')} (IQD)</FormLabel>
-                      <FormControl>
-                        <Input
-                          data-testid="input-representative-debt-iqd"
-                          type="number"
-                          step="any"
-                          placeholder="0"
-                          className="h-11 text-base font-semibold"
-                          {...field}
-                          value={field.value ?? "0"}
-                        />
-                      </FormControl>
+                      <FormLabel>{t('Agreement Type')}</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue="commission">
+                        <FormControl>
+                          <SelectTrigger data-testid="select-agreement-type">
+                            <SelectValue placeholder={t('Select agreement type')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="commission">{t('Commission')}</SelectItem>
+                          <SelectItem value="monthly_salary">{t('Monthly Salary')}</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )} />
-                </div>
+                )}
+                {(fv.rep_debtUsd || fv.rep_debtIqd) && (
+                  <div className={`grid gap-4 ${fv.rep_debtUsd && fv.rep_debtIqd ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {fv.rep_debtUsd && (
+                      <FormField control={form.control} name="debtUsd" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold">{t('Opening Balance')} (USD)</FormLabel>
+                          <FormControl>
+                            <Input
+                              data-testid="input-representative-debt-usd"
+                              type="number"
+                              step="any"
+                              placeholder="0"
+                              className="h-11 text-base font-semibold"
+                              {...field}
+                              value={field.value ?? "0"}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    )}
+                    {fv.rep_debtIqd && (
+                      <FormField control={form.control} name="debtIqd" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-bold">{t('Opening Balance')} (IQD)</FormLabel>
+                          <FormControl>
+                            <Input
+                              data-testid="input-representative-debt-iqd"
+                              type="number"
+                              step="any"
+                              placeholder="0"
+                              className="h-11 text-base font-semibold"
+                              {...field}
+                              value={field.value ?? "0"}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    )}
+                  </div>
+                )}
                 <FormField control={form.control} name="hidden" render={({ field }) => (
                   <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-md border p-3">
                     <FormControl>
@@ -400,10 +412,10 @@ export default function RepresentativesPage() {
                   <TableRow className="bg-muted/50">
                     <TableHead>#</TableHead>
                     <TableHead>{t('Representative Name')}</TableHead>
-                    <TableHead>{t('Mobile')}</TableHead>
-                    <TableHead>{t('Agreement Type')}</TableHead>
-                    <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>
-                    <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>
+                    {fv.rep_mobile && <TableHead>{t('Mobile')}</TableHead>}
+                    {fv.rep_agreementType && <TableHead>{t('Agreement Type')}</TableHead>}
+                    {fv.rep_debtUsd && <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>}
+                    {fv.rep_debtIqd && <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>}
                     <TableHead>{t('Hide')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
@@ -418,23 +430,27 @@ export default function RepresentativesPage() {
                           {item.name}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {item.mobile ? (
-                          <span className="flex items-center gap-1 text-sm">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            {item.mobile}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={item.agreementType === 'monthly_salary' ? 'default' : 'secondary'}>
-                          {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtUsd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtIqd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
+                      {fv.rep_mobile && (
+                        <TableCell>
+                          {item.mobile ? (
+                            <span className="flex items-center gap-1 text-sm">
+                              <Phone className="h-3 w-3 text-muted-foreground" />
+                              {item.mobile}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {fv.rep_agreementType && (
+                        <TableCell>
+                          <Badge variant={item.agreementType === 'monthly_salary' ? 'default' : 'secondary'}>
+                            {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      {fv.rep_debtUsd && <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtUsd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>}
+                      {fv.rep_debtIqd && <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtIqd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtIqd || 0).toLocaleString()}</TableCell>}
                       <TableCell>
                         {item.hidden === 1 ? (
                           <Badge variant="destructive" className="gap-1">

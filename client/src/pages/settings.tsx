@@ -10,7 +10,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone } from "lucide-react";
-import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar } from "@/components/erp-icons";
+import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent } from "@/components/erp-icons";
 
 const DEVICE_NAME_KEY = "erp_device_name";
 const DEVICE_TYPE_KEY = "erp_device_type";
@@ -47,6 +47,10 @@ interface FieldVisibilitySettings {
   customer_agent: boolean;
   customer_oldDebtUsd: boolean;
   customer_oldDebtIqd: boolean;
+  rep_mobile: boolean;
+  rep_agreementType: boolean;
+  rep_debtUsd: boolean;
+  rep_debtIqd: boolean;
   purchaseInvoice_listNumber: boolean;
   purchaseInvoice_carNumber: boolean;
   purchaseInvoice_manifestNumber: boolean;
@@ -82,6 +86,10 @@ const defaultFieldVisibility: FieldVisibilitySettings = {
   customer_agent: true,
   customer_oldDebtUsd: true,
   customer_oldDebtIqd: true,
+  rep_mobile: true,
+  rep_agreementType: true,
+  rep_debtUsd: true,
+  rep_debtIqd: true,
   purchaseInvoice_listNumber: true,
   purchaseInvoice_carNumber: true,
   purchaseInvoice_manifestNumber: true,
@@ -482,6 +490,23 @@ export default function SettingsPage() {
                     <FieldToggle fieldKey="customer_agent" label={t("Agent")} />
                     <FieldToggle fieldKey="customer_oldDebtUsd" label={t("Opening Balance (USD)")} />
                     <FieldToggle fieldKey="customer_oldDebtIqd" label={t("Opening Balance (IQD)")} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <IconAgent className="h-5 w-5 text-indigo-600" />
+                    {t('Representative Fields')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FieldToggle fieldKey="rep_mobile" label={t("Mobile")} />
+                    <FieldToggle fieldKey="rep_agreementType" label={t("Agreement Type")} />
+                    <FieldToggle fieldKey="rep_debtUsd" label={t("Opening Balance (USD)")} />
+                    <FieldToggle fieldKey="rep_debtIqd" label={t("Opening Balance (IQD)")} />
                   </div>
                 </CardContent>
               </Card>
