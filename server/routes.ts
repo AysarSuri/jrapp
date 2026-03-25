@@ -4620,6 +4620,7 @@ export async function registerRoutes(
     agent_product_loads: ["agent_product_load_items"],
     external_debts: ["external_debt_transactions"],
     categories: ["category_groups"],
+    representatives: ["agent_clients", "agent_locations", "agent_product_load_items", "agent_product_loads"],
   };
 
   const PARENT_TABLES: Record<string, string[]> = {
@@ -4653,6 +4654,9 @@ export async function registerRoutes(
           }
         }
         await tx.delete(table);
+        if (tableName === "representatives") {
+          await tx.delete(users).where(eq(users.role, 'sales_rep'));
+        }
       });
       res.json({ message: `Table ${tableName} cleared successfully` });
     } catch (err: any) {
@@ -4705,6 +4709,7 @@ export async function registerRoutes(
             await tx.delete(TABLE_MAP[tableName]);
           }
         }
+        await tx.delete(users).where(eq(users.role, 'sales_rep'));
       });
       res.json({ message: "All tables cleared successfully" });
     } catch (err: any) {
