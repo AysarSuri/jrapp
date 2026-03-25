@@ -125,17 +125,13 @@ export default function CustomerReceiptIqdPage() {
     if (customer) {
       setCustomerName(customer.name);
     }
-    fetch(`/api/customer-representative/${id}`, { credentials: "include" })
-      .then(r => r.json())
-      .then(data => {
-        if (data.representativeName) {
-          setRepresentativeName(data.representativeName);
-        } else {
-          setRepresentativeName("");
-        }
-      })
-      .catch(() => {});
-  }, [customers]);
+    const assignedAgent = agentClientsList?.find(ac => ac.clientId === parseInt(id));
+    if (assignedAgent) {
+      setRepresentativeName(assignedAgent.agentName);
+    } else {
+      setRepresentativeName("");
+    }
+  }, [customers, agentClientsList]);
 
   const selectPaymentSource = useCallback((val: string) => {
     setPaymentSource(val);
