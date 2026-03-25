@@ -160,6 +160,7 @@ export async function registerRoutes(
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',
     '/api/agent-product-loads': 'agent_management',
+    '/api/rep-balances': 'agent_management',
     '/api/rep-sales': 'agent_management',
     '/api/rep-returns': 'agent_management',
     '/api/rep-receipts': 'agent_management',
@@ -4714,6 +4715,50 @@ export async function registerRoutes(
       res.json({ message: "All tables cleared successfully" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to clear all tables" });
+    }
+  });
+
+  app.get('/api/rep-balances', requireAuth, async (req, res) => {
+    try {
+      const allReps = await db.select().from(representatives);
+      const balances: Record<number, { balanceUsd: number; balanceIqd: number }> = {};
+
+      for (const rep of allReps) {
+        const oldDebtUsd = parseFloat(rep.debtUsd || "0");
+        const oldDebtIqd = parseFloat(rep.debtIqd || "0");
+
+        const [invoiceUsd] = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.remaining}::numeric), 0)` })
+          .from(salesInvoices).where(sql`${salesInvoices.representativeId} = ${rep.id} AND ${salesInvoices.currency} = 'USD' AND ${salesInvoices.remaining}::numeric > 0`);
+        const [invoiceIqd] = await db.select({ total: sql<string>`COALESCE(SUM(${salesInvoices.remaining}::numeric), 0)` })
+          .from(salesInvoices).where(sql`${salesInvoices.representativeId} = ${rep.id} AND ${salesInvoices.currency} = 'IQD' AND ${salesInvoices.remaining}::numeric > 0`);
+
+        const [returnUsd] = await db.select({ total: sql<string>`COALESCE(SUM(${salesReturns.subtotal}::numeric), 0)` })
+          .from(salesReturns).where(sql`${salesReturns.representativeId} = ${rep.id} AND ${salesReturns.currency} = 'USD' AND ${salesReturns.subtotal}::numeric > 0`);
+        const [returnIqd] = await db.select({ total: sql<string>`COALESCE(SUM(${salesReturns.subtotal}::numeric), 0)` })
+          .from(salesReturns).where(sql`${salesReturns.representativeId} = ${rep.id} AND ${salesReturns.currency} = 'IQD' AND ${salesReturns.subtotal}::numeric > 0`);
+
+        const allPayments = await storage.getAgentPaymentsByAgentId(rep.id);
+        let payUsd = 0, payIqd = 0;
+        for (const p of allPayments) {
+          const amt = parseFloat(p.amount || "0");
+          if (amt <= 0) continue;
+          if (p.currency === "USD") payUsd += amt; else payIqd += amt;
+        }
+
+        const debitUsd = parseFloat(invoiceUsd?.total || "0");
+        const debitIqd = parseFloat(invoiceIqd?.total || "0");
+        const creditUsd = parseFloat(returnUsd?.total || "0") + payUsd;
+        const creditIqd = parseFloat(returnIqd?.total || "0") + payIqd;
+
+        balances[rep.id] = {
+          balanceUsd: oldDebtUsd + debitUsd - creditUsd,
+          balanceIqd: oldDebtIqd + debitIqd - creditIqd,
+        };
+      }
+
+      res.json(balances);
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to calculate balances" });
     }
   });
 

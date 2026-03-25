@@ -53,6 +53,7 @@ export default function RepresentativesPage() {
   });
 
   const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; address: string; mobile1: string }>({ queryKey: ["/api/company-profile"] });
+  const { data: repBalances } = useQuery<Record<number, { balanceUsd: number; balanceIqd: number }>>({ queryKey: ["/api/rep-balances"] });
 
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -66,19 +67,30 @@ export default function RepresentativesPage() {
     const today = formatDate(new Date());
     const title = t('Representatives');
 
-    const tableRows = filtered.map((item, i) => `
+    const tableRows = filtered.map((item, i) => {
+      const bal = repBalances?.[item.id];
+      const bUsd = bal?.balanceUsd ?? 0;
+      const bIqd = bal?.balanceIqd ?? 0;
+      const hasPositive = bUsd > 0 || bIqd > 0;
+      const hasNegative = bUsd < 0 || bIqd < 0;
+      const statusParts: string[] = [];
+      if (hasPositive) statusParts.push(`<span style="color:#dc2626;font-weight:700">${esc(t('Remaining at him'))}</span>`);
+      if (hasNegative) statusParts.push(`<span style="color:#16a34a;font-weight:700">${esc(t('Remaining at us'))}</span>`);
+      if (!hasPositive && !hasNegative) statusParts.push(`<span style="color:#64748b;font-weight:700">${esc(t('Zero Account'))}</span>`);
+      return `
       <tr>
         <td class="num">${i + 1}</td>
         <td class="name-cell">${esc(item.name)}</td>
         <td class="mono">${esc(item.mobile || '-')}</td>
         <td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>
-        <td class="mono price-usd">$${Number(item.debtUsd || 0).toFixed(2)}</td>
-        <td class="mono price-iqd">${Number(item.debtIqd || 0).toLocaleString()} IQD</td>
-        <td>${item.hidden === 1 ? esc(t('Hidden')) : '-'}</td>
-      </tr>`).join("");
+        <td class="mono price-usd" style="color:${bUsd > 0 ? '#dc2626' : bUsd < 0 ? '#16a34a' : '#64748b'}">${bUsd !== 0 ? '$' + Math.abs(bUsd).toFixed(2) : '-'}</td>
+        <td class="mono price-iqd" style="color:${bIqd > 0 ? '#dc2626' : bIqd < 0 ? '#16a34a' : '#64748b'}">${bIqd !== 0 ? Math.abs(bIqd).toLocaleString() + ' IQD' : '-'}</td>
+        <td style="font-size:8.5pt">${statusParts.join(' / ')}</td>
+      </tr>`;
+    }).join("");
 
-    const totalUsd = filtered.reduce((sum, r) => sum + Number(r.debtUsd || 0), 0);
-    const totalIqd = filtered.reduce((sum, r) => sum + Number(r.debtIqd || 0), 0);
+    const totalUsd = filtered.reduce((sum, r) => sum + (repBalances?.[r.id]?.balanceUsd ?? 0), 0);
+    const totalIqd = filtered.reduce((sum, r) => sum + (repBalances?.[r.id]?.balanceIqd ?? 0), 0);
 
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
@@ -145,8 +157,8 @@ export default function RepresentativesPage() {
   </div>
   <div class="summary-row">
     <div class="stat-card blue"><span class="stat-label">${t('Total Representatives')}</span><span class="stat-value">${filtered.length}</span></div>
-    <div class="stat-card green"><span class="stat-label">${t('Opening Balance')} (USD)</span><span class="stat-value">$${totalUsd.toFixed(2)}</span></div>
-    <div class="stat-card orange"><span class="stat-label">${t('Opening Balance')} (IQD)</span><span class="stat-value">${totalIqd.toLocaleString()} IQD</span></div>
+    <div class="stat-card green"><span class="stat-label">${t('Final Balance')} (USD)</span><span class="stat-value">$${Math.abs(totalUsd).toFixed(2)}</span></div>
+    <div class="stat-card orange"><span class="stat-label">${t('Final Balance')} (IQD)</span><span class="stat-value">${Math.abs(totalIqd).toLocaleString()} IQD</span></div>
   </div>
   <table>
     <thead>
@@ -155,8 +167,8 @@ export default function RepresentativesPage() {
         <th>${t('Representative Name')}</th>
         <th>${t('Mobile')}</th>
         <th>${t('Agreement Type')}</th>
-        <th style="text-align:right">${t('Opening Balance')} (USD)</th>
-        <th style="text-align:right">${t('Opening Balance')} (IQD)</th>
+        <th style="text-align:right">${t('Final Balance')} (USD)</th>
+        <th style="text-align:right">${t('Final Balance')} (IQD)</th>
         <th>${t('Status')}</th>
       </tr>
     </thead>
@@ -164,8 +176,8 @@ export default function RepresentativesPage() {
       ${tableRows}
       <tr class="totals-row">
         <td colspan="4" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
-        <td class="price-usd">$${totalUsd.toFixed(2)}</td>
-        <td class="price-iqd">${totalIqd.toLocaleString()} IQD</td>
+        <td class="mono" style="text-align:right;color:${totalUsd > 0 ? '#dc2626' : totalUsd < 0 ? '#16a34a' : '#64748b'};font-weight:800">$${Math.abs(totalUsd).toFixed(2)}</td>
+        <td class="mono" style="text-align:right;color:${totalIqd > 0 ? '#dc2626' : totalIqd < 0 ? '#16a34a' : '#64748b'};font-weight:800">${Math.abs(totalIqd).toLocaleString()} IQD</td>
         <td></td>
       </tr>
     </tbody>
@@ -393,8 +405,9 @@ export default function RepresentativesPage() {
                     <TableHead>{t('Representative Name')}</TableHead>
                     <TableHead>{t('Mobile')}</TableHead>
                     <TableHead>{t('Agreement Type')}</TableHead>
-                    <TableHead className="text-right">{t('Opening Balance')} (USD)</TableHead>
-                    <TableHead className="text-right">{t('Opening Balance')} (IQD)</TableHead>
+                    <TableHead className="text-right">{t('Final Balance')} (USD)</TableHead>
+                    <TableHead className="text-right">{t('Final Balance')} (IQD)</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
                     <TableHead>{t('Hide')}</TableHead>
                     <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
@@ -424,8 +437,40 @@ export default function RepresentativesPage() {
                           {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
+                      {(() => {
+                        const bal = repBalances?.[item.id];
+                        const bUsd = bal?.balanceUsd ?? 0;
+                        const bIqd = bal?.balanceIqd ?? 0;
+                        const hasPositive = bUsd > 0 || bIqd > 0;
+                        const hasNegative = bUsd < 0 || bIqd < 0;
+                        return (
+                          <>
+                            <TableCell className={`text-right font-mono text-sm font-semibold ${bUsd > 0 ? 'text-red-600' : bUsd < 0 ? 'text-green-600' : ''}`}>
+                              {bUsd !== 0 ? `$${Math.abs(bUsd).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
+                            </TableCell>
+                            <TableCell className={`text-right font-mono text-sm font-semibold ${bIqd > 0 ? 'text-red-600' : bIqd < 0 ? 'text-green-600' : ''}`}>
+                              {bIqd !== 0 ? `${Math.abs(bIqd).toLocaleString()} IQD` : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {hasPositive && (
+                                <Badge variant="destructive" className="gap-1 text-xs">
+                                  {t('Remaining at him')}
+                                </Badge>
+                              )}
+                              {hasNegative && (
+                                <Badge className="gap-1 text-xs bg-green-600 text-white">
+                                  {t('Remaining at us')}
+                                </Badge>
+                              )}
+                              {!hasPositive && !hasNegative && (
+                                <Badge variant="secondary" className="gap-1 text-xs">
+                                  {t('Zero Account')}
+                                </Badge>
+                              )}
+                            </TableCell>
+                          </>
+                        );
+                      })()}
                       <TableCell>
                         {item.hidden === 1 ? (
                           <Badge variant="destructive" className="gap-1">
