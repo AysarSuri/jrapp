@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff, Package } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff, Package, Printer } from "lucide-react";
 import { IconAgent } from "@/components/erp-icons";
+import { usd, formatDate } from "@/lib/format-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,131 @@ export default function RepresentativesPage() {
     queryKey: ['/api/representative-products', productsRepId],
     enabled: !!productsRepId,
   });
+
+  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; address: string; mobile1: string }>({ queryKey: ["/api/company-profile"] });
+
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  const handlePrint = () => {
+    const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
+    const accent = "#64748b";
+    const companyName = esc(companyProfile?.name || "");
+    const companyLogo = companyProfile?.logo || "";
+    const companyAddress = esc(companyProfile?.address || "");
+    const companyMobile = esc(companyProfile?.mobile1 || "");
+    const today = formatDate(new Date());
+    const title = t('Representatives');
+
+    const tableRows = filtered.map((item, i) => `
+      <tr>
+        <td class="num">${i + 1}</td>
+        <td class="name-cell">${esc(item.name)}</td>
+        <td class="mono">${esc(item.mobile || '-')}</td>
+        <td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>
+        <td class="mono price-usd">$${Number(item.debtUsd || 0).toFixed(2)}</td>
+        <td class="mono price-iqd">${Number(item.debtIqd || 0).toLocaleString()} IQD</td>
+        <td>${item.hidden === 1 ? esc(t('Hidden')) : '-'}</td>
+      </tr>`).join("");
+
+    const totalUsd = filtered.reduce((sum, r) => sum + Number(r.debtUsd || 0), 0);
+    const totalIqd = filtered.reduce((sum, r) => sum + Number(r.debtIqd || 0), 0);
+
+    const html = `<!DOCTYPE html>
+<html dir="${dir}">
+<head>
+  <meta charset="utf-8">
+  <title>${title} — ${companyName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Inter', -apple-system, sans-serif;
+      padding: 18px 24px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; margin-bottom: 14px;
+      border: 2px solid #e2e8f0; border-radius: 14px; background: linear-gradient(135deg, #fafbfc, #f8fafc);
+    }
+    .header-center { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center; }
+    .header-center img { width: 60px; height: 60px; object-fit: contain; border-radius: 10px; }
+    .header-center .company-name { font-size: 18pt; font-weight: 800; color: ${accent}; }
+    .header-right { text-align: ${dir === "rtl" ? "right" : "left"}; min-width: 180px; }
+    .header-right .report-title { font-size: 16pt; font-weight: 800; color: ${accent}; margin-bottom: 2px; }
+    .header-right .report-date { font-size: 9pt; color: #64748b; font-weight: 500; }
+    .header-left { text-align: ${dir === "rtl" ? "left" : "right"}; min-width: 200px; display: flex; flex-direction: column; gap: 3px; font-size: 8.5pt; color: #64748b; }
+    .header-left .contact-item { display: flex; align-items: center; gap: 5px; justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"}; }
+    .summary-row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .stat-card { flex: 1; border-radius: 10px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .stat-card.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .stat-card.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .stat-card.orange { background: #fffbeb; border: 1px solid #fde68a; }
+    .stat-label { font-size: 8.5pt; color: #64748b; font-weight: 600; }
+    .stat-value { font-size: 13pt; font-weight: 800; color: #1a1a2e; }
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    thead { background: #f1f5f9; }
+    th { padding: 8px 10px; text-align: ${dir === "rtl" ? "right" : "left"}; font-weight: 700; color: #334155; border-bottom: 2px solid #e2e8f0; font-size: 9pt; }
+    td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; }
+    tr:nth-child(even) { background: #fafbfc; }
+    .num { text-align: center; color: #94a3b8; font-weight: 600; width: 35px; }
+    .name-cell { font-weight: 700; }
+    .mono { font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 9pt; }
+    .price-usd { text-align: right; color: #166534; font-weight: 700; }
+    .price-iqd { text-align: right; color: #9333ea; font-weight: 700; }
+    .totals-row { background: #f1f5f9 !important; font-weight: 800; }
+    .footer { margin-top: 16px; text-align: center; font-size: 8pt; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+    @media print { body { padding: 10px 14px; } @page { margin: 8mm; } }
+  </style>
+</head>
+<body>
+  <div class="header-row">
+    <div class="header-right">
+      <div class="report-title">${title}</div>
+      <div class="report-date">${today}</div>
+    </div>
+    <div class="header-center">
+      ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
+      <span class="company-name">${companyName}</span>
+    </div>
+    <div class="header-left">
+      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
+      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="stat-card blue"><span class="stat-label">${t('Total Representatives')}</span><span class="stat-value">${filtered.length}</span></div>
+    <div class="stat-card green"><span class="stat-label">${t('Opening Balance')} (USD)</span><span class="stat-value">$${totalUsd.toFixed(2)}</span></div>
+    <div class="stat-card orange"><span class="stat-label">${t('Opening Balance')} (IQD)</span><span class="stat-value">${totalIqd.toLocaleString()} IQD</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>${t('Representative Name')}</th>
+        <th>${t('Mobile')}</th>
+        <th>${t('Agreement Type')}</th>
+        <th style="text-align:right">${t('Opening Balance')} (USD)</th>
+        <th style="text-align:right">${t('Opening Balance')} (IQD)</th>
+        <th>${t('Status')}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+      <tr class="totals-row">
+        <td colspan="4" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
+        <td class="price-usd">$${totalUsd.toFixed(2)}</td>
+        <td class="price-iqd">${totalIqd.toLocaleString()} IQD</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="footer">${companyName} — ${today}</div>
+</body>
+</html>`;
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
+  };
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
     resolver: zodResolver(insertRepresentativeSchema),
@@ -118,13 +244,18 @@ export default function RepresentativesPage() {
           <h1 className="text-3xl font-bold tracking-tight">{t('Representatives')}</h1>
           <p className="text-muted-foreground mt-1">{t('Manage sales representatives')}</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-representative" onClick={openCreateDialog}>
-              <Plus className="w-5 h-5 mr-2" />
-              {t('Add Representative')}
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5" data-testid="button-print-representatives">
+            <Printer className="w-5 h-5" />
+            {t('Print')}
+          </Button>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-representative" onClick={openCreateDialog}>
+                <Plus className="w-5 h-5 mr-2" />
+                {t('Add Representative')}
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editing ? t('Edit Representative') : t('Add New Representative')}</DialogTitle>
@@ -222,6 +353,7 @@ export default function RepresentativesPage() {
             </Form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
