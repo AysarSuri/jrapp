@@ -173,6 +173,19 @@ export default function OfficePaymentsPage() {
   };
 
   const payments = allTxns?.filter(t => t.type === "payment") || [];
+
+  const nextInvoiceNumber = (() => {
+    let maxNum = 0;
+    for (const p of payments) {
+      const match = (p as any).invoiceNumber?.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    return `OP-${String(maxNum + 1).padStart(6, '0')}`;
+  })();
+
   const filteredPayments = payments.filter(p => {
     if (historyFilter && historyFilter !== "all" && String(p.officeId) !== historyFilter) return false;
     if (historyFromDate && p.date < historyFromDate) return false;
@@ -210,7 +223,11 @@ export default function OfficePaymentsPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Invoice Number')}</Label>
+                <Input value={nextInvoiceNumber} readOnly disabled className="font-mono bg-muted/50 cursor-not-allowed" data-testid="input-office-payment-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>
                 <SearchSelect items={offices} value={officeId} onValueChange={selectOffice} placeholder={t('Select office...')} data-testid="select-office-payment-office" />
@@ -372,6 +389,7 @@ export default function OfficePaymentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Transfer Office')}</TableHead>
@@ -386,6 +404,7 @@ export default function OfficePaymentsPage() {
                   {paginatedPayments.map((p, i) => (
                     <TableRow key={p.id} data-testid={`row-office-payment-${p.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{(p as any).invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                       <TableCell className="font-medium">{p.officeName}</TableCell>
@@ -436,7 +455,7 @@ export default function OfficePaymentsPage() {
                   ))}
                   {paginatedPayments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No payments yet')}
                       </TableCell>
                     </TableRow>
@@ -499,6 +518,10 @@ export default function OfficePaymentsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('Invoice Number')}</Label>
+              <Input value={(editPayment as any)?.invoiceNumber || "-"} readOnly disabled className="font-mono bg-muted/50 cursor-not-allowed" data-testid="input-edit-office-payment-invoice-number" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>
