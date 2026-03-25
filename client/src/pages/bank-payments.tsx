@@ -172,7 +172,20 @@ export default function BankPaymentsPage() {
     });
   };
 
-  const payments = allTxns?.filter(t => t.type === "payment") || [];
+  const allPaymentTxns = allTxns?.filter(t => t.type === "payment") || [];
+  const nextInvoiceNumber = (() => {
+    let maxNum = 0;
+    for (const t of allPaymentTxns) {
+      const match = (t as any).invoiceNumber?.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    return `BP-${String(maxNum + 1).padStart(6, '0')}`;
+  })();
+
+  const payments = allPaymentTxns;
   const filteredPayments = payments.filter(p => {
     if (historyFilter && historyFilter !== "all" && String(p.bankId) !== historyFilter) return false;
     if (historyFromDate && p.date < historyFromDate) return false;
@@ -210,7 +223,11 @@ export default function BankPaymentsPage() {
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+                <Input value={nextInvoiceNumber} disabled className="h-11 text-base font-semibold bg-muted" data-testid="input-bank-payment-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>
                 <SearchSelect items={banks} value={bankId} onValueChange={selectBank} placeholder={t('Select bank...')} data-testid="select-bank-payment-bank" />
@@ -372,6 +389,7 @@ export default function BankPaymentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Bank')}</TableHead>
@@ -386,6 +404,7 @@ export default function BankPaymentsPage() {
                   {paginatedPayments.map((p, i) => (
                     <TableRow key={p.id} data-testid={`row-bank-payment-${p.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{(p as any).invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(p.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{p.time || "-"}</TableCell>
                       <TableCell className="font-medium">{p.bankName}</TableCell>
@@ -436,7 +455,7 @@ export default function BankPaymentsPage() {
                   ))}
                   {paginatedPayments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No payments yet')}
                       </TableCell>
                     </TableRow>
@@ -499,6 +518,10 @@ export default function BankPaymentsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+              <Input value={(editPayment as any)?.invoiceNumber || "-"} disabled className="h-11 text-base font-semibold bg-muted" data-testid="input-edit-bank-payment-invoice-number" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>

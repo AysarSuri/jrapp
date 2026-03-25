@@ -256,6 +256,7 @@ export const supplierAdjustments = pgTable("supplier_adjustments", {
 
 export const bankTransactions = pgTable("bank_transactions", {
   id: serial("id").primaryKey(),
+  invoiceNumber: text("invoice_number"),
   bankId: integer("bank_id").notNull(),
   bankName: text("bank_name").notNull(),
   type: text("type").notNull(), // 'receipt' | 'payment'

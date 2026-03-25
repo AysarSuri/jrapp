@@ -2044,7 +2044,20 @@ export async function registerRoutes(
       }
 
       const result = await db.transaction(async (tx) => {
-        const [txn] = await tx.insert(bankTransactions).values(input).returning();
+        const prefix = input.type === 'receipt' ? 'BR' : 'BP';
+        const existing = await tx.select({ invoiceNumber: bankTransactions.invoiceNumber })
+          .from(bankTransactions)
+          .where(eq(bankTransactions.type, input.type));
+        let maxNum = 0;
+        for (const row of existing) {
+          const match = row.invoiceNumber?.match(/\d+$/);
+          if (match) {
+            const num = parseInt(match[0], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        }
+        const invoiceNumber = `${prefix}-${String(maxNum + 1).padStart(6, '0')}`;
+        const [txn] = await tx.insert(bankTransactions).values({ ...input, invoiceNumber }).returning();
         return txn;
       });
       res.status(201).json(result);
