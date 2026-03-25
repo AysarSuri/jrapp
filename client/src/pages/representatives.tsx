@@ -440,8 +440,8 @@ export default function RepresentativesPage() {
                           {item.agreementType === 'monthly_salary' ? t('Monthly Salary') : t('Commission')}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
+                      <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtUsd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtUsd || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className={`text-right font-mono text-sm font-semibold ${Number(item.debtIqd || 0) < 0 ? 'text-red-600' : ''}`}>{Number(item.debtIqd || 0).toLocaleString()}</TableCell>
                       <TableCell>
                         {item.hidden === 1 ? (
                           <Badge variant="destructive" className="gap-1">
