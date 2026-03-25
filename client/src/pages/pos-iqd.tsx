@@ -625,11 +625,12 @@ export default function PosIqdPage() {
                 onValueChange={selectRepresentative}
                 placeholder={t('Select Representative')}
                 data-testid="select-pos-rep-name"
+                disabled={userRole === 'sales_rep'}
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
-              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} readOnly className="bg-muted/50" data-testid="input-sales-category-rep-mobile" />
+              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} readOnly className="bg-muted/50" disabled={userRole === 'sales_rep'} data-testid="input-sales-category-rep-mobile" />
             </div>
             <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Note')}</Label>

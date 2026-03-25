@@ -557,11 +557,12 @@ export default function SalesReturnIqdPage() {
                 onValueChange={selectRepresentative}
                 placeholder={t('Select Representative')}
                 data-testid="select-return-iqd-representative"
+                disabled={userRole === 'sales_rep'}
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Mobile')}</Label>
-              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} data-testid="input-return-iqd-rep-mobile" />
+              <Input value={representativeMobile} onChange={(e) => setRepresentativeMobile(e.target.value)} placeholder={t('Rep mobile...')} readOnly={userRole === 'sales_rep'} className={userRole === 'sales_rep' ? "bg-muted/50" : ""} disabled={userRole === 'sales_rep'} data-testid="input-return-iqd-rep-mobile" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Driver Name')}</Label>
