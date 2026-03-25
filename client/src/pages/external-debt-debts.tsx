@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { usd, fmtIqd, formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 
 type ExternalDebtDebt = {
   id: number;
@@ -64,7 +64,8 @@ export default function ExternalDebtDebtsPage() {
 
     printWindow.document.write(`<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
-      <head><meta charset="UTF-8" />
+      <head>
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" />
         <title>${t("External Debts List")}</title>
         <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor: "#991b1b", accentTextColor: "#ffffff" })}</style>
       </head>

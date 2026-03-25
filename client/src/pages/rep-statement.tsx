@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
 import SalesReturnReport from "@/components/sales-return-report";
@@ -307,6 +307,7 @@ export default function RepStatementPage() {
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         ${fontLink}
         <title>${t("Rep Statement")} - ${repName}</title>
@@ -377,7 +378,11 @@ export default function RepStatementPage() {
     if (win) {
       win.document.write(html);
       win.document.close();
-      setTimeout(() => win.print(), 500);
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => setTimeout(() => win.print(), 300));
+      } else {
+        setTimeout(() => win.print(), 1200);
+      }
     }
   };
 
@@ -407,6 +412,7 @@ export default function RepStatementPage() {
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         ${fontLink}
         <title>${t("Details")} - ${repName}</title>
@@ -539,7 +545,11 @@ export default function RepStatementPage() {
     if (win) {
       win.document.write(html);
       win.document.close();
-      setTimeout(() => win.print(), 500);
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => setTimeout(() => win.print(), 300));
+      } else {
+        setTimeout(() => win.print(), 1200);
+      }
     }
   };
 

@@ -26,7 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import CustomerReceiptReport from "@/components/customer-receipt-report";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 
 type CompanyProfileData = {
   id: number; name: string; address: string; mobile1: string; mobile2: string;
@@ -323,6 +323,7 @@ export default function CustomerReceiptIqdPage() {
       <!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Customer Receipt IQD")} - ${t("Receipt History")}</title>
         <style>

@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import AgentPaymentReport from "@/components/agent-payment-report";
 import type { AgentPayment } from "@shared/schema";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 
 type CompanyProfileData = {
   id: number;
@@ -319,6 +319,7 @@ export default function AgentPaymentIqdPage() {
       <!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Customer Payment IQD")} - ${t("Payment History")}</title>
         <style>

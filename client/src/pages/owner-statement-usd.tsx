@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { Owner } from "@shared/schema";
 import { usd, formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -144,6 +144,7 @@ export default function OwnerStatementUsdPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Owner Statement USD")} - ${ownerName}</title>
         <style>

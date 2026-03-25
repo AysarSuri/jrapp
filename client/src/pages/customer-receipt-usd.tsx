@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { usd, formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import CustomerReceiptReport from "@/components/customer-receipt-report";
 
 type CompanyProfileData = {
@@ -321,6 +321,7 @@ export default function CustomerReceiptUsdPage() {
       <!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Customer Receipt USD")} - ${t("Receipt History")}</title>
         <style>

@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { onDataUpdate } from "@/lib/broadcast";
 import { useToast } from "@/hooks/use-toast";
@@ -420,6 +420,7 @@ export default function SupplierStatementIqdPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Supplier Statement - IQD")} - ${statement.supplier.name} - ${tabLabel}</title>
         <style>${printStyles}</style>
@@ -915,7 +916,8 @@ export default function SupplierStatementIqdPage() {
                   const incomingPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
-                    <head><meta charset="UTF-8" />
+                    <head>
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" />
                       <title>${t("Incoming Report")} - ${productsReport.supplier?.name || ""} (IQD)</title>
                       <style>${incomingPrintStyles}</style>
                     </head>
@@ -1102,7 +1104,8 @@ export default function SupplierStatementIqdPage() {
                   const vPrintStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor, pageSize: "A4 landscape" });
                   printWindow.document.write(`<!DOCTYPE html>
                     <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
-                    <head><meta charset="UTF-8" />
+                    <head>
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" />
                       <title>${t("Incoming Vehicle Expenses")} - ${vehicleExpenses.supplier?.name || ""} (IQD)</title>
                       <style>${vPrintStyles}</style>
                     </head>

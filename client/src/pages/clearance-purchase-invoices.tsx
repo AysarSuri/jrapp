@@ -22,7 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd, formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function ClearancePurchaseInvoicesPage() {
@@ -262,6 +262,7 @@ export default function ClearancePurchaseInvoicesPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Clearance Purchase Invoice Report")}</title>
         <style>${printStyles}</style>

@@ -9,7 +9,7 @@ import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 
 type ReturnData = {
@@ -174,6 +174,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Sales Return Report")} - ${returnData?.returnNumber || ""}</title>
         <style>
@@ -189,9 +190,12 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 300);
+    const doPrintFn = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 300));
+    } else {
+      setTimeout(doPrintFn, 1200);
+    }
     if (returnData) {
       logExport({ reportName: t("Sales Return Report"), supplierName: returnData.customerName, invoiceNumber: returnData.returnNumber, exportType: "print", currency });
     }

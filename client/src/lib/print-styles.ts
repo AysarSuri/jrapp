@@ -11,8 +11,6 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
   const page = opts.pageSize || "A4";
 
   return `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap');
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
@@ -374,4 +372,24 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
 
 export function getDebtReportStyles(direction: "rtl" | "ltr"): string {
   return getModernPrintStyles({ direction, accentColor: "#1e293b", accentTextColor: "#ffffff" });
+}
+
+export const PRINT_FONT_LINKS = `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+`;
+
+export const PRINT_FONT_FAMILY = "'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+
+export function openPrintWindow(html: string) {
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+  if (w.document.fonts?.ready) {
+    w.document.fonts.ready.then(() => setTimeout(() => w.print(), 300));
+  } else {
+    setTimeout(() => w.print(), 1200);
+  }
 }

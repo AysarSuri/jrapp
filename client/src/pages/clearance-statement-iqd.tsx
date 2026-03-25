@@ -8,7 +8,7 @@ import { numberToWords } from "@/lib/number-to-words";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { playDeleteSound } from "@/lib/sounds";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { useUpdateClearanceTransaction, useDeleteClearanceTransaction } from "@/hooks/use-clearance-transactions";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { SearchSelect } from "@/components/search-select";
@@ -177,6 +177,7 @@ export default function ClearanceStatementIqdPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Clearance Statement IQD")} - ${clearanceName}</title>
         <style>
@@ -563,7 +564,8 @@ export default function ClearanceStatementIqdPage() {
                   if (!printWindow) return;
                   const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: viewEntry?.type === "receipt" ? "#1e293b" : "#dc2626", accentTextColor: "#ffffff" });
                   const title = viewEntry?.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
-                  printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head><meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
+                  printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head>
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
                   printWindow.document.close();
                   const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-statement-iqd">

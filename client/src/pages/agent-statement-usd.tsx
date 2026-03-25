@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Loader2, Printer, Eye, Pencil, Trash2, FileText } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 import { DateInput } from "@/components/ui/date-input";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
 import SalesReturnReport from "@/components/sales-return-report";
@@ -261,6 +261,7 @@ export default function AgentStatementUsdPage() {
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         ${fontLink}
         <title>${t("Customer Statement")} - ${customerName}</title>
@@ -365,6 +366,7 @@ export default function AgentStatementUsdPage() {
     const html = `<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         ${fontLink}
         <title>${t("Details")} - ${customerName}</title>

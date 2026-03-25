@@ -7,7 +7,7 @@ import { Loader2, Printer, MessageCircle } from "lucide-react";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 import { useUser } from "@/hooks/use-auth";
 
@@ -137,6 +137,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Supplier Payment Receipt")} - ${payment?.supplierName || ""}</title>
         <style>

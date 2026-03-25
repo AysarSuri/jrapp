@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { usd, formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import i18n from "@/lib/i18n";
 
 type CompanyProfileData = {
@@ -251,6 +251,7 @@ export default function ExpensesPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Expense Report")}</title>
         <style>${printStyles}</style>
@@ -315,6 +316,7 @@ export default function ExpensesPage() {
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Expense Voucher")} #${e.id}</title>
         <style>

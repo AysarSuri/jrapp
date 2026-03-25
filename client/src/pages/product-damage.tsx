@@ -31,7 +31,7 @@ import { useUnits } from "@/hooks/use-units";
 import { getProductName, getProductNameByLang, resolveUnitName } from "@/lib/language-utils";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 
 interface DamageItem {
   productId: number | null;
@@ -328,7 +328,8 @@ export default function ProductDamagePage() {
 
     printWindow.document.write(`<!DOCTYPE html>
       <html dir="${dir}" lang="${i18n.language}">
-      <head><meta charset="UTF-8" />
+      <head>
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" />
         <title>${t("Damage Report")}</title>
         <style>${getModernPrintStyles({ direction: dir as "rtl" | "ltr", accentColor: "#991b1b", accentTextColor: "#ffffff" })}</style>
       </head>

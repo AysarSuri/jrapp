@@ -19,7 +19,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
 
@@ -214,6 +214,7 @@ export default function AgentClientsPage() {
     return { html: `<!DOCTYPE html>
 <html dir="${dir}" lang="${i18n.language}">
 <head>
+        ${PRINT_FONT_LINKS}
 <meta charset="UTF-8" />
 <title>${t("Agent Client Assignments Report")}</title>
 <style>${printStyles}

@@ -9,7 +9,7 @@ import i18n from "@/lib/i18n";
 import { useUnits } from "@/hooks/use-units";
 import { resolveUnitName, getProductNameByLang } from "@/lib/language-utils";
 import { formatDate } from "@/lib/format-utils";
-import { getModernPrintStyles } from "@/lib/print-styles";
+import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
 
 type InvoiceData = {
@@ -188,6 +188,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
       <head>
+        ${PRINT_FONT_LINKS}
         <meta charset="UTF-8" />
         <title>${t("Sales Invoice Report")} - ${invoice?.invoiceNumber || ""}</title>
         <style>
@@ -203,9 +204,12 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
       </html>
     `);
     printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 300);
+    const doPrintFn = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 300));
+    } else {
+      setTimeout(doPrintFn, 1200);
+    }
     if (invoice) {
       logExport({ reportName: t("Sales Invoice Report"), supplierName: invoice.customerName, invoiceNumber: invoice.invoiceNumber, exportType: "print", currency });
     }

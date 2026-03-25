@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Search, Loader2, Trash2, Pencil, Phone, EyeOff, Package, Printer } from "lucide-react";
 import { IconAgent } from "@/components/erp-icons";
 import { usd, formatDate } from "@/lib/format-utils";
+import { PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,13 +83,13 @@ export default function RepresentativesPage() {
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
 <head>
+  ${PRINT_FONT_LINKS}
   <meta charset="utf-8">
   <title>${title} — ${companyName}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Inter', -apple-system, sans-serif;
+      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, sans-serif;
       padding: 18px 24px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
@@ -172,8 +173,7 @@ export default function RepresentativesPage() {
   <div class="footer">${companyName} — ${today}</div>
 </body>
 </html>`;
-    const w = window.open("", "_blank");
-    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
+    openPrintWindow(html);
   };
 
   const form = useForm<z.infer<typeof insertRepresentativeSchema>>({
