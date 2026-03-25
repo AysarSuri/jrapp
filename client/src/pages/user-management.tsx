@@ -58,6 +58,8 @@ export default function UserManagementPage() {
   const [isActive, setIsActive] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [debtUsd, setDebtUsd] = useState("");
+  const [debtIqd, setDebtIqd] = useState("");
 
   const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -78,7 +80,13 @@ export default function UserManagementPage() {
     setIsActive(1);
     setShowPassword(false);
     setPermissions([]);
+    setDebtUsd("");
+    setDebtIqd("");
   };
+
+  const { data: representativesList } = useQuery<{ id: number; name: string; debtUsd: string; debtIqd: string }[]>({
+    queryKey: ["/api/representatives"],
+  });
 
   const openEdit = (u: SafeUser) => {
     setEditUser(u);
@@ -90,16 +98,25 @@ export default function UserManagementPage() {
     setIsActive(u.isActive);
     setPermissions(u.permissions || []);
     setShowPassword(false);
+    if (u.role === "sales_rep") {
+      const rep = representativesList?.find(r => r.name === u.fullName || r.name === u.username);
+      setDebtUsd(rep?.debtUsd || "0");
+      setDebtIqd(rep?.debtIqd || "0");
+    } else {
+      setDebtUsd("");
+      setDebtIqd("");
+    }
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const createMutation = useMutation({
-    mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string; permissions: string[] }) => {
+    mutationFn: async (data: { username: string; password: string; fullName: string; mobile: string; role: string; permissions: string[]; debtUsd?: string; debtIqd?: string }) => {
       const res = await apiRequest("POST", "/api/users", data);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/representatives"] });
       toast({ title: t("User created successfully") });
       resetForm();
     },
@@ -115,6 +132,7 @@ export default function UserManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/representatives"] });
       toast({ title: t("User updated successfully") });
       resetForm();
     },
@@ -196,9 +214,18 @@ export default function UserManagementPage() {
       if (password.trim()) {
         data.password = password;
       }
+      if (role === "sales_rep") {
+        data.debtUsd = debtUsd || "0";
+        data.debtIqd = debtIqd || "0";
+      }
       updateMutation.mutate({ id: editUser.id, data });
     } else {
-      createMutation.mutate({ username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions });
+      const createData: any = { username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions };
+      if (role === "sales_rep") {
+        createData.debtUsd = debtUsd || "0";
+        createData.debtIqd = debtIqd || "0";
+      }
+      createMutation.mutate(createData);
     }
   };
 
@@ -391,6 +418,34 @@ export default function UserManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {role === "sales_rep" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-base font-bold">{t('Opening Balance')} (USD)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="h-11 text-base font-semibold"
+                      value={debtUsd}
+                      onChange={(e) => setDebtUsd(e.target.value)}
+                      placeholder="0.00"
+                      data-testid="input-debt-usd"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-base font-bold">{t('Opening Balance')} (IQD)</Label>
+                    <Input
+                      type="number"
+                      step="1"
+                      className="h-11 text-base font-semibold"
+                      value={debtIqd}
+                      onChange={(e) => setDebtIqd(e.target.value)}
+                      placeholder="0"
+                      data-testid="input-debt-iqd"
+                    />
+                  </div>
+                </div>
+              )}
               {editUser && (
                 <div className="space-y-2">
                   <Label className="font-semibold">{t('Status')}</Label>

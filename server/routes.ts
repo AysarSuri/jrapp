@@ -280,7 +280,7 @@ export async function registerRoutes(
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can manage users" });
       }
-      const { username, password, fullName, role, mobile, permissions } = req.body;
+      const { username, password, fullName, role, mobile, permissions, debtUsd, debtIqd } = req.body;
       if (!username || !password || !role) {
         return res.status(400).json({ message: "Username, password, and role are required" });
       }
@@ -299,7 +299,7 @@ export async function registerRoutes(
       const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms });
       if (role === 'sales_rep') {
         const repName = fullName || username;
-        await db.insert(representatives).values({ name: repName, mobile: mobile || null }).onConflictDoNothing();
+        await db.insert(representatives).values({ name: repName, mobile: mobile || null, debtUsd: debtUsd || "0", debtIqd: debtIqd || "0" }).onConflictDoNothing();
       }
       const { password: _, ...safeUser } = user;
       res.status(201).json(safeUser);
@@ -315,7 +315,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Only admins can manage users" });
       }
       const { id } = req.params;
-      const { username, password, fullName, role, isActive, mobile, permissions } = req.body;
+      const { username, password, fullName, role, isActive, mobile, permissions, debtUsd, debtIqd } = req.body;
       const updateData: any = {};
       if (username !== undefined) updateData.username = username;
       if (fullName !== undefined) updateData.fullName = fullName;
@@ -353,13 +353,15 @@ export async function registerRoutes(
         const updateFields: any = {};
         if (fullName && fullName !== oldUser.fullName) updateFields.name = newName;
         if (mobile !== undefined) updateFields.mobile = mobile || null;
+        if (debtUsd !== undefined) updateFields.debtUsd = debtUsd;
+        if (debtIqd !== undefined) updateFields.debtIqd = debtIqd;
         if (Object.keys(updateFields).length > 0) {
           await db.update(representatives).set(updateFields).where(eq(representatives.name, oldName));
         }
       }
       if (user.role === 'sales_rep' && oldUser?.role !== 'sales_rep') {
         const repName = user.fullName || user.username;
-        await db.insert(representatives).values({ name: repName, mobile: user.mobile || null }).onConflictDoNothing();
+        await db.insert(representatives).values({ name: repName, mobile: user.mobile || null, debtUsd: debtUsd || "0", debtIqd: debtIqd || "0" }).onConflictDoNothing();
       }
       const { password: _, ...safeUser } = user;
       res.json(safeUser);
