@@ -83,8 +83,8 @@ export default function RepresentativesPage() {
         <td class="name-cell">${esc(item.name)}</td>
         <td class="mono">${esc(item.mobile || '-')}</td>
         <td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>
-        <td class="mono price-usd" style="color:${bUsd > 0 ? '#dc2626' : bUsd < 0 ? '#16a34a' : '#64748b'}">${bUsd !== 0 ? '$' + Math.abs(bUsd).toFixed(2) : '-'}</td>
-        <td class="mono price-iqd" style="color:${bIqd > 0 ? '#dc2626' : bIqd < 0 ? '#16a34a' : '#64748b'}">${bIqd !== 0 ? Math.abs(bIqd).toLocaleString() + ' IQD' : '-'}</td>
+        <td class="mono price-usd" style="color:${bUsd > 0 ? '#dc2626' : bUsd < 0 ? '#16a34a' : '#64748b'}">${bUsd !== 0 ? (bUsd < 0 ? '-' : '') + '$' + Math.abs(bUsd).toFixed(2) : '-'}</td>
+        <td class="mono price-iqd" style="color:${bIqd > 0 ? '#dc2626' : bIqd < 0 ? '#16a34a' : '#64748b'}">${bIqd !== 0 ? (bIqd < 0 ? '-' : '') + Math.abs(bIqd).toLocaleString() + ' IQD' : '-'}</td>
         <td style="font-size:8.5pt">${statusParts.join(' / ')}</td>
       </tr>`;
     }).join("");
@@ -157,8 +157,8 @@ export default function RepresentativesPage() {
   </div>
   <div class="summary-row">
     <div class="stat-card blue"><span class="stat-label">${t('Total Representatives')}</span><span class="stat-value">${filtered.length}</span></div>
-    <div class="stat-card green"><span class="stat-label">${t('Final Balance')} (USD)</span><span class="stat-value">$${Math.abs(totalUsd).toFixed(2)}</span></div>
-    <div class="stat-card orange"><span class="stat-label">${t('Final Balance')} (IQD)</span><span class="stat-value">${Math.abs(totalIqd).toLocaleString()} IQD</span></div>
+    <div class="stat-card green"><span class="stat-label">${t('Final Balance')} (USD)</span><span class="stat-value">${totalUsd < 0 ? '-' : ''}$${Math.abs(totalUsd).toFixed(2)}</span></div>
+    <div class="stat-card orange"><span class="stat-label">${t('Final Balance')} (IQD)</span><span class="stat-value">${totalIqd < 0 ? '-' : ''}${Math.abs(totalIqd).toLocaleString()} IQD</span></div>
   </div>
   <table>
     <thead>
@@ -176,8 +176,8 @@ export default function RepresentativesPage() {
       ${tableRows}
       <tr class="totals-row">
         <td colspan="4" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
-        <td class="mono" style="text-align:right;color:${totalUsd > 0 ? '#dc2626' : totalUsd < 0 ? '#16a34a' : '#64748b'};font-weight:800">$${Math.abs(totalUsd).toFixed(2)}</td>
-        <td class="mono" style="text-align:right;color:${totalIqd > 0 ? '#dc2626' : totalIqd < 0 ? '#16a34a' : '#64748b'};font-weight:800">${Math.abs(totalIqd).toLocaleString()} IQD</td>
+        <td class="mono" style="text-align:right;color:${totalUsd > 0 ? '#dc2626' : totalUsd < 0 ? '#16a34a' : '#64748b'};font-weight:800">${totalUsd < 0 ? '-' : ''}$${Math.abs(totalUsd).toFixed(2)}</td>
+        <td class="mono" style="text-align:right;color:${totalIqd > 0 ? '#dc2626' : totalIqd < 0 ? '#16a34a' : '#64748b'};font-weight:800">${totalIqd < 0 ? '-' : ''}${Math.abs(totalIqd).toLocaleString()} IQD</td>
         <td></td>
       </tr>
     </tbody>
@@ -446,10 +446,10 @@ export default function RepresentativesPage() {
                         return (
                           <>
                             <TableCell className={`text-right font-mono text-sm font-semibold ${bUsd > 0 ? 'text-red-600' : bUsd < 0 ? 'text-green-600' : ''}`}>
-                              {bUsd !== 0 ? `$${Math.abs(bUsd).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
+                              {bUsd !== 0 ? `${bUsd < 0 ? '-' : ''}$${Math.abs(bUsd).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '-'}
                             </TableCell>
                             <TableCell className={`text-right font-mono text-sm font-semibold ${bIqd > 0 ? 'text-red-600' : bIqd < 0 ? 'text-green-600' : ''}`}>
-                              {bIqd !== 0 ? `${Math.abs(bIqd).toLocaleString()} IQD` : '-'}
+                              {bIqd !== 0 ? `${bIqd < 0 ? '-' : ''}${Math.abs(bIqd).toLocaleString()} IQD` : '-'}
                             </TableCell>
                             <TableCell>
                               {hasPositive && (
