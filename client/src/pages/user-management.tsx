@@ -84,8 +84,8 @@ export default function UserManagementPage() {
     setDebtIqd("");
   };
 
-  const { data: representativesList } = useQuery<{ id: number; name: string; debtUsd: string; debtIqd: string }[]>({
-    queryKey: ["/api/representatives"],
+  const { data: representativesList } = useQuery<{ id: string; name: string; repId: number | null; debtUsd: string; debtIqd: string }[]>({
+    queryKey: ["/api/agents"],
   });
 
   const openEdit = (u: SafeUser) => {
@@ -116,7 +116,7 @@ export default function UserManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/representatives"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
       toast({ title: t("User created successfully") });
       resetForm();
     },
@@ -132,7 +132,7 @@ export default function UserManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/representatives"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/agents"] });
       toast({ title: t("User updated successfully") });
       resetForm();
     },

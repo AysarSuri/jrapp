@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useCustomerReceipts, useCreateCustomerReceipt, useUpdateCustomerReceipt, useDeleteCustomerReceipt } from "@/hooks/use-customer-receipts";
 import { useQuery } from "@tanstack/react-query";
-import type { Client, Bank, TransferOffice, CustomerReceipt, Representative } from "@shared/schema";
+import type { Client, Bank, TransferOffice, CustomerReceipt } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -64,8 +64,8 @@ export default function CustomerReceiptUsdPage() {
     queryKey: ["/api/company-profile"],
   });
 
-  const { data: representativesList } = useQuery<Representative[]>({
-    queryKey: ["/api/representatives"],
+  const { data: representativesList } = useQuery<{ id: string; name: string; mobile: string }[]>({
+    queryKey: ["/api/agents"],
   });
 
   const [receiptNumber, setReceiptNumber] = useState("");
@@ -488,7 +488,7 @@ export default function CustomerReceiptUsdPage() {
               <div className="space-y-2">
                 <Label>{t('Via Representative')}</Label>
                 <SearchSelect
-                  items={(representativesList || []).filter(r => !r.hidden).map(r => ({ id: r.name, name: r.name }))}
+                  items={(representativesList || []).map(r => ({ id: r.name, name: r.name }))}
                   value={representativeName}
                   onValueChange={(v) => setRepresentativeName(v || "")}
                   placeholder={t('Select representative...')}

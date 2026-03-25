@@ -79,8 +79,8 @@ export default function SalesReturnUsdPage() {
   const { data: clients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
-  const { data: representativesList } = useQuery<{ id: number; name: string; mobile: string | null }[]>({
-    queryKey: ["/api/representatives"],
+  const { data: representativesList } = useQuery<{ id: string; name: string; mobile: string; repId: number | null }[]>({
+    queryKey: ["/api/agents"],
   });
   const { data: addressesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/addresses"],
@@ -387,7 +387,7 @@ export default function SalesReturnUsdPage() {
         const agent = agentsList?.find(a => a.id === assignment.agentUserId);
         setRepresentativeMobile(agent?.mobile || "");
         const matchedRep = representativesList?.find(r => r.name === assignment.agentName);
-        setRepresentativeId(matchedRep?.id || null);
+        setRepresentativeId(matchedRep?.repId || null);
       } else {
         setRepresentativeName("");
         setRepresentativeMobile("");
@@ -398,9 +398,9 @@ export default function SalesReturnUsdPage() {
 
   const selectRepresentative = (repId: string) => {
     if (!repId) { setRepresentativeId(0); setRepresentativeName(""); setRepresentativeMobile(""); return; }
-    const rep = representativesList?.find(r => r.id === parseInt(repId));
+    const rep = representativesList?.find(r => r.id === repId);
     if (rep) {
-      setRepresentativeId(rep.id);
+      setRepresentativeId(rep.repId);
       setRepresentativeName(rep.name);
       setRepresentativeMobile(rep.mobile || "");
     }
@@ -546,7 +546,7 @@ export default function SalesReturnUsdPage() {
               <Label className="text-xs font-semibold text-muted-foreground">{t('Representative Name')}</Label>
               <SearchSelect
                 items={representativesList || []}
-                value={representativeId ? String(representativeId) : ""}
+                value={representativesList?.find(r => r.repId === representativeId)?.id || ""}
                 onValueChange={selectRepresentative}
                 placeholder={t('Select Representative')}
                 data-testid="select-return-representative"

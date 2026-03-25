@@ -80,11 +80,11 @@ export default function RepStatementPage() {
   const [editEntry, setEditEntry] = useState<{ id: number; type: string; currency: string; reference: string | null } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
-  const { data: repsList } = useQuery<RepData[]>({
-    queryKey: ["/api/representatives"],
+  const { data: agentsList } = useQuery<{ id: string; name: string; repId: number | null; debtUsd: string; debtIqd: string }[]>({
+    queryKey: ["/api/agents"],
   });
 
-  const reps = (repsList || []).filter((r: any) => r.hidden !== 1 && r.hidden !== true);
+  const reps = (agentsList || []).filter((r: any) => r.repId).map((r: any) => ({ id: r.repId, name: r.name, debtUsd: r.debtUsd, debtIqd: r.debtIqd }));
 
   const { data: companyProfile } = useQuery<CompanyProfileData>({
     queryKey: ["/api/company-profile"],

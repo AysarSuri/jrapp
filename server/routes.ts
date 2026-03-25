@@ -245,7 +245,12 @@ export async function registerRoutes(
   app.get('/api/agents', requireAuth, async (_req, res) => {
     try {
       const salesRepUsers = await db.select({ id: users.id, fullName: users.fullName, username: users.username, mobile: users.mobile }).from(users).where(and(eq(users.role, 'sales_rep'), eq(users.isActive, 1)));
-      const agentsFromUsers = salesRepUsers.map(u => ({ id: u.id, name: u.fullName || u.username, mobile: u.mobile || "" }));
+      const allReps = await db.select().from(representatives);
+      const agentsFromUsers = salesRepUsers.map(u => {
+        const name = u.fullName || u.username;
+        const matchedRep = allReps.find(r => r.name === name);
+        return { id: u.id, name, mobile: u.mobile || "", repId: matchedRep?.id || null, debtUsd: matchedRep?.debtUsd || "0", debtIqd: matchedRep?.debtIqd || "0" };
+      });
       res.json(agentsFromUsers);
     } catch { res.status(500).json({ message: "Internal server error" }); }
   });
