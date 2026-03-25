@@ -465,6 +465,7 @@ export default function CustomerReceiptIqdPage() {
                 <DateInput
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  disabled={userRole === 'sales_rep'}
                   data-testid="input-receipt-date"
                 />
               </div>
@@ -475,6 +476,7 @@ export default function CustomerReceiptIqdPage() {
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
+                  disabled={userRole === 'sales_rep'}
                   data-testid="input-receipt-time"
                 />
               </div>
@@ -689,11 +691,11 @@ export default function CustomerReceiptIqdPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
-                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-from-date" />
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} disabled={userRole === 'sales_rep'} className="w-36 h-9" data-testid="input-receipt-history-from-date" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
-                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-receipt-history-to-date" />
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} disabled={userRole === 'sales_rep'} className="w-36 h-9" data-testid="input-receipt-history-to-date" />
               </div>
               <div className="w-64">
                 <CustomerSearchSelect

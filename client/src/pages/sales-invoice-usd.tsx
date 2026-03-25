@@ -565,11 +565,11 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
-              <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-sales-date" />
+              <DateInput value={date} onChange={(e) => setDate(e.target.value)} disabled={userRole === 'sales_rep'} data-testid="input-sales-date" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-sales-time" />
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} disabled={userRole === 'sales_rep'} data-testid="input-sales-time" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Invoice Type')}</Label>
@@ -1009,11 +1009,11 @@ export default function SalesInvoiceUsdPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
-                <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} className="w-36 h-9" data-testid="input-sales-history-start-date" />
+                <DateInput value={historyStartDate} onChange={(e) => setHistoryStartDate(e.target.value)} disabled={userRole === 'sales_rep'} className="w-36 h-9" data-testid="input-sales-history-start-date" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
-                <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} className="w-36 h-9" data-testid="input-sales-history-end-date" />
+                <DateInput value={historyEndDate} onChange={(e) => setHistoryEndDate(e.target.value)} disabled={userRole === 'sales_rep'} className="w-36 h-9" data-testid="input-sales-history-end-date" />
               </div>
             </div>
           </div>

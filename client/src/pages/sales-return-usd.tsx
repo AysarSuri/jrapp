@@ -488,11 +488,11 @@ export default function SalesReturnUsdPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Date')}</Label>
-              <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-return-date" />
+              <DateInput value={date} onChange={(e) => setDate(e.target.value)} disabled={userRole === 'sales_rep'} data-testid="input-return-date" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Time')}</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-return-time" />
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} disabled={userRole === 'sales_rep'} data-testid="input-return-time" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Return Type')}</Label>
@@ -821,6 +821,7 @@ export default function SalesReturnUsdPage() {
               <DateInput
                 value={filterDateFrom}
                 onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
+                disabled={userRole === 'sales_rep'}
                 className="h-9"
                 data-testid="input-filter-date-from"
               />
@@ -830,6 +831,7 @@ export default function SalesReturnUsdPage() {
               <DateInput
                 value={filterDateTo}
                 onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
+                disabled={userRole === 'sales_rep'}
                 className="h-9"
                 data-testid="input-filter-date-to"
               />
