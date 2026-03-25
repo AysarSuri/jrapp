@@ -55,7 +55,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Bank Management",
     routes: [
       "/bank-management", "/banks", "/bank-receipts", "/bank-payments",
-      "/bank-statement-usd", "/bank-statement-iqd", "/bank-statement",
+      "/bank-statement-usd", "/bank-statement-iqd",
     ],
   },
   {

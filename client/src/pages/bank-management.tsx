@@ -33,12 +33,20 @@ export default function BankManagementPage() {
       iconColor: "text-orange-600 dark:text-orange-400",
     },
     {
-      href: "/bank-statement",
+      href: "/bank-statement-usd",
       icon: FileText,
-      label: "Bank Account Statement",
+      label: "Bank Account Statement USD",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",
       iconColor: "text-purple-600 dark:text-purple-400",
+    },
+    {
+      href: "/bank-statement-iqd",
+      icon: FileText,
+      label: "Bank Account Statement IQD",
+      color: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
+      iconColor: "text-indigo-600 dark:text-indigo-400",
     },
   ];
 

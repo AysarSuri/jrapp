@@ -40,7 +40,6 @@ import SupplierStatementUsdPage from "@/pages/supplier-statement-usd";
 import SupplierStatementIqdPage from "@/pages/supplier-statement-iqd";
 import BankReceiptsPage from "@/pages/bank-receipts";
 import BankPaymentsPage from "@/pages/bank-payments";
-import BankStatementPage from "@/pages/bank-statement";
 import BankStatementUsdPage from "@/pages/bank-statement-usd";
 import BankStatementIqdPage from "@/pages/bank-statement-iqd";
 import ClearanceReceiptsPage from "@/pages/clearance-receipts";
@@ -237,9 +236,6 @@ function Router() {
       </Route>
       <Route path="/bank-payments">
         <ProtectedRoute component={BankPaymentsPage} />
-      </Route>
-      <Route path="/bank-statement">
-        <ProtectedRoute component={BankStatementPage} />
       </Route>
       <Route path="/bank-statement-usd">
         <ProtectedRoute component={BankStatementUsdPage} />

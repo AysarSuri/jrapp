@@ -202,7 +202,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/banks",
     "/bank-receipts",
     "/bank-payments",
-    "/bank-statement",
     "/bank-statement-usd",
     "/bank-statement-iqd",
   ];
