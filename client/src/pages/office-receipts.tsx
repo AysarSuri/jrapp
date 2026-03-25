@@ -173,6 +173,19 @@ export default function OfficeReceiptsPage() {
   };
 
   const receipts = allTxns?.filter(t => t.type === "receipt") || [];
+
+  const nextInvoiceNumber = (() => {
+    let maxNum = 0;
+    for (const r of receipts) {
+      const match = (r as any).invoiceNumber?.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    return `OR-${String(maxNum + 1).padStart(6, '0')}`;
+  })();
+
   const filteredReceipts = receipts.filter(r => {
     if (historyFilter && historyFilter !== "all" && String(r.officeId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
@@ -210,7 +223,11 @@ export default function OfficeReceiptsPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Invoice Number')}</Label>
+                <Input value={nextInvoiceNumber} readOnly disabled className="font-mono bg-muted/50 cursor-not-allowed" data-testid="input-office-receipt-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>
                 <SearchSelect items={offices} value={officeId} onValueChange={selectOffice} placeholder={t('Select office...')} data-testid="select-office-receipt-office" />
@@ -374,6 +391,7 @@ export default function OfficeReceiptsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Transfer Office')}</TableHead>
@@ -388,6 +406,7 @@ export default function OfficeReceiptsPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-office-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm">{(r as any).invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.officeName}</TableCell>
@@ -438,7 +457,7 @@ export default function OfficeReceiptsPage() {
                   ))}
                   {paginatedReceipts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No receipts yet')}
                       </TableCell>
                     </TableRow>
@@ -501,6 +520,10 @@ export default function OfficeReceiptsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('Invoice Number')}</Label>
+              <Input value={(editReceipt as any)?.invoiceNumber || "-"} readOnly disabled className="font-mono bg-muted/50 cursor-not-allowed" data-testid="input-edit-office-receipt-invoice-number" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Transfer Office')}</Label>

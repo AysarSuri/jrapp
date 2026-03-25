@@ -300,6 +300,7 @@ export const clearancePurchaseInvoices = pgTable("clearance_purchase_invoices", 
 
 export const transferOfficeTransactions = pgTable("transfer_office_transactions", {
   id: serial("id").primaryKey(),
+  invoiceNumber: text("invoice_number"),
   officeId: integer("office_id").notNull(),
   officeName: text("office_name").notNull(),
   type: text("type").notNull(),
