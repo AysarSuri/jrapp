@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useCustomerReceipts, useCreateCustomerReceipt, useUpdateCustomerReceipt, useDeleteCustomerReceipt } from "@/hooks/use-customer-receipts";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice, CustomerReceipt } from "@shared/schema";
+import { useUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -43,10 +44,19 @@ export default function CustomerReceiptIqdPage() {
   const { mutate: updateReceipt, isPending: isUpdating } = useUpdateCustomerReceipt();
   const { mutate: deleteReceipt } = useDeleteCustomerReceipt();
 
-  const { data: customers } = useQuery<Client[]>({
+  const { data: user } = useUser();
+  const { data: allCustomers } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
     select: (data: Client[]) => data.filter(c => c.type === "customer"),
   });
+  const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
+    queryKey: ["/api/agent-clients"],
+  });
+  const customers = useMemo(() => {
+    if (!allCustomers) return undefined;
+    if (user?.role === 'sales_rep') return allCustomers.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id));
+    return allCustomers;
+  }, [allCustomers, agentClientsList, user]);
 
   const { data: banksList } = useQuery<Bank[]>({
     queryKey: ["/api/banks"],

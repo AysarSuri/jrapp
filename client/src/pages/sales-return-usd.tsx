@@ -95,7 +95,10 @@ export default function SalesReturnUsdPage() {
     queryKey: ["/api/warehouses"],
   });
 
-  const customersList = clients?.filter(c => c.type === "customer") || [];
+  const allCustomers = clients?.filter(c => c.type === "customer") || [];
+  const customersList = user?.role === 'sales_rep'
+    ? allCustomers.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id))
+    : allCustomers;
 
   const [returnNumber, setReturnNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);

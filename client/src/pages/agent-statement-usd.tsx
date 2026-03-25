@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usd, formatDate } from "@/lib/format-utils";
 import { apiRequest } from "@/lib/queryClient";
+import { useUser } from "@/hooks/use-auth";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -80,11 +81,19 @@ export default function AgentStatementUsdPage() {
   const [editEntry, setEditEntry] = useState<{ id: number; type: string; currency: string; reference: string | null } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
+  const { data: user } = useUser();
   const { data: clientsList } = useQuery<CustomerData[]>({
     queryKey: ["/api/clients"],
   });
+  const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
+    queryKey: ["/api/agent-clients"],
+  });
 
-  const customers = (clientsList || []).filter((c: any) => c.type === "customer");
+  const customers = useMemo(() => {
+    const all = (clientsList || []).filter((c: any) => c.type === "customer");
+    if (user?.role === 'sales_rep') return all.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id));
+    return all;
+  }, [clientsList, agentClientsList, user]);
 
   const { data: companyProfile } = useQuery<CompanyProfileData>({
     queryKey: ["/api/company-profile"],

@@ -108,7 +108,10 @@ export default function SalesByCategoryPage() {
     queryKey: ["/api/warehouses"],
   });
 
-  const customersList = clients?.filter(c => c.type === "customer") || [];
+  const allCustomers = clients?.filter(c => c.type === "customer") || [];
+  const customersList = user?.role === 'sales_rep'
+    ? allCustomers.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id))
+    : allCustomers;
 
   const selectedCategoryId = categories?.find(c => c.name === selectedCategory)?.id;
   const groupsForCategory = categoryGroups?.filter(g => g.categoryId === selectedCategoryId) || [];

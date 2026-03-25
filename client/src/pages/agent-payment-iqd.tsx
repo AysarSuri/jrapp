@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAgentPayments, useCreateAgentPayment, useUpdateAgentPayment, useDeleteAgentPayment } from "@/hooks/use-agent-payments";
 import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
+import { useUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -77,10 +78,18 @@ export default function AgentPaymentIqdPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const { data: user } = useUser();
   const { data: allClients } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
   });
-  const customers = allClients?.filter(c => c.type === "customer") || [];
+  const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
+    queryKey: ["/api/agent-clients"],
+  });
+  const customers = useMemo(() => {
+    const all = allClients?.filter(c => c.type === "customer") || [];
+    if (user?.role === 'sales_rep') return all.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id));
+    return all;
+  }, [allClients, agentClientsList, user]);
 
   const { data: banksList } = useQuery<Bank[]>({
     queryKey: ["/api/banks"],

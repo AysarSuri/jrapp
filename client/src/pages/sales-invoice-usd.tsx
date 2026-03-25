@@ -96,7 +96,10 @@ export default function SalesInvoiceUsdPage() {
     queryKey: ["/api/warehouses"],
   });
 
-  const customersList = clients?.filter(c => c.type === "customer") || [];
+  const allCustomers = clients?.filter(c => c.type === "customer") || [];
+  const customersList = user?.role === 'sales_rep'
+    ? allCustomers.filter(c => agentClientsList?.some(ac => ac.agentUserId === user.id && ac.clientId === c.id))
+    : allCustomers;
 
   const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
