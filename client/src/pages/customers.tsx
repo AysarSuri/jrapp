@@ -504,7 +504,7 @@ export default function CustomersPage() {
         <CardContent className="pt-6">
           <div className={`grid grid-cols-1 ${fv.customer_address ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4 items-end`}>
             <div>
-              <label className="text-base font-bold mb-1 block">{t("Name")}</label>
+              <label className="text-base font-bold mb-1 block">{t("Customer Name")}</label>
               <Input
                 data-testid="input-customer-name"
                 className="h-11 text-base font-semibold"

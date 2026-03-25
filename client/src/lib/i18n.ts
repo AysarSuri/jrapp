@@ -2318,7 +2318,7 @@ const resources = {
       "Select account where amount was received...": "اختر الحساب الذي وصل إليه المبلغ...",
       "Received at": "واصل إلى",
       "Select Customer": "اختر الزبون",
-      "Customer Name": "اسم الزبون",
+      "Customer Name": "اسم العميل",
       "Mobile": "موبايل",
       "Mobile number...": "رقم الموبايل...",
       "Representative": "المندوب",
