@@ -69,29 +69,22 @@ export default function RepresentativesPage() {
     const title = t('Representatives');
 
     const tableRows = filtered.map((item, i) => {
-      const bal = repBalances?.[item.id];
-      const bUsd = bal?.balanceUsd ?? 0;
-      const bIqd = bal?.balanceIqd ?? 0;
-      const hasPositive = bUsd > 0 || bIqd > 0;
-      const hasNegative = bUsd < 0 || bIqd < 0;
-      const statusParts: string[] = [];
-      if (hasPositive) statusParts.push(`<span style="color:#16a34a;font-weight:700">${esc(t('Remaining at him'))}</span>`);
-      if (hasNegative) statusParts.push(`<span style="color:#dc2626;font-weight:700">${esc(t('Remaining at us'))}</span>`);
-      if (!hasPositive && !hasNegative) statusParts.push(`<span style="color:#64748b;font-weight:700">${esc(t('Zero Account'))}</span>`);
+      const dUsd = Number(item.debtUsd || 0);
+      const dIqd = Number(item.debtIqd || 0);
       return `
       <tr>
         <td class="num">${i + 1}</td>
         <td class="name-cell">${esc(item.name)}</td>
         <td class="mono">${esc(item.mobile || '-')}</td>
         <td>${item.agreementType === 'monthly_salary' ? esc(t('Monthly Salary')) : esc(t('Commission'))}</td>
-        <td class="mono price-usd" style="color:${bUsd > 0 ? '#16a34a' : bUsd < 0 ? '#dc2626' : '#64748b'}">${bUsd !== 0 ? (bUsd < 0 ? '-' : '') + '$' + Math.abs(bUsd).toFixed(2) : '-'}</td>
-        <td class="mono price-iqd" style="color:${bIqd > 0 ? '#16a34a' : bIqd < 0 ? '#dc2626' : '#64748b'}">${bIqd !== 0 ? (bIqd < 0 ? '-' : '') + Math.abs(bIqd).toLocaleString() + ' IQD' : '-'}</td>
-        <td style="font-size:8.5pt">${statusParts.join(' / ')}</td>
+        <td class="mono price-usd" style="color:${dUsd < 0 ? '#dc2626' : '#166534'}">$${dUsd.toFixed(2)}</td>
+        <td class="mono price-iqd" style="color:${dIqd < 0 ? '#dc2626' : '#9333ea'}">${dIqd.toLocaleString()} IQD</td>
+        <td>${item.hidden === 1 ? esc(t('Hidden')) : '-'}</td>
       </tr>`;
     }).join("");
 
-    const totalUsd = filtered.reduce((sum, r) => sum + (repBalances?.[r.id]?.balanceUsd ?? 0), 0);
-    const totalIqd = filtered.reduce((sum, r) => sum + (repBalances?.[r.id]?.balanceIqd ?? 0), 0);
+    const totalUsd = filtered.reduce((sum, r) => sum + Number(r.debtUsd || 0), 0);
+    const totalIqd = filtered.reduce((sum, r) => sum + Number(r.debtIqd || 0), 0);
 
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
@@ -158,8 +151,8 @@ export default function RepresentativesPage() {
   </div>
   <div class="summary-row">
     <div class="stat-card blue"><span class="stat-label">${t('Total Representatives')}</span><span class="stat-value">${filtered.length}</span></div>
-    <div class="stat-card green"><span class="stat-label">${t('Final Balance')} (USD)</span><span class="stat-value">${totalUsd < 0 ? '-' : ''}$${Math.abs(totalUsd).toFixed(2)}</span></div>
-    <div class="stat-card orange"><span class="stat-label">${t('Final Balance')} (IQD)</span><span class="stat-value">${totalIqd < 0 ? '-' : ''}${Math.abs(totalIqd).toLocaleString()} IQD</span></div>
+    <div class="stat-card green"><span class="stat-label">${t('Opening Balance')} (USD)</span><span class="stat-value">$${totalUsd.toFixed(2)}</span></div>
+    <div class="stat-card orange"><span class="stat-label">${t('Opening Balance')} (IQD)</span><span class="stat-value">${totalIqd.toLocaleString()} IQD</span></div>
   </div>
   <table>
     <thead>
@@ -168,8 +161,8 @@ export default function RepresentativesPage() {
         <th>${t('Representative Name')}</th>
         <th>${t('Mobile')}</th>
         <th>${t('Agreement Type')}</th>
-        <th style="text-align:right">${t('Final Balance')} (USD)</th>
-        <th style="text-align:right">${t('Final Balance')} (IQD)</th>
+        <th style="text-align:right">${t('Opening Balance')} (USD)</th>
+        <th style="text-align:right">${t('Opening Balance')} (IQD)</th>
         <th>${t('Status')}</th>
       </tr>
     </thead>
@@ -177,8 +170,8 @@ export default function RepresentativesPage() {
       ${tableRows}
       <tr class="totals-row">
         <td colspan="4" style="text-align:${dir === "rtl" ? "right" : "left"};font-weight:800">${t('Total')}</td>
-        <td class="mono" style="text-align:right;color:${totalUsd > 0 ? '#16a34a' : totalUsd < 0 ? '#dc2626' : '#64748b'};font-weight:800">${totalUsd < 0 ? '-' : ''}$${Math.abs(totalUsd).toFixed(2)}</td>
-        <td class="mono" style="text-align:right;color:${totalIqd > 0 ? '#16a34a' : totalIqd < 0 ? '#dc2626' : '#64748b'};font-weight:800">${totalIqd < 0 ? '-' : ''}${Math.abs(totalIqd).toLocaleString()} IQD</td>
+        <td class="price-usd" style="color:${totalUsd < 0 ? '#dc2626' : '#166534'}">$${totalUsd.toFixed(2)}</td>
+        <td class="price-iqd" style="color:${totalIqd < 0 ? '#dc2626' : '#9333ea'}">${totalIqd.toLocaleString()} IQD</td>
         <td></td>
       </tr>
     </tbody>
