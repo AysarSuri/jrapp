@@ -92,9 +92,6 @@ export default function SalesInvoiceIqdPage() {
   const { data: agentClientsList } = useQuery<{ id: number; agentUserId: string; agentName: string; clientId: number }[]>({
     queryKey: ["/api/agent-clients"],
   });
-  const { data: agentsList } = useQuery<{ id: string; name: string; mobile: string }[]>({
-    queryKey: ["/api/agents"],
-  });
   const { data: warehousesList } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/warehouses"],
   });
@@ -463,10 +460,18 @@ export default function SalesInvoiceIqdPage() {
       setMobile(client.contact || "");
       const assignment = agentClientsList?.find(ac => ac.clientId === client.id);
       if (assignment) {
-        setRepresentativeName(assignment.agentName);
-        const agent = agentsList?.find(a => a.id === assignment.agentUserId);
-        setRepresentativeMobile(agent?.mobile || "");
+        const matchedAgent = representativesList?.find(r => r.name === assignment.agentName);
+        if (matchedAgent) {
+          setRepresentativeId(matchedAgent.repId);
+          setRepresentativeName(matchedAgent.name);
+          setRepresentativeMobile(matchedAgent.mobile || "");
+        } else {
+          setRepresentativeId(null);
+          setRepresentativeName("");
+          setRepresentativeMobile("");
+        }
       } else {
+        setRepresentativeId(null);
         setRepresentativeName("");
         setRepresentativeMobile("");
       }
