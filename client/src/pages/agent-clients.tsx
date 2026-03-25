@@ -422,6 +422,7 @@ export default function AgentClientsPage() {
                         <TableHead className="w-12"></TableHead>
                         <TableHead className="w-12">#</TableHead>
                         <TableHead>{t('Client Name')}</TableHead>
+                        <TableHead>{t('Address')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -452,12 +453,13 @@ export default function AgentClientsPage() {
                               </Badge>
                             )}
                           </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{c.address || "—"}</TableCell>
                         </TableRow>
                         );
                       })}
                       {customers.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                             {t('No clients found')}
                           </TableCell>
                         </TableRow>
