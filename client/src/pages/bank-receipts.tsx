@@ -173,7 +173,20 @@ export default function BankReceiptsPage() {
     });
   };
 
-  const receipts = allTxns?.filter(t => t.type === "receipt") || [];
+  const allReceiptTxns = allTxns?.filter(t => t.type === "receipt") || [];
+  const nextInvoiceNumber = (() => {
+    let maxNum = 0;
+    for (const t of allReceiptTxns) {
+      const match = (t as any).invoiceNumber?.match(/\d+$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    }
+    return `BR-${String(maxNum + 1).padStart(6, '0')}`;
+  })();
+
+  const receipts = allReceiptTxns;
   const filteredReceipts = receipts.filter(r => {
     if (historyFilter && historyFilter !== "all" && String(r.bankId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
@@ -211,7 +224,11 @@ export default function BankReceiptsPage() {
             <CardTitle className="text-lg">{t('Receipt Details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+                <Input value={nextInvoiceNumber} disabled className="h-11 text-base font-semibold bg-muted" data-testid="input-bank-receipt-invoice-number" />
+              </div>
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>
                 <SearchSelect items={banks} value={bankId} onValueChange={selectBank} placeholder={t('Select bank...')} data-testid="select-receipt-bank" />
@@ -375,6 +392,7 @@ export default function BankReceiptsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
+                    <TableHead>{t('Invoice Number')}</TableHead>
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Bank')}</TableHead>
@@ -389,6 +407,7 @@ export default function BankReceiptsPage() {
                   {paginatedReceipts.map((r, i) => (
                     <TableRow key={r.id} data-testid={`row-receipt-${r.id}`}>
                       <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{(r as any).invoiceNumber || "-"}</TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(r.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{r.time || "-"}</TableCell>
                       <TableCell className="font-medium">{r.bankName}</TableCell>
@@ -448,7 +467,7 @@ export default function BankReceiptsPage() {
                   ))}
                   {paginatedReceipts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                         {t('No receipts yet')}
                       </TableCell>
                     </TableRow>
@@ -512,6 +531,10 @@ export default function BankReceiptsPage() {
           </DialogHeader>
           {viewReceipt && (
             <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">{t('Invoice Number')}</p>
+                <p className="font-mono font-bold text-lg">{(viewReceipt as any).invoiceNumber || "-"}</p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">{t('Date')}</p>
@@ -570,6 +593,10 @@ export default function BankReceiptsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-bold">{t('Invoice Number')}</Label>
+              <Input value={(editReceipt as any)?.invoiceNumber || "-"} disabled className="h-11 text-base font-semibold bg-muted" data-testid="input-edit-bank-receipt-invoice-number" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Bank')}</Label>
