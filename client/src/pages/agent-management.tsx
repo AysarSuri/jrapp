@@ -1,22 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { IconCustomers, IconSupplierList, IconAddress, IconAgent } from "@/components/erp-icons";
+import { IconCustomers, IconSupplierList, IconAddress } from "@/components/erp-icons";
 
 export default function AgentManagementPage() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === "rtl";
 
   const sections = [
-    {
-      href: "/representatives",
-      icon: IconAgent,
-      label: "Representatives",
-      gradient: "from-gray-500 to-gray-600",
-      bg: "bg-gray-50 dark:bg-gray-900/20",
-      iconColor: "text-gray-600 dark:text-gray-400",
-      hoverBorder: "hover:border-gray-300 dark:hover:border-gray-700",
-    },
     {
       href: "/agent-clients",
       icon: IconCustomers,
