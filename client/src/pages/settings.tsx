@@ -211,21 +211,21 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="flex gap-6">
-        <div className="w-56 shrink-0">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <div className="w-full lg:w-56 shrink-0">
           <Card>
             <CardContent className="p-2">
-              <div className="space-y-1">
+              <div className="flex lg:flex-col gap-1 overflow-x-auto">
                 {tabs.map(tab => (
                   <Button
                     key={tab.key}
                     variant={activeTab === tab.key ? "default" : "ghost"}
-                    className={`w-full justify-start gap-2 ${activeTab === tab.key ? "bg-primary text-white" : ""}`}
+                    className={`flex-1 lg:flex-none lg:w-full justify-center lg:justify-start gap-2 whitespace-nowrap ${activeTab === tab.key ? "bg-primary text-white" : ""}`}
                     onClick={() => setActiveTab(tab.key)}
                     data-testid={`button-settings-tab-${tab.key}`}
                   >
                     <tab.icon className="h-5 w-5" />
-                    {tab.label}
+                    <span className="text-xs sm:text-sm">{tab.label}</span>
                   </Button>
                 ))}
               </div>
@@ -233,7 +233,7 @@ export default function SettingsPage() {
           </Card>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {activeTab === "printers" && (
             <div className="space-y-6">
               <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
@@ -258,17 +258,17 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-base font-bold">{t('Device Type')}</Label>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {deviceTypeOptions.map(opt => (
                           <Button
                             key={opt.value}
                             variant={deviceType === opt.value ? "default" : "outline"}
-                            className={`flex-1 gap-2 ${deviceType === opt.value ? "bg-blue-600 text-white hover:bg-blue-700" : ""}`}
+                            className={`flex-1 min-w-[120px] gap-1 sm:gap-2 ${deviceType === opt.value ? "bg-blue-600 text-white hover:bg-blue-700" : ""}`}
                             onClick={() => setDeviceType(opt.value)}
                             data-testid={`button-device-type-${opt.value}`}
                           >
-                            <opt.icon className="h-5 w-5" />
-                            <span className="text-xs font-semibold">{opt.label}</span>
+                            <opt.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="text-[10px] sm:text-xs font-semibold">{opt.label}</span>
                           </Button>
                         ))}
                       </div>
@@ -299,8 +299,8 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-5">
-                    <div className="flex items-center gap-4">
-                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 sm:w-52 shrink-0">
                         <FileText className="h-5 w-5 text-orange-500" />
                         {t('Invoice Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(ACM)</span>
@@ -316,8 +316,8 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 sm:w-52 shrink-0">
                         <BarChart3 className="h-5 w-5 text-green-500" />
                         {t('Reports Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(A4)</span>
@@ -333,8 +333,8 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <Label className="text-base font-bold flex items-center gap-2 w-52 shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <Label className="text-base font-bold flex items-center gap-2 sm:w-52 shrink-0">
                         <StickyNote className="h-5 w-5 text-purple-500" />
                         {t('Barcode Printer')}
                         <span className="text-xs font-normal text-muted-foreground">(STICKER)</span>
