@@ -73,7 +73,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Office Management",
     routes: [
       "/office-management", "/transfer-offices",
-      "/office-receipts", "/office-payments", "/office-statement",
+      "/office-receipts", "/office-payments", "/office-statement-usd", "/office-statement-iqd",
     ],
   },
   {

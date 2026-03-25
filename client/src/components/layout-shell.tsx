@@ -58,7 +58,6 @@ import {
   IconClearanceInvoice,
   IconOfficeReceipt,
   IconOfficePayment,
-  IconOfficeStatement,
   IconExpenseType,
   IconExpenseEntry,
   IconDebtReceipt,
@@ -223,7 +222,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/transfer-offices",
     "/office-receipts",
     "/office-payments",
-    "/office-statement",
+    "/office-statement-usd",
+    "/office-statement-iqd",
   ];
 
   const expenseSubRoutes = [
@@ -394,7 +394,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/transfer-offices", icon: IconOffice, label: "Transfer Offices" },
     { href: "/office-receipts", icon: IconOfficeReceipt, label: "Office Receipts" },
     { href: "/office-payments", icon: IconOfficePayment, label: "Office Payments" },
-    { href: "/office-statement", icon: IconOfficeStatement, label: "Office Account Statement" },
+    { href: "/office-statement-usd", icon: IconStatementUsd, label: "Office Account Statement USD" },
+    { href: "/office-statement-iqd", icon: IconStatementIqd, label: "Office Account Statement IQD" },
   ];
 
   const expenseNavItems: NavItem[] = [

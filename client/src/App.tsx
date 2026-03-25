@@ -50,7 +50,8 @@ import ClearanceStatementUsdPage from "@/pages/clearance-statement-usd";
 import ClearanceStatementIqdPage from "@/pages/clearance-statement-iqd";
 import OfficeReceiptsPage from "@/pages/office-receipts";
 import OfficePaymentsPage from "@/pages/office-payments";
-import OfficeStatementPage from "@/pages/office-statement";
+import OfficeStatementUsdPage from "@/pages/office-statement-usd";
+import OfficeStatementIqdPage from "@/pages/office-statement-iqd";
 import ExpenseTypesPage from "@/pages/expense-types";
 import ExpensesPage from "@/pages/expenses";
 import ExternalDebtsPage from "@/pages/external-debts";
@@ -267,8 +268,11 @@ function Router() {
       <Route path="/office-payments">
         <ProtectedRoute component={OfficePaymentsPage} />
       </Route>
-      <Route path="/office-statement">
-        <ProtectedRoute component={OfficeStatementPage} />
+      <Route path="/office-statement-usd">
+        <ProtectedRoute component={OfficeStatementUsdPage} />
+      </Route>
+      <Route path="/office-statement-iqd">
+        <ProtectedRoute component={OfficeStatementIqdPage} />
       </Route>
       <Route path="/expense-types">
         <ProtectedRoute component={ExpenseTypesPage} />
