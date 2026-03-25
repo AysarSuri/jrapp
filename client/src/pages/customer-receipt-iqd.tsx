@@ -283,7 +283,9 @@ export default function CustomerReceiptIqdPage() {
     });
   };
 
+  const userRole = user?.role || 'user';
   const filteredReceipts = iqdReceipts.filter(r => {
+    if (userRole === 'sales_rep' && !agentClientsList?.some(ac => ac.agentUserId === user?.id && ac.clientId === r.customerId)) return false;
     if (historyFilter && historyFilter !== "all" && String(r.customerId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
     if (historyToDate && r.date > historyToDate) return false;

@@ -136,8 +136,10 @@ export default function AgentPaymentUsdPage() {
   const banks = banksList || [];
   const transferOffices = transferOfficesList || [];
 
+  const userRole = user?.role || 'user';
   const usdPayments = payments?.filter(p => p.currency === "USD") || [];
   const filteredPayments = usdPayments.filter(p => {
+    if (userRole === 'sales_rep' && !agentClientsList?.some(ac => ac.agentUserId === user?.id && ac.clientId === p.agentId)) return false;
     if (historyFilter && historyFilter !== "all" && String(p.agentId) !== historyFilter) return false;
     if (historyFromDate && p.date < historyFromDate) return false;
     if (historyToDate && p.date > historyToDate) return false;

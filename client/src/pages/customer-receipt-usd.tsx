@@ -111,7 +111,9 @@ export default function CustomerReceiptUsdPage() {
 
   const usdReceipts = receipts?.filter(r => r.currency === "USD") || [];
 
+  const userRole = user?.role || 'user';
   const filteredReceipts = usdReceipts.filter(r => {
+    if (userRole === 'sales_rep' && !agentClientsList?.some(ac => ac.agentUserId === user?.id && ac.clientId === r.customerId)) return false;
     if (historyFilter && historyFilter !== "all" && String(r.customerId) !== historyFilter) return false;
     if (historyFromDate && r.date < historyFromDate) return false;
     if (historyToDate && r.date > historyToDate) return false;

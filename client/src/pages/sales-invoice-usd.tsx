@@ -975,6 +975,7 @@ export default function SalesInvoiceUsdPage() {
                 {(() => {
                   const filtered = (invoicesList as SalesInvoice[] || []).filter(i => {
                     if (i.currency !== 'USD') return false;
+                    if (userRole === 'sales_rep' && i.createdBy !== user?.username) return false;
                     if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
                     const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
                     if (historyStartDate && invDate < historyStartDate) return false;
@@ -1021,6 +1022,7 @@ export default function SalesInvoiceUsdPage() {
           {(() => {
             const filteredInvoices = (invoicesList as SalesInvoice[] || []).filter(i => {
               if (i.currency !== 'USD') return false;
+              if (userRole === 'sales_rep' && i.createdBy !== user?.username) return false;
               if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
               const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
               if (historyStartDate && invDate < historyStartDate) return false;

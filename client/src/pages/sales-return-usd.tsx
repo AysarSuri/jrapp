@@ -434,6 +434,7 @@ export default function SalesReturnUsdPage() {
   const userRole = user?.role || 'user';
   const usdReturns = (returnsList as SalesReturn[] || []).filter(i => {
     if (i.currency !== 'USD') return false;
+    if (userRole === 'sales_rep' && i.createdBy !== user?.username) return false;
     if (filterReturnNumber && !i.returnNumber?.toLowerCase().includes(filterReturnNumber.toLowerCase())) return false;
     if (filterCustomerName && !i.customerName?.toLowerCase().includes(filterCustomerName.toLowerCase())) return false;
     if (filterDateFrom && i.date < filterDateFrom) return false;
