@@ -19,7 +19,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getModernPrintStyles, PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
+import { PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { formatDate } from "@/lib/format-utils";
 import { AddressSearchSelect } from "@/components/address-search-select";
@@ -183,7 +183,8 @@ export default function AgentClientsPage() {
     });
 
     const dir = isRtl ? "rtl" : "ltr";
-    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#7c3aed", accentTextColor: "#ffffff" });
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const accent = companyProfile?.primaryColor || "#7c3aed";
 
     let tableRows = "";
     let globalIndex = 1;
@@ -195,16 +196,13 @@ export default function AgentClientsPage() {
       cls.forEach(c => {
         tableRows += `<tr>
           <td class="num">${globalIndex}</td>
-          <td class="name-cell">${c.clientName}</td>
-          <td>${c.clientAddress || "-"}</td>
-          <td style="direction:ltr;">${c.clientContact || "-"}</td>
+          <td class="name-cell">${esc(c.clientName)}</td>
+          <td>${esc(c.clientAddress || "-")}</td>
+          <td style="direction:ltr;">${esc(c.clientContact || "-")}</td>
         </tr>`;
         globalIndex++;
       });
     });
-
-    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const accent = companyProfile?.primaryColor || "#7c3aed";
     const companyName = esc(companyProfile?.name || "");
     const companyLogo = companyProfile?.logo || "";
     const companyAddress = esc(companyProfile?.address || "");
