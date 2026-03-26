@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield, User, LogIn } from "lucide-react";
+import { Loader2, Shield, User, LogIn, Eye, EyeOff } from "lucide-react";
 import { IconClearance, IconSupplierList, IconCustomers } from "@/components/erp-icons";
 import { useTranslation } from "react-i18next";
 
@@ -51,6 +51,7 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
   const [selectedUser, setSelectedUser] = useState<LoginUser | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { data: loginUsers } = useQuery<LoginUser[]>({
     queryKey: ["/api/login-users"],
@@ -248,7 +249,18 @@ export default function AuthPage() {
                       <FormItem>
                         <FormLabel className="font-bold">{t("password")}</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" className="h-11 font-bold" data-testid="input-password" autoFocus {...field} />
+                          <div className="relative">
+                            <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="h-11 font-bold pe-10" data-testid="input-password" autoFocus {...field} />
+                            <button
+                              type="button"
+                              tabIndex={-1}
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              data-testid="button-toggle-password"
+                            >
+                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
