@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck } from "lucide-react";
+import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck, CreditCard } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +57,7 @@ interface StatementResponse {
   openingBalanceIqd: number;
 }
 
-type TabKey = "remaining" | "salesByProduct" | "sales" | "returns" | "receipts" | "loads";
+type TabKey = "remaining" | "salesByProduct" | "sales" | "returns" | "receipts" | "paymentsStatement" | "loads";
 
 export default function RepStatementPage() {
   const { t } = useTranslation();
@@ -152,6 +152,16 @@ export default function RepStatementPage() {
       return res.json();
     },
     enabled: !!selectedRepId && activeTab === "receipts",
+  });
+
+  const { data: repPaymentsStatement, isLoading: paymentsStatementLoading } = useQuery<{ receipts: any[]; returnPayments: any[] }>({
+    queryKey: ["/api/rep-payments-statement", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-payments-statement/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "paymentsStatement",
   });
 
   const { data: repLoads, isLoading: loadsLoading } = useQuery<{ loads: any[]; items: any[] }>({
@@ -569,6 +579,7 @@ export default function RepStatementPage() {
     { key: "sales", label: t("Sales by Representative"), icon: ShoppingCart },
     { key: "returns", label: t("Returns by Representative"), icon: RotateCcw },
     { key: "receipts", label: t("Receipts by Representative"), icon: Receipt },
+    { key: "paymentsStatement", label: t("Payments by Representative"), icon: CreditCard },
     { key: "loads", label: t("Product Loads for Rep"), icon: Truck },
   ];
 
@@ -1709,6 +1720,291 @@ export default function RepStatementPage() {
     );
   };
 
+  const handlePrintPaymentsStatement = () => {
+    const allReceipts = repPaymentsStatement?.receipts || [];
+    const allReturnPayments = repPaymentsStatement?.returnPayments || [];
+    if (allReceipts.length === 0 && allReturnPayments.length === 0) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+    const receiptsUsd = allReceipts.filter((r: any) => r.currency === "USD");
+    const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
+    const returnPaymentsUsd = allReturnPayments.filter((r: any) => r.currency === "USD");
+    const returnPaymentsIqd = allReturnPayments.filter((r: any) => r.currency === "IQD");
+
+    const buildPmtReceiptTable = (items: any[], currency: string, label: string) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0);
+      const rows = items.map((r: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${r.receiptNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${formatDate(r.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${r.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(r.amount || "0"))}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:13pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Receipt Number Short")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:11pt;font-weight:700;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const buildReturnPaymentTable = (items: any[], currency: string, label: string) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+      const rows = items.map((r: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${r.returnNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${formatDate(r.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${r.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#ea580c;">${fmt(parseFloat(r.amountPaid || "0"))}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:13pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Return Number Short")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Amount Paid")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:11pt;font-weight:700;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#ea580c;">${fmt(total)}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const grandTotalUsd = receiptsUsd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + returnPaymentsUsd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+    const grandTotalIqd = receiptsIqd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + returnPaymentsIqd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+
+    const fontLink = i18n.language === "ku" ? '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">' : '<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">';
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        ${PRINT_FONT_LINKS}
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Payments by Representative")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 portrait; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e2e8f0;padding-bottom:10px;">
+            <div style="width:70px;">
+              ${companyProfile?.logo ? '<img src="' + companyProfile.logo + '" style="width:60px;height:60px;object-fit:contain;" />' : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Payments by Representative")}</h1>
+              <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("From")}: ${formatDate(fromDate)} - ${t("To")}: ${formatDate(toDate)}</p>
+            </div>
+            <div style="width:70px;"></div>
+          </div>
+        </div>
+        ${receiptsUsd.length > 0 ? buildPmtReceiptTable(receiptsUsd, "USD", t("Customer Receipts")) : ""}
+        ${receiptsIqd.length > 0 ? buildPmtReceiptTable(receiptsIqd, "IQD", t("Customer Receipts")) : ""}
+        ${returnPaymentsUsd.length > 0 ? buildReturnPaymentTable(returnPaymentsUsd, "USD", t("Return Payments")) : ""}
+        ${returnPaymentsIqd.length > 0 ? buildReturnPaymentTable(returnPaymentsIqd, "IQD", t("Return Payments")) : ""}
+        ${(grandTotalUsd > 0 || grandTotalIqd > 0) ? (() => {
+          let html = '<div style="margin-top:20px;padding:12px 16px;background:#f1f5f9;border:2px solid #334155;border-radius:8px;">';
+          html += '<h3 style="font-size:14pt;font-weight:800;margin:0 0 8px;color:#334155;text-align:center;">' + t("Grand Total") + '</h3>';
+          if (grandTotalUsd > 0) html += '<p style="font-size:13pt;font-weight:700;margin:4px 0;text-align:center;color:#1d4ed8;">' + t("Customer Receipts") + ' + ' + t("Return Payments") + ' (USD): <span style="font-family:monospace;">' + usd(grandTotalUsd) + '</span></p>';
+          if (grandTotalIqd > 0) html += '<p style="font-size:13pt;font-weight:700;margin:4px 0;text-align:center;color:#047857;">' + t("Customer Receipts") + ' + ' + t("Return Payments") + ' (IQD): <span style="font-family:monospace;">' + fmtIqd(grandTotalIqd) + '</span></p>';
+          html += '</div>';
+          return html;
+        })() : ''}
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => { win.print(); });
+      } else {
+        setTimeout(() => { win.print(); }, 500);
+      }
+    }
+  };
+
+  const renderPaymentsStatementTab = () => {
+    if (paymentsStatementLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    const allReceipts = repPaymentsStatement?.receipts || [];
+    const allReturnPayments = repPaymentsStatement?.returnPayments || [];
+    const receiptsUsd = allReceipts.filter((r: any) => r.currency === "USD");
+    const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
+    const returnPaymentsUsd = allReturnPayments.filter((r: any) => r.currency === "USD");
+    const returnPaymentsIqd = allReturnPayments.filter((r: any) => r.currency === "IQD");
+
+    if (allReceipts.length === 0 && allReturnPayments.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><CreditCard className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No data found')}</p></div>;
+    }
+
+    const renderPmtReceiptTable = (items: any[], currency: string) => {
+      const fmtC = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0);
+      return (
+        <div className="overflow-x-auto rounded-lg border border-border/50">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold w-12 text-center">#</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Receipt Number Short')}</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Amount')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((r: any, i: number) => (
+                <TableRow key={r.id} data-testid={`row-pmt-receipt-${r.id}`}>
+                  <TableCell className="text-sm font-semibold text-center">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center">{r.receiptNumber}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center">{formatDate(r.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center text-green-600">{fmtC(parseFloat(r.amount || "0"))}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-center text-green-700">{fmtC(total)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      );
+    };
+
+    const renderReturnPaymentTable = (items: any[], currency: string) => {
+      const fmtC = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+      return (
+        <div className="overflow-x-auto rounded-lg border border-border/50">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold w-12 text-center">#</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Return Number Short')}</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                <TableHead className="text-sm font-bold text-center">{t('Amount Paid')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((r: any, i: number) => (
+                <TableRow key={r.id} data-testid={`row-return-pmt-${r.id}`}>
+                  <TableCell className="text-sm font-semibold text-center">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center">{r.returnNumber}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center">{formatDate(r.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-center text-orange-600">{fmtC(parseFloat(r.amountPaid || "0"))}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-center text-orange-700">{fmtC(total)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      );
+    };
+
+    const renderPrintButton = () => (
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" size="sm" onClick={handlePrintPaymentsStatement} className="gap-2 font-bold" data-testid="btn-print-payments-statement">
+          <Printer className="w-4 h-4" /> {t('Print')}
+        </Button>
+      </div>
+    );
+
+    return (
+      <div className="space-y-6">
+        {renderPrintButton()}
+        {receiptsUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Customer Receipts')} - USD ({receiptsUsd.length})</h3>
+            {renderPmtReceiptTable(receiptsUsd, "USD")}
+          </div>
+        )}
+        {receiptsIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Customer Receipts')} - IQD ({receiptsIqd.length})</h3>
+            {renderPmtReceiptTable(receiptsIqd, "IQD")}
+          </div>
+        )}
+        {returnPaymentsUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Return Payments')} - USD ({returnPaymentsUsd.length})</h3>
+            {renderReturnPaymentTable(returnPaymentsUsd, "USD")}
+          </div>
+        )}
+        {returnPaymentsIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Return Payments')} - IQD ({returnPaymentsIqd.length})</h3>
+            {renderReturnPaymentTable(returnPaymentsIqd, "IQD")}
+          </div>
+        )}
+        {(() => {
+          const grandTotalUsd = receiptsUsd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + returnPaymentsUsd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+          const grandTotalIqd = receiptsIqd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + returnPaymentsIqd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+          if (grandTotalUsd <= 0 && grandTotalIqd <= 0) return null;
+          return (
+            <div className="mt-4 p-4 bg-muted/50 border-2 border-slate-700 dark:border-slate-400 rounded-lg text-center">
+              <h3 className="text-lg font-extrabold mb-2 text-slate-800 dark:text-slate-200">{t('Grand Total')}</h3>
+              {grandTotalUsd > 0 && (
+                <p className="text-base font-bold text-blue-700 dark:text-blue-400">
+                  {t('Customer Receipts')} + {t('Return Payments')} (USD): <span className="font-mono">{usd(grandTotalUsd)}</span>
+                </p>
+              )}
+              {grandTotalIqd > 0 && (
+                <p className="text-base font-bold text-emerald-700 dark:text-emerald-400">
+                  {t('Customer Receipts')} + {t('Return Payments')} (IQD): <span className="font-mono">{fmtIqd(grandTotalIqd)}</span>
+                </p>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+    );
+  };
+
   const renderLoadsTab = () => {
     if (loadsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     const loads = repLoads?.loads || [];
@@ -2002,6 +2298,7 @@ export default function RepStatementPage() {
               {activeTab === "sales" && renderSalesTab()}
               {activeTab === "returns" && renderReturnsTab()}
               {activeTab === "receipts" && renderReceiptsTab()}
+              {activeTab === "paymentsStatement" && renderPaymentsStatementTab()}
               {activeTab === "loads" && renderLoadsTab()}
             </CardContent>
           </Card>

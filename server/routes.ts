@@ -5003,6 +5003,30 @@ export async function registerRoutes(
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
+  app.get('/api/rep-payments-statement/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const receipts = await db.select().from(customerReceipts)
+        .where(sql`${customerReceipts.representativeName} = ${rep.name} AND ${customerReceipts.date} >= ${fromDate} AND ${customerReceipts.date} <= ${toDate}`)
+        .orderBy(sql`${customerReceipts.date} DESC, ${customerReceipts.time} DESC`);
+      const returnPayments = await db.select({
+        id: salesReturns.id,
+        returnNumber: salesReturns.returnNumber,
+        date: salesReturns.date,
+        customerName: salesReturns.customerName,
+        amountPaid: salesReturns.amountPaid,
+        currency: salesReturns.currency,
+      }).from(salesReturns)
+        .where(sql`${salesReturns.representativeName} = ${rep.name} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate} AND CAST(${salesReturns.amountPaid} AS numeric) > 0`)
+        .orderBy(sql`${salesReturns.date} DESC`);
+      res.json({ receipts, returnPayments });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
   app.get('/api/rep-loads/:id', requireAuth, async (req, res) => {
     try {
       const repId = parseInt(req.params.id as string);
