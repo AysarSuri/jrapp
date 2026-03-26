@@ -5050,6 +5050,64 @@ export async function registerRoutes(
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
+  app.get('/api/expiry-report', requireAuth, async (_req, res) => {
+    try {
+      const items = await db.select({
+        id: purchaseInvoiceItems.id,
+        invoiceId: purchaseInvoiceItems.invoiceId,
+        productCode: purchaseInvoiceItems.productCode,
+        productName: purchaseInvoiceItems.productName,
+        quantity: purchaseInvoiceItems.quantity,
+        unit: purchaseInvoiceItems.unit,
+        productionDate: purchaseInvoiceItems.productionDate,
+        expiryDate: purchaseInvoiceItems.expiryDate,
+        invoiceNumber: purchaseInvoices.invoiceNumber,
+      }).from(purchaseInvoiceItems)
+        .innerJoin(purchaseInvoices, eq(purchaseInvoiceItems.invoiceId, purchaseInvoices.id))
+        .where(sql`${purchaseInvoiceItems.expiryDate} IS NOT NULL AND ${purchaseInvoiceItems.expiryDate} != ''`)
+        .orderBy(sql`${purchaseInvoiceItems.expiryDate} ASC`);
+
+      const allProducts = await db.select({ id: products.id, name: products.name, nameEn: products.nameEn }).from(products);
+      const productMap = new Map(allProducts.map(p => [p.name, p.nameEn]));
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const result = items.map(item => {
+        const expiryParts = (item.expiryDate || "").split(/[-/]/);
+        let expiryMs: number;
+        if (expiryParts.length === 3) {
+          const [y, m, d] = expiryParts.map(Number);
+          expiryMs = new Date(y, m - 1, d).getTime();
+        } else {
+          expiryMs = new Date(item.expiryDate!).getTime();
+        }
+        const diffMs = expiryMs - today.getTime();
+        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        let status: "expired" | "expiring_soon" | "ok" = "ok";
+        if (daysLeft <= 0) status = "expired";
+        else if (daysLeft <= 90) status = "expiring_soon";
+
+        return {
+          id: item.id,
+          invoiceId: item.invoiceId,
+          invoiceNumber: item.invoiceNumber,
+          productCode: item.productCode,
+          productName: item.productName,
+          productNameEn: productMap.get(item.productName) || null,
+          quantity: item.quantity,
+          unit: item.unit,
+          productionDate: item.productionDate,
+          expiryDate: item.expiryDate!,
+          daysLeft,
+          status,
+        };
+      });
+
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
   return httpServer;
 }
 

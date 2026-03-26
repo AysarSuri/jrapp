@@ -263,6 +263,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/units",
     "/categories",
     "/inventory-report",
+    "/expiry-report",
   ];
 
   const warehouseSubRoutes = [
@@ -430,6 +431,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/units", icon: IconUnit, label: "Units" },
     { href: "/categories", icon: IconCategory, label: "Categories" },
     { href: "/inventory-report", icon: IconInventory, label: "Inventory Report" },
+    { href: "/expiry-report", icon: IconInventory, label: "Expiry Report" },
   ];
 
   const warehouseNavItems: NavItem[] = [
