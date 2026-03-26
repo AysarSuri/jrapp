@@ -616,7 +616,7 @@ export default function RepStatementPage() {
             <div style="flex:1;padding:0 20px;">
               <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Remaining Products with Rep")}</h1>
               <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
-              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("Date")}: ${today}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("From")}: ${formatDate(fromDate)} - ${t("To")}: ${formatDate(toDate)}</p>
             </div>
             <div style="width:70px;"></div>
           </div>
