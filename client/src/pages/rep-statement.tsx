@@ -1478,20 +1478,17 @@ export default function RepStatementPage() {
           </div>
         </div>
         ${receiptsUsd.length > 0 ? buildReceiptTable(receiptsUsd, "USD", t("Customer Receipts")) : ""}
-        ${receiptsIqd.length > 0 ? buildReceiptTable(receiptsIqd, "IQD", t("Customer Receipts")) : ""}
         ${cashSalesUsd.length > 0 ? buildCashFromSalesTable(cashSalesUsd, "USD", t("Cash Received")) : ""}
-        ${cashSalesIqd.length > 0 ? buildCashFromSalesTable(cashSalesIqd, "IQD", t("Cash Received")) : ""}
         ${paymentsUsd.length > 0 ? buildPaymentTable(paymentsUsd, "USD", t("Customer Payments")) : ""}
         ${paymentsIqd.length > 0 ? buildPaymentTable(paymentsIqd, "IQD", t("Customer Payments")) : ""}
         ${(() => {
           const grandTotalUsd = receiptsUsd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + cashSalesUsd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
-          const grandTotalIqd = receiptsIqd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + cashSalesIqd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+          if (grandTotalUsd <= 0) return '';
           let html = '<div style="margin-top:20px;padding:12px 16px;background:#f1f5f9;border:2px solid #334155;border-radius:8px;">';
           html += '<h3 style="font-size:14pt;font-weight:800;margin:0 0 8px;color:#334155;text-align:center;">' + t("Grand Total") + '</h3>';
-          if (grandTotalUsd > 0) html += '<p style="font-size:13pt;font-weight:700;margin:4px 0;text-align:center;color:#1d4ed8;">' + t("Customer Receipts") + ' + ' + t("Cash Received") + ' (USD): <span style="font-family:monospace;">' + usd(grandTotalUsd) + '</span></p>';
-          if (grandTotalIqd > 0) html += '<p style="font-size:13pt;font-weight:700;margin:4px 0;text-align:center;color:#047857;">' + t("Customer Receipts") + ' + ' + t("Cash Received") + ' (IQD): <span style="font-family:monospace;">' + fmtIqd(grandTotalIqd) + '</span></p>';
+          html += '<p style="font-size:13pt;font-weight:700;margin:4px 0;text-align:center;color:#1d4ed8;">' + t("Customer Receipts") + ' + ' + t("Cash Received") + ' (USD): <span style="font-family:monospace;">' + usd(grandTotalUsd) + '</span></p>';
           html += '</div>';
-          return (grandTotalUsd > 0 || grandTotalIqd > 0) ? html : '';
+          return html;
         })()}
       </body></html>`;
 
@@ -1654,22 +1651,10 @@ export default function RepStatementPage() {
             {renderReceiptTable(receiptsUsd, "USD")}
           </div>
         )}
-        {receiptsIqd.length > 0 && (
-          <div>
-            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Customer Receipts')} - IQD ({receiptsIqd.length})</h3>
-            {renderReceiptTable(receiptsIqd, "IQD")}
-          </div>
-        )}
         {cashSalesUsd.length > 0 && (
           <div>
             <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Cash Received')} - USD ({cashSalesUsd.length})</h3>
             {renderCashFromSalesTable(cashSalesUsd, "USD")}
-          </div>
-        )}
-        {cashSalesIqd.length > 0 && (
-          <div>
-            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Cash Received')} - IQD ({cashSalesIqd.length})</h3>
-            {renderCashFromSalesTable(cashSalesIqd, "IQD")}
           </div>
         )}
         {paymentsUsd.length > 0 && (
@@ -1686,21 +1671,13 @@ export default function RepStatementPage() {
         )}
         {(() => {
           const grandTotalUsd = receiptsUsd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + cashSalesUsd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
-          const grandTotalIqd = receiptsIqd.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0) + cashSalesIqd.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
-          if (grandTotalUsd <= 0 && grandTotalIqd <= 0) return null;
+          if (grandTotalUsd <= 0) return null;
           return (
             <div className="mt-4 p-4 bg-muted/50 border-2 border-slate-700 dark:border-slate-400 rounded-lg text-center">
               <h3 className="text-lg font-extrabold mb-2 text-slate-800 dark:text-slate-200">{t('Grand Total')}</h3>
-              {grandTotalUsd > 0 && (
-                <p className="text-base font-bold text-blue-700 dark:text-blue-400">
-                  {t('Customer Receipts')} + {t('Cash Received')} (USD): <span className="font-mono">{usd(grandTotalUsd)}</span>
-                </p>
-              )}
-              {grandTotalIqd > 0 && (
-                <p className="text-base font-bold text-emerald-700 dark:text-emerald-400">
-                  {t('Customer Receipts')} + {t('Cash Received')} (IQD): <span className="font-mono">{fmtIqd(grandTotalIqd)}</span>
-                </p>
-              )}
+              <p className="text-base font-bold text-blue-700 dark:text-blue-400">
+                {t('Customer Receipts')} + {t('Cash Received')} (USD): <span className="font-mono">{usd(grandTotalUsd)}</span>
+              </p>
             </div>
           );
         })()}
