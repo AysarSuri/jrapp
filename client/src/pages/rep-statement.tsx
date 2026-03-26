@@ -1142,7 +1142,6 @@ export default function RepStatementPage() {
           <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(r.date)}</td>
           <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${r.customerName}</td>
           <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;">${fmt(parseFloat(r.subtotal || "0"))}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#ea580c;">${fmt(parseFloat(r.discount || "0"))}</td>
           <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#16a34a;">${fmt(parseFloat(r.amountPaid || "0"))}</td>
           <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#dc2626;">${fmt(parseFloat(r.remaining || "0"))}</td>
         </tr>
@@ -1157,7 +1156,6 @@ export default function RepStatementPage() {
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Discount")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount Paid")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Remaining")}</th>
             </tr>
@@ -1167,7 +1165,6 @@ export default function RepStatementPage() {
             <tr style="background:#f1f5f9;font-weight:bold;">
               <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;">${fmt(total)}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(totalPaid)}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#dc2626;">${fmt(totalRem)}</td>
             </tr>
@@ -1253,7 +1250,6 @@ export default function RepStatementPage() {
                     <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
-                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
                   </TableRow>
@@ -1266,7 +1262,6 @@ export default function RepStatementPage() {
                       <TableCell className="font-mono text-sm font-semibold">{formatDate(r.date)}</TableCell>
                       <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">{usd(parseFloat(r.subtotal || "0"))}</TableCell>
-                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{usd(parseFloat(r.discount || "0"))}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-green-600">{usd(parseFloat(r.amountPaid || "0"))}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-red-600">{usd(parseFloat(r.remaining || "0"))}</TableCell>
                     </TableRow>
@@ -1274,7 +1269,7 @@ export default function RepStatementPage() {
                   <TableRow className="bg-muted/50 font-bold">
                     <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
                     <TableCell className="font-mono text-sm font-bold">{usd(totalUsd)}</TableCell>
-                    <TableCell colSpan={3}></TableCell>
+                    <TableCell colSpan={2}></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -1293,7 +1288,6 @@ export default function RepStatementPage() {
                     <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
-                    <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
                   </TableRow>
@@ -1306,7 +1300,6 @@ export default function RepStatementPage() {
                       <TableCell className="font-mono text-sm font-semibold">{formatDate(r.date)}</TableCell>
                       <TableCell className="text-sm font-semibold">{r.customerName}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold">{fmtIqd(parseFloat(r.subtotal || "0"))}</TableCell>
-                      <TableCell className="font-mono text-sm font-semibold text-orange-600">{fmtIqd(parseFloat(r.discount || "0"))}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-green-600">{fmtIqd(parseFloat(r.amountPaid || "0"))}</TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-red-600">{fmtIqd(parseFloat(r.remaining || "0"))}</TableCell>
                     </TableRow>
@@ -1314,7 +1307,7 @@ export default function RepStatementPage() {
                   <TableRow className="bg-muted/50 font-bold">
                     <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
                     <TableCell className="font-mono text-sm font-bold">{fmtIqd(totalIqd)}</TableCell>
-                    <TableCell colSpan={3}></TableCell>
+                    <TableCell colSpan={2}></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
