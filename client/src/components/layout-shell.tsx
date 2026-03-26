@@ -72,6 +72,8 @@ import {
   IconUnit,
   IconCategory,
   IconInventory,
+  IconReport,
+  IconExpiry,
   IconWarehouseTransfer,
   IconDollar,
   IconDinar,
@@ -262,6 +264,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/products",
     "/units",
     "/categories",
+  ];
+
+  const reportsSubRoutes = [
     "/inventory-report",
     "/expiry-report",
   ];
@@ -299,6 +304,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isOwnerSection = ownerSubRoutes.includes(location);
   const isAgentSection = agentSubRoutes.includes(location);
   const isMaterialSection = materialSubRoutes.includes(location);
+  const isReportsSection = reportsSubRoutes.includes(location);
   const isWarehouseSection = warehouseSubRoutes.includes(location);
   const isSalesSection = salesSubRoutes.includes(location);
   const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
@@ -310,6 +316,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
   const [agentOpen, setAgentOpen] = useState(isAgentSection);
   const [materialOpen, setMaterialOpen] = useState(isMaterialSection);
+  const [reportsOpen, setReportsOpen] = useState(isReportsSection);
   const [warehouseOpen, setWarehouseOpen] = useState(isWarehouseSection);
   const [salesOpen, setSalesOpen] = useState(isSalesSection);
 
@@ -348,6 +355,10 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     if (isMaterialSection) setMaterialOpen(true);
   }, [isMaterialSection]);
+
+  useEffect(() => {
+    if (isReportsSection) setReportsOpen(true);
+  }, [isReportsSection]);
 
   useEffect(() => {
     if (isWarehouseSection) setWarehouseOpen(true);
@@ -430,8 +441,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/products", icon: IconProduct, label: "Products" },
     { href: "/units", icon: IconUnit, label: "Units" },
     { href: "/categories", icon: IconCategory, label: "Categories" },
+  ];
+
+  const reportsNavItems: NavItem[] = [
     { href: "/inventory-report", icon: IconInventory, label: "Inventory Report" },
-    { href: "/expiry-report", icon: IconInventory, label: "Expiry Report" },
+    { href: "/expiry-report", icon: IconExpiry, label: "Expiry Report" },
   ];
 
   const warehouseNavItems: NavItem[] = [
@@ -462,6 +476,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { type: 'group', label: "Supplier Management", icon: IconSupplier, children: supplierNavItems },
     { type: 'group', label: "Agent Management", icon: IconAgent, children: agentManagementNavItems },
     { type: 'group', label: "Material Management", icon: IconMaterial, children: materialNavItems },
+    { type: 'group', label: "Reports", icon: IconReport, children: reportsNavItems },
     { type: 'group', label: "Bank Management", icon: IconBank, children: bankNavItems },
     { type: 'group', label: "Clearance Management", icon: IconClearance, children: clearanceNavItems },
     { type: 'group', label: "Office Management", icon: IconOffice, children: officeNavItems },
@@ -534,6 +549,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
               "Agent Management": { isOpen: agentOpen, setOpen: setAgentOpen, isActive: isAgentSection },
               "Material Management": { isOpen: materialOpen, setOpen: setMaterialOpen, isActive: isMaterialSection },
+              "Reports": { isOpen: reportsOpen, setOpen: setReportsOpen, isActive: isReportsSection },
               "Warehouse Management": { isOpen: warehouseOpen, setOpen: setWarehouseOpen, isActive: isWarehouseSection },
             };
             const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
@@ -551,6 +567,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
               "Owner Management": "/owner-management",
               "Agent Management": "/agent-management",
               "Material Management": "/material-management",
+              "Reports": "/inventory-report",
               "Warehouse Management": "/warehouses",
             };
             const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";

@@ -43,7 +43,12 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid username or password" });
       }
       req.session.userId = user.id;
-      await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      if (user.role === 'admin') {
+        const allPerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
+        await db.update(users).set({ lastLoginAt: new Date(), permissions: allPerms }).where(eq(users.id, user.id));
+      } else {
+        await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      }
       const updatedUser = await storage.getUser(user.id);
       const { password: _pw, ...safeUser } = updatedUser!;
       res.status(200).json(safeUser);
@@ -172,6 +177,7 @@ export async function registerRoutes(
     '/api/categories': 'material_management',
     '/api/category-groups': 'material_management',
     '/api/inventory': 'material_management',
+    '/api/expiry-report': 'reports',
     '/api/banks': 'bank_management',
     '/api/bank-transactions': 'bank_management',
     '/api/customs-clearances': 'clearance_management',

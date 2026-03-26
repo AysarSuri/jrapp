@@ -47,7 +47,14 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     key: "material_management",
     labelKey: "Material Management",
     routes: [
-      "/material-management", "/products", "/units", "/categories", "/inventory-report", "/expiry-report",
+      "/material-management", "/products", "/units", "/categories",
+    ],
+  },
+  {
+    key: "reports",
+    labelKey: "Reports",
+    routes: [
+      "/inventory-report", "/expiry-report",
     ],
   },
   {

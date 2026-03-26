@@ -47,6 +47,8 @@ import {
   ClipboardList,
   ArrowLeftRight,
   RotateCcw,
+  BarChart3,
+  Timer,
   Tags,
   ReceiptIcon,
   type LucideProps,
@@ -312,4 +314,12 @@ export function IconWarehouseTransfer({ className }: P) {
 
 export function IconDataReset({ className }: P) {
   return <RotateCcw className={className} />;
+}
+
+export function IconReport({ className }: P) {
+  return <BarChart3 className={className} />;
+}
+
+export function IconExpiry({ className }: P) {
+  return <Timer className={className} />;
 }
