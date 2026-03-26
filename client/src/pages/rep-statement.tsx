@@ -57,7 +57,7 @@ interface StatementResponse {
   openingBalanceIqd: number;
 }
 
-type TabKey = "remaining" | "sales" | "returns" | "receipts" | "loads";
+type TabKey = "remaining" | "salesByProduct" | "sales" | "returns" | "receipts" | "loads";
 
 export default function RepStatementPage() {
   const { t } = useTranslation();
@@ -112,6 +112,16 @@ export default function RepStatementPage() {
       return res.json();
     },
     enabled: !!selectedRepId && activeTab === "remaining",
+  });
+
+  const { data: repSalesByProduct, isLoading: salesByProductLoading } = useQuery<any[]>({
+    queryKey: ["/api/rep-sales-by-product", selectedRepId, fromDate, toDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/rep-sales-by-product/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!selectedRepId && activeTab === "salesByProduct",
   });
 
   const { data: repSales, isLoading: salesLoading } = useQuery<any[]>({
@@ -555,6 +565,7 @@ export default function RepStatementPage() {
 
   const tabs: { key: TabKey; label: string; icon: any }[] = [
     { key: "remaining", label: t("Remaining Products with Rep"), icon: Package },
+    { key: "salesByProduct", label: t("Sales by Product"), icon: FileText },
     { key: "sales", label: t("Sales by Representative"), icon: ShoppingCart },
     { key: "returns", label: t("Returns by Representative"), icon: RotateCcw },
     { key: "receipts", label: t("Receipts by Representative"), icon: Receipt },
@@ -686,6 +697,167 @@ export default function RepStatementPage() {
                   </TableCell>
                 </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
+  const handlePrintSalesByProduct = () => {
+    if (!repSalesByProduct || repSalesByProduct.length === 0) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+    const grandTotalUsd = repSalesByProduct.reduce((s: number, p: any) => s + (p.totalAmountUsd || 0), 0);
+    const grandTotalIqd = repSalesByProduct.reduce((s: number, p: any) => s + (p.totalAmountIqd || 0), 0);
+
+    const rows = repSalesByProduct.map((p: any, i: number) => `
+      <tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${p.productName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${p.productCode}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;font-weight:600;">${p.unit}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;">${p.totalQuantity}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${p.totalGift || 0}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1e40af;">${p.totalAmountUsd ? usd(p.totalAmountUsd) : "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1e40af;">${p.totalAmountIqd ? fmtIqd(p.totalAmountIqd) : "-"}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${p.invoiceCount}</td>
+      </tr>
+    `).join("");
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        ${PRINT_FONT_LINKS}
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Sales by Product")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Sales by Product")}</h1>
+              <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("From")}: ${formatDate(fromDate)} - ${t("To")}: ${formatDate(toDate)}</p>
+            </div>
+            <div style="width:70px;"></div>
+          </div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Product Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Product Code")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Unit")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total Quantity")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Gift")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")} (USD)</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")} (IQD)</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Count")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total Products")}: ${repSalesByProduct.length}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;">${repSalesByProduct.reduce((s: number, p: any) => s + p.totalQuantity, 0)}</td>
+              <td style="padding:8px;"></td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:center;">${grandTotalUsd ? usd(grandTotalUsd) : "-"}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:center;">${grandTotalIqd ? fmtIqd(grandTotalIqd) : "-"}</td>
+              <td style="padding:8px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => setTimeout(() => win.print(), 300));
+      } else {
+        setTimeout(() => win.print(), 1200);
+      }
+    }
+  };
+
+  const renderSalesByProductTab = () => {
+    if (salesByProductLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+    if (!repSalesByProduct || repSalesByProduct.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+          <FileText className="w-10 h-10 mb-2" />
+          <p className="font-semibold">{t('No sales found')}</p>
+        </div>
+      );
+    }
+    const grandTotalUsd = repSalesByProduct.reduce((s: number, p: any) => s + (p.totalAmountUsd || 0), 0);
+    const grandTotalIqd = repSalesByProduct.reduce((s: number, p: any) => s + (p.totalAmountIqd || 0), 0);
+    const grandTotalQty = repSalesByProduct.reduce((s: number, p: any) => s + (p.totalQuantity || 0), 0);
+
+    return (
+      <div>
+        <div className="flex justify-end mb-4">
+          <Button onClick={handlePrintSalesByProduct} className="bg-primary text-white gap-2 h-11" data-testid="button-print-sales-by-product">
+            <Printer className="w-5 h-5" />
+            {t('Print Report')}
+          </Button>
+        </div>
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Unit')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Total Quantity')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Gift')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Total')} (USD)</TableHead>
+                <TableHead className="text-sm font-bold">{t('Total')} (IQD)</TableHead>
+                <TableHead className="text-sm font-bold">{t('Invoice Count')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {repSalesByProduct.map((p: any, i: number) => (
+                <TableRow key={`${p.productCode}_${p.unit}`} data-testid={`row-sales-product-${p.productCode}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="text-sm font-semibold">{p.productName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.productCode}</TableCell>
+                  <TableCell className="text-sm font-semibold">{p.unit}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.totalQuantity}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.totalGift || 0}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-blue-700">{p.totalAmountUsd ? usd(p.totalAmountUsd) : "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-blue-700">{p.totalAmountIqd ? fmtIqd(p.totalAmountIqd) : "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.invoiceCount}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/30 font-bold">
+                <TableCell colSpan={4} className="text-sm font-bold">{t('Total Products')}: {repSalesByProduct.length}</TableCell>
+                <TableCell className="font-mono text-sm font-bold">{grandTotalQty}</TableCell>
+                <TableCell></TableCell>
+                <TableCell className="font-mono text-sm font-bold text-blue-700">{grandTotalUsd ? usd(grandTotalUsd) : "-"}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-blue-700">{grandTotalIqd ? fmtIqd(grandTotalIqd) : "-"}</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>
@@ -1295,6 +1467,7 @@ export default function RepStatementPage() {
           <Card className="border-border/50 shadow-sm">
             <CardContent className="pt-6">
               {activeTab === "remaining" && renderRemainingTab()}
+              {activeTab === "salesByProduct" && renderSalesByProductTab()}
               {activeTab === "sales" && renderSalesTab()}
               {activeTab === "returns" && renderReturnsTab()}
               {activeTab === "receipts" && renderReceiptsTab()}

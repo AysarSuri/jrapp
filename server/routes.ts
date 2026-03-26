@@ -162,6 +162,7 @@ export async function registerRoutes(
     '/api/agent-product-loads': 'agent_management',
     '/api/rep-balances': 'agent_management',
     '/api/rep-sales': 'agent_management',
+    '/api/rep-sales-by-product': 'agent_management',
     '/api/rep-returns': 'agent_management',
     '/api/rep-receipts': 'agent_management',
     '/api/rep-loads': 'agent_management',
@@ -4897,6 +4898,53 @@ export async function registerRoutes(
         .where(sql`${salesInvoices.representativeName} = ${rep.name} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`)
         .orderBy(sql`${salesInvoices.date} DESC, ${salesInvoices.time} DESC`);
       res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/rep-sales-by-product/:id', requireAuth, async (req, res) => {
+    try {
+      const repId = parseInt(req.params.id as string);
+      const fromDate = (req.query.fromDate as string) || "2000-01-01";
+      const toDate = (req.query.toDate as string) || "2099-12-31";
+      const [rep] = await db.select().from(representatives).where(eq(representatives.id, repId));
+      if (!rep) return res.status(404).json({ message: "Representative not found" });
+      const invoices = await db.select().from(salesInvoices)
+        .where(sql`${salesInvoices.representativeName} = ${rep.name} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`);
+      const invoiceIds = invoices.map(inv => inv.id);
+      if (invoiceIds.length === 0) return res.json([]);
+      const items = await db.select().from(salesInvoiceItems)
+        .where(sql`${salesInvoiceItems.invoiceId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
+      const grouped: Record<string, { productId: number | null; productCode: string; productName: string; unit: string; totalQuantity: number; totalGift: number; totalAmount: number; totalAmountUsd: number; totalAmountIqd: number; invoiceCount: number }> = {};
+      items.forEach((item) => {
+        const inv = invoices.find(i => i.id === item.invoiceId);
+        const currency = inv?.currency || "USD";
+        const key = `${item.productCode}_${item.unit}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            productId: item.productId,
+            productCode: item.productCode,
+            productName: item.productName,
+            unit: item.unit,
+            totalQuantity: 0,
+            totalGift: 0,
+            totalAmount: 0,
+            totalAmountUsd: 0,
+            totalAmountIqd: 0,
+            invoiceCount: 0,
+          };
+        }
+        grouped[key].totalQuantity += parseFloat(item.quantity || "0");
+        grouped[key].totalGift += parseFloat(item.gift || "0");
+        grouped[key].totalAmount += parseFloat(item.amount || "0");
+        if (currency === "USD") {
+          grouped[key].totalAmountUsd += parseFloat(item.amount || "0");
+        } else {
+          grouped[key].totalAmountIqd += parseFloat(item.amount || "0");
+        }
+        grouped[key].invoiceCount += 1;
+      });
+      const result = Object.values(grouped).sort((a, b) => a.productName.localeCompare(b.productName));
+      res.json(result);
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
