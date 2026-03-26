@@ -1158,7 +1158,7 @@ export default function RepStatementPage() {
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Discount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Cash Received")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount Paid")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Remaining")}</th>
             </tr>
           </thead>
@@ -1254,7 +1254,7 @@ export default function RepStatementPage() {
                     <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
-                    <TableHead className="text-sm font-bold">{t('Cash Received')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1294,7 +1294,7 @@ export default function RepStatementPage() {
                     <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Total')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Discount')}</TableHead>
-                    <TableHead className="text-sm font-bold">{t('Cash Received')}</TableHead>
+                    <TableHead className="text-sm font-bold">{t('Amount Paid')}</TableHead>
                     <TableHead className="text-sm font-bold">{t('Remaining')}</TableHead>
                   </TableRow>
                 </TableHeader>
