@@ -727,13 +727,14 @@ export default function RepStatementPage() {
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;font-weight:600;">${p.unit}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;">${p.totalQuantity}</td>
         ${hasSalesGiftPrint ? `<td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${p.totalGift || 0}</td>` : ""}
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:8pt;">${(p.invoiceNumbers || []).join(" , ")}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#dc2626;">${p.returnQuantity || 0}</td>
         ${hasReturnGiftPrint ? `<td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#dc2626;">${p.returnGift || 0}</td>` : ""}
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:8pt;color:#dc2626;">${(p.returnNumbers || []).join(" , ")}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1e40af;">${p.totalAmountUsd ? usd(p.totalAmountUsd) : "-"}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1e40af;">${p.totalAmountIqd ? fmtIqd(p.totalAmountIqd) : "-"}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#dc2626;">${p.returnAmountUsd ? usd(p.returnAmountUsd) : "-"}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#dc2626;">${p.returnAmountIqd ? fmtIqd(p.returnAmountIqd) : "-"}</td>
-        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${p.invoiceCount}</td>
       </tr>
     `).join("");
 
@@ -779,13 +780,14 @@ export default function RepStatementPage() {
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Unit")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total Quantity")}</th>
               ${hasSalesGiftPrint ? `<th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Gift")}</th>` : ""}
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;color:#dc2626;">${t("Returned")}</th>
               ${hasReturnGiftPrint ? `<th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;color:#dc2626;">${t("Returned")} ${t("Gift")}</th>` : ""}
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;color:#dc2626;">${t("Return Number")}</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")} (USD)</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")} (IQD)</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;color:#dc2626;">${t("Returned")} (USD)</th>
               <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;color:#dc2626;">${t("Returned")} (IQD)</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Count")}</th>
             </tr>
           </thead>
           <tbody>
@@ -794,13 +796,14 @@ export default function RepStatementPage() {
               <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total Products")}: ${repSalesByProduct.length}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;">${repSalesByProduct.reduce((s: number, p: any) => s + p.totalQuantity, 0)}</td>
               ${hasSalesGiftPrint ? `<td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;">${grandTotalGiftPrint}</td>` : ""}
+              <td style="padding:8px;"></td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:center;">${grandRetQtyPrint}</td>
               ${hasReturnGiftPrint ? `<td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:center;">${grandRetGiftPrint}</td>` : ""}
+              <td style="padding:8px;"></td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:center;">${grandTotalUsd ? usd(grandTotalUsd) : "-"}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#1e40af;text-align:center;">${grandTotalIqd ? fmtIqd(grandTotalIqd) : "-"}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:center;">${grandRetUsdPrint ? usd(grandRetUsdPrint) : "-"}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;color:#dc2626;text-align:center;">${grandRetIqdPrint ? fmtIqd(grandRetIqdPrint) : "-"}</td>
-              <td style="padding:8px;"></td>
             </tr>
           </tbody>
         </table>
@@ -857,13 +860,14 @@ export default function RepStatementPage() {
                 <TableHead className="text-sm font-bold">{t('Unit')}</TableHead>
                 <TableHead className="text-sm font-bold">{t('Total Quantity')}</TableHead>
                 {hasSalesGift && <TableHead className="text-sm font-bold">{t('Gift')}</TableHead>}
+                <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
                 <TableHead className="text-sm font-bold">{t('Returned')}</TableHead>
                 {hasReturnGift && <TableHead className="text-sm font-bold">{t('Returned')} {t('Gift')}</TableHead>}
+                <TableHead className="text-sm font-bold">{t('Return Number')}</TableHead>
                 <TableHead className="text-sm font-bold">{t('Total')} (USD)</TableHead>
                 <TableHead className="text-sm font-bold">{t('Total')} (IQD)</TableHead>
                 <TableHead className="text-sm font-bold">{t('Returned')} (USD)</TableHead>
                 <TableHead className="text-sm font-bold">{t('Returned')} (IQD)</TableHead>
-                <TableHead className="text-sm font-bold">{t('Invoice Count')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -875,26 +879,28 @@ export default function RepStatementPage() {
                   <TableCell className="text-sm font-semibold">{p.unit}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold">{p.totalQuantity}</TableCell>
                   {hasSalesGift && <TableCell className="font-mono text-sm font-semibold">{p.totalGift || 0}</TableCell>}
+                  <TableCell className="font-mono text-sm font-semibold">{(p.invoiceNumbers || []).join(" , ")}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold text-red-600">{p.returnQuantity || 0}</TableCell>
                   {hasReturnGift && <TableCell className="font-mono text-sm font-semibold text-red-600">{p.returnGift || 0}</TableCell>}
+                  <TableCell className="font-mono text-sm font-semibold text-red-600">{(p.returnNumbers || []).join(" , ")}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold text-blue-700">{p.totalAmountUsd ? usd(p.totalAmountUsd) : "-"}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold text-blue-700">{p.totalAmountIqd ? fmtIqd(p.totalAmountIqd) : "-"}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold text-red-600">{p.returnAmountUsd ? usd(p.returnAmountUsd) : "-"}</TableCell>
                   <TableCell className="font-mono text-sm font-semibold text-red-600">{p.returnAmountIqd ? fmtIqd(p.returnAmountIqd) : "-"}</TableCell>
-                  <TableCell className="font-mono text-sm font-semibold">{p.invoiceCount}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-muted/30 font-bold">
                 <TableCell colSpan={4} className="text-sm font-bold">{t('Total Products')}: {repSalesByProduct.length}</TableCell>
                 <TableCell className="font-mono text-sm font-bold">{grandTotalQty}</TableCell>
                 {hasSalesGift && <TableCell className="font-mono text-sm font-bold">{grandTotalGift}</TableCell>}
+                <TableCell></TableCell>
                 <TableCell className="font-mono text-sm font-bold text-red-600">{grandTotalRetQty}</TableCell>
                 {hasReturnGift && <TableCell className="font-mono text-sm font-bold text-red-600">{grandRetGift}</TableCell>}
+                <TableCell></TableCell>
                 <TableCell className="font-mono text-sm font-bold text-blue-700">{grandTotalUsd ? usd(grandTotalUsd) : "-"}</TableCell>
                 <TableCell className="font-mono text-sm font-bold text-blue-700">{grandTotalIqd ? fmtIqd(grandTotalIqd) : "-"}</TableCell>
                 <TableCell className="font-mono text-sm font-bold text-red-600">{grandRetUsd ? usd(grandRetUsd) : "-"}</TableCell>
                 <TableCell className="font-mono text-sm font-bold text-red-600">{grandRetIqd ? fmtIqd(grandRetIqd) : "-"}</TableCell>
-                <TableCell></TableCell>
               </TableRow>
             </TableBody>
           </Table>

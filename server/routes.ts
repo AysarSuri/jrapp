@@ -4914,7 +4914,7 @@ export async function registerRoutes(
       const returns = await db.select().from(salesReturns)
         .where(sql`${salesReturns.representativeName} = ${rep.name} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`);
       const returnIds = returns.map(r => r.id);
-      const grouped: Record<string, { productId: number | null; productCode: string; productName: string; unit: string; totalQuantity: number; totalGift: number; totalAmount: number; totalAmountUsd: number; totalAmountIqd: number; invoiceCount: number; returnQuantity: number; returnGift: number; returnAmountUsd: number; returnAmountIqd: number }> = {};
+      const grouped: Record<string, { productId: number | null; productCode: string; productName: string; unit: string; totalQuantity: number; totalGift: number; totalAmount: number; totalAmountUsd: number; totalAmountIqd: number; invoiceCount: number; invoiceNumbers: string[]; returnQuantity: number; returnGift: number; returnAmountUsd: number; returnAmountIqd: number; returnNumbers: string[] }> = {};
       if (invoiceIds.length > 0) {
         const items = await db.select().from(salesInvoiceItems)
           .where(sql`${salesInvoiceItems.invoiceId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
@@ -4923,7 +4923,7 @@ export async function registerRoutes(
           const currency = inv?.currency || "USD";
           const key = `${item.productCode}_${item.unit}`;
           if (!grouped[key]) {
-            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, returnQuantity: 0, returnGift: 0, returnAmountUsd: 0, returnAmountIqd: 0 };
+            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, invoiceNumbers: [], returnQuantity: 0, returnGift: 0, returnAmountUsd: 0, returnAmountIqd: 0, returnNumbers: [] };
           }
           grouped[key].totalQuantity += parseFloat(item.quantity || "0");
           grouped[key].totalGift += parseFloat(item.gift || "0");
@@ -4931,6 +4931,10 @@ export async function registerRoutes(
           if (currency === "USD") { grouped[key].totalAmountUsd += parseFloat(item.amount || "0"); }
           else { grouped[key].totalAmountIqd += parseFloat(item.amount || "0"); }
           grouped[key].invoiceCount += 1;
+          const invNum = inv?.invoiceNumber || "";
+          if (invNum && !grouped[key].invoiceNumbers.includes(invNum)) {
+            grouped[key].invoiceNumbers.push(invNum);
+          }
         });
       }
       if (returnIds.length > 0) {
@@ -4941,12 +4945,16 @@ export async function registerRoutes(
           const currency = ret?.currency || "USD";
           const key = `${item.productCode}_${item.unit}`;
           if (!grouped[key]) {
-            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, returnQuantity: 0, returnGift: 0, returnAmountUsd: 0, returnAmountIqd: 0 };
+            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, invoiceNumbers: [], returnQuantity: 0, returnGift: 0, returnAmountUsd: 0, returnAmountIqd: 0, returnNumbers: [] };
           }
           grouped[key].returnQuantity += parseFloat(item.quantity || "0");
           grouped[key].returnGift += parseFloat(item.gift || "0");
           if (currency === "USD") { grouped[key].returnAmountUsd += parseFloat(item.amount || "0"); }
           else { grouped[key].returnAmountIqd += parseFloat(item.amount || "0"); }
+          const retNum = ret?.returnNumber || "";
+          if (retNum && !grouped[key].returnNumbers.includes(retNum)) {
+            grouped[key].returnNumbers.push(retNum);
+          }
         });
       }
       const result = Object.values(grouped).sort((a, b) => a.productName.localeCompare(b.productName));
