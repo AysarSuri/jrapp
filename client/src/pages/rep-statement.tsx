@@ -1325,6 +1325,146 @@ export default function RepStatementPage() {
     );
   };
 
+  const handlePrintReceiptsTab = () => {
+    const allReceipts = repReceipts?.receipts || [];
+    const allPayments = repReceipts?.payments || [];
+    if (allReceipts.length === 0 && allPayments.length === 0) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+    const receiptsUsd = allReceipts.filter((r: any) => r.currency === "USD");
+    const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
+    const paymentsUsd = allPayments.filter((p: any) => p.currency === "USD");
+    const paymentsIqd = allPayments.filter((p: any) => p.currency === "IQD");
+
+    const buildReceiptTable = (items: any[], currency: string, label: string) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amount || "0"), 0);
+      const totalDiscount = items.reduce((s: number, r: any) => s + parseFloat(r.discount || "0"), 0);
+      const rows = items.map((r: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${r.receiptNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(r.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${r.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(r.amount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#ea580c;">${fmt(parseFloat(r.discount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${r.note || "-"}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Receipt Number Short")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Discount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Note")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
+              <td style="padding:8px;"></td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const buildPaymentTable = (items: any[], currency: string, label: string) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, p: any) => s + parseFloat(p.amount || "0"), 0);
+      const rows = items.map((p: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${p.paymentNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(p.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${p.agentName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1d4ed8;">${fmt(parseFloat(p.amount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${p.note || "-"}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Payment Number Short")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Note")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#1d4ed8;">${fmt(total)}</td>
+              <td style="padding:8px;"></td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        ${PRINT_FONT_LINKS}
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Receipts")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Receipts")}</h1>
+              <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("From")}: ${formatDate(fromDate)} - ${t("To")}: ${formatDate(toDate)}</p>
+            </div>
+            <div style="width:70px;"></div>
+          </div>
+        </div>
+        ${receiptsUsd.length > 0 ? buildReceiptTable(receiptsUsd, "USD", t("Customer Receipts")) : ""}
+        ${receiptsIqd.length > 0 ? buildReceiptTable(receiptsIqd, "IQD", t("Customer Receipts")) : ""}
+        ${paymentsUsd.length > 0 ? buildPaymentTable(paymentsUsd, "USD", t("Customer Payments")) : ""}
+        ${paymentsIqd.length > 0 ? buildPaymentTable(paymentsIqd, "IQD", t("Customer Payments")) : ""}
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => { win.print(); });
+      } else {
+        setTimeout(() => { win.print(); }, 500);
+      }
+    }
+  };
+
   const renderReceiptsTab = () => {
     if (receiptsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     const allReceipts = repReceipts?.receipts || [];
@@ -1337,6 +1477,15 @@ export default function RepStatementPage() {
     if (allReceipts.length === 0 && allPayments.length === 0) {
       return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><Receipt className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No receipts found')}</p></div>;
     }
+
+    const renderPrintButton = () => (
+      <div className="flex justify-end mb-4">
+        <Button onClick={handlePrintReceiptsTab} className="bg-primary text-white gap-2 h-11" data-testid="button-print-receipts-tab">
+          <Printer className="w-5 h-5" />
+          {t('Print Report')}
+        </Button>
+      </div>
+    );
 
     const renderReceiptTable = (data: any[], curr: string) => {
       const fmtC = curr === "USD" ? usd : fmtIqd;
@@ -1418,6 +1567,7 @@ export default function RepStatementPage() {
 
     return (
       <div className="space-y-6">
+        {renderPrintButton()}
         {receiptsUsd.length > 0 && (
           <div>
             <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Customer Receipts')} - USD ({receiptsUsd.length})</h3>
