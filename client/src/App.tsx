@@ -97,6 +97,7 @@ import SupplierDiscountsGiftsReportPage from "@/pages/supplier-discounts-gifts-r
 import SupplierOrderUsdPage from "@/pages/supplier-order-usd";
 import SupplierOrderIqdPage from "@/pages/supplier-order-iqd";
 import BarcodePrintPage from "@/pages/barcode-print";
+import CompanyBookPage from "@/pages/company-book";
 import CompanyProfilePage from "@/pages/company-profile";
 import SettingsPage from "@/pages/settings";
 import UserManagementPage from "@/pages/user-management";
@@ -406,6 +407,9 @@ function Router() {
       </Route>
       <Route path="/barcode-print">
         <ProtectedRoute component={BarcodePrintPage} />
+      </Route>
+      <Route path="/company-book">
+        <ProtectedRoute component={CompanyBookPage} />
       </Route>
       <Route path="/company-profile">
         <ProtectedRoute component={CompanyProfilePage} />

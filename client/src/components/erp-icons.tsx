@@ -51,6 +51,7 @@ import {
   Timer,
   Tags,
   ReceiptIcon,
+  BookOpen,
   type LucideProps,
 } from "lucide-react";
 
@@ -330,4 +331,8 @@ export function IconSupplierOrderUsd({ className }: P) {
 
 export function IconSupplierOrderIqd({ className }: P) {
   return <FileSpreadsheet className={className} />;
+}
+
+export function IconCompanyBook({ className }: P) {
+  return <BookOpen className={className} />;
 }

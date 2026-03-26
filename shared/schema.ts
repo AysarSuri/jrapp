@@ -849,6 +849,22 @@ export type SupplierOrder = typeof supplierOrders.$inferSelect;
 export const insertSupplierOrderSchema = createInsertSchema(supplierOrders).omit({ id: true, createdAt: true });
 export const insertSupplierOrderItemSchema = createInsertSchema(supplierOrderItems).omit({ id: true });
 
+export const companyBooks = pgTable("company_books", {
+  id: serial("id").primaryKey(),
+  bookNumber: integer("book_number").notNull(),
+  date: text("date").notNull(),
+  toField: text("to_field").notNull(),
+  subject: text("subject").notNull(),
+  authorizedPerson: text("authorized_person").notNull(),
+  personName: text("person_name"),
+  note: text("note"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type CompanyBook = typeof companyBooks.$inferSelect;
+export const insertCompanyBookSchema = createInsertSchema(companyBooks).omit({ id: true, createdAt: true });
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

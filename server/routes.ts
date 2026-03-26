@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -203,6 +203,7 @@ export async function registerRoutes(
     '/api/company-profile': 'company_profile',
     '/api/addresses': 'addresses',
     '/api/supplier-orders': 'supplier_management',
+    '/api/company-books': 'company_book',
     '/api/users': 'user_management',
   };
 
@@ -5555,6 +5556,64 @@ export async function registerRoutes(
       const id = parseInt(req.params.id, 10);
       await db.delete(supplierOrderItems).where(eq(supplierOrderItems.orderId, id));
       await db.delete(supplierOrders).where(eq(supplierOrders.id, id));
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // ===== COMPANY BOOKS =====
+  app.get('/api/company-books/next-number', requireAuth, async (_req, res) => {
+    try {
+      const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(${companyBooks.bookNumber}), 0)` }).from(companyBooks);
+      const next = (result?.maxNum || 0) + 1;
+      res.json({ number: next });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/company-books', requireAuth, async (_req, res) => {
+    try {
+      const data = await db.select().from(companyBooks);
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/company-books/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const [data] = await db.select().from(companyBooks).where(eq(companyBooks.id, id));
+      if (!data) return res.status(404).json({ message: "Book not found" });
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.post('/api/company-books', requireAuth, async (req, res) => {
+    try {
+      const body = req.body;
+      if (!body.toField || !body.subject || !body.authorizedPerson) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      const [result] = await db.select({ maxNum: sql<number>`COALESCE(MAX(${companyBooks.bookNumber}), 0)` }).from(companyBooks);
+      const nextNum = (result?.maxNum || 0) + 1;
+      body.bookNumber = nextNum;
+      const [inserted] = await db.insert(companyBooks).values(body).returning();
+      res.json(inserted);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.patch('/api/company-books/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const body = req.body;
+      delete body.bookNumber;
+      await db.update(companyBooks).set(body).where(eq(companyBooks.id, id));
+      const [updated] = await db.select().from(companyBooks).where(eq(companyBooks.id, id));
+      res.json(updated);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.delete('/api/company-books/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      await db.delete(companyBooks).where(eq(companyBooks.id, id));
       res.json({ success: true });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });

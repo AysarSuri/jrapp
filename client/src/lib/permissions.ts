@@ -137,6 +137,11 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     routes: ["/barcode-print"],
   },
   {
+    key: "company_book",
+    labelKey: "Company Book Management",
+    routes: ["/company-book"],
+  },
+  {
     key: "company_profile",
     labelKey: "Company Profile",
     routes: ["/company-profile"],
