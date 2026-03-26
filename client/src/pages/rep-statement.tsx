@@ -144,7 +144,7 @@ export default function RepStatementPage() {
     enabled: !!selectedRepId && activeTab === "returns",
   });
 
-  const { data: repReceipts, isLoading: receiptsLoading } = useQuery<{ receipts: any[]; payments: any[] }>({
+  const { data: repReceipts, isLoading: receiptsLoading } = useQuery<{ receipts: any[]; payments: any[]; cashFromSales: any[] }>({
     queryKey: ["/api/rep-receipts", selectedRepId, fromDate, toDate],
     queryFn: async () => {
       const res = await fetch(`/api/rep-receipts/${selectedRepId}?fromDate=${fromDate}&toDate=${toDate}`, { credentials: "include" });
