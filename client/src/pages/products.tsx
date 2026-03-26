@@ -70,6 +70,10 @@ const defaultValues: FormValues = {
   bigUnitPriceIqd: "0",
   smallUnitPriceUsd: "0",
   smallUnitPriceIqd: "0",
+  bigUnitBuyPriceUsd: "0",
+  bigUnitBuyPriceIqd: "0",
+  smallUnitBuyPriceUsd: "0",
+  smallUnitBuyPriceIqd: "0",
   minStock: 0,
   image: null,
   hidden: false,
@@ -141,6 +145,10 @@ export default function ProductsPage() {
       bigUnitPriceIqd: product.bigUnitPriceIqd,
       smallUnitPriceUsd: product.smallUnitPriceUsd,
       smallUnitPriceIqd: product.smallUnitPriceIqd,
+      bigUnitBuyPriceUsd: product.bigUnitBuyPriceUsd ?? "0",
+      bigUnitBuyPriceIqd: product.bigUnitBuyPriceIqd ?? "0",
+      smallUnitBuyPriceUsd: product.smallUnitBuyPriceUsd ?? "0",
+      smallUnitBuyPriceIqd: product.smallUnitBuyPriceIqd ?? "0",
       minStock: product.minStock,
       image: product.image || null,
       hidden: product.hidden ?? false,
@@ -248,6 +256,10 @@ export default function ProductsPage() {
         <th>${t('Big Unit Price (IQD)')}</th>
         <th>${t('Small Unit Price (USD)')}</th>
         <th>${t('Small Unit Price (IQD)')}</th>
+        <th>${t('Big Unit Buy Price (USD)')}</th>
+        <th>${t('Big Unit Buy Price (IQD)')}</th>
+        <th>${t('Small Unit Buy Price (USD)')}</th>
+        <th>${t('Small Unit Buy Price (IQD)')}</th>
         <th>${t('Min Stock Alert')}</th>
       `;
       tableRows = filtered.map((p, i) => `
@@ -262,6 +274,10 @@ export default function ProductsPage() {
           <td class="mono price-iqd">IQD ${Number(p.bigUnitPriceIqd).toLocaleString()}</td>
           <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
           <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
+          <td class="mono price-usd">$${p.bigUnitBuyPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.bigUnitBuyPriceIqd).toLocaleString()}</td>
+          <td class="mono price-usd">$${p.smallUnitBuyPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.smallUnitBuyPriceIqd).toLocaleString()}</td>
           <td class="mono">${p.minStock}</td>
         </tr>
       `).join("");
@@ -276,6 +292,12 @@ export default function ProductsPage() {
         <th>${t('Small Unit')}</th>
         <th>${t('Small Unit Price (USD)')}</th>
         <th>${t('Small Unit Price (IQD)')}</th>
+        <th>${t('Big Unit')}</th>
+        <th>${t('Big Unit Buy Price (USD)')}</th>
+        <th>${t('Big Unit Buy Price (IQD)')}</th>
+        <th>${t('Small Unit')}</th>
+        <th>${t('Small Unit Buy Price (USD)')}</th>
+        <th>${t('Small Unit Buy Price (IQD)')}</th>
       `;
       tableRows = filtered.map((p, i) => `
         <tr>
@@ -288,6 +310,12 @@ export default function ProductsPage() {
           <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
           <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
           <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
+          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
+          <td class="mono price-usd">$${p.bigUnitBuyPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.bigUnitBuyPriceIqd).toLocaleString()}</td>
+          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
+          <td class="mono price-usd">$${p.smallUnitBuyPriceUsd}</td>
+          <td class="mono price-iqd">IQD ${Number(p.smallUnitBuyPriceIqd).toLocaleString()}</td>
         </tr>
       `).join("");
     }
@@ -798,35 +826,73 @@ export default function ProductsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="bigUnitPriceUsd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Big Unit Price (USD)')}</FormLabel>
-                    <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-usd" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Big Unit Price (IQD)')}</FormLabel>
-                    <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-iqd" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Small Unit Price (USD)')}</FormLabel>
-                    <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-usd" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Selling Prices')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FormField control={form.control} name="bigUnitPriceUsd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Price (USD)')}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-usd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Price (IQD)')}</FormLabel>
+                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-iqd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Price (USD)')}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-usd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
+                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Purchase Prices')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <FormField control={form.control} name="bigUnitBuyPriceUsd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (USD)')}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-buy-price-usd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bigUnitBuyPriceIqd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (IQD)')}</FormLabel>
+                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-buy-price-iqd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="smallUnitBuyPriceUsd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (USD)')}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-buy-price-usd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="smallUnitBuyPriceIqd" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (IQD)')}</FormLabel>
+                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-buy-price-iqd" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap items-end gap-4">
-                  <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
-                    <FormItem className="flex-1 min-w-[140px]">
-                      <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
-                      <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
                   <FormField control={form.control} name="minStock" render={({ field }) => (
                     <FormItem className="flex-1 min-w-[120px]">
                       <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
@@ -961,6 +1027,10 @@ export default function ProductsPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Favorite')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Actions')}</TableHead>
@@ -983,6 +1053,10 @@ export default function ProductsPage() {
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitBuyPriceUsd}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitBuyPriceUsd}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
                         <TableCell className="text-center">
                           {product.hidden ? (
                             <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 font-bold" data-testid={`badge-product-hidden-${product.id}`}>
@@ -1071,6 +1145,10 @@ export default function ProductsPage() {
                     <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
                     <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
                     <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
                     <TableHead className="text-right font-bold text-sm">{t('Min Stock Alert')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1091,6 +1169,10 @@ export default function ProductsPage() {
                       <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
                       <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
                       <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitBuyPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitBuyPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
                       <TableCell className="text-right font-bold font-mono text-sm">{product.minStock}</TableCell>
                     </TableRow>
                   ))}
@@ -1130,6 +1212,12 @@ export default function ProductsPage() {
                     <TableHead className="text-center font-bold text-sm">{t('Small Unit')}</TableHead>
                     <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
                     <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
+                    <TableHead className="text-center font-bold text-sm">{t('Big Unit')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
+                    <TableHead className="text-center font-bold text-sm">{t('Small Unit')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
+                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1148,6 +1236,16 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right font-bold font-mono text-sm text-green-600">${product.smallUnitPriceUsd}</TableCell>
                       <TableCell className="text-right font-bold font-mono text-sm text-blue-600">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.bigUnit, unitsList)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-orange-600">${product.bigUnitBuyPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-purple-600">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.smallUnit, unitsList)}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-orange-600">${product.smallUnitBuyPriceUsd}</TableCell>
+                      <TableCell className="text-right font-bold font-mono text-sm text-purple-600">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
