@@ -1321,7 +1321,8 @@ export default function RepStatementPage() {
   const handlePrintReceiptsTab = () => {
     const allReceipts = repReceipts?.receipts || [];
     const allPayments = repReceipts?.payments || [];
-    if (allReceipts.length === 0 && allPayments.length === 0) return;
+    const allCashFromSales = repReceipts?.cashFromSales || [];
+    if (allReceipts.length === 0 && allPayments.length === 0 && allCashFromSales.length === 0) return;
     const dir = isRtl ? "rtl" : "ltr";
     const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
     const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
@@ -1329,6 +1330,8 @@ export default function RepStatementPage() {
     const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
     const paymentsUsd = allPayments.filter((p: any) => p.currency === "USD");
     const paymentsIqd = allPayments.filter((p: any) => p.currency === "IQD");
+    const cashSalesUsd = allCashFromSales.filter((s: any) => s.currency === "USD");
+    const cashSalesIqd = allCashFromSales.filter((s: any) => s.currency === "IQD");
 
     const buildReceiptTable = (items: any[], currency: string, label: string) => {
       const fmt = currency === "USD" ? usd : fmtIqd;
@@ -1366,6 +1369,40 @@ export default function RepStatementPage() {
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
               <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
               <td style="padding:8px;"></td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const buildCashFromSalesTable = (items: any[], currency: string, label: string) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const total = items.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+      const rows = items.map((s: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${s.invoiceNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(s.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${s.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(s.amountPaid || "0"))}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
             </tr>
           </tbody>
         </table>`;
@@ -1442,6 +1479,8 @@ export default function RepStatementPage() {
         </div>
         ${receiptsUsd.length > 0 ? buildReceiptTable(receiptsUsd, "USD", t("Customer Receipts")) : ""}
         ${receiptsIqd.length > 0 ? buildReceiptTable(receiptsIqd, "IQD", t("Customer Receipts")) : ""}
+        ${cashSalesUsd.length > 0 ? buildCashFromSalesTable(cashSalesUsd, "USD", t("Cash Received")) : ""}
+        ${cashSalesIqd.length > 0 ? buildCashFromSalesTable(cashSalesIqd, "IQD", t("Cash Received")) : ""}
         ${paymentsUsd.length > 0 ? buildPaymentTable(paymentsUsd, "USD", t("Customer Payments")) : ""}
         ${paymentsIqd.length > 0 ? buildPaymentTable(paymentsIqd, "IQD", t("Customer Payments")) : ""}
       </body></html>`;
@@ -1462,12 +1501,15 @@ export default function RepStatementPage() {
     if (receiptsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     const allReceipts = repReceipts?.receipts || [];
     const allPayments = repReceipts?.payments || [];
+    const allCashFromSales = repReceipts?.cashFromSales || [];
     const receiptsUsd = allReceipts.filter((r: any) => r.currency === "USD");
     const receiptsIqd = allReceipts.filter((r: any) => r.currency === "IQD");
     const paymentsUsd = allPayments.filter((p: any) => p.currency === "USD");
     const paymentsIqd = allPayments.filter((p: any) => p.currency === "IQD");
+    const cashSalesUsd = allCashFromSales.filter((s: any) => s.currency === "USD");
+    const cashSalesIqd = allCashFromSales.filter((s: any) => s.currency === "IQD");
 
-    if (allReceipts.length === 0 && allPayments.length === 0) {
+    if (allReceipts.length === 0 && allPayments.length === 0 && allCashFromSales.length === 0) {
       return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><Receipt className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No receipts found')}</p></div>;
     }
 
@@ -1513,6 +1555,41 @@ export default function RepStatementPage() {
                 <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
                 <TableCell className="font-mono text-sm font-bold text-green-700">{fmtC(total)}</TableCell>
                 <TableCell colSpan={2}></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      );
+    };
+
+    const renderCashFromSalesTable = (data: any[], curr: string) => {
+      const fmtC = curr === "USD" ? usd : fmtIqd;
+      const total = data.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
+      return (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Invoice Number')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Date')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Customer Name')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Amount')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((s: any, i: number) => (
+                <TableRow key={s.id} data-testid={`row-rep-cash-sale-${curr.toLowerCase()}-${s.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{s.invoiceNumber}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{formatDate(s.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold">{s.customerName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-green-600">{fmtC(parseFloat(s.amountPaid || "0"))}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/50 font-bold">
+                <TableCell colSpan={4} className="text-end text-sm font-bold">{t('Total')}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-green-700">{fmtC(total)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -1571,6 +1648,18 @@ export default function RepStatementPage() {
           <div>
             <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Customer Receipts')} - IQD ({receiptsIqd.length})</h3>
             {renderReceiptTable(receiptsIqd, "IQD")}
+          </div>
+        )}
+        {cashSalesUsd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">{t('Cash Received')} - USD ({cashSalesUsd.length})</h3>
+            {renderCashFromSalesTable(cashSalesUsd, "USD")}
+          </div>
+        )}
+        {cashSalesIqd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold mb-3 text-emerald-700 dark:text-emerald-400">{t('Cash Received')} - IQD ({cashSalesIqd.length})</h3>
+            {renderCashFromSalesTable(cashSalesIqd, "IQD")}
           </div>
         )}
         {paymentsUsd.length > 0 && (

@@ -4989,7 +4989,17 @@ export async function registerRoutes(
       const payments = await db.select().from(agentPayments)
         .where(sql`${agentPayments.representativeName} = ${rep.name} AND ${agentPayments.date} >= ${fromDate} AND ${agentPayments.date} <= ${toDate}`)
         .orderBy(sql`${agentPayments.date} DESC, ${agentPayments.time} DESC`);
-      res.json({ receipts, payments });
+      const cashFromSales = await db.select({
+        id: salesInvoices.id,
+        invoiceNumber: salesInvoices.invoiceNumber,
+        date: salesInvoices.date,
+        customerName: salesInvoices.customerName,
+        amountPaid: salesInvoices.amountPaid,
+        currency: salesInvoices.currency,
+      }).from(salesInvoices)
+        .where(sql`${salesInvoices.representativeName} = ${rep.name} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate} AND CAST(${salesInvoices.amountPaid} AS numeric) > 0`)
+        .orderBy(sql`${salesInvoices.date} DESC`);
+      res.json({ receipts, payments, cashFromSales });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
