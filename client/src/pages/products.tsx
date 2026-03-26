@@ -865,28 +865,28 @@ export default function ProductsPage() {
                     <FormField control={form.control} name="bigUnitBuyPriceUsd" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-buy-price-usd" /></FormControl>
+                        <FormControl><Input type="number" step="0.01" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price-usd" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="bigUnitBuyPriceIqd" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-buy-price-iqd" /></FormControl>
+                        <FormControl><Input type="number" step="250" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price-iqd" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="smallUnitBuyPriceUsd" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-buy-price-usd" /></FormControl>
+                        <FormControl><Input type="number" step="0.01" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price-usd" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="smallUnitBuyPriceIqd" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-buy-price-iqd" /></FormControl>
+                        <FormControl><Input type="number" step="250" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price-iqd" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
