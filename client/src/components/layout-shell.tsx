@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Bell,
   TrendingUp,
+  Gift,
 } from "lucide-react";
 import {
   IconDashboard,
@@ -272,6 +273,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/expiry-report",
     "/max-stock-report",
     "/profits-report",
+    "/sales-discounts-gifts-report",
   ];
 
   const warehouseSubRoutes = [
@@ -451,6 +453,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/expiry-report", icon: IconExpiry, label: "Expiry Report" },
     { href: "/max-stock-report", icon: IconReport, label: "Max Stock Report" },
     { href: "/profits-report", icon: TrendingUp, label: "Profits Report" },
+    { href: "/sales-discounts-gifts-report", icon: Gift, label: "Sales Discounts & Gifts Report" },
   ];
 
   const warehouseNavItems: NavItem[] = [
