@@ -90,6 +90,7 @@ import MaterialManagementPage from "@/pages/material-management";
 import ProductDamagePage from "@/pages/product-damage";
 import InventoryReportPage from "@/pages/inventory-report";
 import ExpiryReportPage from "@/pages/expiry-report";
+import MaxStockReportPage from "@/pages/max-stock-report";
 import BarcodePrintPage from "@/pages/barcode-print";
 import CompanyProfilePage from "@/pages/company-profile";
 import SettingsPage from "@/pages/settings";
@@ -379,6 +380,9 @@ function Router() {
       </Route>
       <Route path="/expiry-report">
         <ProtectedRoute component={ExpiryReportPage} />
+      </Route>
+      <Route path="/max-stock-report">
+        <ProtectedRoute component={MaxStockReportPage} />
       </Route>
       <Route path="/barcode-print">
         <ProtectedRoute component={BarcodePrintPage} />

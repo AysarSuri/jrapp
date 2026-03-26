@@ -269,6 +269,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const reportsSubRoutes = [
     "/inventory-report",
     "/expiry-report",
+    "/max-stock-report",
   ];
 
   const warehouseSubRoutes = [
@@ -446,6 +447,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const reportsNavItems: NavItem[] = [
     { href: "/inventory-report", icon: IconInventory, label: "Inventory Report" },
     { href: "/expiry-report", icon: IconExpiry, label: "Expiry Report" },
+    { href: "/max-stock-report", icon: IconReport, label: "Max Stock Report" },
   ];
 
   const warehouseNavItems: NavItem[] = [

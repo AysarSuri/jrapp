@@ -54,7 +54,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     key: "reports",
     labelKey: "Reports",
     routes: [
-      "/inventory-report", "/expiry-report",
+      "/inventory-report", "/expiry-report", "/max-stock-report",
     ],
   },
   {
