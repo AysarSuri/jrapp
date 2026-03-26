@@ -5023,7 +5023,10 @@ export async function registerRoutes(
       }).from(salesReturns)
         .where(sql`${salesReturns.representativeName} = ${rep.name} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate} AND CAST(${salesReturns.amountPaid} AS numeric) > 0`)
         .orderBy(sql`${salesReturns.date} DESC`);
-      res.json({ receipts, returnPayments });
+      const payments = await db.select().from(agentPayments)
+        .where(sql`${agentPayments.representativeName} = ${rep.name} AND ${agentPayments.date} >= ${fromDate} AND ${agentPayments.date} <= ${toDate}`)
+        .orderBy(sql`${agentPayments.date} DESC, ${agentPayments.time} DESC`);
+      res.json({ receipts, returnPayments, payments });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
