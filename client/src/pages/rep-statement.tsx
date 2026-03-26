@@ -561,6 +561,88 @@ export default function RepStatementPage() {
     { key: "loads", label: t("Product Loads for Rep"), icon: Truck },
   ];
 
+  const handlePrintRemaining = () => {
+    if (!repProducts || repProducts.length === 0) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+    const today = formatDate(new Date().toISOString().slice(0, 10));
+
+    const rows = repProducts.map((p: any, i: number) => `
+      <tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${p.productName}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${p.productCode}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;font-weight:600;">${p.remainingBig} ${resolveUnitName(p.bigUnit, unitsList || [])}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:9pt;font-weight:600;">${p.remainingSmall} ${resolveUnitName(p.smallUnit, unitsList || [])}</td>
+      </tr>
+    `).join("");
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        ${PRINT_FONT_LINKS}
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Remaining Products with Rep")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 portrait; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Remaining Products with Rep")}</h1>
+              <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("Date")}: ${today}</p>
+            </div>
+            <div style="width:70px;"></div>
+          </div>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Product Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Product Code")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Remaining (Big Unit)")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Remaining (Small Unit)")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="3" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total Products")}: ${repProducts.length}</td>
+              <td colspan="2" style="padding:8px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=900,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => setTimeout(() => win.print(), 300));
+      } else {
+        setTimeout(() => win.print(), 1200);
+      }
+    }
+  };
+
   const renderRemainingTab = () => {
     if (productsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (!repProducts || repProducts.length === 0) {
@@ -572,33 +654,41 @@ export default function RepStatementPage() {
       );
     }
     return (
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="text-sm font-bold">#</TableHead>
-              <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
-              <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
-              <TableHead className="text-sm font-bold">{t('Remaining (Big Unit)')}</TableHead>
-              <TableHead className="text-sm font-bold">{t('Remaining (Small Unit)')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {repProducts.map((p: any, i: number) => (
-              <TableRow key={p.productId} data-testid={`row-rep-product-${p.productId}`}>
-                <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
-                <TableCell className="text-sm font-semibold">{p.productName}</TableCell>
-                <TableCell className="font-mono text-sm font-semibold">{p.productCode}</TableCell>
-                <TableCell className="text-sm font-semibold">
-                  {p.remainingBig} {resolveUnitName(p.bigUnit, unitsList || [])}
-                </TableCell>
-                <TableCell className="text-sm font-semibold">
-                  {p.remainingSmall} {resolveUnitName(p.smallUnit, unitsList || [])}
-                </TableCell>
+      <div>
+        <div className="flex justify-end mb-4">
+          <Button onClick={handlePrintRemaining} className="bg-primary text-white gap-2 h-11" data-testid="button-print-remaining-products">
+            <Printer className="w-5 h-5" />
+            {t('Print Report')}
+          </Button>
+        </div>
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t('Product Name')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Product Code')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Remaining (Big Unit)')}</TableHead>
+                <TableHead className="text-sm font-bold">{t('Remaining (Small Unit)')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {repProducts.map((p: any, i: number) => (
+                <TableRow key={p.productId} data-testid={`row-rep-product-${p.productId}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="text-sm font-semibold">{p.productName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{p.productCode}</TableCell>
+                  <TableCell className="text-sm font-semibold">
+                    {p.remainingBig} {resolveUnitName(p.bigUnit, unitsList || [])}
+                  </TableCell>
+                  <TableCell className="text-sm font-semibold">
+                    {p.remainingSmall} {resolveUnitName(p.smallUnit, unitsList || [])}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   };
