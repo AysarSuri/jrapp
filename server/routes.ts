@@ -2644,6 +2644,26 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  async function populateCostPrices(tx: any, invoiceItems: any[], currency: string) {
+    const itemsWithCost = [];
+    for (const item of invoiceItems) {
+      let costPrice = "0";
+      if (item.productId) {
+        const [product] = await tx.select().from(products).where(eq(products.id, item.productId));
+        if (product) {
+          const isBigUnit = item.unit === product.bigUnit;
+          if (currency === 'USD') {
+            costPrice = isBigUnit ? (product.bigUnitBuyPriceUsd || "0") : (product.smallUnitBuyPriceUsd || "0");
+          } else {
+            costPrice = isBigUnit ? (product.bigUnitBuyPriceIqd || "0") : (product.smallUnitBuyPriceIqd || "0");
+          }
+        }
+      }
+      itemsWithCost.push({ ...item, costPrice });
+    }
+    return itemsWithCost;
+  }
+
   app.post(api.salesInvoices.create.path, requireAuth, async (req, res) => {
     try {
       const { invoice, items } = api.salesInvoices.create.input.parse(req.body);
@@ -2672,7 +2692,8 @@ export async function registerRoutes(
       const result = await db.transaction(async (tx) => {
         const [created] = await tx.insert(salesInvoices).values(invoiceWithServerData).returning();
         if (items.length > 0) {
-          const itemsWithInvoiceId = items.map(item => ({
+          const itemsWithCost = await populateCostPrices(tx, items, invoice.currency || 'USD');
+          const itemsWithInvoiceId = itemsWithCost.map(item => ({
             ...item,
             invoiceId: created.id,
           }));
@@ -2737,7 +2758,9 @@ export async function registerRoutes(
         const [updated] = await tx.update(salesInvoices).set(safeInvoice).where(eq(salesInvoices.id, id)).returning();
         await tx.delete(salesInvoiceItems).where(eq(salesInvoiceItems.invoiceId, id));
         if (items && items.length > 0) {
-          const itemsWithInvoiceId = items.map((item: any) => ({ ...item, invoiceId: id }));
+          const currency = safeInvoice.currency || existing.currency || 'USD';
+          const itemsWithCost = await populateCostPrices(tx, items, currency);
+          const itemsWithInvoiceId = itemsWithCost.map((item: any) => ({ ...item, invoiceId: id }));
           await tx.insert(salesInvoiceItems).values(itemsWithInvoiceId);
         }
         return updated;
@@ -2817,7 +2840,8 @@ export async function registerRoutes(
       const result = await db.transaction(async (tx) => {
         const [created] = await tx.insert(salesReturns).values(returnWithServerData).returning();
         if (items.length > 0) {
-          const itemsWithReturnId = items.map(item => ({
+          const itemsWithCost = await populateCostPrices(tx, items, returnData.currency || 'USD');
+          const itemsWithReturnId = itemsWithCost.map(item => ({
             ...item,
             returnId: created.id,
           }));
@@ -2871,10 +2895,13 @@ export async function registerRoutes(
       const { returnData: retData, items } = req.body;
 
       await db.transaction(async (tx) => {
+        const [existing] = await tx.select().from(salesReturns).where(eq(salesReturns.id, id));
         await tx.update(salesReturns).set(retData).where(eq(salesReturns.id, id));
         await tx.delete(salesReturnItems).where(eq(salesReturnItems.returnId, id));
         if (items && items.length > 0) {
-          const itemsWithReturnId = items.map((item: any) => ({
+          const currency = retData?.currency || existing?.currency || 'USD';
+          const itemsWithCost = await populateCostPrices(tx, items, currency);
+          const itemsWithReturnId = itemsWithCost.map((item: any) => ({
             ...item,
             returnId: id,
           }));

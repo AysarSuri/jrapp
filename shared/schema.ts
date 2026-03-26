@@ -421,6 +421,7 @@ export const salesInvoiceItems = pgTable("sales_invoice_items", {
   gift: numeric("gift").default("0"),
   unit: text("unit").notNull(),
   price: numeric("price").notNull(),
+  costPrice: numeric("cost_price").notNull().default("0"),
   amount: numeric("amount").notNull(),
   weight: numeric("weight").default("0"),
 });
@@ -469,6 +470,7 @@ export const salesReturnItems = pgTable("sales_return_items", {
   gift: numeric("gift").default("0"),
   unit: text("unit").notNull(),
   price: numeric("price").notNull(),
+  costPrice: numeric("cost_price").notNull().default("0"),
   amount: numeric("amount").notNull(),
 });
 
