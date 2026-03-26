@@ -1152,6 +1152,28 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  async function updateProductBuyPrices(tx: any, invoiceItems: any[], currency: string) {
+    for (const item of invoiceItems) {
+      if (!item.productId) continue;
+      const [product] = await tx.select().from(products).where(eq(products.id, item.productId));
+      if (!product) continue;
+      const isBigUnit = item.unit === product.bigUnit;
+      const isSmallUnit = item.unit === product.smallUnit;
+      if (!isBigUnit && !isSmallUnit) continue;
+      const updateFields: Record<string, string> = {};
+      if (currency === 'USD') {
+        if (isBigUnit) updateFields.bigUnitBuyPriceUsd = item.price;
+        if (isSmallUnit) updateFields.smallUnitBuyPriceUsd = item.price;
+      } else {
+        if (isBigUnit) updateFields.bigUnitBuyPriceIqd = item.price;
+        if (isSmallUnit) updateFields.smallUnitBuyPriceIqd = item.price;
+      }
+      if (Object.keys(updateFields).length > 0) {
+        await tx.update(products).set(updateFields).where(eq(products.id, item.productId));
+      }
+    }
+  }
+
   app.post(api.purchaseInvoices.create.path, requireAuth, async (req, res) => {
     try {
       const { invoice, items } = api.purchaseInvoices.create.input.parse(req.body);
@@ -1163,6 +1185,7 @@ export async function registerRoutes(
             invoiceId: created.id,
           }));
           await tx.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
+          await updateProductBuyPrices(tx, items, invoice.currency || 'USD');
         }
         return created;
       });
@@ -1198,6 +1221,7 @@ export async function registerRoutes(
         if (items && items.length > 0) {
           const itemsWithInvoiceId = items.map((item: any) => ({ ...item, invoiceId: id }));
           await tx.insert(purchaseInvoiceItems).values(itemsWithInvoiceId);
+          await updateProductBuyPrices(tx, items, (invoice?.currency || updated.currency || 'USD'));
         }
         return updated;
       });
