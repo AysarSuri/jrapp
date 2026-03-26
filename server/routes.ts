@@ -4911,38 +4911,43 @@ export async function registerRoutes(
       const invoices = await db.select().from(salesInvoices)
         .where(sql`${salesInvoices.representativeName} = ${rep.name} AND ${salesInvoices.date} >= ${fromDate} AND ${salesInvoices.date} <= ${toDate}`);
       const invoiceIds = invoices.map(inv => inv.id);
-      if (invoiceIds.length === 0) return res.json([]);
-      const items = await db.select().from(salesInvoiceItems)
-        .where(sql`${salesInvoiceItems.invoiceId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
-      const grouped: Record<string, { productId: number | null; productCode: string; productName: string; unit: string; totalQuantity: number; totalGift: number; totalAmount: number; totalAmountUsd: number; totalAmountIqd: number; invoiceCount: number }> = {};
-      items.forEach((item) => {
-        const inv = invoices.find(i => i.id === item.invoiceId);
-        const currency = inv?.currency || "USD";
-        const key = `${item.productCode}_${item.unit}`;
-        if (!grouped[key]) {
-          grouped[key] = {
-            productId: item.productId,
-            productCode: item.productCode,
-            productName: item.productName,
-            unit: item.unit,
-            totalQuantity: 0,
-            totalGift: 0,
-            totalAmount: 0,
-            totalAmountUsd: 0,
-            totalAmountIqd: 0,
-            invoiceCount: 0,
-          };
-        }
-        grouped[key].totalQuantity += parseFloat(item.quantity || "0");
-        grouped[key].totalGift += parseFloat(item.gift || "0");
-        grouped[key].totalAmount += parseFloat(item.amount || "0");
-        if (currency === "USD") {
-          grouped[key].totalAmountUsd += parseFloat(item.amount || "0");
-        } else {
-          grouped[key].totalAmountIqd += parseFloat(item.amount || "0");
-        }
-        grouped[key].invoiceCount += 1;
-      });
+      const returns = await db.select().from(salesReturns)
+        .where(sql`${salesReturns.representativeName} = ${rep.name} AND ${salesReturns.date} >= ${fromDate} AND ${salesReturns.date} <= ${toDate}`);
+      const returnIds = returns.map(r => r.id);
+      const grouped: Record<string, { productId: number | null; productCode: string; productName: string; unit: string; totalQuantity: number; totalGift: number; totalAmount: number; totalAmountUsd: number; totalAmountIqd: number; invoiceCount: number; returnQuantity: number; returnAmountUsd: number; returnAmountIqd: number }> = {};
+      if (invoiceIds.length > 0) {
+        const items = await db.select().from(salesInvoiceItems)
+          .where(sql`${salesInvoiceItems.invoiceId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
+        items.forEach((item) => {
+          const inv = invoices.find(i => i.id === item.invoiceId);
+          const currency = inv?.currency || "USD";
+          const key = `${item.productCode}_${item.unit}`;
+          if (!grouped[key]) {
+            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, returnQuantity: 0, returnAmountUsd: 0, returnAmountIqd: 0 };
+          }
+          grouped[key].totalQuantity += parseFloat(item.quantity || "0");
+          grouped[key].totalGift += parseFloat(item.gift || "0");
+          grouped[key].totalAmount += parseFloat(item.amount || "0");
+          if (currency === "USD") { grouped[key].totalAmountUsd += parseFloat(item.amount || "0"); }
+          else { grouped[key].totalAmountIqd += parseFloat(item.amount || "0"); }
+          grouped[key].invoiceCount += 1;
+        });
+      }
+      if (returnIds.length > 0) {
+        const retItems = await db.select().from(salesReturnItems)
+          .where(sql`${salesReturnItems.returnId} IN (${sql.join(returnIds.map(id => sql`${id}`), sql`, `)})`);
+        retItems.forEach((item) => {
+          const ret = returns.find(r => r.id === item.returnId);
+          const currency = ret?.currency || "USD";
+          const key = `${item.productCode}_${item.unit}`;
+          if (!grouped[key]) {
+            grouped[key] = { productId: item.productId, productCode: item.productCode, productName: item.productName, unit: item.unit, totalQuantity: 0, totalGift: 0, totalAmount: 0, totalAmountUsd: 0, totalAmountIqd: 0, invoiceCount: 0, returnQuantity: 0, returnAmountUsd: 0, returnAmountIqd: 0 };
+          }
+          grouped[key].returnQuantity += parseFloat(item.quantity || "0");
+          if (currency === "USD") { grouped[key].returnAmountUsd += parseFloat(item.amount || "0"); }
+          else { grouped[key].returnAmountIqd += parseFloat(item.amount || "0"); }
+        });
+      }
       const result = Object.values(grouped).sort((a, b) => a.productName.localeCompare(b.productName));
       res.json(result);
     } catch (e: any) { res.status(500).json({ message: e.message }); }
