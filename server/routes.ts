@@ -179,6 +179,7 @@ export async function registerRoutes(
     '/api/inventory': 'material_management',
     '/api/expiry-report': 'reports',
     '/api/max-stock-report': 'reports',
+    '/api/profits-report': 'reports',
     '/api/banks': 'bank_management',
     '/api/bank-transactions': 'bank_management',
     '/api/customs-clearances': 'clearance_management',
@@ -3969,6 +3970,84 @@ export async function registerRoutes(
       res.json(report);
     } catch (err) {
       console.error("Max stock report error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/profits-report', requireAuth, async (req, res) => {
+    try {
+      const { from, to } = req.query as { from?: string; to?: string };
+      let query = `
+        SELECT
+          si.id as "invoiceId",
+          si.invoice_number as "invoiceNumber",
+          si.date,
+          si.customer_name as "customerName",
+          si.currency,
+          COALESCE(si.subtotal::numeric, 0) as "totalSales",
+          sii.product_code as "productCode",
+          sii.product_name as "productName",
+          sii.quantity::numeric as "quantity",
+          sii.unit,
+          sii.price::numeric as "price",
+          sii.cost_price::numeric as "costPrice",
+          sii.amount::numeric as "amount"
+        FROM sales_invoices si
+        JOIN sales_invoice_items sii ON sii.invoice_id = si.id
+        WHERE si.status != 'cancelled'
+      `;
+      const params: any[] = [];
+      if (from) {
+        params.push(from);
+        query += ` AND si.date >= $${params.length}`;
+      }
+      if (to) {
+        params.push(to);
+        query += ` AND si.date <= $${params.length}`;
+      }
+      query += ` ORDER BY si.date DESC, si.id DESC`;
+
+      const result = await pool.query(query, params);
+
+      const invoiceMap = new Map<number, any>();
+      for (const row of result.rows) {
+        if (!invoiceMap.has(row.invoiceId)) {
+          invoiceMap.set(row.invoiceId, {
+            invoiceId: row.invoiceId,
+            invoiceNumber: row.invoiceNumber,
+            date: row.date,
+            customerName: row.customerName,
+            currency: row.currency,
+            totalSales: 0,
+            totalCost: 0,
+            profit: 0,
+            items: [],
+          });
+        }
+        const inv = invoiceMap.get(row.invoiceId);
+        const qty = Number(row.quantity);
+        const price = Number(row.price);
+        const costPrice = Number(row.costPrice);
+        const amount = Number(row.amount);
+        const itemProfit = amount - (costPrice * qty);
+        inv.items.push({
+          productCode: row.productCode,
+          productName: row.productName,
+          quantity: qty,
+          unit: row.unit,
+          price,
+          costPrice,
+          amount,
+          profit: itemProfit,
+        });
+        inv.totalSales += amount;
+        inv.totalCost += costPrice * qty;
+        inv.profit += itemProfit;
+      }
+
+      res.json(Array.from(invoiceMap.values()));
+    } catch (err) {
+      console.error("Profits report error:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });
