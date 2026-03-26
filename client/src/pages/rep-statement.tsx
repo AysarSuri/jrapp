@@ -1339,35 +1339,35 @@ export default function RepStatementPage() {
       const totalDiscount = items.reduce((s: number, r: any) => s + parseFloat(r.discount || "0"), 0);
       const rows = items.map((r: any, i: number) => `
         <tr>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${r.receiptNumber}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(r.date)}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${r.customerName}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(r.amount || "0"))}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#ea580c;">${fmt(parseFloat(r.discount || "0"))}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${r.note || "-"}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${r.receiptNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${formatDate(r.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${r.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(r.amount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#ea580c;">${fmt(parseFloat(r.discount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${r.note || "-"}</td>
         </tr>
       `).join("");
       return `
-        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <h3 style="font-size:13pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
           <thead>
             <tr style="background:#e2e8f0;color:#000;">
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Receipt Number Short")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Discount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Note")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Receipt Number Short")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Discount")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Note")}</th>
             </tr>
           </thead>
           <tbody>
             ${rows}
             <tr style="background:#f1f5f9;font-weight:bold;">
-              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
+              <td colspan="4" style="padding:8px;font-size:11pt;font-weight:700;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
               <td style="padding:8px;"></td>
             </tr>
           </tbody>
@@ -1379,30 +1379,30 @@ export default function RepStatementPage() {
       const total = items.reduce((s: number, r: any) => s + parseFloat(r.amountPaid || "0"), 0);
       const rows = items.map((s: any, i: number) => `
         <tr>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${s.invoiceNumber}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(s.date)}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${s.customerName}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(s.amountPaid || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${s.invoiceNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${formatDate(s.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${s.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#16a34a;">${fmt(parseFloat(s.amountPaid || "0"))}</td>
         </tr>
       `).join("");
       return `
-        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <h3 style="font-size:13pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
           <thead>
             <tr style="background:#e2e8f0;color:#000;">
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Amount")}</th>
             </tr>
           </thead>
           <tbody>
             ${rows}
             <tr style="background:#f1f5f9;font-weight:bold;">
-              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
+              <td colspan="4" style="padding:8px;font-size:11pt;font-weight:700;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#16a34a;">${fmt(total)}</td>
             </tr>
           </tbody>
         </table>`;
@@ -1413,32 +1413,32 @@ export default function RepStatementPage() {
       const total = items.reduce((s: number, p: any) => s + parseFloat(p.amount || "0"), 0);
       const rows = items.map((p: any, i: number) => `
         <tr>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${p.paymentNumber}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(p.date)}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${p.agentName}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#1d4ed8;">${fmt(parseFloat(p.amount || "0"))}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;">${p.note || "-"}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${p.paymentNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;">${formatDate(p.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${p.agentName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:11pt;font-weight:700;color:#1d4ed8;">${fmt(parseFloat(p.amount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:11pt;font-weight:700;">${p.note || "-"}</td>
         </tr>
       `).join("");
       return `
-        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
+        <h3 style="font-size:13pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${label} - ${currency} (${items.length})</h3>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
           <thead>
             <tr style="background:#e2e8f0;color:#000;">
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Payment Number Short")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount")}</th>
-              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Note")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Payment Number Short")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;text-align:center;">${t("Amount")}</th>
+              <th style="padding:6px 8px;font-size:11pt;font-weight:700;">${t("Note")}</th>
             </tr>
           </thead>
           <tbody>
             ${rows}
             <tr style="background:#f1f5f9;font-weight:bold;">
-              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
-              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#1d4ed8;">${fmt(total)}</td>
+              <td colspan="4" style="padding:8px;font-size:11pt;font-weight:700;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:11pt;font-weight:700;font-family:monospace;text-align:center;color:#1d4ed8;">${fmt(total)}</td>
               <td style="padding:8px;"></td>
             </tr>
           </tbody>
@@ -1454,7 +1454,7 @@ export default function RepStatementPage() {
         <title>${t("Receipts")} - ${repName}</title>
         <style>
           ${printStyles}
-          @page { size: A4 landscape; margin: 10mm; }
+          @page { size: A4 portrait; margin: 10mm; }
           body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
