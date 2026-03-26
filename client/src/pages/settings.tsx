@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone } from "lucide-react";
 import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent } from "@/components/erp-icons";
 
@@ -163,6 +165,18 @@ export default function SettingsPage() {
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>(loadPrinterSettings);
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
   const [fieldVisibility, setFieldVisibility] = useState<FieldVisibilitySettings>(loadFieldVisibility);
+  const [exchangeRate, setExchangeRate] = useState<string>("1500");
+
+  const { data: exchangeRateData } = useQuery<{ key: string; value: string | null }>({
+    queryKey: ['/api/system-settings', 'usd_to_iqd_rate'],
+    queryFn: () => fetch('/api/system-settings/usd_to_iqd_rate').then(r => r.json()),
+  });
+
+  useEffect(() => {
+    if (exchangeRateData?.value) {
+      setExchangeRate(exchangeRateData.value);
+    }
+  }, [exchangeRateData]);
 
   const tabs: { key: SettingsTab; label: string; icon: typeof Printer }[] = [
     { key: "printers", label: t("Printer Settings"), icon: Printer },
@@ -183,8 +197,14 @@ export default function SettingsPage() {
     toast({ title: t("Settings saved successfully") });
   };
 
-  const handleSaveGeneralSettings = () => {
+  const handleSaveGeneralSettings = async () => {
     saveGeneralSettings(generalSettings);
+    try {
+      await apiRequest('PUT', '/api/system-settings/usd_to_iqd_rate', { value: exchangeRate });
+      queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
+    } catch (err) {
+      console.error("Failed to save exchange rate:", err);
+    }
     toast({ title: t("Settings saved successfully") });
   };
 
@@ -379,6 +399,25 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="p-4 rounded-lg border-2 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 space-y-2">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <IconDollar className="h-5 w-5 text-green-600" />
+                    <IconDinar className="h-5 w-5 text-amber-600" />
+                    {t('Exchange Rate (1 USD = ? IQD)')}
+                  </Label>
+                  <Input
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={exchangeRate}
+                    onChange={(e) => setExchangeRate(e.target.value)}
+                    className="h-11 text-lg font-bold text-center max-w-xs"
+                    placeholder="1500"
+                    data-testid="input-settings-exchange-rate"
+                  />
+                  <p className="text-xs text-muted-foreground">{t('Daily exchange rate used for cross-currency buy price calculations')}</p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">

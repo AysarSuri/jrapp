@@ -809,6 +809,11 @@ export const insertAgentLocationSchema = createInsertSchema(agentLocations).omit
 export type AgentLocation = typeof agentLocations.$inferSelect;
 export type InsertAgentLocation = z.infer<typeof insertAgentLocationSchema>;
 
+export const systemSettings = pgTable("system_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

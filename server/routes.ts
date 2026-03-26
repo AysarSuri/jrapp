@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -1153,6 +1153,7 @@ export async function registerRoutes(
   });
 
   async function updateProductBuyPrices(tx: any, invoiceItems: any[], currency: string) {
+    const rate = await getExchangeRate();
     for (const item of invoiceItems) {
       if (!item.productId) continue;
       const [product] = await tx.select().from(products).where(eq(products.id, item.productId));
@@ -1160,13 +1161,26 @@ export async function registerRoutes(
       const isBigUnit = item.unit === product.bigUnit;
       const isSmallUnit = item.unit === product.smallUnit;
       if (!isBigUnit && !isSmallUnit) continue;
+      const price = parseFloat(item.price) || 0;
       const updateFields: Record<string, string> = {};
       if (currency === 'USD') {
-        if (isBigUnit) updateFields.bigUnitBuyPriceUsd = item.price;
-        if (isSmallUnit) updateFields.smallUnitBuyPriceUsd = item.price;
+        if (isBigUnit) {
+          updateFields.bigUnitBuyPriceUsd = item.price;
+          updateFields.bigUnitBuyPriceIqd = (price * rate).toFixed(0);
+        }
+        if (isSmallUnit) {
+          updateFields.smallUnitBuyPriceUsd = item.price;
+          updateFields.smallUnitBuyPriceIqd = (price * rate).toFixed(0);
+        }
       } else {
-        if (isBigUnit) updateFields.bigUnitBuyPriceIqd = item.price;
-        if (isSmallUnit) updateFields.smallUnitBuyPriceIqd = item.price;
+        if (isBigUnit) {
+          updateFields.bigUnitBuyPriceIqd = item.price;
+          updateFields.bigUnitBuyPriceUsd = (price / rate).toFixed(2);
+        }
+        if (isSmallUnit) {
+          updateFields.smallUnitBuyPriceIqd = item.price;
+          updateFields.smallUnitBuyPriceUsd = (price / rate).toFixed(2);
+        }
       }
       if (Object.keys(updateFields).length > 0) {
         await tx.update(products).set(updateFields).where(eq(products.id, item.productId));
@@ -2644,7 +2658,33 @@ export async function registerRoutes(
     res.json(data);
   });
 
+  async function getExchangeRate(): Promise<number> {
+    const [row] = await db.select().from(systemSettings).where(eq(systemSettings.key, 'usd_to_iqd_rate'));
+    return row ? parseFloat(row.value) || 1500 : 1500;
+  }
+
+  app.get('/api/system-settings/:key', requireAuth, async (req, res) => {
+    try {
+      const [row] = await db.select().from(systemSettings).where(eq(systemSettings.key, req.params.key));
+      res.json({ key: req.params.key, value: row?.value || null });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put('/api/system-settings/:key', requireAuth, async (req, res) => {
+    try {
+      const { value } = req.body;
+      await db.insert(systemSettings).values({ key: req.params.key, value: String(value) })
+        .onConflictDoUpdate({ target: systemSettings.key, set: { value: String(value) } });
+      res.json({ key: req.params.key, value: String(value) });
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   async function populateCostPrices(tx: any, invoiceItems: any[], currency: string) {
+    const rate = await getExchangeRate();
     const itemsWithCost = [];
     for (const item of invoiceItems) {
       let costPrice = "0";
@@ -2653,9 +2693,19 @@ export async function registerRoutes(
         if (product) {
           const isBigUnit = item.unit === product.bigUnit;
           if (currency === 'USD') {
-            costPrice = isBigUnit ? (product.bigUnitBuyPriceUsd || "0") : (product.smallUnitBuyPriceUsd || "0");
+            let directPrice = parseFloat(isBigUnit ? (product.bigUnitBuyPriceUsd || "0") : (product.smallUnitBuyPriceUsd || "0"));
+            if (directPrice === 0) {
+              const iqdPrice = parseFloat(isBigUnit ? (product.bigUnitBuyPriceIqd || "0") : (product.smallUnitBuyPriceIqd || "0"));
+              if (iqdPrice > 0 && rate > 0) directPrice = iqdPrice / rate;
+            }
+            costPrice = directPrice.toFixed(2);
           } else {
-            costPrice = isBigUnit ? (product.bigUnitBuyPriceIqd || "0") : (product.smallUnitBuyPriceIqd || "0");
+            let directPrice = parseFloat(isBigUnit ? (product.bigUnitBuyPriceIqd || "0") : (product.smallUnitBuyPriceIqd || "0"));
+            if (directPrice === 0) {
+              const usdPrice = parseFloat(isBigUnit ? (product.bigUnitBuyPriceUsd || "0") : (product.smallUnitBuyPriceUsd || "0"));
+              if (usdPrice > 0 && rate > 0) directPrice = usdPrice * rate;
+            }
+            costPrice = directPrice.toFixed(0);
           }
         }
       }

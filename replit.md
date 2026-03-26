@@ -101,6 +101,14 @@ The representative statement page (`client/src/pages/rep-statement.tsx`) has 5 h
 
 Tab 1 works by rep name only. Tabs 2-5 filter by rep name AND from/to dates from the form.
 
+### System Settings (Database-backed)
+- **`system_settings`** table stores key-value pairs (e.g., `usd_to_iqd_rate`)
+- API: `GET /api/system-settings/:key`, `PUT /api/system-settings/:key`
+- **Exchange Rate**: `usd_to_iqd_rate` — daily USD-to-IQD rate, editable in General Settings page
+- Used by `updateProductBuyPrices()` to auto-calculate cross-currency buy prices when saving purchase invoices
+- Used by `populateCostPrices()` to determine cost price when selling in a different currency than the purchase currency
+- `costPrice` field on `sales_invoice_items` and `sales_return_items` stores the buy price at time of sale (auto-populated server-side)
+
 ### Environment Variables
 | Variable | Required | Purpose |
 |----------|----------|---------|
