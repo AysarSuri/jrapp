@@ -909,6 +909,112 @@ export default function RepStatementPage() {
     );
   };
 
+  const handlePrintSalesTab = () => {
+    if (!repSales || repSales.length === 0) return;
+    const dir = isRtl ? "rtl" : "ltr";
+    const printStyles = getModernPrintStyles({ direction: dir, accentColor: "#64748b", accentTextColor: "#ffffff" });
+    const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+    const salesUsd = repSales.filter((s: any) => s.currency === "USD");
+    const salesIqd = repSales.filter((s: any) => s.currency === "IQD");
+    const totalUsd = salesUsd.reduce((s: number, inv: any) => s + parseFloat(inv.subtotal || "0"), 0);
+    const totalIqd = salesIqd.reduce((s: number, inv: any) => s + parseFloat(inv.subtotal || "0"), 0);
+    const totalDiscountUsd = salesUsd.reduce((s: number, inv: any) => s + parseFloat(inv.discount || "0"), 0);
+    const totalDiscountIqd = salesIqd.reduce((s: number, inv: any) => s + parseFloat(inv.discount || "0"), 0);
+    const totalPaidUsd = salesUsd.reduce((s: number, inv: any) => s + parseFloat(inv.amountPaid || "0"), 0);
+    const totalPaidIqd = salesIqd.reduce((s: number, inv: any) => s + parseFloat(inv.amountPaid || "0"), 0);
+    const totalRemUsd = salesUsd.reduce((s: number, inv: any) => s + parseFloat(inv.remaining || "0"), 0);
+    const totalRemIqd = salesIqd.reduce((s: number, inv: any) => s + parseFloat(inv.remaining || "0"), 0);
+
+    const buildTable = (items: any[], currency: string, total: number, totalDiscount: number, totalPaid: number, totalRem: number) => {
+      const fmt = currency === "USD" ? usd : fmtIqd;
+      const rows = items.map((inv: any, i: number) => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${i + 1}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:600;">${inv.invoiceNumber}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;">${formatDate(inv.date)}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:9pt;font-weight:600;">${inv.customerName}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;">${fmt(parseFloat(inv.subtotal || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#ea580c;">${fmt(parseFloat(inv.discount || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;color:#16a34a;">${fmt(parseFloat(inv.amountPaid || "0"))}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-family:monospace;font-size:9pt;font-weight:700;color:#dc2626;">${fmt(parseFloat(inv.remaining || "0"))}</td>
+        </tr>
+      `).join("");
+      return `
+        <h3 style="font-size:12pt;font-weight:700;margin:12px 0 6px;color:${currency === "USD" ? "#1d4ed8" : "#047857"};">${currency} (${items.length})</h3>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#000;">
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">#</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Invoice Number")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Date")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;">${t("Customer Name")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Total")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Discount")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Amount Paid")}</th>
+              <th style="padding:6px 8px;font-size:9pt;font-weight:700;text-align:center;">${t("Remaining")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f1f5f9;font-weight:bold;">
+              <td colspan="4" style="padding:8px;font-size:10pt;text-align:${isRtl ? "right" : "left"};">${t("Total")}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;">${fmt(total)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#ea580c;">${fmt(totalDiscount)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#16a34a;">${fmt(totalPaid)}</td>
+              <td style="padding:8px;font-size:10pt;font-family:monospace;text-align:center;color:#dc2626;">${fmt(totalRem)}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    };
+
+    const html = `<!DOCTYPE html>
+      <html dir="${dir}" lang="${i18n.language}">
+      <head>
+        ${PRINT_FONT_LINKS}
+        <meta charset="UTF-8" />
+        ${fontLink}
+        <title>${t("Sales")} - ${repName}</title>
+        <style>
+          ${printStyles}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
+          @media print { body { padding: 0; } }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;direction:ltr;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:70px;height:70px;object-fit:contain;border-radius:6px;display:block;" />` : ""}
+              <h2 style="font-size:9pt;margin:0;padding:0;line-height:1;font-weight:800;color:#64748b;">${companyProfile?.name || ""}</h2>
+            </div>
+            <div style="flex:1;padding:0 20px;">
+              <h1 style="font-size:14pt;font-weight:800;margin:0;color:#000;text-align:center;">${t("Sales")}</h1>
+              <p style="text-align:center;margin:4px 0 0;font-size:10pt;color:#475569;font-weight:600;">${t("Rep")}: ${repName}</p>
+              <p style="text-align:center;margin:4px 0 0;font-size:9pt;color:#64748b;">${t("From")}: ${formatDate(fromDate)} - ${t("To")}: ${formatDate(toDate)}</p>
+            </div>
+            <div style="width:70px;"></div>
+          </div>
+        </div>
+        ${salesUsd.length > 0 ? buildTable(salesUsd, "USD", totalUsd, totalDiscountUsd, totalPaidUsd, totalRemUsd) : ""}
+        ${salesIqd.length > 0 ? buildTable(salesIqd, "IQD", totalIqd, totalDiscountIqd, totalPaidIqd, totalRemIqd) : ""}
+      </body></html>`;
+
+    const win = window.open("", "_blank", "width=1200,height=800");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      if (win.document.fonts?.ready) {
+        win.document.fonts.ready.then(() => { win.print(); });
+      } else {
+        setTimeout(() => { win.print(); }, 500);
+      }
+    }
+  };
+
   const renderSalesTab = () => {
     if (salesLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     const salesUsd = (repSales || []).filter((s: any) => s.currency === "USD");
@@ -921,6 +1027,12 @@ export default function RepStatementPage() {
     }
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button onClick={handlePrintSalesTab} className="bg-primary text-white gap-2 h-11" data-testid="button-print-sales-tab">
+            <Printer className="w-5 h-5" />
+            {t('Print Report')}
+          </Button>
+        </div>
         {salesUsd.length > 0 && (
           <div>
             <h3 className="text-lg font-bold mb-3 text-blue-700 dark:text-blue-400">USD ({salesUsd.length})</h3>
