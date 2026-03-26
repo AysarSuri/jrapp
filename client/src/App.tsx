@@ -93,6 +93,7 @@ import ExpiryReportPage from "@/pages/expiry-report";
 import MaxStockReportPage from "@/pages/max-stock-report";
 import ProfitsReportPage from "@/pages/profits-report";
 import SalesDiscountsGiftsReportPage from "@/pages/sales-discounts-gifts-report";
+import SupplierDiscountsGiftsReportPage from "@/pages/supplier-discounts-gifts-report";
 import BarcodePrintPage from "@/pages/barcode-print";
 import CompanyProfilePage from "@/pages/company-profile";
 import SettingsPage from "@/pages/settings";
@@ -391,6 +392,9 @@ function Router() {
       </Route>
       <Route path="/sales-discounts-gifts-report">
         <ProtectedRoute component={SalesDiscountsGiftsReportPage} />
+      </Route>
+      <Route path="/supplier-discounts-gifts-report">
+        <ProtectedRoute component={SupplierDiscountsGiftsReportPage} />
       </Route>
       <Route path="/barcode-print">
         <ProtectedRoute component={BarcodePrintPage} />

@@ -181,6 +181,7 @@ export async function registerRoutes(
     '/api/max-stock-report': 'reports',
     '/api/profits-report': 'reports',
     '/api/sales-discounts-gifts-report': 'reports',
+    '/api/supplier-discounts-gifts-report': 'reports',
     '/api/banks': 'bank_management',
     '/api/bank-transactions': 'bank_management',
     '/api/customs-clearances': 'clearance_management',
@@ -4049,6 +4050,84 @@ export async function registerRoutes(
       res.json(Array.from(invoiceMap.values()));
     } catch (err) {
       console.error("Profits report error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/supplier-discounts-gifts-report', requireAuth, async (req, res) => {
+    try {
+      const { from, to } = req.query as { from?: string; to?: string };
+      let query = `
+        SELECT
+          pi.id as "invoiceId",
+          pi.invoice_number as "invoiceNumber",
+          pi.date,
+          pi.supplier_name as "supplierName",
+          pi.currency,
+          COALESCE(pi.subtotal::numeric, 0) as "subtotal",
+          COALESCE(pi.discount::numeric, 0) as "discount",
+          pii.product_code as "productCode",
+          pii.product_name as "productName",
+          pii.quantity::numeric as "quantity",
+          COALESCE(pii.gift::numeric, 0) as "gift",
+          pii.unit,
+          pii.price::numeric as "price",
+          pii.amount::numeric as "amount"
+        FROM purchase_invoices pi
+        JOIN purchase_invoice_items pii ON pii.invoice_id = pi.id
+        WHERE pi.status != 'cancelled'
+      `;
+      const params: any[] = [];
+      if (from) {
+        params.push(from);
+        query += ` AND pi.date >= $${params.length}`;
+      }
+      if (to) {
+        params.push(to);
+        query += ` AND pi.date <= $${params.length}`;
+      }
+      query += ` ORDER BY pi.date DESC, pi.id DESC`;
+
+      const result = await pool.query(query, params);
+
+      const invoiceMap = new Map<number, any>();
+      for (const row of result.rows) {
+        if (!invoiceMap.has(row.invoiceId)) {
+          invoiceMap.set(row.invoiceId, {
+            invoiceId: row.invoiceId,
+            invoiceNumber: row.invoiceNumber,
+            date: row.date,
+            supplierName: row.supplierName,
+            currency: row.currency,
+            subtotal: Number(row.subtotal),
+            discount: Number(row.discount),
+            giftItems: [],
+            totalGiftValue: 0,
+          });
+        }
+        const inv = invoiceMap.get(row.invoiceId);
+        const gift = Number(row.gift);
+        if (gift > 0) {
+          const giftValue = gift * Number(row.price);
+          inv.giftItems.push({
+            productCode: row.productCode,
+            productName: row.productName,
+            quantity: Number(row.quantity),
+            gift,
+            unit: row.unit,
+            price: Number(row.price),
+            giftValue,
+          });
+          inv.totalGiftValue += giftValue;
+        }
+      }
+
+      const invoices = Array.from(invoiceMap.values()).filter(
+        (inv: any) => inv.discount > 0 || inv.totalGiftValue > 0
+      );
+      res.json(invoices);
+    } catch (err) {
+      console.error("Supplier discounts gifts report error:", err);
       res.status(500).json({ message: "Internal server error" });
     }
   });

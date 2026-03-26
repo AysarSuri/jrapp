@@ -274,6 +274,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/max-stock-report",
     "/profits-report",
     "/sales-discounts-gifts-report",
+    "/supplier-discounts-gifts-report",
   ];
 
   const warehouseSubRoutes = [
@@ -454,6 +455,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/max-stock-report", icon: IconReport, label: "Max Stock Report" },
     { href: "/profits-report", icon: TrendingUp, label: "Profits Report" },
     { href: "/sales-discounts-gifts-report", icon: Gift, label: "Sales Discounts & Gifts Report" },
+    { href: "/supplier-discounts-gifts-report", icon: Gift, label: "Supplier Discounts & Gifts Report" },
   ];
 
   const warehouseNavItems: NavItem[] = [
