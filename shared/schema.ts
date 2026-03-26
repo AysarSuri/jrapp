@@ -814,6 +814,41 @@ export const systemSettings = pgTable("system_settings", {
   value: text("value").notNull(),
 });
 
+export const supplierOrders = pgTable("supplier_orders", {
+  id: serial("id").primaryKey(),
+  orderNumber: text("order_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  supplierId: integer("supplier_id"),
+  supplierName: text("supplier_name").notNull(),
+  address: text("address"),
+  note: text("note"),
+  invoiceType: text("invoice_type").notNull().default("cash"),
+  subtotal: numeric("subtotal").notNull().default("0"),
+  totalItems: integer("total_items").notNull().default(0),
+  totalQuantity: numeric("total_quantity").notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("approved"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const supplierOrderItems = pgTable("supplier_order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  productId: integer("product_id"),
+  productCode: text("product_code").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit").notNull(),
+  price: numeric("price").notNull(),
+  amount: numeric("amount").notNull(),
+});
+
+export type SupplierOrder = typeof supplierOrders.$inferSelect;
+export const insertSupplierOrderSchema = createInsertSchema(supplierOrders).omit({ id: true, createdAt: true });
+export const insertSupplierOrderItemSchema = createInsertSchema(supplierOrderItems).omit({ id: true });
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

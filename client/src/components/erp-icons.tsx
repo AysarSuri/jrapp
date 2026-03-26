@@ -323,3 +323,11 @@ export function IconReport({ className }: P) {
 export function IconExpiry({ className }: P) {
   return <Timer className={className} />;
 }
+
+export function IconSupplierOrderUsd({ className }: P) {
+  return <FileCheck className={className} />;
+}
+
+export function IconSupplierOrderIqd({ className }: P) {
+  return <FileSpreadsheet className={className} />;
+}

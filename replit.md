@@ -91,6 +91,16 @@ Preferred communication style: Simple, everyday language.
 | `shadcn/ui` (Radix UI) | UI component library |
 | `tailwindcss` | Utility-first CSS framework |
 
+### Supplier Orders
+- **Tables**: `supplier_orders` + `supplier_order_items` (schema in `shared/schema.ts`)
+- **API routes**: `/api/supplier-orders` (CRUD), `/api/supplier-orders/next-number`, `/api/supplier-orders/:id/items`
+- **Frontend pages**: `supplier-order.tsx` (shared component), `supplier-order-usd.tsx` / `supplier-order-iqd.tsx` (wrappers)
+- **Hooks**: `client/src/hooks/use-supplier-orders.ts`
+- **Sidebar**: Under "Supplier Management" section
+- **Permission key**: `supplier_management`
+- **Purpose**: Standalone ordering (no financial impact, no stock changes, no debt tracking)
+- **Features**: Auto-incrementing order number (SO-000001), product selection, barcode scanning, print support, inline edit, delete, order history with filters
+
 ### Rep Statement Page (Tabbed)
 The representative statement page (`client/src/pages/rep-statement.tsx`) has 5 horizontal tabs:
 1. **Remaining Products** — Products remaining with the representative (uses `/api/representative-products/:id`)

@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -202,6 +202,7 @@ export async function registerRoutes(
     '/api/product-damages': 'product_damage',
     '/api/company-profile': 'company_profile',
     '/api/addresses': 'addresses',
+    '/api/supplier-orders': 'supplier_management',
     '/api/users': 'user_management',
   };
 
@@ -5472,6 +5473,89 @@ export async function registerRoutes(
       });
 
       res.json(result);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // ===== SUPPLIER ORDERS =====
+  app.get('/api/supplier-orders/next-number', requireAuth, async (_req, res) => {
+    try {
+      const allOrders = await db.select().from(supplierOrders);
+      let maxNum = 0;
+      for (const o of allOrders) {
+        const num = parseInt(o.orderNumber.replace(/\D/g, ''), 10);
+        if (num > maxNum) maxNum = num;
+      }
+      const next = `SO-${String(maxNum + 1).padStart(6, '0')}`;
+      res.json({ number: next });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/supplier-orders', requireAuth, async (_req, res) => {
+    try {
+      const data = await db.select().from(supplierOrders);
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/supplier-orders/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const [data] = await db.select().from(supplierOrders).where(eq(supplierOrders.id, id));
+      if (!data) return res.status(404).json({ message: "Order not found" });
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/supplier-orders/:id/items', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const data = await db.select().from(supplierOrderItems).where(eq(supplierOrderItems.orderId, id));
+      res.json(data);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.post('/api/supplier-orders', requireAuth, async (req, res) => {
+    try {
+      const { order, items } = req.body;
+      if (!order || !order.orderNumber || !order.supplierName) {
+        return res.status(400).json({ message: "Missing required order fields" });
+      }
+      const result = await db.transaction(async (tx) => {
+        const [inserted] = await tx.insert(supplierOrders).values(order).returning();
+        if (items && items.length > 0) {
+          const itemsWithOrderId = items.map((item: any) => ({ ...item, orderId: inserted.id }));
+          await tx.insert(supplierOrderItems).values(itemsWithOrderId);
+        }
+        return inserted;
+      });
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.patch('/api/supplier-orders/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const { order, items } = req.body;
+      const result = await db.transaction(async (tx) => {
+        await tx.update(supplierOrders).set(order).where(eq(supplierOrders.id, id));
+        await tx.delete(supplierOrderItems).where(eq(supplierOrderItems.orderId, id));
+        if (items && items.length > 0) {
+          const itemsWithOrderId = items.map((item: any) => ({ ...item, orderId: id }));
+          await tx.insert(supplierOrderItems).values(itemsWithOrderId);
+        }
+        const [updated] = await tx.select().from(supplierOrders).where(eq(supplierOrders.id, id));
+        return updated;
+      });
+      res.json(result);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.delete('/api/supplier-orders/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      await db.delete(supplierOrderItems).where(eq(supplierOrderItems.orderId, id));
+      await db.delete(supplierOrders).where(eq(supplierOrders.id, id));
+      res.json({ success: true });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 

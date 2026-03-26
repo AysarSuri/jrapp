@@ -53,6 +53,8 @@ import {
   IconSupplierPayment,
   IconSupplierAdjust,
   IconSupplierDebt,
+  IconSupplierOrderUsd,
+  IconSupplierOrderIqd,
   IconBankReceipt,
   IconBankPayment,
   IconClearanceReceipt,
@@ -199,6 +201,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/supplier-statement-usd",
     "/supplier-statement-iqd",
     "/supplier-debts",
+    "/supplier-order-usd",
+    "/supplier-order-iqd",
   ];
 
   const bankSubRoutes = [
@@ -388,6 +392,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/supplier-statement-usd", icon: IconStatementUsd, label: "Supplier Statement USD" },
     { href: "/supplier-statement-iqd", icon: IconStatementIqd, label: "Supplier Statement IQD" },
     { href: "/supplier-debts", icon: IconSupplierDebt, label: "Supplier Debts" },
+    { href: "/supplier-order-usd", icon: IconSupplierOrderUsd, label: "Supplier Order USD" },
+    { href: "/supplier-order-iqd", icon: IconSupplierOrderIqd, label: "Supplier Order IQD" },
   ];
 
   const bankNavItems: NavItem[] = [

@@ -33,6 +33,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/supplier-payments", "/supplier-adjustments",
       "/supplier-statement-usd", "/supplier-statement-iqd", "/supplier-statement",
       "/supplier-debts",
+      "/supplier-order-usd", "/supplier-order-iqd",
     ],
   },
   {
