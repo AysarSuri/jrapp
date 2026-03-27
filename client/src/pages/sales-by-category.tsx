@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -71,6 +72,7 @@ export default function SalesByCategoryPage() {
 
   const [inlineEditId, setInlineEditId] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("__favorites__");
   const [selectedGroup, setSelectedGroup] = useState<string>("");
@@ -1089,6 +1091,10 @@ export default function SalesByCategoryPage() {
               </Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-sales-category-invoice-number" />
