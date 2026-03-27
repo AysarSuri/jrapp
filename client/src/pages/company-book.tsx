@@ -481,13 +481,13 @@ export default function CompanyBookPage() {
                   const lines = raw.split("\n");
                   const wrapped: string[] = [];
                   for (const line of lines) {
-                    if (line.length <= 77) {
+                    if (line.length <= 70) {
                       wrapped.push(line);
                     } else {
                       let remaining = line;
-                      while (remaining.length > 77) {
-                        let breakAt = remaining.lastIndexOf(" ", 77);
-                        if (breakAt <= 0) breakAt = 77;
+                      while (remaining.length > 70) {
+                        let breakAt = remaining.lastIndexOf(" ", 70);
+                        if (breakAt <= 0) breakAt = 70;
                         wrapped.push(remaining.slice(0, breakAt));
                         remaining = remaining.slice(breakAt).replace(/^ /, "");
                       }
