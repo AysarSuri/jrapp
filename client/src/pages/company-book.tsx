@@ -292,7 +292,7 @@ export default function CompanyBookPage() {
         .doc-container { padding: 20px; min-height: 700px; font-family: 'Tajawal', 'Inter', sans-serif; }
         .doc-cliche { text-align: center; margin-bottom: 10px; }
         .doc-cliche img { max-width: 100%; max-height: 160px; object-fit: contain; }
-        .doc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 14pt; font-weight: 700; }
+        .doc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 11pt; font-weight: 600; }
         .doc-fields { text-align: center; margin-bottom: 30px; }
         .doc-field { margin-bottom: 16px; font-size: 14pt; line-height: 2; }
         .doc-field .label { font-weight: 700; }
