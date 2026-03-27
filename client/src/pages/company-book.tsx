@@ -473,7 +473,7 @@ export default function CompanyBookPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-base font-bold">{t("Note")}</Label>
+              <Label className="text-base font-bold">{t("Writing Text")}</Label>
               <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -623,7 +623,7 @@ export default function CompanyBookPage() {
               </div>
               {previewItem.note && (
                 <div className="border-t pt-3">
-                  <span className="font-bold text-sm">{t("Note")}:</span>
+                  <span className="font-bold text-sm">{t("Writing Text")}:</span>
                   <p className="mt-1 text-sm whitespace-pre-wrap">{previewItem.note}</p>
                 </div>
               )}
