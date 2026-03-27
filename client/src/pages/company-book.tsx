@@ -312,15 +312,13 @@ export default function CompanyBookPage() {
         </div>
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
         <div class="doc-footer">
-          <div>
-            <strong>${t("Authorized Person")}</strong><br/>
-            <span style="font-weight:600;">${book.authorizedPerson || ""}</span>
-            ${book.rightText1 ? `<br/><br/><strong>${t("Right Text 1")}</strong><br/><span style="font-weight:600;">${book.rightText1}</span>` : ""}
-            ${book.rightText2 ? `<br/><br/><strong>${t("Right Text 2")}</strong><br/><span style="font-weight:600;">${book.rightText2}</span>` : ""}
+          <div style="text-align:center;">
+            <span style="font-weight:700;font-size:13pt;">${book.rightText1 || ""}</span>
+            ${book.rightText2 ? `<br/><span style="font-weight:600;font-size:12pt;">${book.rightText2}</span>` : ""}
           </div>
-          <div>
-            <strong>${t("Left Text 2")}</strong><br/>
-            <span style="font-weight:600;">${book.personName || ""}</span>
+          <div style="text-align:center;">
+            <span style="font-weight:700;font-size:13pt;">${book.authorizedPerson || ""}</span>
+            ${book.personName ? `<br/><span style="font-weight:600;font-size:12pt;">${book.personName}</span>` : ""}
           </div>
         </div>
       </div>
