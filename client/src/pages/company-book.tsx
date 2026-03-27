@@ -263,7 +263,7 @@ export default function CompanyBookPage() {
         </CardHeader>
         <CardContent>
           <div className="border-2 border-dashed border-border/60 rounded-xl p-6 bg-muted/10 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-base font-bold">{t("Book #")}</Label>
                 <Input
@@ -280,16 +280,6 @@ export default function CompanyBookPage() {
                   onChange={(e) => setDate(e.target.value)}
                   className="h-11 text-base font-semibold"
                   data-testid="input-book-date"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Authorized Person")}</Label>
-                <Input
-                  value={authorizedPerson}
-                  onChange={(e) => setAuthorizedPerson(e.target.value)}
-                  placeholder={t("Authorized person name...")}
-                  className="h-11 text-base font-semibold"
-                  data-testid="input-authorized-person"
                 />
               </div>
             </div>
@@ -317,6 +307,16 @@ export default function CompanyBookPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Authorized Person")}</Label>
+                <Input
+                  value={authorizedPerson}
+                  onChange={(e) => setAuthorizedPerson(e.target.value)}
+                  placeholder={t("Authorized person name...")}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-authorized-person"
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label className="text-base font-bold">{t("Name")}</Label>
                 <Input
                   value={personName}
@@ -326,16 +326,16 @@ export default function CompanyBookPage() {
                   data-testid="input-person-name"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Note")}</Label>
-                <Textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder={t("Additional notes...")}
-                  className="min-h-[70px] text-base font-semibold"
-                  data-testid="input-book-note"
-                />
-              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-base font-bold">{t("Note")}</Label>
+              <Textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={t("Additional notes...")}
+                className="min-h-[70px] text-base font-semibold"
+                data-testid="input-book-note"
+              />
             </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white" data-testid="button-save-book">
