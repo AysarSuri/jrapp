@@ -176,7 +176,6 @@ export default function CompanyBookPage() {
     setNote("");
     setRightText1("");
     setRightText2("");
-    setShowStamp(false);
     setBookTypeId(null);
     setBookTypeSearch("");
     setDate(new Date().toISOString().split("T")[0]);
@@ -195,7 +194,6 @@ export default function CompanyBookPage() {
     setNote(item.note || "");
     setRightText1(item.rightText1 || "");
     setRightText2(item.rightText2 || "");
-    setShowStamp(item.showStamp || false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -223,7 +221,6 @@ export default function CompanyBookPage() {
       note: note.trim() || null,
       rightText1: rightText1.trim() || null,
       rightText2: rightText2.trim() || null,
-      showStamp,
       createdBy: user?.username || null,
     };
 
@@ -555,15 +552,6 @@ export default function CompanyBookPage() {
                 }}
               />
             </div>
-            <div className="flex items-center gap-3 pt-1">
-              <Checkbox
-                id="show-stamp"
-                checked={showStamp}
-                onCheckedChange={(checked) => setShowStamp(!!checked)}
-                data-testid="checkbox-show-stamp"
-              />
-              <Label htmlFor="show-stamp" className="text-base font-bold cursor-pointer">{t("Show Stamp")}</Label>
-            </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white" data-testid="button-save-book">
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
@@ -589,6 +577,15 @@ export default function CompanyBookPage() {
               <Badge variant="secondary" className="ml-2">{filteredBooks.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show-stamp-filter"
+                  checked={showStamp}
+                  onCheckedChange={(checked) => setShowStamp(!!checked)}
+                  data-testid="checkbox-show-stamp"
+                />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <Input
                 placeholder={t("Search by book number...")}
                 value={searchBookNumber}
@@ -635,7 +632,6 @@ export default function CompanyBookPage() {
                     <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("To")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Subject")}</TableHead>
-                    <TableHead className="text-sm font-bold text-center">{t("Show Stamp")}</TableHead>
                     <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -647,9 +643,6 @@ export default function CompanyBookPage() {
                       <TableCell className="text-sm font-semibold">{formatDate(book.date)}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.toField}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.subject}</TableCell>
-                      <TableCell className="text-center">
-                        {book.showStamp ? <Check className="h-4 w-4 text-green-600 mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />}
-                      </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => handlePrint(book)} data-testid={`btn-print-book-${book.id}`}>
@@ -670,8 +663,7 @@ export default function CompanyBookPage() {
                   ))}
                   {filteredBooks.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         {t("No books found")}
                       </TableCell>
                     </TableRow>
