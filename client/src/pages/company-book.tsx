@@ -289,7 +289,7 @@ export default function CompanyBookPage() {
       <title>${t("Company Book")} - #${book.bookNumber}</title>
       <style>${getModernPrintStyles(dir)}
         @page { size: A4 portrait; margin: 15mm; }
-        .doc-container { padding: 20px; min-height: 700px; font-family: 'Tajawal', 'Inter', sans-serif; position: relative; }
+        .doc-container { padding: 20px; min-height: 700px; font-family: 'Tajawal', 'Inter', sans-serif; }
         .doc-cliche { text-align: center; margin-bottom: 10px; }
         .doc-cliche img { max-width: 100%; max-height: 160px; object-fit: contain; }
         .doc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 11pt; font-weight: 600; }
@@ -318,8 +318,8 @@ export default function CompanyBookPage() {
           </div>
         </div>
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
-        ${showStamp && companyProfile?.stamp ? `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;pointer-events:none;z-index:0;"><img src="${companyProfile.stamp}" style="width:280px;height:280px;object-fit:contain;" /></div>` : ""}
-        <div class="doc-footer" style="margin-top:60px;">
+        ${showStamp && companyProfile?.stamp ? `<div style="margin-top:40px;margin-bottom:10px;text-align:${leftSide};"><img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;" /></div>` : ""}
+        <div class="doc-footer" style="${!showStamp || !companyProfile?.stamp ? 'margin-top:60px;' : ''}">
           <div style="text-align:center;">
             <span style="font-weight:700;font-size:13pt;">${book.rightText1 || ""}</span>
           </div>
