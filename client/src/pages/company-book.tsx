@@ -33,7 +33,7 @@ export default function CompanyBookPage() {
   const { toast } = useToast();
   const { data: user } = useUser();
   const qc = useQueryClient();
-  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string }>({ queryKey: ["/api/company-profile"] });
+  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; cliche: string | null; primaryColor: string }>({ queryKey: ["/api/company-profile"] });
 
   const { data: booksList, isLoading } = useQuery<CompanyBook[]>({
     queryKey: ["/api/company-books"],
@@ -267,39 +267,40 @@ export default function CompanyBookPage() {
     const printW = window.open("", "_blank");
     if (!printW) return;
     const dir = isRtl ? "rtl" : "ltr";
+    const rightSide = isRtl ? "right" : "left";
+    const leftSide = isRtl ? "left" : "right";
     printW.document.write(`<!DOCTYPE html><html dir="${dir}"><head>
       ${PRINT_FONT_LINKS}
       <title>${t("Company Book")} - #${book.bookNumber}</title>
       <style>${getModernPrintStyles(dir)}
         @page { size: A4 portrait; margin: 15mm; }
-        .doc-container { border: 2px solid #333; padding: 40px; min-height: 700px; position: relative; font-family: 'Tajawal', 'Inter', sans-serif; }
-        .doc-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-        .doc-field { margin-bottom: 20px; font-size: 14pt; line-height: 2; }
+        .doc-container { padding: 20px; min-height: 700px; font-family: 'Tajawal', 'Inter', sans-serif; }
+        .doc-cliche { text-align: center; margin-bottom: 10px; }
+        .doc-cliche img { max-width: 100%; max-height: 160px; object-fit: contain; }
+        .doc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 14pt; font-weight: 700; }
+        .doc-fields { text-align: center; margin-bottom: 30px; }
+        .doc-field { margin-bottom: 16px; font-size: 14pt; line-height: 2; }
         .doc-field .label { font-weight: 700; }
         .doc-field .value { border-bottom: 1px dotted #666; padding: 0 10px; min-width: 200px; display: inline-block; }
         .doc-body { margin: 30px 0; min-height: 200px; font-size: 13pt; line-height: 2.2; }
         .doc-footer { margin-top: 60px; display: flex; justify-content: space-between; font-size: 13pt; }
-        .doc-number-badge { position: absolute; top: 15px; ${isRtl ? 'left' : 'right'}: 15px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 16px; font-weight: 800; font-size: 13pt; }
       </style>
     </head><body>
       <div class="doc-container">
-        <div class="doc-number-badge">${t("Book #")}: ${book.bookNumber}</div>
-        <div class="doc-header">
-          ${companyProfile?.logo ? `<img src="${companyProfile.logo}" style="width:80px;height:80px;object-fit:contain;border-radius:8px;margin-bottom:8px;" />` : ""}
-          <h2 style="margin:0;font-size:11pt;color:#64748b;font-weight:800;">${companyProfile?.name || ""}</h2>
-          <h1 style="margin:8px 0 0;font-size:18pt;font-weight:800;">${t("Company Book")}</h1>
+        ${companyProfile?.cliche ? `<div class="doc-cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
+        <div class="doc-meta">
+          <div style="text-align: ${rightSide};">${t("Book #")}: ${book.bookNumber}</div>
+          <div style="text-align: ${leftSide};">${t("Date")}: ${formatDate(book.date)}</div>
         </div>
-        <div class="doc-field">
-          <span class="label">${t("To")} / </span>
-          <span class="value">${book.toField}</span>
-        </div>
-        <div class="doc-field">
-          <span class="label">${t("Subject")} / </span>
-          <span class="value">${book.subject}</span>
-        </div>
-        <div class="doc-field">
-          <span class="label">${t("Date")} / </span>
-          <span class="value">${formatDate(book.date)}</span>
+        <div class="doc-fields">
+          <div class="doc-field">
+            <span class="label">${t("To")} / </span>
+            <span class="value">${book.toField}</span>
+          </div>
+          <div class="doc-field">
+            <span class="label">${t("Subject")} / </span>
+            <span class="value">${book.subject}</span>
+          </div>
         </div>
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
         <div class="doc-footer">
