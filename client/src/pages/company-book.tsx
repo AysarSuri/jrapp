@@ -318,12 +318,12 @@ export default function CompanyBookPage() {
           </div>
         </div>
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
-        <div class="doc-footer">
+        ${showStamp && companyProfile?.stamp ? `<div style="margin-top:40px;margin-bottom:10px;text-align:${leftSide};"><img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;" /></div>` : ""}
+        <div class="doc-footer" style="${!showStamp || !companyProfile?.stamp ? 'margin-top:60px;' : ''}">
           <div style="text-align:center;">
             <span style="font-weight:700;font-size:13pt;">${book.rightText1 || ""}</span>
           </div>
           <div style="text-align:center;">
-            ${showStamp && companyProfile?.stamp ? `<img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;margin:0 auto 8px auto;display:block;" />` : ""}
             <span style="font-weight:700;font-size:13pt;">${book.authorizedPerson || ""}</span>
           </div>
         </div>
