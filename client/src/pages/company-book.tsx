@@ -478,7 +478,7 @@ export default function CompanyBookPage() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={t("Additional notes...")}
-                className="min-h-[70px] text-base font-semibold"
+                className="min-h-[70px] text-sm font-semibold"
                 data-testid="input-book-note"
               />
             </div>
