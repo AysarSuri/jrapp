@@ -35,7 +35,7 @@ export default function CompanyBookPage() {
   const { toast } = useToast();
   const { data: user } = useUser();
   const qc = useQueryClient();
-  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; cliche: string | null; primaryColor: string }>({ queryKey: ["/api/company-profile"] });
+  const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; cliche: string | null; stamp: string | null; primaryColor: string }>({ queryKey: ["/api/company-profile"] });
 
   const { data: booksList, isLoading } = useQuery<CompanyBook[]>({
     queryKey: ["/api/company-books"],
@@ -324,6 +324,7 @@ export default function CompanyBookPage() {
             ${book.rightText2 ? `<br/><span style="font-weight:600;font-size:12pt;">${book.rightText2}</span>` : ""}
           </div>
           <div style="text-align:center;">
+            ${showStamp && companyProfile?.stamp ? `<img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;margin:0 auto 8px auto;display:block;" />` : ""}
             <span style="font-weight:700;font-size:13pt;">${book.authorizedPerson || ""}</span>
             ${book.personName ? `<br/><span style="font-weight:600;font-size:12pt;">${book.personName}</span>` : ""}
           </div>
