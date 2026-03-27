@@ -476,10 +476,20 @@ export default function CompanyBookPage() {
               <Label className="text-base font-bold">{t("Writing Text")}</Label>
               <Textarea
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => {
+                  setNote(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
                 placeholder={t("Additional notes...")}
-                className="min-h-[70px] text-sm font-semibold"
+                className="min-h-[70px] text-sm font-semibold resize-none overflow-hidden"
                 data-testid="input-book-note"
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }
+                }}
               />
             </div>
             <div className="flex gap-2 pt-2">
