@@ -6,6 +6,7 @@ import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/sche
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -35,6 +36,7 @@ export default function ClearancePaymentsPage() {
   const { toast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
 
   const { data: companyProfile } = useQuery<{ name: string; logo: string | null; cliche: string | null; stamp: string | null; primaryColor: string; secondaryColor: string; mobile1: string }>({
@@ -494,6 +496,10 @@ export default function ClearancePaymentsPage() {
               <Badge variant="secondary" className="ml-2">{filteredPayments.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-payment-history-from-date" />

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
 import { SearchSelect } from "@/components/search-select";
 import {
@@ -79,6 +80,7 @@ export default function CustomerReceiptIqdPage() {
   });
 
   const [receiptNumber, setReceiptNumber] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
   const [customerId, setCustomerId] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [paymentSource, setPaymentSource] = useState<string>("");
@@ -685,6 +687,10 @@ export default function CustomerReceiptIqdPage() {
               </Button>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-muted-foreground" />
                 <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-receipt-number" />

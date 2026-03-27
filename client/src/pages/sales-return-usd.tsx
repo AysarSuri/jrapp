@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -101,6 +102,7 @@ export default function SalesReturnUsdPage() {
     : allCustomers;
 
   const [returnNumber, setReturnNumber] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [time, setTime] = useState(() => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
   const [customerName, setCustomerName] = useState("");
@@ -782,11 +784,17 @@ export default function SalesReturnUsdPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ListOrdered className="h-5 w-5 text-orange-600" />
-            {t('Return History')}
-            <Badge variant="secondary" className="ml-2">{usdReturns.length}</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListOrdered className="h-5 w-5 text-orange-600" />
+              {t('Return History')}
+              <Badge variant="secondary" className="ml-2">{usdReturns.length}</Badge>
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+              <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">

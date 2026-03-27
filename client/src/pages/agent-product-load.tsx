@@ -8,6 +8,7 @@ type Product = typeof products.$inferSelect;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -64,6 +65,7 @@ export default function AgentProductLoadPage() {
   });
 
   const [loadNumber, setLoadNumber] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
   const [agentId, setAgentId] = useState<string>("");
   const [agentName, setAgentName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -446,6 +448,10 @@ export default function AgentProductLoadPage() {
               <Badge variant="secondary" className="ml-2">{filteredLoads.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-44 h-9" data-testid="input-load-history-from-date" />

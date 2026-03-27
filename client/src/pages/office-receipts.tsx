@@ -6,6 +6,7 @@ import type { TransferOffice, TransferOfficeTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -40,6 +41,7 @@ export default function OfficeReceiptsPage() {
 
   const [officeId, setOfficeId] = useState<string>("");
   const [officeName, setOfficeName] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
   const [amountUsd, setAmountUsd] = useState("");
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
@@ -367,6 +369,10 @@ export default function OfficeReceiptsPage() {
               <Badge variant="secondary" className="ml-2">{filteredReceipts.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
+                <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
+              </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
                 <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-office-receipt-history-from-date" />
