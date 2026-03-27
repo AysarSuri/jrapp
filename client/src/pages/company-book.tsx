@@ -482,7 +482,7 @@ export default function CompanyBookPage() {
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
                 placeholder={t("Additional notes...")}
-                className="min-h-[70px] text-sm font-semibold resize-none overflow-hidden"
+                className="min-h-[70px] text-sm font-bold resize-none overflow-hidden"
                 data-testid="input-book-note"
                 ref={(el) => {
                   if (el) {
