@@ -322,7 +322,7 @@ export default function CompanyBookPage() {
           </div>
         </div>
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
-        ${showStamp && companyProfile?.stamp ? `<div style="margin-top:40px;margin-bottom:10px;text-align:${leftSide};"><img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;" /></div>` : ""}
+        ${showStamp && companyProfile?.stamp ? `<div style="margin-top:40px;margin-bottom:0;text-align:${leftSide};"><img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;margin-bottom:-5px;" /></div>` : ""}
         <div class="doc-footer" style="${!showStamp || !companyProfile?.stamp ? 'margin-top:60px;' : ''}">
           <div style="text-align:center;">
             <span style="font-weight:700;font-size:13pt;">${book.rightText1 || ""}</span>
