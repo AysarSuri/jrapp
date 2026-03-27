@@ -305,12 +305,12 @@ export default function CompanyBookPage() {
         ${book.note ? `<div class="doc-body"><p>${book.note.replace(/\n/g, '<br/>')}</p></div>` : '<div class="doc-body"></div>'}
         <div class="doc-footer">
           <div>
-            <strong>${t("Name")}</strong><br/>
-            <span style="font-weight:600;">${book.personName || ""}</span>
-          </div>
-          <div>
             <strong>${t("Authorized Person")}</strong><br/>
             <span style="font-weight:600;">${book.authorizedPerson || ""}</span>
+          </div>
+          <div>
+            <strong>${t("Name")}</strong><br/>
+            <span style="font-weight:600;">${book.personName || ""}</span>
           </div>
         </div>
       </div>
