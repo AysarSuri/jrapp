@@ -868,6 +868,8 @@ export const companyBooks = pgTable("company_books", {
   authorizedPerson: text("authorized_person").notNull(),
   personName: text("person_name"),
   note: text("note"),
+  rightText1: text("right_text_1"),
+  rightText2: text("right_text_2"),
   createdBy: text("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

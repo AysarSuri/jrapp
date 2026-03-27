@@ -113,6 +113,8 @@ export default function CompanyBookPage() {
   const [authorizedPerson, setAuthorizedPerson] = useState("");
   const [personName, setPersonName] = useState("");
   const [note, setNote] = useState("");
+  const [rightText1, setRightText1] = useState("");
+  const [rightText2, setRightText2] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteItem, setDeleteItem] = useState<CompanyBook | null>(null);
@@ -167,6 +169,8 @@ export default function CompanyBookPage() {
     setAuthorizedPerson("");
     setPersonName("");
     setNote("");
+    setRightText1("");
+    setRightText2("");
     setBookTypeId(null);
     setBookTypeSearch("");
     setDate(new Date().toISOString().split("T")[0]);
@@ -183,6 +187,8 @@ export default function CompanyBookPage() {
     setAuthorizedPerson(item.authorizedPerson);
     setPersonName(item.personName || "");
     setNote(item.note || "");
+    setRightText1(item.rightText1 || "");
+    setRightText2(item.rightText2 || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -208,6 +214,8 @@ export default function CompanyBookPage() {
       authorizedPerson: authorizedPerson.trim(),
       personName: personName.trim() || null,
       note: note.trim() || null,
+      rightText1: rightText1.trim() || null,
+      rightText2: rightText2.trim() || null,
       createdBy: user?.username || null,
     };
 
@@ -307,6 +315,8 @@ export default function CompanyBookPage() {
           <div>
             <strong>${t("Authorized Person")}</strong><br/>
             <span style="font-weight:600;">${book.authorizedPerson || ""}</span>
+            ${book.rightText1 ? `<br/><br/><strong>${t("Right Text 1")}</strong><br/><span style="font-weight:600;">${book.rightText1}</span>` : ""}
+            ${book.rightText2 ? `<br/><br/><strong>${t("Right Text 2")}</strong><br/><span style="font-weight:600;">${book.rightText2}</span>` : ""}
           </div>
           <div>
             <strong>${t("Name")}</strong><br/>
@@ -470,6 +480,28 @@ export default function CompanyBookPage() {
                   placeholder={t("Person name...")}
                   className="h-11 text-base font-semibold"
                   data-testid="input-person-name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Right Text 1")}</Label>
+                <Input
+                  value={rightText1}
+                  onChange={(e) => setRightText1(e.target.value)}
+                  placeholder={t("Right Text 1") + "..."}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-right-text-1"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Right Text 2")}</Label>
+                <Input
+                  value={rightText2}
+                  onChange={(e) => setRightText2(e.target.value)}
+                  placeholder={t("Right Text 2") + "..."}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-right-text-2"
                 />
               </div>
             </div>
@@ -649,6 +681,8 @@ export default function CompanyBookPage() {
                 <div><span className="font-bold">{t("Subject")}:</span> {previewItem.subject}</div>
                 <div><span className="font-bold">{t("Authorized Person")}:</span> {previewItem.authorizedPerson}</div>
                 {previewItem.personName && <div><span className="font-bold">{t("Name")}:</span> {previewItem.personName}</div>}
+                {previewItem.rightText1 && <div><span className="font-bold">{t("Right Text 1")}:</span> {previewItem.rightText1}</div>}
+                {previewItem.rightText2 && <div><span className="font-bold">{t("Right Text 2")}:</span> {previewItem.rightText2}</div>}
               </div>
               {previewItem.note && (
                 <div className="border-t pt-3">
