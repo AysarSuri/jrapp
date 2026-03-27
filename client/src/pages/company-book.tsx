@@ -321,13 +321,15 @@ export default function CompanyBookPage() {
         <div class="doc-footer">
           <div style="text-align:center;">
             <span style="font-weight:700;font-size:13pt;">${book.rightText1 || ""}</span>
-            ${book.rightText2 ? `<br/><span style="font-weight:600;font-size:12pt;">${book.rightText2}</span>` : ""}
           </div>
           <div style="text-align:center;">
             ${showStamp && companyProfile?.stamp ? `<img src="${companyProfile.stamp}" style="max-width:120px;max-height:120px;object-fit:contain;margin:0 auto 8px auto;display:block;" />` : ""}
             <span style="font-weight:700;font-size:13pt;">${book.authorizedPerson || ""}</span>
-            ${book.personName ? `<br/><span style="font-weight:600;font-size:12pt;">${book.personName}</span>` : ""}
           </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12pt;">
+          <div style="text-align:center;font-weight:600;">${book.rightText2 || ""}</div>
+          <div style="text-align:center;font-weight:600;">${book.personName || ""}</div>
         </div>
       </div>
     </body></html>`);
