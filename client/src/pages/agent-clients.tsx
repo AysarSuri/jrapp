@@ -18,7 +18,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { PRINT_FONT_LINKS, openPrintWindow } from "@/lib/print-styles";
 import { captureElementAsPdf } from "@/lib/pdf-utils";
 import { formatDate } from "@/lib/format-utils";
@@ -437,11 +437,11 @@ export default function AgentClientsPage() {
                           data-testid={`row-client-${c.id}`}
                         >
                           <TableCell>
-                            <Checkbox
+                            <Switch
                               checked={selectedClientIds.includes(c.id)}
                               onCheckedChange={() => toggleClient(c.id)}
                               disabled={isDisabled}
-                              data-testid={`checkbox-client-${c.id}`}
+                              data-testid={`switch-client-${c.id}`}
                             />
                           </TableCell>
                           <TableCell className="font-mono text-xs">{i + 1}</TableCell>
