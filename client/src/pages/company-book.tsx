@@ -409,34 +409,19 @@ export default function CompanyBookPage() {
                       </div>
                     ) : (
                       filteredBookTypes.map(bt => (
-                        <div key={bt.id} className={`flex items-center justify-between px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer ${bt.id === bookTypeId ? "bg-accent font-medium" : ""}`}>
-                          <button
-                            type="button"
-                            className="flex-1 text-start"
-                            onClick={() => {
-                              setBookTypeId(bt.id);
-                              setBookTypeSearch("");
-                              setBookTypeDropdownOpen(false);
-                            }}
-                            data-testid={`book-type-option-${bt.id}`}
-                          >
-                            {bt.name}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (bookTypeId === bt.id) setBookTypeId(null);
-                              deleteBookTypeMutation.mutate(bt.id, {
-                                onSuccess: () => toast({ title: t("Book type deleted") }),
-                              });
-                            }}
-                            className="text-muted-foreground hover:text-red-500 ml-2"
-                            data-testid={`delete-book-type-${bt.id}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          key={bt.id}
+                          type="button"
+                          className={`w-full text-start px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer ${bt.id === bookTypeId ? "bg-accent font-medium" : ""}`}
+                          onClick={() => {
+                            setBookTypeId(bt.id);
+                            setBookTypeSearch("");
+                            setBookTypeDropdownOpen(false);
+                          }}
+                          data-testid={`book-type-option-${bt.id}`}
+                        >
+                          {bt.name}
+                        </button>
                       ))
                     )}
                   </div>
