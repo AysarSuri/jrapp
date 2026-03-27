@@ -457,7 +457,7 @@ export default function CompanyBookPage() {
                   value={authorizedPerson}
                   onChange={(e) => setAuthorizedPerson(e.target.value)}
                   placeholder={t("Authorized person name...")}
-                  className="h-11 text-base font-semibold"
+                  className="h-11 text-sm font-semibold"
                   data-testid="input-authorized-person"
                 />
               </div>
