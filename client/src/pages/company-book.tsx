@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
-import type { CompanyBook } from "@shared/schema";
+import type { CompanyBook, BookType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateInput } from "@/components/ui/date-input";
@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
 import { formatDate } from "@/lib/format-utils";
 import i18n from "@/lib/i18n";
@@ -37,6 +37,28 @@ export default function CompanyBookPage() {
   });
   const { data: nextNumber } = useQuery<{ number: number }>({
     queryKey: ["/api/company-books/next-number"],
+  });
+  const { data: bookTypesList } = useQuery<BookType[]>({
+    queryKey: ["/api/book-types"],
+  });
+
+  const createBookTypeMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await apiRequest("POST", "/api/book-types", { name });
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/book-types"] });
+    },
+  });
+
+  const deleteBookTypeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/book-types/${id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/book-types"] });
+    },
   });
 
   const createMutation = useMutation({
@@ -71,6 +93,7 @@ export default function CompanyBookPage() {
   });
 
   const [bookNumber, setBookNumber] = useState<number>(0);
+  const [bookTypeId, setBookTypeId] = useState<number | null>(null);
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [toField, setToField] = useState("");
   const [subject, setSubject] = useState("");
@@ -81,6 +104,10 @@ export default function CompanyBookPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteItem, setDeleteItem] = useState<CompanyBook | null>(null);
   const [previewItem, setPreviewItem] = useState<CompanyBook | null>(null);
+  const [bookTypeSearch, setBookTypeSearch] = useState("");
+  const [bookTypeDropdownOpen, setBookTypeDropdownOpen] = useState(false);
+  const [newBookTypeName, setNewBookTypeName] = useState("");
+  const bookTypeContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (nextNumber?.number && !editingId) {
@@ -88,12 +115,43 @@ export default function CompanyBookPage() {
     }
   }, [nextNumber, editingId]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (bookTypeContainerRef.current && !bookTypeContainerRef.current.contains(e.target as Node)) {
+        setBookTypeDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredBookTypes = (bookTypesList || []).filter(bt =>
+    bt.name.toLowerCase().includes(bookTypeSearch.toLowerCase())
+  );
+
+  const selectedBookType = (bookTypesList || []).find(bt => bt.id === bookTypeId);
+
+  const handleAddBookType = () => {
+    const name = newBookTypeName.trim();
+    if (!name) return;
+    createBookTypeMutation.mutate(name, {
+      onSuccess: (newType: BookType) => {
+        setBookTypeId(newType.id);
+        setNewBookTypeName("");
+        setBookTypeDropdownOpen(false);
+        toast({ title: t("Book type added successfully") });
+      },
+    });
+  };
+
   const resetForm = () => {
     setToField("");
     setSubject("");
     setAuthorizedPerson("");
     setPersonName("");
     setNote("");
+    setBookTypeId(null);
+    setBookTypeSearch("");
     setDate(new Date().toISOString().split("T")[0]);
     setEditingId(null);
   };
@@ -101,6 +159,7 @@ export default function CompanyBookPage() {
   const startEdit = (item: CompanyBook) => {
     setEditingId(item.id);
     setBookNumber(item.bookNumber);
+    setBookTypeId(item.bookTypeId || null);
     setDate(typeof item.date === "string" ? item.date.split("T")[0] : new Date(item.date).toISOString().split("T")[0]);
     setToField(item.toField);
     setSubject(item.subject);
@@ -126,6 +185,7 @@ export default function CompanyBookPage() {
 
     const data = {
       date,
+      bookTypeId: bookTypeId || null,
       toField: toField.trim(),
       subject: subject.trim(),
       authorizedPerson: authorizedPerson.trim(),
@@ -283,6 +343,103 @@ export default function CompanyBookPage() {
                 />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-base font-bold">{t("Writing Type")}</Label>
+              <div ref={bookTypeContainerRef} className="relative">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    data-testid="select-book-type"
+                    placeholder={t("Search or select writing type...")}
+                    value={bookTypeDropdownOpen ? bookTypeSearch : (selectedBookType?.name || "")}
+                    onChange={(e) => {
+                      setBookTypeSearch(e.target.value);
+                      if (!bookTypeDropdownOpen) setBookTypeDropdownOpen(true);
+                    }}
+                    onFocus={() => {
+                      setBookTypeDropdownOpen(true);
+                      setBookTypeSearch("");
+                    }}
+                    className="h-11 text-base font-semibold pl-8 pr-8"
+                  />
+                  {bookTypeId && (
+                    <button
+                      type="button"
+                      onClick={() => { setBookTypeId(null); setBookTypeSearch(""); }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+                {bookTypeDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-popover shadow-lg">
+                    <div className="p-2 border-b flex gap-2">
+                      <Input
+                        data-testid="input-new-book-type"
+                        placeholder={t("Add new writing type...")}
+                        value={newBookTypeName}
+                        onChange={(e) => setNewBookTypeName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAddBookType();
+                          }
+                        }}
+                        className="h-9 text-sm"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAddBookType}
+                        disabled={!newBookTypeName.trim() || createBookTypeMutation.isPending}
+                        className="bg-primary text-white h-9 px-3"
+                        data-testid="button-add-book-type"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {filteredBookTypes.length === 0 ? (
+                      <div className="px-3 py-4 text-sm text-center text-muted-foreground">
+                        {t("No types found")}
+                      </div>
+                    ) : (
+                      filteredBookTypes.map(bt => (
+                        <div key={bt.id} className={`flex items-center justify-between px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer ${bt.id === bookTypeId ? "bg-accent font-medium" : ""}`}>
+                          <button
+                            type="button"
+                            className="flex-1 text-start"
+                            onClick={() => {
+                              setBookTypeId(bt.id);
+                              setBookTypeSearch("");
+                              setBookTypeDropdownOpen(false);
+                            }}
+                            data-testid={`book-type-option-${bt.id}`}
+                          >
+                            {bt.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (bookTypeId === bt.id) setBookTypeId(null);
+                              deleteBookTypeMutation.mutate(bt.id, {
+                                onSuccess: () => toast({ title: t("Book type deleted") }),
+                              });
+                            }}
+                            className="text-muted-foreground hover:text-red-500 ml-2"
+                            data-testid={`delete-book-type-${bt.id}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-base font-bold">{t("To")} /</Label>
@@ -384,6 +541,7 @@ export default function CompanyBookPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-sm font-bold">{t("Book #")}</TableHead>
+                    <TableHead className="text-sm font-bold">{t("Writing Type")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("To")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Subject")}</TableHead>
@@ -396,6 +554,7 @@ export default function CompanyBookPage() {
                   {filteredBooks.map((book) => (
                     <TableRow key={book.id} data-testid={`row-book-${book.id}`}>
                       <TableCell className="text-sm font-semibold font-mono">{book.bookNumber}</TableCell>
+                      <TableCell className="text-sm font-semibold">{book.bookTypeId ? ((bookTypesList || []).find(bt => bt.id === book.bookTypeId)?.name || "-") : "-"}</TableCell>
                       <TableCell className="text-sm font-semibold">{formatDate(book.date)}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.toField}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.subject}</TableCell>

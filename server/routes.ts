@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -5556,6 +5556,31 @@ export async function registerRoutes(
       const id = parseInt(req.params.id, 10);
       await db.delete(supplierOrderItems).where(eq(supplierOrderItems.orderId, id));
       await db.delete(supplierOrders).where(eq(supplierOrders.id, id));
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  // ===== BOOK TYPES =====
+  app.get('/api/book-types', requireAuth, async (_req, res) => {
+    try {
+      const rows = await db.select().from(bookTypes).orderBy(bookTypes.name);
+      res.json(rows);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.post('/api/book-types', requireAuth, async (req, res) => {
+    try {
+      const { name } = req.body;
+      if (!name || !name.trim()) return res.status(400).json({ message: "Name is required" });
+      const [row] = await db.insert(bookTypes).values({ name: name.trim() }).returning();
+      res.json(row);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.delete('/api/book-types/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await db.delete(bookTypes).where(eq(bookTypes.id, id));
       res.json({ success: true });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });

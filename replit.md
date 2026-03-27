@@ -101,6 +101,14 @@ Preferred communication style: Simple, everyday language.
 - **Purpose**: Standalone ordering (no financial impact, no stock changes, no debt tracking)
 - **Features**: Auto-incrementing order number (SO-000001), product selection, barcode scanning, print support, inline edit, delete, order history with filters
 
+### Company Book (كتاب الشركة)
+- **Tables**: `company_books` + `book_types` (schema in `shared/schema.ts`)
+- **API routes**: `/api/company-books` (CRUD), `/api/company-books/next-number`, `/api/book-types` (CRUD)
+- **Frontend page**: `company-book.tsx`
+- **Permission key**: `company_book`
+- **Features**: Auto-incrementing book number, searchable "Writing Type" dropdown with inline add/delete, Word-document-style form, CRUD table, print/preview support
+- **Form fields**: Book # (readonly auto), Writing Type (searchable dropdown), Date, To, Subject, Name (authorizedPerson), Person Name, Note
+
 ### Rep Statement Page (Tabbed)
 The representative statement page (`client/src/pages/rep-statement.tsx`) has 5 horizontal tabs:
 1. **Remaining Products** — Products remaining with the representative (uses `/api/representative-products/:id`)
