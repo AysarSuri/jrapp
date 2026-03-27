@@ -477,12 +477,30 @@ export default function CompanyBookPage() {
               <Textarea
                 value={note}
                 onChange={(e) => {
-                  setNote(e.target.value);
+                  const raw = e.target.value;
+                  const lines = raw.split("\n");
+                  const wrapped: string[] = [];
+                  for (const line of lines) {
+                    if (line.length <= 77) {
+                      wrapped.push(line);
+                    } else {
+                      let remaining = line;
+                      while (remaining.length > 77) {
+                        let breakAt = remaining.lastIndexOf(" ", 77);
+                        if (breakAt <= 0) breakAt = 77;
+                        wrapped.push(remaining.slice(0, breakAt));
+                        remaining = remaining.slice(breakAt).replace(/^ /, "");
+                      }
+                      if (remaining) wrapped.push(remaining);
+                    }
+                  }
+                  const result = wrapped.join("\n");
+                  setNote(result);
                   e.target.style.height = "auto";
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
                 placeholder={t("Additional notes...")}
-                className="min-h-[70px] text-sm font-bold resize-none overflow-hidden"
+                className="min-h-[70px] text-sm font-bold resize-none overflow-hidden font-mono"
                 data-testid="input-book-note"
                 ref={(el) => {
                   if (el) {
