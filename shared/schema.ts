@@ -870,6 +870,7 @@ export const companyBooks = pgTable("company_books", {
   note: text("note"),
   rightText1: text("right_text_1"),
   rightText2: text("right_text_2"),
+  showStamp: boolean("show_stamp").notNull().default(false),
   createdBy: text("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

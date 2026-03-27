@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X, Check } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
@@ -115,8 +117,11 @@ export default function CompanyBookPage() {
   const [note, setNote] = useState("");
   const [rightText1, setRightText1] = useState("");
   const [rightText2, setRightText2] = useState("");
+  const [showStamp, setShowStamp] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchBookNumber, setSearchBookNumber] = useState("");
+  const [filterTypeId, setFilterTypeId] = useState<string>("all");
   const [deleteItem, setDeleteItem] = useState<CompanyBook | null>(null);
   const [previewItem, setPreviewItem] = useState<CompanyBook | null>(null);
   const [bookTypeSearch, setBookTypeSearch] = useState("");
@@ -171,6 +176,7 @@ export default function CompanyBookPage() {
     setNote("");
     setRightText1("");
     setRightText2("");
+    setShowStamp(false);
     setBookTypeId(null);
     setBookTypeSearch("");
     setDate(new Date().toISOString().split("T")[0]);
@@ -189,6 +195,7 @@ export default function CompanyBookPage() {
     setNote(item.note || "");
     setRightText1(item.rightText1 || "");
     setRightText2(item.rightText2 || "");
+    setShowStamp(item.showStamp || false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -216,6 +223,7 @@ export default function CompanyBookPage() {
       note: note.trim() || null,
       rightText1: rightText1.trim() || null,
       rightText2: rightText2.trim() || null,
+      showStamp,
       createdBy: user?.username || null,
     };
 
@@ -260,6 +268,8 @@ export default function CompanyBookPage() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   const filteredBooks = (booksList || []).filter(b => {
+    if (searchBookNumber && !String(b.bookNumber).includes(searchBookNumber)) return false;
+    if (filterTypeId !== "all" && String(b.bookTypeId || "") !== filterTypeId) return false;
     if (!searchTerm) return true;
     const s = searchTerm.toLowerCase();
     return (
@@ -545,6 +555,15 @@ export default function CompanyBookPage() {
                 }}
               />
             </div>
+            <div className="flex items-center gap-3 pt-1">
+              <Checkbox
+                id="show-stamp"
+                checked={showStamp}
+                onCheckedChange={(checked) => setShowStamp(!!checked)}
+                data-testid="checkbox-show-stamp"
+              />
+              <Label htmlFor="show-stamp" className="text-base font-bold cursor-pointer">{t("Show Stamp")}</Label>
+            </div>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white" data-testid="button-save-book">
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
@@ -569,15 +588,35 @@ export default function CompanyBookPage() {
               {t("Books List")}
               <Badge variant="secondary" className="ml-2">{filteredBooks.length}</Badge>
             </CardTitle>
-            <div className="flex items-center gap-2">
-              <Search className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2 flex-wrap">
               <Input
-                placeholder={t("Search...")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 h-9"
-                data-testid="input-search-books"
+                placeholder={t("Search by book number...")}
+                value={searchBookNumber}
+                onChange={(e) => setSearchBookNumber(e.target.value)}
+                className="w-40 h-9"
+                data-testid="input-search-book-number"
               />
+              <Select value={filterTypeId} onValueChange={setFilterTypeId}>
+                <SelectTrigger className="w-44 h-9" data-testid="select-filter-type">
+                  <SelectValue placeholder={t("Filter by type")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("All Types")}</SelectItem>
+                  {(bookTypesList || []).map(bt => (
+                    <SelectItem key={bt.id} value={String(bt.id)}>{bt.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-1">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("Search...")}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-48 h-9"
+                  data-testid="input-search-books"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -596,8 +635,7 @@ export default function CompanyBookPage() {
                     <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("To")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Subject")}</TableHead>
-                    <TableHead className="text-sm font-bold">{t("Authorized Person")}</TableHead>
-                    <TableHead className="text-sm font-bold">{t("Left Text 2")}</TableHead>
+                    <TableHead className="text-sm font-bold text-center">{t("Show Stamp")}</TableHead>
                     <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -609,8 +647,9 @@ export default function CompanyBookPage() {
                       <TableCell className="text-sm font-semibold">{formatDate(book.date)}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.toField}</TableCell>
                       <TableCell className="text-sm font-semibold">{book.subject}</TableCell>
-                      <TableCell className="text-sm font-semibold">{book.authorizedPerson}</TableCell>
-                      <TableCell className="text-sm font-semibold">{book.personName || "-"}</TableCell>
+                      <TableCell className="text-center">
+                        {book.showStamp ? <Check className="h-4 w-4 text-green-600 mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => handlePrint(book)} data-testid={`btn-print-book-${book.id}`}>
@@ -632,6 +671,7 @@ export default function CompanyBookPage() {
                   {filteredBooks.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+
                         {t("No books found")}
                       </TableCell>
                     </TableRow>
