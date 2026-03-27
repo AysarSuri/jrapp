@@ -22,7 +22,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X, Check } from "lucide-react";
 import { playDeleteSound } from "@/lib/sounds";
 import { formatDate } from "@/lib/format-utils";
 import i18n from "@/lib/i18n";
@@ -48,6 +48,16 @@ export default function CompanyBookPage() {
   const createBookTypeMutation = useMutation({
     mutationFn: async (name: string) => {
       const res = await apiRequest("POST", "/api/book-types", { name });
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/book-types"] });
+    },
+  });
+
+  const updateBookTypeMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const res = await apiRequest("PUT", `/api/book-types/${id}`, { name });
       return res.json();
     },
     onSuccess: () => {
@@ -111,6 +121,9 @@ export default function CompanyBookPage() {
   const [bookTypeDropdownOpen, setBookTypeDropdownOpen] = useState(false);
   const [newBookTypeName, setNewBookTypeName] = useState("");
   const [showBookTypeDialog, setShowBookTypeDialog] = useState(false);
+  const [editingBookTypeId, setEditingBookTypeId] = useState<number | null>(null);
+  const [editingBookTypeName, setEditingBookTypeName] = useState("");
+  const [deleteBookTypeItem, setDeleteBookTypeItem] = useState<BookType | null>(null);
   const bookTypeContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -651,19 +664,30 @@ export default function CompanyBookPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-base font-bold">{t("Writing Type")}</Label>
-              <Input
-                data-testid="input-new-book-type"
-                placeholder={t("Add new writing type...")}
-                value={newBookTypeName}
-                onChange={(e) => setNewBookTypeName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddBookType();
-                  }
-                }}
-                className="h-11 text-base font-semibold"
-              />
+              <div className="flex gap-2">
+                <Input
+                  data-testid="input-new-book-type"
+                  placeholder={t("Add new writing type...")}
+                  value={newBookTypeName}
+                  onChange={(e) => setNewBookTypeName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddBookType();
+                    }
+                  }}
+                  className="h-11 text-base font-semibold flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddBookType}
+                  disabled={!newBookTypeName.trim() || createBookTypeMutation.isPending}
+                  className="bg-primary text-white h-11 px-4"
+                  data-testid="button-add-book-type"
+                >
+                  {createBookTypeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
             {(bookTypesList || []).length > 0 && (
               <div className="space-y-1.5">
@@ -671,40 +695,124 @@ export default function CompanyBookPage() {
                 <div className="border rounded-md max-h-48 overflow-auto">
                   {(bookTypesList || []).map(bt => (
                     <div key={bt.id} className="flex items-center justify-between px-3 py-2 text-sm border-b last:border-b-0 hover:bg-muted/50">
-                      <span className="font-semibold">{bt.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (bookTypeId === bt.id) setBookTypeId(null);
-                          deleteBookTypeMutation.mutate(bt.id, {
-                            onSuccess: () => toast({ title: t("Book type deleted") }),
-                          });
-                        }}
-                        className="text-muted-foreground hover:text-red-500"
-                        data-testid={`dialog-delete-book-type-${bt.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {editingBookTypeId === bt.id ? (
+                        <Input
+                          value={editingBookTypeName}
+                          onChange={(e) => setEditingBookTypeName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (editingBookTypeName.trim()) {
+                                updateBookTypeMutation.mutate({ id: bt.id, name: editingBookTypeName.trim() }, {
+                                  onSuccess: () => {
+                                    setEditingBookTypeId(null);
+                                    toast({ title: t("Book type updated") });
+                                  },
+                                });
+                              }
+                            }
+                            if (e.key === "Escape") setEditingBookTypeId(null);
+                          }}
+                          className="h-8 text-sm font-semibold flex-1 mr-2"
+                          autoFocus
+                          data-testid={`edit-book-type-input-${bt.id}`}
+                        />
+                      ) : (
+                        <span className="font-semibold flex-1">{bt.name}</span>
+                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {editingBookTypeId === bt.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editingBookTypeName.trim()) {
+                                  updateBookTypeMutation.mutate({ id: bt.id, name: editingBookTypeName.trim() }, {
+                                    onSuccess: () => {
+                                      setEditingBookTypeId(null);
+                                      toast({ title: t("Book type updated") });
+                                    },
+                                  });
+                                }
+                              }}
+                              className="text-green-600 hover:text-green-700"
+                              data-testid={`save-book-type-${bt.id}`}
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingBookTypeId(null)}
+                              className="text-muted-foreground hover:text-foreground"
+                              data-testid={`cancel-edit-book-type-${bt.id}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingBookTypeId(bt.id);
+                                setEditingBookTypeName(bt.name);
+                              }}
+                              className="text-muted-foreground hover:text-orange-600"
+                              data-testid={`edit-book-type-${bt.id}`}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteBookTypeItem(bt)}
+                              className="text-muted-foreground hover:text-red-500"
+                              data-testid={`dialog-delete-book-type-${bt.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              onClick={handleAddBookType}
-              disabled={!newBookTypeName.trim() || createBookTypeMutation.isPending}
-              className="bg-primary text-white"
-              data-testid="button-add-book-type"
-            >
-              {createBookTypeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              {t("Add Type")}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteBookTypeItem} onOpenChange={(open) => { if (!open) setDeleteBookTypeItem(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("This will permanently delete book")} — {deleteBookTypeItem?.name}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBookTypeMutation.isPending}>{t("No")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!deleteBookTypeItem) return;
+                if (bookTypeId === deleteBookTypeItem.id) setBookTypeId(null);
+                deleteBookTypeMutation.mutate(deleteBookTypeItem.id, {
+                  onSuccess: () => {
+                    toast({ title: t("Book type deleted") });
+                    setDeleteBookTypeItem(null);
+                  },
+                });
+              }}
+              disabled={deleteBookTypeMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              data-testid="confirm-delete-book-type"
+            >
+              {deleteBookTypeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {t("Yes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

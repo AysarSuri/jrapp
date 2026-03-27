@@ -5577,6 +5577,16 @@ export async function registerRoutes(
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
+  app.put('/api/book-types/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name } = req.body;
+      if (!name?.trim()) return res.status(400).json({ message: "Name is required" });
+      const [row] = await db.update(bookTypes).set({ name: name.trim() }).where(eq(bookTypes.id, id)).returning();
+      res.json(row);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
   app.delete('/api/book-types/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
