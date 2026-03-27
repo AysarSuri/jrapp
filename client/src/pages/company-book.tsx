@@ -319,7 +319,7 @@ export default function CompanyBookPage() {
             ${book.rightText2 ? `<br/><br/><strong>${t("Right Text 2")}</strong><br/><span style="font-weight:600;">${book.rightText2}</span>` : ""}
           </div>
           <div>
-            <strong>${t("Name")}</strong><br/>
+            <strong>${t("Left Text 2")}</strong><br/>
             <span style="font-weight:600;">${book.personName || ""}</span>
           </div>
         </div>
@@ -473,11 +473,11 @@ export default function CompanyBookPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Name")}</Label>
+                <Label className="text-base font-bold">{t("Left Text 2")}</Label>
                 <Input
                   value={personName}
                   onChange={(e) => setPersonName(e.target.value)}
-                  placeholder={t("Person name...")}
+                  placeholder={t("Left Text 2") + "..."}
                   className="h-11 text-base font-semibold"
                   data-testid="input-person-name"
                 />
@@ -595,7 +595,7 @@ export default function CompanyBookPage() {
                     <TableHead className="text-sm font-bold">{t("To")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Subject")}</TableHead>
                     <TableHead className="text-sm font-bold">{t("Authorized Person")}</TableHead>
-                    <TableHead className="text-sm font-bold">{t("Name")}</TableHead>
+                    <TableHead className="text-sm font-bold">{t("Left Text 2")}</TableHead>
                     <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -680,7 +680,7 @@ export default function CompanyBookPage() {
                 <div><span className="font-bold">{t("To")}:</span> {previewItem.toField}</div>
                 <div><span className="font-bold">{t("Subject")}:</span> {previewItem.subject}</div>
                 <div><span className="font-bold">{t("Authorized Person")}:</span> {previewItem.authorizedPerson}</div>
-                {previewItem.personName && <div><span className="font-bold">{t("Name")}:</span> {previewItem.personName}</div>}
+                {previewItem.personName && <div><span className="font-bold">{t("Left Text 2")}:</span> {previewItem.personName}</div>}
                 {previewItem.rightText1 && <div><span className="font-bold">{t("Right Text 1")}:</span> {previewItem.rightText1}</div>}
                 {previewItem.rightText2 && <div><span className="font-bold">{t("Right Text 2")}:</span> {previewItem.rightText2}</div>}
               </div>
