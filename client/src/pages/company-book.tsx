@@ -304,7 +304,7 @@ export default function CompanyBookPage() {
       <div class="doc-container">
         ${companyProfile?.cliche ? `<div class="doc-cliche"><img src="${companyProfile.cliche}" /></div>` : ""}
         <div class="doc-meta">
-          <div style="text-align: ${rightSide};">${t("Book #")}: ${book.bookNumber}</div>
+          <div style="text-align: ${rightSide};">عـدد: ${book.bookNumber}</div>
           <div style="text-align: ${leftSide};">${t("Date")}: ${formatDate(book.date)}</div>
         </div>
         <div class="doc-fields">
