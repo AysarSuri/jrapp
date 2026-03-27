@@ -439,7 +439,7 @@ export default function CompanyBookPage() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-base font-bold">{t("To")} /</Label>
                 <Input
@@ -450,40 +450,6 @@ export default function CompanyBookPage() {
                   data-testid="input-book-to"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Subject")} / {t("م")}</Label>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder={t("Subject of the book...")}
-                  className="h-11 text-base font-semibold"
-                  data-testid="input-book-subject"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Authorized Person")}</Label>
-                <Input
-                  value={authorizedPerson}
-                  onChange={(e) => setAuthorizedPerson(e.target.value)}
-                  placeholder={t("Authorized person name...")}
-                  className="h-11 text-sm font-semibold"
-                  data-testid="input-authorized-person"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-base font-bold">{t("Left Text 2")}</Label>
-                <Input
-                  value={personName}
-                  onChange={(e) => setPersonName(e.target.value)}
-                  placeholder={t("Left Text 2") + "..."}
-                  className="h-11 text-base font-semibold"
-                  data-testid="input-person-name"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-base font-bold">{t("Right Text 1")}</Label>
                 <Input
@@ -502,6 +468,38 @@ export default function CompanyBookPage() {
                   placeholder={t("Right Text 2") + "..."}
                   className="h-11 text-base font-semibold"
                   data-testid="input-right-text-2"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Subject")} / {t("م")}</Label>
+                <Input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder={t("Subject of the book...")}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-book-subject"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Authorized Person")}</Label>
+                <Input
+                  value={authorizedPerson}
+                  onChange={(e) => setAuthorizedPerson(e.target.value)}
+                  placeholder={t("Authorized person name...")}
+                  className="h-11 text-sm font-semibold"
+                  data-testid="input-authorized-person"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-base font-bold">{t("Left Text 2")}</Label>
+                <Input
+                  value={personName}
+                  onChange={(e) => setPersonName(e.target.value)}
+                  placeholder={t("Left Text 2") + "..."}
+                  className="h-11 text-base font-semibold"
+                  data-testid="input-person-name"
                 />
               </div>
             </div>
