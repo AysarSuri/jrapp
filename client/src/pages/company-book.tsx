@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X, Check } from "lucide-react";
@@ -585,11 +585,11 @@ export default function CompanyBookPage() {
             </CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-2">
-                <Checkbox
+                <Switch
                   id="show-stamp-filter"
                   checked={showStamp}
                   onCheckedChange={(checked) => setShowStamp(!!checked)}
-                  data-testid="checkbox-show-stamp"
+                  data-testid="switch-show-stamp"
                 />
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
