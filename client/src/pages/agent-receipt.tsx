@@ -373,8 +373,8 @@ export default function AgentReceiptPage() {
                   data-testid="input-search-receipt"
                 />
               </div>
-              <DateInput value={historyFromDate} onChange={e => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="h-9 text-sm w-36" data-testid="input-filter-from" />
-              <DateInput value={historyToDate} onChange={e => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="h-9 text-sm w-36" data-testid="input-filter-to" />
+              <DateInput value={historyFromDate} onChange={e => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="h-9 text-xs w-44" data-testid="input-filter-from" />
+              <DateInput value={historyToDate} onChange={e => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="h-9 text-xs w-44" data-testid="input-filter-to" />
             </div>
           </div>
         </CardHeader>
