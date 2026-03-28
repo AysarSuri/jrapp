@@ -1779,7 +1779,7 @@ const resources = {
       "Expense Details": "تفاصيل المصروف",
       "Expense Type": "نوع المصروف",
       "Select expense type...": "اختر نوع المصروف...",
-      "Agent Name": "اسم الوكيل",
+      "Agent Name": "اسم المندوب",
       "Select agent...": "اختر الوكيل...",
       "Expense Summary": "ملخص المصروف",
       "Save Expense": "حفظ المصروف",
