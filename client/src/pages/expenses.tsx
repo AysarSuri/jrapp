@@ -616,14 +616,14 @@ export default function ExpensesPage() {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Reference')}</Label>
                 <Input placeholder={t('Reference number...')} value={reference} onChange={(e) => setReference(e.target.value)} data-testid="input-expense-reference" />
               </div>
-              <div className="space-y-2">
-                <Label>{t('Description')}</Label>
-                <Textarea placeholder={t('Description...')} value={description} onChange={(e) => setDescription(e.target.value)} className="resize-none h-10" data-testid="input-expense-description" />
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t('Note')}</Label>
+                <Textarea placeholder={t('Note...')} value={description} onChange={(e) => setDescription(e.target.value)} className="resize-none h-10" data-testid="input-expense-description" />
               </div>
             </div>
           </CardContent>
