@@ -265,8 +265,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-receipt",
     "/agent-gps",
     "/rep-statement",
-    "/agent-receipt-statement",
-    "/agent-expense-statement",
   ];
 
   const materialSubRoutes = [
@@ -451,8 +449,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load" },
     { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS" },
     { href: "/rep-statement", icon: IconStatementUsd, label: "Rep Statement" },
-    { href: "/agent-receipt-statement", icon: IconStatementIqd, label: "Agent Receipt Statement" },
-    { href: "/agent-expense-statement", icon: IconStatementIqd, label: "Agent Expense Statement" },
   ];
 
   const materialNavItems: NavItem[] = [
