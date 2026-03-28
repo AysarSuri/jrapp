@@ -530,11 +530,21 @@ export default function ExpensesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Invoice Number')}</Label>
                 <Input value={invoiceNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-expense-invoice-number" />
               </div>
+              <div className="space-y-2">
+                <Label>{t('Date')}</Label>
+                <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-expense-date" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Time')}</Label>
+                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-expense-time" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Expense Type')}</Label>
                 <ExpenseTypeSearchSelect
@@ -544,14 +554,6 @@ export default function ExpensesPage() {
                   placeholder={t('Search expense type...')}
                   data-testid="select-expense-type"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Date')}</Label>
-                <DateInput value={date} onChange={(e) => setDate(e.target.value)} data-testid="input-expense-date" />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Time')}</Label>
-                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-expense-time" />
               </div>
               <div className="space-y-2">
                 <Label>{t('Agent Name')}</Label>
