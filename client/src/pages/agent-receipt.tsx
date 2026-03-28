@@ -308,7 +308,7 @@ export default function AgentReceiptPage() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>
               <Label className="text-base font-bold mb-1 block">{t("Amount")}</Label>
               <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-amount" disabled={!!editReceipt} />
@@ -321,10 +321,10 @@ export default function AgentReceiptPage() {
               <Label className="text-base font-bold mb-1 block">{t("Time")}</Label>
               <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-time" />
             </div>
-            <div>
-              <Label className="text-base font-bold mb-1 block">{t("Note")}</Label>
-              <Textarea value={note} onChange={e => setNote(e.target.value)} className="text-base font-semibold min-h-[44px] resize-none" data-testid="input-note" />
-            </div>
+          </div>
+          <div className="mt-4">
+            <Label className="text-base font-bold mb-1 block">{t("Note")}</Label>
+            <Textarea value={note} onChange={e => setNote(e.target.value)} className="text-base font-semibold min-h-[44px] resize-none" data-testid="input-note" />
           </div>
 
           <Separator className="my-4" />
