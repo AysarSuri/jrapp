@@ -79,8 +79,8 @@ export default function AgentReceiptPage() {
   const [receiptNumber, setReceiptNumber] = useState("");
   const [agentId, setAgentId] = useState<string>("");
   const [agentName, setAgentName] = useState("");
-  const [receivedTo, setReceivedTo] = useState<string>("");
-  const [receivedToName, setReceivedToName] = useState("");
+  const [receivedTo, setReceivedTo] = useState<string>("hand:0");
+  const [receivedToName, setReceivedToName] = useState("By Hand");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<"USD" | "IQD">("IQD");
   const [note, setNote] = useState("");
@@ -170,8 +170,8 @@ export default function AgentReceiptPage() {
     setReceiptNumber("");
     setAgentId("");
     setAgentName("");
-    setReceivedTo("");
-    setReceivedToName("");
+    setReceivedTo("hand:0");
+    setReceivedToName(t("By Hand"));
     setAmount("");
     setCurrency("IQD");
     setNote("");
