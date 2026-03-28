@@ -115,6 +115,9 @@ export default function AgentReceiptPage() {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
+  const totalUsd = filteredReceipts.reduce((sum, r) => r.currency === "USD" ? sum + parseFloat(r.amount || "0") : sum, 0);
+  const totalIqd = filteredReceipts.reduce((sum, r) => r.currency === "IQD" ? sum + parseFloat(r.amount || "0") : sum, 0);
+
   const handleDelete = (id: number) => {
     deleteReceipt(id, {
       onSuccess: () => {
@@ -398,8 +401,8 @@ export default function AgentReceiptPage() {
                       <TableHead className="text-sm font-bold">{t("Receipt #")}</TableHead>
                       <TableHead className="text-sm font-bold">{t("Agent")}</TableHead>
                       <TableHead className="text-sm font-bold">{t("Received To")}</TableHead>
-                      <TableHead className="text-sm font-bold">{t("Amount")}</TableHead>
-                      <TableHead className="text-sm font-bold">{t("Currency")}</TableHead>
+                      <TableHead className="text-sm font-bold">{t("USD Amount")}</TableHead>
+                      <TableHead className="text-sm font-bold">{t("IQD Amount")}</TableHead>
                       <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                       <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
                       <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
@@ -416,11 +419,11 @@ export default function AgentReceiptPage() {
                         <TableCell className="font-mono text-sm font-semibold">{r.receiptNumber}</TableCell>
                         <TableCell className="text-sm font-semibold">{r.agentName}</TableCell>
                         <TableCell className="text-sm font-semibold">{r.receivedToName}</TableCell>
-                        <TableCell className="font-mono text-sm font-semibold">{fmtByReceipt(r)}</TableCell>
-                        <TableCell>
-                          <Badge variant={r.currency === "USD" ? "default" : "secondary"} className={r.currency === "USD" ? "bg-blue-600 text-white" : "bg-emerald-600 text-white"}>
-                            {r.currency}
-                          </Badge>
+                        <TableCell className="font-mono text-sm font-semibold text-blue-600">
+                          {r.currency === "USD" ? usd(parseFloat(r.amount || "0")) : "-"}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm font-semibold text-orange-600">
+                          {r.currency === "IQD" ? fmtIqd(parseFloat(r.amount || "0")) : "-"}
                         </TableCell>
                         <TableCell className="text-sm font-semibold">{formatDate(r.date)}</TableCell>
                         <TableCell className="text-sm font-semibold max-w-[200px] truncate">{r.note || "-"}</TableCell>
@@ -450,6 +453,14 @@ export default function AgentReceiptPage() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {filteredReceipts.length > 0 && (
+                      <TableRow className="bg-muted/60 font-bold border-t-2">
+                        <TableCell colSpan={4} className="text-sm font-bold">{t("Total")}</TableCell>
+                        <TableCell className="font-mono text-sm font-bold text-blue-600">{totalUsd > 0 ? usd(totalUsd) : "-"}</TableCell>
+                        <TableCell className="font-mono text-sm font-bold text-orange-600">{totalIqd > 0 ? fmtIqd(totalIqd) : "-"}</TableCell>
+                        <TableCell colSpan={3}></TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
