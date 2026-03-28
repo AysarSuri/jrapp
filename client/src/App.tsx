@@ -78,6 +78,7 @@ import CustomerReceiptIqdPage from "@/pages/customer-receipt-iqd";
 import AgentPaymentUsdPage from "@/pages/agent-payment-usd";
 import AgentPaymentIqdPage from "@/pages/agent-payment-iqd";
 import AgentReceiptPage from "@/pages/agent-receipt";
+import AgentReceiptStatementPage from "@/pages/agent-receipt-statement";
 import AgentStatementUsdPage from "@/pages/agent-statement-usd";
 import AgentStatementIqdPage from "@/pages/agent-statement-iqd";
 import CurrencyExchangePage from "@/pages/currency-exchange";
@@ -357,6 +358,9 @@ function Router() {
       </Route>
       <Route path="/agent-receipt">
         <ProtectedRoute component={AgentReceiptPage} />
+      </Route>
+      <Route path="/agent-receipt-statement">
+        <ProtectedRoute component={AgentReceiptStatementPage} />
       </Route>
       <Route path="/agent-statement-usd">
         <ProtectedRoute component={AgentStatementUsdPage} />

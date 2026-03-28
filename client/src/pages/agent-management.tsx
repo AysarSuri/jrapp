@@ -36,6 +36,15 @@ export default function AgentManagementPage() {
       hoverBorder: "hover:border-violet-300 dark:hover:border-violet-700",
     },
     {
+      href: "/agent-receipt-statement",
+      icon: IconAgent,
+      label: "Agent Receipt Statement",
+      gradient: "from-teal-500 to-teal-600",
+      bg: "bg-teal-50 dark:bg-teal-900/20",
+      iconColor: "text-teal-600 dark:text-teal-400",
+      hoverBorder: "hover:border-teal-300 dark:hover:border-teal-700",
+    },
+    {
       href: "/agent-gps",
       icon: IconAddress,
       label: "Agent GPS",
