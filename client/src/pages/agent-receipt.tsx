@@ -82,7 +82,7 @@ export default function AgentReceiptPage() {
   const [receivedTo, setReceivedTo] = useState<string>("");
   const [receivedToName, setReceivedToName] = useState("");
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<"USD" | "IQD">("USD");
+  const [currency, setCurrency] = useState<"USD" | "IQD">("IQD");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
@@ -170,7 +170,7 @@ export default function AgentReceiptPage() {
     setReceivedTo("");
     setReceivedToName("");
     setAmount("");
-    setCurrency("USD");
+    setCurrency("IQD");
     setNote("");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
@@ -311,7 +311,12 @@ export default function AgentReceiptPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
             <div>
               <Label className="text-base font-bold mb-1 block">{t("Amount")}</Label>
-              <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="h-11 text-base font-semibold" data-testid="input-amount" disabled={!!editReceipt} />
+              <div className="relative">
+                <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} className={`h-11 text-base font-semibold ${isRtl ? 'pl-14' : 'pr-14'}`} data-testid="input-amount" disabled={!!editReceipt} />
+                <span className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'left-3' : 'right-3'} text-sm font-bold ${currency === 'USD' ? 'text-blue-600' : 'text-orange-600'}`}>
+                  {currency === 'USD' ? '$' : 'IQD'}
+                </span>
+              </div>
             </div>
             <div>
               <Label className="text-base font-bold mb-1 block">{t("Date")}</Label>
