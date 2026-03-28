@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -165,6 +165,7 @@ export async function registerRoutes(
     '/api/agents': 'agent_management',
     '/api/agent-clients': 'agent_management',
     '/api/agent-product-loads': 'agent_management',
+    '/api/agent-receipts': 'agent_management',
     '/api/rep-balances': 'agent_management',
     '/api/rep-sales': 'agent_management',
     '/api/rep-sales-by-product': 'agent_management',
@@ -3406,6 +3407,67 @@ export async function registerRoutes(
       res.json({ message: "Deleted" });
     } catch (err) {
       console.error("Error deleting agent payment:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Agent Receipts
+  app.get('/api/agent-receipts/next-number', requireAuth, async (_req, res) => {
+    try {
+      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(agentReceipts);
+      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
+      res.json({ receiptNumber: String(last + 1).padStart(6, "0") });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get(api.agentReceipts.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getAgentReceipts();
+    res.json(data);
+  });
+
+  app.post(api.agentReceipts.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.agentReceipts.create.input.parse(req.body);
+      const amount = parseFloat(input.amount || "0");
+      if (amount <= 0) {
+        return res.status(400).json({ message: "Amount must be greater than zero" });
+      }
+      const result = await storage.createAgentReceipt(input);
+      res.status(201).json(result);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch('/api/agent-receipts/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const { note, date, time } = req.body;
+      const updateFields: Record<string, any> = {};
+      if (note !== undefined) updateFields.note = note;
+      if (date !== undefined) updateFields.date = date;
+      if (time !== undefined) updateFields.time = time;
+      const [updated] = await db.update(agentReceipts).set(updateFields).where(eq(agentReceipts.id, id)).returning();
+      if (!updated) return res.status(404).json({ message: "Receipt not found" });
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete('/api/agent-receipts/:id', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const [receipt] = await db.select().from(agentReceipts).where(eq(agentReceipts.id, id));
+      if (!receipt) return res.status(404).json({ message: "Receipt not found" });
+      await db.delete(agentReceipts).where(eq(agentReceipts.id, id));
+      res.json({ message: "Deleted" });
+    } catch (err) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

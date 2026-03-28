@@ -35,6 +35,7 @@ import {
   insertPurchaseReturnItemSchema, purchaseReturnItems,
   insertCustomerReceiptSchema, customerReceipts,
   insertAgentPaymentSchema, agentPayments,
+  insertAgentReceiptSchema, agentReceipts,
   insertCurrencyExchangeSchema, currencyExchanges,
   insertWarehouseTransferSchema, warehouseTransfers,
   insertWarehouseTransferItemSchema, warehouseTransferItems,
@@ -800,6 +801,19 @@ export const api = {
       path: '/api/agent-payments' as const,
       input: insertAgentPaymentSchema,
       responses: { 201: z.custom<typeof agentPayments.$inferSelect>() }
+    }
+  },
+  agentReceipts: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/agent-receipts' as const,
+      responses: { 200: z.array(z.custom<typeof agentReceipts.$inferSelect>()) }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/agent-receipts' as const,
+      input: insertAgentReceiptSchema,
+      responses: { 201: z.custom<typeof agentReceipts.$inferSelect>() }
     }
   },
   currencyExchanges: {

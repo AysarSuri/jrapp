@@ -4,7 +4,7 @@ import {
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, clearancePurchaseInvoices, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
-  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications, agentPayments,
+  salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, notifications, agentPayments, agentReceipts,
   companyProfile,
   type Address, type InsertAddress,
   type Unit, type InsertUnit,
@@ -44,6 +44,7 @@ import {
   type Expense, type InsertExpense,
   type CustomerReceipt, type InsertCustomerReceipt,
   type AgentPayment, type InsertAgentPayment,
+  type AgentReceipt, type InsertAgentReceipt,
   type CompanyProfile, type InsertCompanyProfile,
   type CurrencyExchange, type InsertCurrencyExchange,
   type WarehouseTransfer, type InsertWarehouseTransfer,
@@ -219,6 +220,9 @@ export interface IStorage {
   getAgentPayments(): Promise<AgentPayment[]>;
   getAgentPaymentsByAgentId(agentId: number): Promise<AgentPayment[]>;
   createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment>;
+
+  getAgentReceipts(): Promise<AgentReceipt[]>;
+  createAgentReceipt(receipt: InsertAgentReceipt): Promise<AgentReceipt>;
 
   getCurrencyExchanges(): Promise<CurrencyExchange[]>;
   createCurrencyExchange(exchange: InsertCurrencyExchange): Promise<CurrencyExchange>;
@@ -811,6 +815,15 @@ export class DatabaseStorage implements IStorage {
 
   async createAgentPayment(payment: InsertAgentPayment): Promise<AgentPayment> {
     const [created] = await db.insert(agentPayments).values(payment).returning();
+    return created;
+  }
+
+  async getAgentReceipts(): Promise<AgentReceipt[]> {
+    return await db.select().from(agentReceipts).orderBy(sql`${agentReceipts.createdAt} DESC`);
+  }
+
+  async createAgentReceipt(receipt: InsertAgentReceipt): Promise<AgentReceipt> {
+    const [created] = await db.insert(agentReceipts).values(receipt).returning();
     return created;
   }
 

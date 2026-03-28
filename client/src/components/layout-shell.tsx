@@ -262,6 +262,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-management",
     "/agent-clients",
     "/agent-product-load",
+    "/agent-receipt",
     "/agent-gps",
     "/rep-statement",
   ];

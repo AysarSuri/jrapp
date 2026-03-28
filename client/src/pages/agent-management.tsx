@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { IconCustomers, IconSupplierList, IconAddress } from "@/components/erp-icons";
+import { IconCustomers, IconSupplierList, IconAddress, IconAgent } from "@/components/erp-icons";
 
 export default function AgentManagementPage() {
   const { t, i18n } = useTranslation();
@@ -25,6 +25,15 @@ export default function AgentManagementPage() {
       bg: "bg-emerald-50 dark:bg-emerald-900/20",
       iconColor: "text-emerald-600 dark:text-emerald-400",
       hoverBorder: "hover:border-emerald-300 dark:hover:border-emerald-700",
+    },
+    {
+      href: "/agent-receipt",
+      icon: IconAgent,
+      label: "Receipt from Agent",
+      gradient: "from-violet-500 to-violet-600",
+      bg: "bg-violet-50 dark:bg-violet-900/20",
+      iconColor: "text-violet-600 dark:text-violet-400",
+      hoverBorder: "hover:border-violet-300 dark:hover:border-violet-700",
     },
     {
       href: "/agent-gps",
