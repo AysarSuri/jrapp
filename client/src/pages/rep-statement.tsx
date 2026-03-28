@@ -2299,21 +2299,6 @@ export default function RepStatementPage() {
                 className="h-11 text-base font-semibold"
               />
             </div>
-            {hasUsdEntries && (
-            <div>
-              <Label className="text-base font-bold mb-1 block">{t('Currency')}</Label>
-              <div className="flex gap-1 h-11">
-                <Button
-                  variant={currency === "USD" ? "default" : "outline"}
-                  onClick={() => setCurrency("USD")}
-                  className={`h-11 px-5 text-base font-bold ${currency === "USD" ? "bg-primary text-white" : ""}`}
-                  data-testid="button-currency-usd"
-                >
-                  USD
-                </Button>
-              </div>
-            </div>
-            )}
             <div>
               <Label className="text-base font-bold mb-1 block">{t('From Date')}</Label>
               <DateInput value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-rep-statement-from-date" />
