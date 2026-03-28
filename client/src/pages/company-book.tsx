@@ -288,7 +288,7 @@ export default function CompanyBookPage() {
       ${PRINT_FONT_LINKS}
       <title>${t("Company Book")} - #${book.bookNumber}</title>
       <style>${getModernPrintStyles(dir)}
-        @page { size: A4 portrait; margin: 15mm; }
+        @page { size: A4 portrait; margin: 0; }
         .doc-container { padding: 20px; min-height: 700px; font-family: 'Tajawal', 'Inter', sans-serif; position: relative; }
         .doc-watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.08; pointer-events: none; z-index: 0; }
         .doc-watermark img { max-width: 400px; max-height: 400px; object-fit: contain; }
