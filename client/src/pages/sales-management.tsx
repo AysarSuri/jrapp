@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Undo2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
-import { IconCustomers, IconExpenseEntry, IconDollar, IconDinar, IconPosUsd, IconDebtReceipt, IconAgent, IconExpense } from "@/components/erp-icons";
+import { IconCustomers, IconExpenseEntry, IconDollar, IconDinar, IconPosUsd, IconDebtReceipt } from "@/components/erp-icons";
 
 export default function SalesManagementPage() {
   const { t, i18n } = useTranslation();
@@ -133,24 +133,6 @@ export default function SalesManagementPage() {
       bg: "bg-violet-50 dark:bg-violet-900/20",
       iconColor: "text-violet-600 dark:text-violet-400",
       hoverBorder: "hover:border-violet-300 dark:hover:border-violet-700",
-    },
-    {
-      href: "/agent-receipt-statement",
-      icon: IconAgent,
-      label: "Agent Receipt Statement",
-      gradient: "from-teal-500 to-teal-600",
-      bg: "bg-teal-50 dark:bg-teal-900/20",
-      iconColor: "text-teal-600 dark:text-teal-400",
-      hoverBorder: "hover:border-teal-300 dark:hover:border-teal-700",
-    },
-    {
-      href: "/agent-expense-statement",
-      icon: IconExpense,
-      label: "Agent Expense Statement",
-      gradient: "from-rose-500 to-rose-600",
-      bg: "bg-rose-50 dark:bg-rose-900/20",
-      iconColor: "text-rose-600 dark:text-rose-400",
-      hoverBorder: "hover:border-rose-300 dark:hover:border-rose-700",
     },
   ];
 
