@@ -534,28 +534,34 @@ export function LayoutShell({ children }: LayoutShellProps) {
     const testId = `link-nav-${item.href.replace(/\//g, '') || 'dashboard'}`;
     return (
       <Link key={item.href} href={item.href} data-testid={testId} className={`
-        flex items-center gap-3 ${indent ? 'px-4 py-2.5 ms-6' : 'px-4 py-3'} rounded-xl transition-all duration-200
+        flex items-center gap-3 ${indent ? 'px-3 py-2 ms-8 text-[13px]' : 'px-3.5 py-2.5'} rounded-lg transition-all duration-200
         ${isActive
-          ? "bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-md shadow-orange-500/20 font-medium"
-          : "text-[hsl(var(--sidebar-foreground))]/70 hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]"
+          ? "bg-[hsl(var(--sidebar-primary))] text-white shadow-lg shadow-amber-500/25 font-semibold"
+          : "text-[hsl(var(--sidebar-foreground))]/65 hover:bg-white/[0.06] hover:text-[hsl(var(--sidebar-foreground))]"
         }
       `}>
-        <item.icon className={`w-5 h-5 ${isActive ? "text-[hsl(var(--sidebar-primary-foreground))]" : ""}`} />
-        <span className={`${indent ? "text-sm" : ""}`}>{t(item.label)}</span>
+        <item.icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-white" : "opacity-70"}`} />
+        <span>{t(item.label)}</span>
+        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white/80 ms-auto shrink-0" />}
       </Link>
     );
   };
 
   const renderSidebar = () => (
-    <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] border-r border-[hsl(var(--sidebar-border))]">
-      <div className="p-6 border-b border-[hsl(var(--sidebar-border))]">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">
-          ProERP
-        </h1>
-        <p className="text-xs text-[hsl(var(--sidebar-foreground))]/60 mt-1">Enterprise Management</p>
+    <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))]">
+      <div className="px-5 py-5 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <span className="text-white font-bold text-sm">P</span>
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white tracking-tight">ProERP</h1>
+            <p className="text-[10px] text-[hsl(var(--sidebar-foreground))]/40 font-medium uppercase tracking-widest">Enterprise Management</p>
+          </div>
+        </div>
       </div>
 
-      <nav ref={sidebarScrollRef} className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav ref={sidebarScrollRef} className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {filteredSidebarItems.map((entry) => {
           if ('type' in entry && entry.type === 'group') {
             const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
@@ -606,24 +612,24 @@ export function LayoutShell({ children }: LayoutShellProps) {
                   }}
                   data-testid={`button-${testIdName}`}
                   className={`
-                    w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                    w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200
                     ${isLandingActive
-                      ? "bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-md shadow-orange-500/20 font-medium"
+                      ? "bg-[hsl(var(--sidebar-primary))] text-white shadow-lg shadow-amber-500/25 font-semibold"
                       : isActiveSection
-                        ? "bg-[hsl(var(--sidebar-accent))] text-orange-400 font-medium"
-                        : "text-[hsl(var(--sidebar-foreground))]/70 hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]"
+                        ? "bg-white/[0.08] text-amber-400 font-medium"
+                        : "text-[hsl(var(--sidebar-foreground))]/65 hover:bg-white/[0.06] hover:text-[hsl(var(--sidebar-foreground))]"
                     }
                   `}
                 >
-                  <entry.icon className={`w-5 h-5 ${isLandingActive ? "text-[hsl(var(--sidebar-primary-foreground))]" : ""}`} />
-                  <span className="flex-1 text-start">{t(entry.label)}</span>
+                  <entry.icon className={`w-[18px] h-[18px] shrink-0 ${isLandingActive ? "text-white" : "opacity-70"}`} />
+                  <span className="flex-1 text-start text-sm">{t(entry.label)}</span>
                   <ChevronDown
                     onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
-                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-primary-foreground" : ""}`}
+                    className={`w-3.5 h-3.5 transition-transform duration-200 opacity-50 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-white opacity-80" : ""}`}
                   />
                 </button>
                 {isOpen && (
-                  <div className="space-y-0.5">
+                  <div className="space-y-0.5 mt-0.5">
                     {entry.children.map((subItem) => renderNavLink(subItem, true))}
                   </div>
                 )}
@@ -634,17 +640,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold">
+      <div className="px-3 py-3 border-t border-white/[0.06]">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400 font-bold text-sm">
             {user?.username?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate text-[hsl(var(--sidebar-foreground))]">{user?.username}</p>
-            <p className="text-xs text-[hsl(var(--sidebar-foreground))]/50 truncate capitalize">{user?.role}</p>
+            <p className="text-sm font-medium truncate text-white/90">{user?.username}</p>
+            <p className="text-[11px] text-white/35 truncate capitalize">{user?.role}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-[hsl(var(--sidebar-foreground))]/60 hover:text-destructive">
-            <LogOut className="w-5 h-5" />
+          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8">
+            <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -661,7 +667,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-20 h-16 border-b border-border bg-background/80 backdrop-blur-md px-6 flex items-center justify-between">
+        <header className="sticky top-0 z-20 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-6 flex items-center justify-between">
           <div className="flex items-center gap-4 lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -669,14 +675,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72 border-r">
+              <SheetContent side={document.documentElement.dir === 'rtl' ? 'right' : 'left'} className="p-0 w-72 border-r">
                 {renderSidebar()}
               </SheetContent>
             </Sheet>
             <span className="font-bold text-lg">ProERP</span>
           </div>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ms-auto">
             {(user?.role === 'admin' || user?.role === 'user') && (
               <AgentSummaryBell />
             )}
@@ -745,8 +751,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-6 lg:p-10 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 p-5 lg:p-8 overflow-auto">
+          <div className="max-w-7xl mx-auto animate-fade-in">
             {children}
           </div>
         </div>

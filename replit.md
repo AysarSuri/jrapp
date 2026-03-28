@@ -29,7 +29,8 @@ Preferred communication style: Simple, everyday language.
 - **Internationalization**: `i18next` + `react-i18next` with inline translation resources in `client/src/lib/i18n.ts`. Supports English, Arabic, Kurdish (CKB), and Turkish. RTL is supported.
 - **Amount in Words**: `client/src/lib/number-to-words.ts` converts numeric amounts to words in Arabic, Kurdish, Turkish, and English. Used in all print receipt/payment vouchers (clearance statements, clearance receipts/payments, supplier payment/adjustment reports, expenses).
 - **Charts**: `recharts` for dashboard visualizations
-- **Theming**: CSS variables for light/dark mode, toggled via class on `<html>`. Custom fonts: Inter (Latin), Tajawal (Arabic).
+- **Theming**: CSS variables for light/dark mode, toggled via class on `<html>`. Custom fonts: Inter (Latin), Noto Naskh Arabic (Arabic/Kurdish RTL). Color palette: primary amber/gold (`hsl(35 92% 52%)`), dark navy sidebar (`hsl(222 47% 11%)`), cool gray background (`hsl(220 20% 97%)`). Sidebar uses white/opacity overlays for hover/active states.
+- **Dashboard**: Real data-driven KPIs (sales, returns, receipts, customers) from API queries. Charts show last 7 days revenue and last 6 months sales. Locale-aware date/month labels.
 - **Path aliases**: `@/` → `client/src/`, `@shared/` → `shared/`
 
 ### Backend (Express + Node.js)
