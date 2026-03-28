@@ -3434,6 +3434,10 @@ export async function registerRoutes(
       if (amount <= 0) {
         return res.status(400).json({ message: "Amount must be greater than zero" });
       }
+      const [existing] = await db.select({ id: agentReceipts.id }).from(agentReceipts).where(eq(agentReceipts.receiptNumber, input.receiptNumber)).limit(1);
+      if (existing) {
+        return res.status(400).json({ message: "Receipt number already exists" });
+      }
       const result = await storage.createAgentReceipt(input);
       res.status(201).json(result);
     } catch (err) {

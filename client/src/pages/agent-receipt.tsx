@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAgentReceipts, useCreateAgentReceipt, useUpdateAgentReceipt, useDeleteAgentReceipt } from "@/hooks/use-agent-receipts";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import type { AgentReceipt } from "@shared/schema";
 export default function AgentReceiptPage() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const { data: receipts, isLoading: receiptsLoading } = useAgentReceipts();
   const { mutate: createReceipt, isPending: isSaving } = useCreateAgentReceipt();
@@ -219,10 +220,12 @@ export default function AgentReceiptPage() {
       }, {
         onSuccess: () => {
           toast({ title: t("Receipt saved successfully") });
+          queryClient.invalidateQueries({ queryKey: ["/api/agent-receipts/next-number"] });
           resetForm();
         },
-        onError: () => {
-          toast({ title: t("Failed to save receipt"), variant: "destructive" });
+        onError: (err: any) => {
+          const msg = err?.message || t("Failed to save receipt");
+          toast({ title: msg, variant: "destructive" });
         },
       });
     }
