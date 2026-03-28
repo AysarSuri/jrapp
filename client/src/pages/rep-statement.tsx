@@ -174,6 +174,19 @@ export default function RepStatementPage() {
     enabled: !!selectedRepId && activeTab === "loads",
   });
 
+  const hasUsdEntries = (statement?.entries || []).some(e => e.currency === "USD") || (statement?.openingBalanceUsd && statement.openingBalanceUsd !== 0);
+  const hasIqdEntries = (statement?.entries || []).some(e => e.currency === "IQD") || (statement?.openingBalanceIqd && statement.openingBalanceIqd !== 0);
+
+  useEffect(() => {
+    if (statement) {
+      if (currency === "USD" && !hasUsdEntries && hasIqdEntries) {
+        setCurrency("IQD");
+      } else if (currency === "IQD" && !hasIqdEntries && hasUsdEntries) {
+        setCurrency("USD");
+      }
+    }
+  }, [statement, hasUsdEntries, hasIqdEntries]);
+
   const fmt = currency === "USD" ? usd : fmtIqd;
   const currencyLabel = currency === "USD" ? "$" : "IQD";
   const filteredEntries = statement?.entries?.filter(e => e.currency === currency) || [];
@@ -2148,9 +2161,11 @@ export default function RepStatementPage() {
                 className="h-11 text-base font-semibold"
               />
             </div>
+            {(hasUsdEntries || hasIqdEntries) && (
             <div>
               <Label className="text-base font-bold mb-1 block">{t('Currency')}</Label>
               <div className="flex gap-1 h-11">
+                {hasUsdEntries && (
                 <Button
                   variant={currency === "USD" ? "default" : "outline"}
                   onClick={() => setCurrency("USD")}
@@ -2159,6 +2174,8 @@ export default function RepStatementPage() {
                 >
                   USD
                 </Button>
+                )}
+                {hasIqdEntries && (
                 <Button
                   variant={currency === "IQD" ? "default" : "outline"}
                   onClick={() => setCurrency("IQD")}
@@ -2167,8 +2184,10 @@ export default function RepStatementPage() {
                 >
                   IQD
                 </Button>
+                )}
               </div>
             </div>
+            )}
             <div>
               <Label className="text-base font-bold mb-1 block">{t('From Date')}</Label>
               <DateInput value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-11 text-base font-semibold w-40" data-testid="input-rep-statement-from-date" />
