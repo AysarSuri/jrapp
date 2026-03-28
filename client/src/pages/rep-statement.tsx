@@ -2299,11 +2299,10 @@ export default function RepStatementPage() {
                 className="h-11 text-base font-semibold"
               />
             </div>
-            {(hasUsdEntries || hasIqdEntries) && (
+            {hasUsdEntries && (
             <div>
               <Label className="text-base font-bold mb-1 block">{t('Currency')}</Label>
               <div className="flex gap-1 h-11">
-                {hasUsdEntries && (
                 <Button
                   variant={currency === "USD" ? "default" : "outline"}
                   onClick={() => setCurrency("USD")}
@@ -2312,17 +2311,6 @@ export default function RepStatementPage() {
                 >
                   USD
                 </Button>
-                )}
-                {hasIqdEntries && (
-                <Button
-                  variant={currency === "IQD" ? "default" : "outline"}
-                  onClick={() => setCurrency("IQD")}
-                  className={`h-11 px-5 text-base font-bold ${currency === "IQD" ? "bg-primary text-white" : ""}`}
-                  data-testid="button-currency-iqd"
-                >
-                  IQD
-                </Button>
-                )}
               </div>
             </div>
             )}
