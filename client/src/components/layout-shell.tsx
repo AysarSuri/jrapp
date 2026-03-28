@@ -304,6 +304,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/agent-payment-iqd",
     "/agent-statement-usd",
     "/agent-statement-iqd",
+    "/agent-receipt-statement",
+    "/agent-expense-statement",
     "/customer-debts",
   ];
 
@@ -485,6 +487,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/agent-payment-iqd", icon: IconPaymentIqd, label: "Customer Payment IQD" },
     { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD" },
     { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD" },
+    { href: "/agent-receipt-statement", icon: IconStatementUsd, label: "Agent Receipt Statement" },
+    { href: "/agent-expense-statement", icon: IconStatementIqd, label: "Agent Expense Statement" },
     { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts" },
   ];
 
