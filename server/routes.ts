@@ -166,6 +166,7 @@ export async function registerRoutes(
     '/api/agent-clients': 'agent_management',
     '/api/agent-product-loads': 'agent_management',
     '/api/agent-receipts': 'agent_management',
+    '/api/agent-daily-summary': 'agent_management',
     '/api/rep-balances': 'agent_management',
     '/api/rep-sales': 'agent_management',
     '/api/rep-sales-by-product': 'agent_management',
@@ -3412,6 +3413,76 @@ export async function registerRoutes(
   });
 
   // Agent Receipts
+  app.get('/api/agent-daily-summary', requireAuth, async (req, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const date = (req.query.date as string) || today;
+
+      const allSales = await db.select().from(salesInvoices).where(eq(salesInvoices.date, date));
+      const allReturns = await db.select().from(salesReturns).where(eq(salesReturns.date, date));
+      const allReceipts = await db.select().from(agentReceipts).where(eq(agentReceipts.date, date));
+      const allPayments = await db.select().from(agentPayments).where(eq(agentPayments.date, date));
+
+      const agentMap: Record<string, any> = {};
+
+      const getAgent = (name: string) => {
+        if (!agentMap[name]) {
+          agentMap[name] = {
+            agentName: name,
+            salesUsd: 0, salesIqd: 0, salesCount: 0,
+            returnsUsd: 0, returnsIqd: 0, returnsCount: 0,
+            receiptsUsd: 0, receiptsIqd: 0, receiptsCount: 0,
+            paymentsUsd: 0, paymentsIqd: 0, paymentsCount: 0,
+            discountsUsd: 0, discountsIqd: 0,
+          };
+        }
+        return agentMap[name];
+      };
+
+      for (const s of allSales) {
+        if (!s.representativeName) continue;
+        const a = getAgent(s.representativeName);
+        a.salesCount++;
+        if (s.currency === 'USD') a.salesUsd += parseFloat(s.subtotal || '0');
+        else a.salesIqd += parseFloat(s.subtotal || '0');
+        if (s.currency === 'USD') a.discountsUsd += parseFloat(s.discount || '0');
+        else a.discountsIqd += parseFloat(s.discount || '0');
+      }
+
+      for (const r of allReturns) {
+        if (!r.representativeName) continue;
+        const a = getAgent(r.representativeName);
+        a.returnsCount++;
+        if (r.currency === 'USD') a.returnsUsd += parseFloat(r.subtotal || '0');
+        else a.returnsIqd += parseFloat(r.subtotal || '0');
+      }
+
+      for (const r of allReceipts) {
+        if (!r.agentName) continue;
+        const a = getAgent(r.agentName);
+        a.receiptsCount++;
+        if (r.currency === 'USD') a.receiptsUsd += parseFloat(r.amount || '0');
+        else a.receiptsIqd += parseFloat(r.amount || '0');
+      }
+
+      for (const p of allPayments) {
+        if (!p.agentName) continue;
+        const a = getAgent(p.agentName);
+        a.paymentsCount++;
+        if (p.currency === 'USD') a.paymentsUsd += parseFloat(p.amount || '0');
+        else a.paymentsIqd += parseFloat(p.amount || '0');
+      }
+
+      const summaries = Object.values(agentMap).filter((a: any) =>
+        a.salesCount > 0 || a.returnsCount > 0 || a.receiptsCount > 0 || a.paymentsCount > 0
+      );
+
+      res.json({ date, summaries });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/agent-receipts/next-number', requireAuth, async (_req, res) => {
     try {
       const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(agentReceipts);

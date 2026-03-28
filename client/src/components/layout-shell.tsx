@@ -96,6 +96,7 @@ import { useToast } from "@/hooks/use-toast";
 import { hasRoutePermission, PERMISSION_MODULES } from "@/lib/permissions";
 import { useUnreadNotificationCount, useNotifications, useMarkNotificationRead } from "@/hooks/use-notifications";
 import { useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
+import AgentSummaryBell from "@/components/agent-summary-bell";
 
 interface LayoutShellProps {
   children: React.ReactNode;
@@ -676,6 +677,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+            {(user?.role === 'admin' || user?.role === 'user') && (
+              <AgentSummaryBell />
+            )}
             {(user?.role === 'admin' || user?.role === 'user') && (
               <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
                 <DropdownMenuTrigger asChild>
