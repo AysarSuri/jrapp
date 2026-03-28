@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck, CreditCard } from "lucide-react";
+import { Loader2, Printer, Eye, Pencil, Trash2, FileText, Package, ShoppingCart, RotateCcw, Receipt, Truck, CreditCard, Wallet, DollarSign } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +57,7 @@ interface StatementResponse {
   openingBalanceIqd: number;
 }
 
-type TabKey = "remaining" | "salesByProduct" | "sales" | "returns" | "receipts" | "paymentsStatement" | "loads";
+type TabKey = "remaining" | "salesByProduct" | "sales" | "returns" | "receipts" | "paymentsStatement" | "loads" | "agentReceipts" | "agentExpenses";
 
 export default function RepStatementPage() {
   const { t } = useTranslation();
@@ -172,6 +172,32 @@ export default function RepStatementPage() {
       return res.json();
     },
     enabled: !!selectedRepId && activeTab === "loads",
+  });
+
+  const { data: allAgentReceipts, isLoading: agentReceiptsLoading } = useQuery<any[]>({
+    queryKey: ["/api/agent-receipts"],
+    enabled: !!selectedRepId && activeTab === "agentReceipts",
+  });
+
+  const { data: allExpenses, isLoading: agentExpensesLoading } = useQuery<any[]>({
+    queryKey: ["/api/expenses"],
+    enabled: !!selectedRepId && activeTab === "agentExpenses",
+  });
+
+  const repName = reps.find((r: any) => String(r.id) === String(selectedRepId))?.name || "";
+
+  const filteredAgentReceipts = (allAgentReceipts || []).filter((r: any) => {
+    if (String(r.agentId) !== String(selectedRepId)) return false;
+    if (fromDate && r.date < fromDate) return false;
+    if (toDate && r.date > toDate) return false;
+    return true;
+  });
+
+  const filteredAgentExpenses = (allExpenses || []).filter((e: any) => {
+    if (!e.agentName || e.agentName !== repName) return false;
+    if (fromDate && e.date < fromDate) return false;
+    if (toDate && e.date > toDate) return false;
+    return true;
   });
 
   const hasUsdEntries = (statement?.entries || []).some(e => e.currency === "USD") || (statement?.openingBalanceUsd && statement.openingBalanceUsd !== 0);
@@ -594,6 +620,8 @@ export default function RepStatementPage() {
     { key: "receipts", label: t("Receipts by Representative"), icon: Receipt },
     { key: "paymentsStatement", label: t("Payments by Representative"), icon: CreditCard },
     { key: "loads", label: t("Product Loads for Rep"), icon: Truck },
+    { key: "agentReceipts", label: t("Agent Receipt Statement"), icon: Wallet },
+    { key: "agentExpenses", label: t("Agent Expense Statement"), icon: DollarSign },
   ];
 
   const handlePrintRemaining = () => {
@@ -2001,6 +2029,116 @@ export default function RepStatementPage() {
     );
   };
 
+  const renderAgentReceiptsTab = () => {
+    if (agentReceiptsLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+
+    if (filteredAgentReceipts.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><Wallet className="w-10 h-10 mb-2" /><p className="font-semibold">{t("No receipts found")}</p></div>;
+    }
+
+    const totalUsd = filteredAgentReceipts.reduce((s: number, r: any) => r.currency === "USD" ? s + parseFloat(r.amount || "0") : s, 0);
+    const totalIqd = filteredAgentReceipts.reduce((s: number, r: any) => r.currency === "IQD" ? s + parseFloat(r.amount || "0") : s, 0);
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Card className="border-blue-200 dark:border-blue-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total USD")}</p><p className="text-lg font-bold text-blue-600 font-mono">{usd(totalUsd)}</p></CardContent></Card>
+          <Card className="border-orange-200 dark:border-orange-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total IQD")}</p><p className="text-lg font-bold text-orange-600 font-mono">{fmtIqd(totalIqd)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total Records")}</p><p className="text-lg font-bold font-mono">{filteredAgentReceipts.length}</p></CardContent></Card>
+        </div>
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t("Receipt #")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Received To")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("USD Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("IQD Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAgentReceipts.map((r: any, i: number) => (
+                <TableRow key={r.id} data-testid={`row-agent-receipt-${r.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{r.receiptNumber}</TableCell>
+                  <TableCell className="text-sm font-semibold">{r.receivedToName}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-blue-600">{r.currency === "USD" ? usd(parseFloat(r.amount || "0")) : "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-orange-600">{r.currency === "IQD" ? fmtIqd(parseFloat(r.amount || "0")) : "-"}</TableCell>
+                  <TableCell className="text-sm font-semibold">{formatDate(r.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold max-w-[200px] truncate">{r.note || "-"}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/60 font-bold border-t-2">
+                <TableCell colSpan={3} className="text-sm font-bold">{t("Total")}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-blue-600">{totalUsd > 0 ? usd(totalUsd) : "-"}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-orange-600">{totalIqd > 0 ? fmtIqd(totalIqd) : "-"}</TableCell>
+                <TableCell colSpan={2}></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
+  const renderAgentExpensesTab = () => {
+    if (agentExpensesLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+
+    if (filteredAgentExpenses.length === 0) {
+      return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><DollarSign className="w-10 h-10 mb-2" /><p className="font-semibold">{t("No expenses found")}</p></div>;
+    }
+
+    const totalUsd = filteredAgentExpenses.reduce((s: number, e: any) => s + parseFloat(e.amountUsd || "0"), 0);
+    const totalIqd = filteredAgentExpenses.reduce((s: number, e: any) => s + parseFloat(e.amountIqd || "0"), 0);
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Card className="border-blue-200 dark:border-blue-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total USD")}</p><p className="text-lg font-bold text-blue-600 font-mono">{usd(totalUsd)}</p></CardContent></Card>
+          <Card className="border-orange-200 dark:border-orange-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total IQD")}</p><p className="text-lg font-bold text-orange-600 font-mono">{fmtIqd(totalIqd)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total Records")}</p><p className="text-lg font-bold font-mono">{filteredAgentExpenses.length}</p></CardContent></Card>
+        </div>
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-sm font-bold">#</TableHead>
+                <TableHead className="text-sm font-bold">{t("Invoice #")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Expense Type")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("USD Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("IQD Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAgentExpenses.map((e: any, i: number) => (
+                <TableRow key={e.id} data-testid={`row-agent-expense-${e.id}`}>
+                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold">{e.invoiceNumber || "-"}</TableCell>
+                  <TableCell className="text-sm font-semibold">{e.expenseTypeName || "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-blue-600">{parseFloat(e.amountUsd || "0") > 0 ? usd(parseFloat(e.amountUsd)) : "-"}</TableCell>
+                  <TableCell className="font-mono text-sm font-semibold text-orange-600">{parseFloat(e.amountIqd || "0") > 0 ? fmtIqd(parseFloat(e.amountIqd)) : "-"}</TableCell>
+                  <TableCell className="text-sm font-semibold">{formatDate(e.date)}</TableCell>
+                  <TableCell className="text-sm font-semibold max-w-[200px] truncate">{e.description || "-"}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="bg-muted/60 font-bold border-t-2">
+                <TableCell colSpan={3} className="text-sm font-bold">{t("Total")}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-blue-600">{totalUsd > 0 ? usd(totalUsd) : "-"}</TableCell>
+                <TableCell className="font-mono text-sm font-bold text-orange-600">{totalIqd > 0 ? fmtIqd(totalIqd) : "-"}</TableCell>
+                <TableCell colSpan={2}></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
   const renderStatementTab = () => {
     if (statementLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (!statement) return null;
@@ -2230,6 +2368,8 @@ export default function RepStatementPage() {
               {activeTab === "receipts" && renderReceiptsTab()}
               {activeTab === "paymentsStatement" && renderPaymentsStatementTab()}
               {activeTab === "loads" && renderLoadsTab()}
+              {activeTab === "agentReceipts" && renderAgentReceiptsTab()}
+              {activeTab === "agentExpenses" && renderAgentExpensesTab()}
             </CardContent>
           </Card>
         </>
