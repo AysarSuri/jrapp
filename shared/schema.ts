@@ -376,6 +376,7 @@ export const expenses = pgTable("expenses", {
   amountIqd: numeric("amount_iqd").notNull().default("0"),
   description: text("description"),
   reference: text("reference"),
+  agentName: text("agent_name"),
   date: text("date").notNull(),
   time: text("time").notNull().default("00:00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

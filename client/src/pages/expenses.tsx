@@ -3,11 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useExpenseTypes } from "@/hooks/use-expense-types";
+import { useUser } from "@/hooks/use-auth";
 import type { ExpenseType, Expense } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ExpenseTypeSearchSelect } from "@/components/expense-type-search-select";
+import { SearchSelect } from "@/components/search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -48,6 +50,21 @@ export default function ExpensesPage() {
     queryKey: ["/api/company-profile"],
   });
 
+  const { data: user } = useUser();
+  const userRole = user?.role || 'user';
+  const isSalesRep = userRole === 'sales_rep';
+
+  const { data: representativesList } = useQuery<{ id: string; name: string; repId: number | null }[]>({
+    queryKey: ["/api/agents"],
+  });
+
+  const agents = useMemo(() => {
+    return (representativesList || []).filter((r: any) => r.repId).map((r: any) => ({
+      id: String(r.repId),
+      name: r.name,
+    }));
+  }, [representativesList]);
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expenseTypeId, setExpenseTypeId] = useState<string>("");
   const [expenseTypeName, setExpenseTypeName] = useState("");
@@ -56,6 +73,7 @@ export default function ExpensesPage() {
   const [amountIqd, setAmountIqd] = useState("");
   const [description, setDescription] = useState("");
   const [reference, setReference] = useState("");
+  const [agentName, setAgentName] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
@@ -87,6 +105,12 @@ export default function ExpensesPage() {
     }
   }, [nextInvoiceNumber, editingId]);
 
+  useEffect(() => {
+    if (isSalesRep && user?.fullName && !agentName) {
+      setAgentName(user.fullName);
+    }
+  }, [isSalesRep, user?.fullName]);
+
   const incrementInvoiceNumber = (current: string) => {
     const match = current.match(/^(.*?)(\d+)$/);
     if (match) {
@@ -107,6 +131,7 @@ export default function ExpensesPage() {
     setAmountIqd("");
     setDescription("");
     setReference("");
+    setAgentName(isSalesRep && user?.fullName ? user.fullName : "");
     setDate(new Date().toISOString().split('T')[0]);
     setTime(new Date().toTimeString().slice(0, 5));
   };
@@ -120,6 +145,7 @@ export default function ExpensesPage() {
     setAmountIqd(e.amountIqd);
     setDescription(e.description || "");
     setReference(e.reference || "");
+    setAgentName(e.agentName || "");
     setDate(e.date);
     setTime(e.time || "00:00");
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -154,6 +180,7 @@ export default function ExpensesPage() {
       amountIqd: amountIqd || "0",
       description: description || null,
       reference: reference || null,
+      agentName: agentName || null,
       date,
       time,
     };
@@ -236,6 +263,7 @@ export default function ExpensesPage() {
         <td class="credit">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
         <td>${e.description || "-"}</td>
         <td>${e.reference || "-"}</td>
+        <td>${e.agentName || "-"}</td>
       </tr>
     `).join("");
 
@@ -286,6 +314,7 @@ export default function ExpensesPage() {
               <th>${t("IQD Amount")}</th>
               <th>${t("Note")}</th>
               <th>${t("Reference")}</th>
+              <th>${t("Agent Name")}</th>
             </tr>
           </thead>
           <tbody>
@@ -294,7 +323,7 @@ export default function ExpensesPage() {
               <td colspan="5"><strong>${t("Total")}</strong></td>
               <td class="debit"><strong>${usd(filteredTotalUsd)}</strong></td>
               <td class="credit"><strong>${filteredTotalIqd.toLocaleString()} IQD</strong></td>
-              <td colspan="2"></td>
+              <td colspan="3"></td>
             </tr>
           </tbody>
         </table>
@@ -421,6 +450,10 @@ export default function ExpensesPage() {
             <span class="detail-label">${t("Reference")}</span>
             <span class="detail-value">${e.reference || "-"}</span>
           </div>
+          ${e.agentName ? `<div class="detail-item">
+            <span class="detail-label">${t("Agent Name")}</span>
+            <span class="detail-value">${e.agentName}</span>
+          </div>` : ""}
         </div>
 
         <div class="amount-section">
@@ -497,7 +530,7 @@ export default function ExpensesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <Label>{t('Invoice Number')}</Label>
                 <Input value={invoiceNumber} readOnly className="font-mono bg-muted cursor-not-allowed" data-testid="input-expense-invoice-number" />
@@ -519,6 +552,23 @@ export default function ExpensesPage() {
               <div className="space-y-2">
                 <Label>{t('Time')}</Label>
                 <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} data-testid="input-expense-time" />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Agent Name')}</Label>
+                {isSalesRep ? (
+                  <Input value={agentName} readOnly className="bg-muted cursor-not-allowed" data-testid="input-agent-name" />
+                ) : (
+                  <SearchSelect
+                    items={agents}
+                    value={agents.find(a => a.name === agentName)?.id || ""}
+                    onValueChange={(id) => {
+                      const agent = agents.find(a => a.id === id);
+                      setAgentName(agent?.name || "");
+                    }}
+                    placeholder={t("Select agent...")}
+                    data-testid="select-agent-name"
+                  />
+                )}
               </div>
             </div>
 
@@ -722,6 +772,7 @@ export default function ExpensesPage() {
                     <TableHead>{t('IQD Amount')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
                     <TableHead>{t('Reference')}</TableHead>
+                    <TableHead>{t('Agent Name')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -745,6 +796,7 @@ export default function ExpensesPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{e.description || "-"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.reference || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{e.agentName || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
                           <Button
