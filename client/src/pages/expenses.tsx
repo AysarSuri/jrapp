@@ -77,6 +77,7 @@ export default function ExpensesPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
+  const [agentFilter, setAgentFilter] = useState<string>("");
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -228,6 +229,7 @@ export default function ExpensesPage() {
     if (historyFromDate && e.date < historyFromDate) return false;
     if (historyToDate && e.date > historyToDate) return false;
     if (invoiceSearch.trim() && !(e.invoiceNumber || "").toLowerCase().includes(invoiceSearch.trim().toLowerCase())) return false;
+    if (agentFilter && agentFilter !== "all" && (e.agentName || "") !== agentFilter) return false;
     return true;
   });
   const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
@@ -236,6 +238,11 @@ export default function ExpensesPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
   const totalUsd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountUsd || "0"), 0);
   const totalIqd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountIqd || "0"), 0);
+
+  const agentFilterItems = useMemo(() => {
+    const names = [...new Set(expensesList.map((e: Expense) => e.agentName).filter(Boolean))];
+    return names.map(n => ({ id: n as string, name: n as string }));
+  }, [expensesList]);
 
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const fieldColor = companyProfile?.primaryColor || "#dc2626";
@@ -746,6 +753,18 @@ export default function ExpensesPage() {
                   showAllOption
                   allOptionLabel={t('All Expense Types')}
                   data-testid="select-filter-expense-history"
+                  inputClassName="h-9"
+                />
+              </div>
+              <div className="w-48">
+                <SearchSelect
+                  items={agentFilterItems}
+                  value={agentFilter}
+                  onValueChange={(id) => { setAgentFilter(id); setCurrentPage(1); }}
+                  placeholder={t('All Agents')}
+                  showAllOption
+                  allOptionLabel={t('All Agents')}
+                  data-testid="select-filter-agent"
                   inputClassName="h-9"
                 />
               </div>
