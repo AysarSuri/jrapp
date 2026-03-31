@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Undo2, ArrowDownToLine, FileSearch, ChevronLeft, ChevronRight } from "lucide-react";
-import { IconSupplierList, IconExpenseEntry, IconDinar, IconInventory } from "@/components/erp-icons";
+import { IconSupplierList, IconExpenseEntry, IconDinar, IconInventory, IconSupplierOrderUsd, IconSupplierOrderIqd } from "@/components/erp-icons";
 
 export default function SupplierManagementPage() {
   const { t, i18n } = useTranslation();
@@ -97,6 +97,24 @@ export default function SupplierManagementPage() {
       bg: "bg-red-50 dark:bg-red-900/20",
       iconColor: "text-red-600 dark:text-red-400",
       hoverBorder: "hover:border-red-300 dark:hover:border-red-700",
+    },
+    {
+      href: "/supplier-order-usd",
+      icon: IconSupplierOrderUsd,
+      label: "Supplier Order USD",
+      gradient: "from-sky-500 to-sky-600",
+      bg: "bg-sky-50 dark:bg-sky-900/20",
+      iconColor: "text-sky-600 dark:text-sky-400",
+      hoverBorder: "hover:border-sky-300 dark:hover:border-sky-700",
+    },
+    {
+      href: "/supplier-order-iqd",
+      icon: IconSupplierOrderIqd,
+      label: "Supplier Order IQD",
+      gradient: "from-amber-500 to-amber-600",
+      bg: "bg-amber-50 dark:bg-amber-900/20",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      hoverBorder: "hover:border-amber-300 dark:hover:border-amber-700",
     },
   ];
 
