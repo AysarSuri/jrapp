@@ -446,18 +446,17 @@ export default function SuppliersPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/supplier-management">
-        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-5 w-5" />
-          {t("Supplier Management")}
-        </Button>
-      </Link>
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('Suppliers')}</h1>
           <p className="text-muted-foreground mt-1">{t('Manage your suppliers')}</p>
         </div>
+        <Link href="/supplier-management">
+          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+            <ArrowLeft className="h-5 w-5" />
+            {t("Supplier Management")}
+          </Button>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
