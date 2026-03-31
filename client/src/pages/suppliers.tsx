@@ -489,7 +489,7 @@ export default function SuppliersPage() {
       </div>
 
       <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-2 pt-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             {editingClient ? (
               <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Supplier')}</>
@@ -498,10 +498,10 @@ export default function SuppliersPage() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Name')}</FormLabel>
@@ -545,7 +545,7 @@ export default function SuppliersPage() {
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="hidden" render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0 pt-6">
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-4">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
