@@ -1055,6 +1055,7 @@ export default function SalesInvoiceUsdPage() {
                       <TableHead className="text-right">{t('Amount Paid')}</TableHead>
                       <TableHead className="text-right">{t('Discount')}</TableHead>
                       <TableHead className="text-right">{t('Remaining')}</TableHead>
+                      <TableHead>{t('Created By')}</TableHead>
                       <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1087,6 +1088,7 @@ export default function SalesInvoiceUsdPage() {
                         <TableCell className="text-right text-sm font-mono font-bold text-green-600">{usd(inv.amountPaid)}</TableCell>
                         <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{usd(inv.discount)}</TableCell>
                         <TableCell className="text-right text-sm font-mono font-bold text-red-600">{usd(inv.remaining)}</TableCell>
+                        <TableCell className="text-sm font-semibold">{inv.createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-sales-invoice-${inv.id}`}>

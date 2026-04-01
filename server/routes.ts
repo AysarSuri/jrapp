@@ -3255,6 +3255,8 @@ export async function registerRoutes(
       }
 
       const totalDeducted = amount + discount;
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
 
       const result = await db.transaction(async (tx) => {
         const [customer] = await tx.select().from(clients).where(eq(clients.id, input.customerId));
@@ -3281,6 +3283,7 @@ export async function registerRoutes(
           ...input,
           oldDebt: String(currentDebt),
           remaining: String(remaining),
+          createdBy: sessionUser?.username || null,
         }).returning();
 
         return receipt;
@@ -3343,6 +3346,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Amount must be greater than zero" });
       }
 
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
+
       const result = await db.transaction(async (tx) => {
         const [customer] = await tx.select().from(clients).where(eq(clients.id, input.agentId));
         const currency = input.currency;
@@ -3368,6 +3374,7 @@ export async function registerRoutes(
           ...input,
           oldDebt: String(currentDebt),
           remaining: String(remaining),
+          createdBy: sessionUser?.username || null,
         }).returning();
 
         return payment;

@@ -1149,6 +1149,7 @@ export default function PosIqdPage() {
                       <TableHead className="text-right">{t('Amount Paid')}</TableHead>
                       <TableHead className="text-right">{t('Discount')}</TableHead>
                       <TableHead className="text-right">{t('Remaining')}</TableHead>
+                      <TableHead>{t('Created By')}</TableHead>
                       <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1181,6 +1182,7 @@ export default function PosIqdPage() {
                         <TableCell className="text-right text-sm font-mono font-bold text-green-600">{fmtIqd(inv.amountPaid)} IQD</TableCell>
                         <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{fmtIqd(inv.discount)} IQD</TableCell>
                         <TableCell className="text-right text-sm font-mono font-bold text-red-600">{fmtIqd(inv.remaining)} IQD</TableCell>
+                        <TableCell className="text-sm font-semibold">{inv.createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportInvoiceId(inv.id); setReportOpen(true); }} data-testid={`btn-view-pos-iqd-invoice-${inv.id}`}>

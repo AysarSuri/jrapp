@@ -736,6 +736,7 @@ export default function CustomerReceiptIqdPage() {
                     <TableHead>{t('Amount')}</TableHead>
                     <TableHead>{t('Discount')}</TableHead>
                     <TableHead>{t('Notes')}</TableHead>
+                    <TableHead>{t('Created By')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -757,6 +758,7 @@ export default function CustomerReceiptIqdPage() {
                         {parseFloat(r.discount) > 0 ? formatIQD(parseFloat(r.discount)) : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{r.note || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{r.createdBy || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button

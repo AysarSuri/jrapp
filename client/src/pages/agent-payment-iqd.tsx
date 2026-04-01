@@ -689,6 +689,7 @@ export default function AgentPaymentIqdPage() {
                       <TableHead>{t('Source')}</TableHead>
                       <TableHead>{t('Amount')}</TableHead>
                       <TableHead>{t('Notes')}</TableHead>
+                      <TableHead>{t('Created By')}</TableHead>
                       <TableHead className="text-center">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -707,6 +708,7 @@ export default function AgentPaymentIqdPage() {
                           {parseFloat(p.amount) > 0 ? formatIQD(parseFloat(p.amount)) : "-"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                        <TableCell className="text-sm font-semibold">{p.createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="text-blue-600" onClick={() => openReport(p)} data-testid={`button-report-payment-${p.id}`}>
