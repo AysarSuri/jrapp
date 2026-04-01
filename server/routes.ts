@@ -864,7 +864,9 @@ export async function registerRoutes(
   app.post(api.clients.create.path, requireAuth, async (req, res) => {
     try {
       const input = api.clients.create.input.parse(req.body);
-      const data = await storage.createClient(input);
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
+      const data = await storage.createClient({ ...input, createdBy: sessionUser?.username || null });
       res.status(201).json(data);
     } catch (err: any) {
       if (err instanceof z.ZodError) {

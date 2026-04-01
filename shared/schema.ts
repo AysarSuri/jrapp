@@ -132,6 +132,7 @@ export const clients = pgTable("clients", {
   oldDebtUsd: numeric("old_debt_usd").notNull().default('0'),
   oldDebtIqd: numeric("old_debt_iqd").notNull().default('0'),
   hidden: boolean("hidden").notNull().default(false),
+  createdBy: text("created_by"),
 });
 
 export const accounts = pgTable("accounts", {

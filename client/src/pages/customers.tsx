@@ -706,6 +706,7 @@ export default function CustomersPage() {
                     {fv.customer_agent && <TableHead className="text-sm font-bold">{t("Agent")}</TableHead>}
                     {fv.customer_oldDebtUsd && <TableHead className="text-sm font-bold text-right">{t("Opening Balance (USD)")}</TableHead>}
                     {fv.customer_oldDebtIqd && <TableHead className="text-sm font-bold text-right">{t("Opening Balance (IQD)")}</TableHead>}
+                    <TableHead className="text-sm font-bold">{t("Created By")}</TableHead>
                     <TableHead className="text-sm font-bold text-center">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -741,6 +742,7 @@ export default function CustomersPage() {
                       )}
                       {fv.customer_oldDebtUsd && <TableCell className="text-sm font-semibold text-right font-mono">{usd(client.oldDebtUsd || 0)}</TableCell>}
                       {fv.customer_oldDebtIqd && <TableCell className="text-sm font-semibold text-right font-mono">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>}
+                      <TableCell className="text-sm font-semibold">{client.createdBy || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button
