@@ -787,6 +787,7 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
                       <TableHead>{t("Supplier")}</TableHead>
                       <TableHead>{t("Type")}</TableHead>
                       <TableHead className="text-right">{t("Total")}</TableHead>
+                      <TableHead>{t("Created By")}</TableHead>
                       <TableHead className="text-center">{t("Actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -803,6 +804,7 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right text-sm font-mono font-bold">{fmt(ord.subtotal)}</TableCell>
+                        <TableCell className="text-sm font-semibold">{(ord as any).createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => handlePrintOrder(ord.id)} data-testid={`btn-print-order-${ord.id}`}>

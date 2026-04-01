@@ -784,6 +784,7 @@ export default function PurchaseReturnIqdPage() {
                   <TableHead>{t('Total')}</TableHead>
                   <TableHead>{t('Remaining')}</TableHead>
                   <TableHead>{t('Status')}</TableHead>
+                  <TableHead>{t('Created By')}</TableHead>
                   <TableHead className="text-center">{t('Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -814,6 +815,7 @@ export default function PurchaseReturnIqdPage() {
                         </Badge>
                       )}
                     </TableCell>
+                    <TableCell className="text-sm font-semibold">{(ret as any).createdBy || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => { setReportReturnId(ret.id); setReportOpen(true); }} data-testid={`btn-view-return-iqd-${ret.id}`}>

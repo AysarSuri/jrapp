@@ -647,6 +647,7 @@ export default function SuppliersPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Opening Balance (IQD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Balance')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Created By')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -677,6 +678,7 @@ export default function SuppliersPage() {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-sm font-semibold">{client.createdBy || '-'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>

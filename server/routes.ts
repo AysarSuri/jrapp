@@ -1208,8 +1208,10 @@ export async function registerRoutes(
   app.post(api.purchaseInvoices.create.path, requireAuth, async (req, res) => {
     try {
       const { invoice, items } = api.purchaseInvoices.create.input.parse(req.body);
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
       const result = await db.transaction(async (tx) => {
-        const [created] = await tx.insert(purchaseInvoices).values(invoice).returning();
+        const [created] = await tx.insert(purchaseInvoices).values({ ...invoice, createdBy: sessionUser?.username || null }).returning();
         if (items.length > 0) {
           const itemsWithInvoiceId = items.map(item => ({
             ...item,
@@ -1277,6 +1279,9 @@ export async function registerRoutes(
         return res.status(400).json({ message: "At least one payment amount must be greater than zero" });
       }
 
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
+
       const result = await db.transaction(async (tx) => {
         const [supplier] = await tx.select().from(clients).where(eq(clients.id, input.supplierId));
         const currentDebtUsd = parseFloat(supplier?.oldDebtUsd || "0");
@@ -1300,6 +1305,7 @@ export async function registerRoutes(
           oldDebtIqd: String(currentDebtIqd),
           remainingUsd: String(remainingUsd),
           remainingIqd: String(remainingIqd),
+          createdBy: sessionUser?.username || null,
         }).returning();
 
         return payment;
@@ -1330,6 +1336,9 @@ export async function registerRoutes(
       if (usdAmount <= 0 && iqdAmount <= 0) {
         return res.status(400).json({ message: "At least one amount must be greater than zero" });
       }
+
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
 
       const result = await db.transaction(async (tx) => {
         const [supplier] = await tx.select().from(clients).where(eq(clients.id, input.supplierId));
@@ -1363,6 +1372,7 @@ export async function registerRoutes(
           oldDebtIqd: String(currentDebtIqd),
           remainingUsd: String(remainingUsd),
           remainingIqd: String(remainingIqd),
+          createdBy: sessionUser?.username || null,
         }).returning();
 
         return adj;
@@ -3090,7 +3100,7 @@ export async function registerRoutes(
       if (!sessionUser) return res.status(401).json({ message: "Unauthorized" });
 
       const result = await db.transaction(async (tx) => {
-        const [created] = await tx.insert(purchaseReturns).values(returnData).returning();
+        const [created] = await tx.insert(purchaseReturns).values({ ...returnData, createdBy: sessionUser?.username || null }).returning();
         if (items.length > 0) {
           const itemsWithReturnId = items.map(item => ({
             ...item,
@@ -5667,8 +5677,10 @@ export async function registerRoutes(
       if (!order || !order.orderNumber || !order.supplierName) {
         return res.status(400).json({ message: "Missing required order fields" });
       }
+      const userId = (req.session as any)?.userId;
+      const sessionUser = userId ? await storage.getUser(userId) : null;
       const result = await db.transaction(async (tx) => {
-        const [inserted] = await tx.insert(supplierOrders).values(order).returning();
+        const [inserted] = await tx.insert(supplierOrders).values({ ...order, createdBy: sessionUser?.username || null }).returning();
         if (items && items.length > 0) {
           const itemsWithOrderId = items.map((item: any) => ({ ...item, orderId: inserted.id }));
           await tx.insert(supplierOrderItems).values(itemsWithOrderId);

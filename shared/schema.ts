@@ -193,6 +193,7 @@ export const purchaseInvoices = pgTable("purchase_invoices", {
   status: text("status").notNull().default("draft"),
   warehouseId: integer("warehouse_id"),
   warehouseName: text("warehouse_name"),
+  createdBy: text("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -234,6 +235,7 @@ export const supplierPayments = pgTable("supplier_payments", {
   iqdEquivalentCommission: numeric("iqd_equivalent_commission").notNull().default("0"),
   note: text("note"),
   reference: text("reference"),
+  createdBy: text("created_by"),
   date: text("date").notNull(),
   time: text("time").notNull().default("00:00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -254,6 +256,7 @@ export const supplierAdjustments = pgTable("supplier_adjustments", {
   payTo: text("pay_to"),
   payToName: text("pay_to_name"),
   note: text("note"),
+  createdBy: text("created_by"),
   date: text("date").notNull(),
   time: text("time").notNull().default("00:00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -563,6 +566,7 @@ export const purchaseReturns = pgTable("purchase_returns", {
   originalInvoiceNumber: text("original_invoice_number"),
   warehouseId: integer("warehouse_id"),
   warehouseName: text("warehouse_name"),
+  createdBy: text("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -730,6 +730,7 @@ export default function SupplierPaymentsPage() {
                     <TableHead>{t('Commission USD')}</TableHead>
                     <TableHead>{t('Commission IQD')}</TableHead>
                     <TableHead>{t('Notes')}</TableHead>
+                    <TableHead>{t('Created By')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -759,6 +760,7 @@ export default function SupplierPaymentsPage() {
                         {parseFloat(p.commissionIqd) > 0 ? formatIQD(parseFloat(p.commissionIqd)) : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.note || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{(p as any).createdBy || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button

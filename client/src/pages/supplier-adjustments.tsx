@@ -581,6 +581,7 @@ export default function SupplierAdjustmentsPage() {
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Note')}</TableHead>
+                    <TableHead>{t('Created By')}</TableHead>
                     <TableHead className="text-center">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -600,6 +601,7 @@ export default function SupplierAdjustmentsPage() {
                       <TableCell className="whitespace-nowrap font-mono text-sm">{formatDate(adj.date)}</TableCell>
                       <TableCell className="font-mono text-sm">{adj.time}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{adj.note || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{(adj as any).createdBy || '-'}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
                           <Button
