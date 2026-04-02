@@ -2893,7 +2893,7 @@ const resources = {
       "Add": "إضافة",
       "Addresses": "العناوين",
       "Customer Addresses": "عناوین المعامیل",
-      "Supplier Addresses": "عناوین الموریدن",
+      "Supplier Addresses": "عناوین الموردین",
       "Manage addresses for customers": "إدارة العناوين للعملاء",
       "Manage addresses for suppliers": "إدارة العناوين للموردين",
       "Manage addresses for customers and suppliers": "إدارة العناوين للعملاء والموردين",
