@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { 
   insertAddressSchema, addresses,
+  insertSupplierAddressSchema, supplierAddresses,
   insertUnitSchema, units,
   insertCategorySchema, categories,
   insertCategoryGroupSchema, categoryGroups,
@@ -119,6 +120,38 @@ export const api = {
     delete: {
       method: 'DELETE' as const,
       path: '/api/addresses/:id' as const,
+      responses: {
+        200: z.object({ message: z.string() }),
+      }
+    }
+  },
+  supplierAddresses: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/supplier-addresses' as const,
+      responses: {
+        200: z.array(z.custom<typeof supplierAddresses.$inferSelect>()),
+      }
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/supplier-addresses' as const,
+      input: insertSupplierAddressSchema,
+      responses: {
+        201: z.custom<typeof supplierAddresses.$inferSelect>(),
+      }
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/supplier-addresses/:id' as const,
+      input: insertSupplierAddressSchema,
+      responses: {
+        200: z.custom<typeof supplierAddresses.$inferSelect>(),
+      }
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/supplier-addresses/:id' as const,
       responses: {
         200: z.object({ message: z.string() }),
       }

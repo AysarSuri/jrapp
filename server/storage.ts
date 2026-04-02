@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  addresses, units, categories, categoryGroups, transferOffices, banks, customsClearances, warehouses, representatives,
+  addresses, supplierAddresses, units, categories, categoryGroups, transferOffices, banks, customsClearances, warehouses, representatives,
   users, products, clients, accounts, invoices, transactions, purchaseInvoices, purchaseInvoiceItems,
   supplierPayments, supplierAdjustments, bankTransactions, customsClearanceTransactions, clearancePurchaseInvoices, transferOfficeTransactions,
   externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
@@ -54,14 +54,24 @@ import {
   customerReceipts, currencyExchanges, warehouseTransfers, warehouseTransferItems,
   productDamages, productDamageItems
 } from "@shared/schema";
+import { z } from "zod";
+import { insertSupplierAddressSchema } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+type SupplierAddress = typeof supplierAddresses.$inferSelect;
+type InsertSupplierAddress = z.infer<typeof insertSupplierAddressSchema>;
 
 export interface IStorage {
   getAddresses(): Promise<Address[]>;
   createAddress(address: InsertAddress): Promise<Address>;
   updateAddress(id: number, address: InsertAddress): Promise<Address>;
   deleteAddress(id: number): Promise<void>;
+
+  getSupplierAddresses(): Promise<SupplierAddress[]>;
+  createSupplierAddress(address: InsertSupplierAddress): Promise<SupplierAddress>;
+  updateSupplierAddress(id: number, address: InsertSupplierAddress): Promise<SupplierAddress>;
+  deleteSupplierAddress(id: number): Promise<void>;
 
   getUnits(): Promise<Unit[]>;
   createUnit(unit: InsertUnit): Promise<Unit>;
@@ -266,6 +276,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAddress(id: number): Promise<void> {
     await db.delete(addresses).where(eq(addresses.id, id));
+  }
+
+  async getSupplierAddresses(): Promise<SupplierAddress[]> {
+    return await db.select().from(supplierAddresses);
+  }
+
+  async createSupplierAddress(address: InsertSupplierAddress): Promise<SupplierAddress> {
+    const [created] = await db.insert(supplierAddresses).values(address).returning();
+    return created;
+  }
+
+  async updateSupplierAddress(id: number, address: InsertSupplierAddress): Promise<SupplierAddress> {
+    const [updated] = await db.update(supplierAddresses).set(address).where(eq(supplierAddresses.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSupplierAddress(id: number): Promise<void> {
+    await db.delete(supplierAddresses).where(eq(supplierAddresses.id, id));
   }
 
   async getUnits(): Promise<Unit[]> {

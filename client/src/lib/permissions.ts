@@ -149,7 +149,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
   {
     key: "addresses",
     labelKey: "Addresses",
-    routes: ["/addresses"],
+    routes: ["/addresses", "/supplier-addresses"],
   },
   {
     key: "user_management",

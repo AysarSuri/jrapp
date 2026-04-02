@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, supplierAddresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -204,6 +204,7 @@ export async function registerRoutes(
     '/api/product-damages': 'product_damage',
     '/api/company-profile': 'company_profile',
     '/api/addresses': 'addresses',
+    '/api/supplier-addresses': 'addresses',
     '/api/supplier-orders': 'supplier_management',
     '/api/company-books': 'company_book',
     '/api/users': 'user_management',
@@ -477,6 +478,55 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id as string, 10);
       await storage.deleteAddress(id);
+      res.json({ message: "Deleted" });
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Supplier Addresses CRUD
+  app.get(api.supplierAddresses.list.path, requireAuth, async (_req, res) => {
+    const data = await storage.getSupplierAddresses();
+    res.json(data);
+  });
+
+  app.post(api.supplierAddresses.create.path, requireAuth, async (req, res) => {
+    try {
+      const input = api.supplierAddresses.create.input.parse(req.body);
+      const data = await storage.createSupplierAddress(input);
+      res.status(201).json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Supplier address already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch(api.supplierAddresses.update.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      const input = api.supplierAddresses.update.input.parse(req.body);
+      const data = await storage.updateSupplierAddress(id, input);
+      res.json(data);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      if (err?.code === '23505') {
+        return res.status(400).json({ message: "Supplier address already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete(api.supplierAddresses.delete.path, requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      await storage.deleteSupplierAddress(id);
       res.json({ message: "Deleted" });
     } catch {
       res.status(500).json({ message: "Internal server error" });

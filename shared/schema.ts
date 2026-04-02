@@ -8,6 +8,11 @@ export const addresses = pgTable("addresses", {
   name: text("name").notNull().unique(),
 });
 
+export const supplierAddresses = pgTable("supplier_addresses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const units = pgTable("units", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -510,6 +515,7 @@ export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true 
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true });
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true });
+export const insertSupplierAddressSchema = createInsertSchema(supplierAddresses).omit({ id: true });
 export const insertUnitSchema = createInsertSchema(units).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

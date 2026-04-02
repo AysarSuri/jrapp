@@ -15,6 +15,7 @@ import CategoriesPage from "@/pages/categories";
 import CustomersPage from "@/pages/customers";
 import SuppliersPage from "@/pages/suppliers";
 import AddressesPage from "@/pages/addresses";
+import SupplierAddressesPage from "@/pages/supplier-addresses";
 import AccountsPage from "@/pages/accounts";
 import WarehousesPage from "@/pages/warehouses";
 import TransferOfficesPage from "@/pages/transfer-offices";
@@ -175,6 +176,9 @@ function Router() {
       </Route>
       <Route path="/addresses">
         <ProtectedRoute component={AddressesPage} />
+      </Route>
+      <Route path="/supplier-addresses">
+        <ProtectedRoute component={SupplierAddressesPage} />
       </Route>
       <Route path="/warehouses">
         <ProtectedRoute component={WarehousesPage} />
