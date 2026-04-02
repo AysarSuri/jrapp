@@ -33,6 +33,7 @@ import { formatDate } from "@/lib/format-utils";
 import { broadcastDataUpdate } from "@/lib/broadcast";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
+import { SearchInput } from "@/components/ui/search-input";
 import { SearchSelect } from "@/components/search-select";
 import { useUnits } from "@/hooks/use-units";
 

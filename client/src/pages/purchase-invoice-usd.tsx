@@ -34,6 +34,7 @@ import { broadcastDataUpdate } from "@/lib/broadcast";
 import { useUnits } from "@/hooks/use-units";
 import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
+import { SearchInput } from "@/components/ui/search-input";
 import { SearchSelect } from "@/components/search-select";
 
 interface InvoiceItem {
