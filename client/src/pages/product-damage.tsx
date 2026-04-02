@@ -363,7 +363,7 @@ export default function ProductDamagePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <IconDamage className="w-7 h-7 text-destructive" />

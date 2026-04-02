@@ -503,7 +503,7 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -512,7 +512,7 @@ export default function ExpensesPage() {
             </div>
             {t('Expenses')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Record expenses in USD and IQD')}</p>
+          <p className="text-muted-foreground text-sm">{t('Record expenses in USD and IQD')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-expense">
@@ -537,7 +537,7 @@ export default function ExpensesPage() {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('Invoice Number')}</Label>
@@ -630,7 +630,7 @@ export default function ExpensesPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className={`shadow-sm ${editingId ? 'border-orange-200 dark:border-orange-900' : 'border-red-200 dark:border-red-900'}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{editingId ? t('Edit Expense') : t('Expense Summary')}</CardTitle>

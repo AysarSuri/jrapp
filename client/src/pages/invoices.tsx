@@ -60,11 +60,11 @@ export default function InvoicesPage() {
   const getClientName = (id: number) => clients?.find(c => c.id === id)?.name || `#${id}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Invoices')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage sales and purchase invoices')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Invoices')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage sales and purchase invoices')}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -156,7 +156,7 @@ export default function InvoicesPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Sales Invoices')}</CardTitle>

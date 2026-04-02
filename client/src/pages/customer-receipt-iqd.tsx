@@ -403,7 +403,7 @@ export default function CustomerReceiptIqdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -412,7 +412,7 @@ export default function CustomerReceiptIqdPage() {
             </div>
             {t('Customer Receipt IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Receive payments from customers in IQD')}</p>
+          <p className="text-muted-foreground text-sm">{t('Receive payments from customers in IQD')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/sales-management")} data-testid="button-back-sales-management">
@@ -438,7 +438,7 @@ export default function CustomerReceiptIqdPage() {
               ) : t('Receipt Details')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Receipt Number')}</Label>
@@ -582,7 +582,7 @@ export default function CustomerReceiptIqdPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-orange-200 dark:border-orange-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Receipt Summary')}</CardTitle>

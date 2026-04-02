@@ -62,7 +62,7 @@ export default function OfficeStatementUsdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
@@ -70,7 +70,7 @@ export default function OfficeStatementUsdPage() {
           </div>
           {t('Office Account Statement USD')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('General ledger for transfer office accounts in USD')}</p>
+        <p className="text-muted-foreground text-sm">{t('General ledger for transfer office accounts in USD')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

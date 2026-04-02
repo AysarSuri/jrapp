@@ -528,14 +528,14 @@ export default function SalesInvoiceUsdPage() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-invoice-title">
             <IconDollar className="h-8 w-8 text-green-600" />
             {isEditMode ? t('Edit Sales Invoice - USD') : t('Sales Invoice - USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice in US Dollar') : t('Create sales invoice in US Dollar')}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit sales invoice in US Dollar') : t('Create sales invoice in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/sales-management")} data-testid="button-back-sales-management">

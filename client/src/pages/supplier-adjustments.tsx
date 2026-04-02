@@ -242,7 +242,7 @@ export default function SupplierAdjustmentsPage() {
   const paginatedAdjustments = filteredAdjustments.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -251,10 +251,10 @@ export default function SupplierAdjustmentsPage() {
       </Link>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">
+          <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
             {isEditMode ? t("Edit Adjustment") : t("Supplier Adjustments")}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground text-sm">
             {t("Record received amounts or discounts from suppliers")}
           </p>
         </div>
@@ -274,7 +274,7 @@ export default function SupplierAdjustmentsPage() {
               {t("New Adjustment")}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-bold">{t('Invoice Number')}</Label>
@@ -437,7 +437,7 @@ export default function SupplierAdjustmentsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           {selectedSupplier && (
             <Card>
               <CardHeader>

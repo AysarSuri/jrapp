@@ -69,7 +69,7 @@ export default function ExternalDebtStatementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
@@ -77,7 +77,7 @@ export default function ExternalDebtStatementPage() {
           </div>
           {t('External Debt Statement')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('General ledger for external debts in USD and IQD')}</p>
+        <p className="text-muted-foreground text-sm">{t('General ledger for external debts in USD and IQD')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

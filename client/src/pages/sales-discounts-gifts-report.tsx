@@ -155,7 +155,7 @@ export default function SalesDiscountsGiftsReportPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <IconReport className="w-7 h-7 text-primary" />
@@ -177,7 +177,7 @@ export default function SalesDiscountsGiftsReportPage() {
             {totalDiscountUsd > 0 && <p className="text-2xl font-bold text-red-600" data-testid="text-discount-usd">{usd(totalDiscountUsd)}</p>}
             {totalDiscountIqd > 0 && <p className="text-2xl font-bold text-red-600" data-testid="text-discount-iqd">{fmtIqd(totalDiscountIqd)}</p>}
             {totalDiscountUsd === 0 && totalDiscountIqd === 0 && <p className="text-2xl font-bold text-muted-foreground">-</p>}
-            <p className="text-xs text-muted-foreground mt-1">{invoicesWithDiscount} {t("Invoices")}</p>
+            <p className="text-xs text-muted-foreground text-sm">{invoicesWithDiscount} {t("Invoices")}</p>
           </CardContent>
         </Card>
         <Card className="border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/30">
@@ -189,7 +189,7 @@ export default function SalesDiscountsGiftsReportPage() {
             {totalGiftUsd > 0 && <p className="text-2xl font-bold text-violet-600" data-testid="text-gift-usd">{usd(totalGiftUsd)}</p>}
             {totalGiftIqd > 0 && <p className="text-2xl font-bold text-violet-600" data-testid="text-gift-iqd">{fmtIqd(totalGiftIqd)}</p>}
             {totalGiftUsd === 0 && totalGiftIqd === 0 && <p className="text-2xl font-bold text-muted-foreground">-</p>}
-            <p className="text-xs text-muted-foreground mt-1">{invoicesWithGifts} {t("Invoices")}</p>
+            <p className="text-xs text-muted-foreground text-sm">{invoicesWithGifts} {t("Invoices")}</p>
           </CardContent>
         </Card>
         <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/30">
@@ -201,7 +201,7 @@ export default function SalesDiscountsGiftsReportPage() {
             {(totalDiscountUsd + totalGiftUsd) > 0 && <p className="text-xl font-bold text-orange-600">{usd(totalDiscountUsd + totalGiftUsd)} <span className="text-xs">USD</span></p>}
             {(totalDiscountIqd + totalGiftIqd) > 0 && <p className="text-xl font-bold text-orange-600">{fmtIqd(totalDiscountIqd + totalGiftIqd)} <span className="text-xs">IQD</span></p>}
             {(totalDiscountUsd + totalGiftUsd + totalDiscountIqd + totalGiftIqd) === 0 && <p className="text-2xl font-bold text-muted-foreground">-</p>}
-            <p className="text-xs text-muted-foreground mt-1">{t("Discounts")} + {t("Gifts")}</p>
+            <p className="text-xs text-muted-foreground text-sm">{t("Discounts")} + {t("Gifts")}</p>
           </CardContent>
         </Card>
       </div>

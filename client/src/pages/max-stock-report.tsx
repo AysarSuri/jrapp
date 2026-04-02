@@ -139,7 +139,7 @@ export default function MaxStockReportPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <IconReport className="w-7 h-7 text-primary" />

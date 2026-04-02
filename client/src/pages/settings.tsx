@@ -230,7 +230,7 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-3">
         <Settings className="h-7 w-7 text-primary" />
         <div>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
 
         <div className="flex-1 min-w-0">
           {activeTab === "printers" && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
@@ -325,7 +325,7 @@ export default function SettingsPage() {
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-3">
                   <div className="space-y-5">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <Label className="text-base font-bold flex items-center gap-2 sm:w-52 shrink-0">
@@ -398,7 +398,7 @@ export default function SettingsPage() {
                   {t('General Settings')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-3">
                 <div className="p-4 rounded-lg border-2 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 space-y-2">
                   <Label className="text-base font-bold flex items-center gap-2">
                     <IconDollar className="h-5 w-5 text-green-600" />
@@ -492,7 +492,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === "field_visibility" && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

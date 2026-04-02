@@ -65,11 +65,11 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Accounts')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage banks, cash boxes and transfer offices')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Accounts')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage banks, cash boxes and transfer offices')}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -143,7 +143,7 @@ export default function AccountsPage() {
           <p>{t('Add a new account to get started.')}</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
           {accounts?.map((account) => (
             <Card key={account.id} data-testid={`card-account-${account.id}`}>
               <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">

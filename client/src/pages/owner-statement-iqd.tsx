@@ -218,7 +218,7 @@ export default function OwnerStatementIqdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
@@ -226,7 +226,7 @@ export default function OwnerStatementIqdPage() {
           </div>
           {t('Owner Statement IQD')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('Ledger for owner withdrawals and returns in IQD')}</p>
+        <p className="text-muted-foreground text-sm">{t('Ledger for owner withdrawals and returns in IQD')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

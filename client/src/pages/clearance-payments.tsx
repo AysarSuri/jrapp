@@ -307,7 +307,7 @@ export default function ClearancePaymentsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -321,7 +321,7 @@ export default function ClearancePaymentsPage() {
             </div>
             {t('Clearance Payments')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Record payments made to customs clearances')}</p>
+          <p className="text-muted-foreground text-sm">{t('Record payments made to customs clearances')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-clearance-payment">
@@ -346,7 +346,7 @@ export default function ClearancePaymentsPage() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('List No')}</Label>
@@ -442,7 +442,7 @@ export default function ClearancePaymentsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-red-200 dark:border-red-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>

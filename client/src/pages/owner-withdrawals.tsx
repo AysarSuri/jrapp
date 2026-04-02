@@ -185,7 +185,7 @@ export default function OwnerWithdrawalsPage() {
   const totalIqd = withdrawals.reduce((sum: number, t: OwnerTransaction) => sum + parseFloat(t.amountIqd || "0"), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function OwnerWithdrawalsPage() {
             </div>
             {t('Owner Withdrawals')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Record owner withdrawals from the business')}</p>
+          <p className="text-muted-foreground text-sm">{t('Record owner withdrawals from the business')}</p>
         </div>
         <div className="flex gap-2">
           {editingId && (
@@ -239,7 +239,7 @@ export default function OwnerWithdrawalsPage() {
               {editingId ? t('Edit Withdrawal') : t('Withdrawal Details')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Invoice Number')}</Label>
@@ -316,7 +316,7 @@ export default function OwnerWithdrawalsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-red-200 dark:border-red-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Withdrawal Summary')}</CardTitle>

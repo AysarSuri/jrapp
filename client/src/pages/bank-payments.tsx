@@ -200,7 +200,7 @@ export default function BankPaymentsPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -209,7 +209,7 @@ export default function BankPaymentsPage() {
             </div>
             {t('Bank Payments')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Record payments made to banks')}</p>
+          <p className="text-muted-foreground text-sm">{t('Record payments made to banks')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-bank-payment">
@@ -224,7 +224,7 @@ export default function BankPaymentsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-bold">{t('Invoice Number')}</Label>
@@ -313,7 +313,7 @@ export default function BankPaymentsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-red-200 dark:border-red-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>

@@ -111,10 +111,10 @@ export default function ClientsPage() {
   const isSaving = isCreating || isUpdating;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Clients")}</h1>
-        <p className="text-muted-foreground mt-1">{t("Manage suppliers and customers")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Clients")}</h1>
+        <p className="text-muted-foreground text-sm">{t("Manage suppliers and customers")}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -177,7 +177,7 @@ export default function ClientsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("Customers")}</CardTitle>

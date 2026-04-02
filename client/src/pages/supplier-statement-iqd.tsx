@@ -595,7 +595,7 @@ export default function SupplierStatementIqdPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -607,7 +607,7 @@ export default function SupplierStatementIqdPage() {
           <IconDinar className="h-8 w-8 text-orange-600" />
           {t("Supplier Statement - IQD")}
         </h1>
-        <p className="text-muted-foreground mt-1">{t("View supplier account statement in Iraqi Dinar")}</p>
+        <p className="text-muted-foreground text-sm">{t("View supplier account statement in Iraqi Dinar")}</p>
       </div>
 
       <Card>

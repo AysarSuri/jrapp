@@ -114,7 +114,7 @@ export default function UnitsPage() {
   const isSaving = isCreating || isUpdating;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/material-management" data-testid="link-back-material">
         <Button variant="outline" size="sm" className="gap-2">
           <ArrowLeft className="h-5 w-5" />
@@ -124,12 +124,12 @@ export default function UnitsPage() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Units')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage measurement units for products')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Units')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage measurement units for products')}</p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Units')}</CardTitle>

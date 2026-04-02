@@ -504,10 +504,10 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Customers")}</h1>
-        <p className="text-muted-foreground mt-1">{t("Manage your customers")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Customers")}</h1>
+        <p className="text-muted-foreground text-sm">{t("Manage your customers")}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

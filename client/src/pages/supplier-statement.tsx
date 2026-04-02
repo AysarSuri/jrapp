@@ -95,7 +95,7 @@ export default function SupplierStatementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -103,8 +103,8 @@ export default function SupplierStatementPage() {
         </Button>
       </Link>
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Supplier Account Statement")}</h1>
-        <p className="text-muted-foreground mt-1">{t("View detailed account statement for a supplier")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Supplier Account Statement")}</h1>
+        <p className="text-muted-foreground text-sm">{t("View detailed account statement for a supplier")}</p>
       </div>
 
       <Card>

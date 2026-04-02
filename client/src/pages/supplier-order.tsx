@@ -434,7 +434,7 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -447,7 +447,7 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
             <IconDollar className="h-8 w-8 text-blue-600" />
             {isEditMode ? t("Edit Supplier Order") + ` - ${currency}` : t("Supplier Order") + ` - ${currency}`}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t("Edit supplier order") : t("Create supplier order")}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t("Edit supplier order") : t("Create supplier order")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-order-form">

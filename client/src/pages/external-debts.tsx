@@ -134,7 +134,7 @@ export default function ExternalDebtsPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -143,7 +143,7 @@ export default function ExternalDebtsPage() {
             </div>
             {t('External Debts')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Manage external debts')}</p>
+          <p className="text-muted-foreground text-sm">{t('Manage external debts')}</p>
         </div>
       </div>
 
@@ -233,7 +233,7 @@ export default function ExternalDebtsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total External Debts')}</CardTitle>

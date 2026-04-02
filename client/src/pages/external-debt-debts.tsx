@@ -103,7 +103,7 @@ export default function ExternalDebtDebtsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-4">
         <Link href="/external-debt-management">
           <Button variant="ghost" size="icon" data-testid="button-back-debt-management">

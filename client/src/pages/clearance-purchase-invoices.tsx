@@ -317,7 +317,7 @@ export default function ClearancePurchaseInvoicesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
@@ -331,7 +331,7 @@ export default function ClearancePurchaseInvoicesPage() {
             </div>
             {t('Clearance Purchase Invoices')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Manage purchase invoices for customs clearances')}</p>
+          <p className="text-muted-foreground text-sm">{t('Manage purchase invoices for customs clearances')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-form">

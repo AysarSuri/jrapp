@@ -79,7 +79,7 @@ export default function InventoryReportPage() {
   const rows = report || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-3">
         <Link href="/material-management" data-testid="link-back-material">
           <Button variant="outline" size="icon" className="h-9 w-9">

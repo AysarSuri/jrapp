@@ -471,7 +471,7 @@ export default function PurchaseInvoiceIqdPage() {
   const formatIQD = (val: number) => `${val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} IQD`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -484,7 +484,7 @@ export default function PurchaseInvoiceIqdPage() {
             <IconDinar className="h-8 w-8 text-orange-600" />
             {isEditMode ? t('Edit Purchase Invoice - IQD') : t('Purchase Invoice - IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase invoice in Iraqi Dinar') : t('Create purchase invoice in Iraqi Dinar')}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase invoice in Iraqi Dinar') : t('Create purchase invoice in Iraqi Dinar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-iqd-form">

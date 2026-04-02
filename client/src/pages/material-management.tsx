@@ -49,7 +49,7 @@ export default function MaterialManagementPage() {
   const ArrowIcon = isRtl ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{t('Material Management')}</h1>
         <p className="text-muted-foreground text-sm mt-0.5">{t('Material Management')}</p>

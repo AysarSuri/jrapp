@@ -134,7 +134,7 @@ export default function CurrencyExchangePage() {
   const paginatedExchanges = filteredExchanges.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-3">
         <IconCurrencyExchange className="w-7 h-7 text-primary" />
         <h1 className="text-2xl font-bold" data-testid="text-page-title">{t('Currency Exchange')}</h1>

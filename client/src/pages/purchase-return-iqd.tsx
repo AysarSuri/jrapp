@@ -411,7 +411,7 @@ export default function PurchaseReturnIqdPage() {
   const paginatedReturns = filteredReturns.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -424,7 +424,7 @@ export default function PurchaseReturnIqdPage() {
             <Undo2 className="h-8 w-8 text-red-600" />
             {isEditMode ? t('Edit Purchase Return - IQD') : t('Purchase Return - IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase return in Iraqi Dinar') : t('Create purchase return in Iraqi Dinar')}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase return in Iraqi Dinar') : t('Create purchase return in Iraqi Dinar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-return-iqd-form">

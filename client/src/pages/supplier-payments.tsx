@@ -292,7 +292,7 @@ export default function SupplierPaymentsPage() {
   const paginatedPayments = filteredPayments.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -307,7 +307,7 @@ export default function SupplierPaymentsPage() {
             </div>
             {isEditMode ? t('Edit Payment') : t('Supplier Payments')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Transfer or pay to supplier from bank or transfer office')}</p>
+          <p className="text-muted-foreground text-sm">{t('Transfer or pay to supplier from bank or transfer office')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-payment">
@@ -322,7 +322,7 @@ export default function SupplierPaymentsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">{t('Payment Details')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-bold">{t('Invoice Number')}</Label>
@@ -564,7 +564,7 @@ export default function SupplierPaymentsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-emerald-200 dark:border-emerald-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>

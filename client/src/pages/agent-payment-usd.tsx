@@ -394,7 +394,7 @@ export default function AgentPaymentUsdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -403,7 +403,7 @@ export default function AgentPaymentUsdPage() {
             </div>
             {t('Customer Payment USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Pay customers in USD')}</p>
+          <p className="text-muted-foreground text-sm">{t('Pay customers in USD')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-payment">
@@ -425,7 +425,7 @@ export default function AgentPaymentUsdPage() {
               ) : t('Payment Details')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('Payment Number')}</Label>
@@ -547,7 +547,7 @@ export default function AgentPaymentUsdPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-blue-200 dark:border-blue-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Payment Summary')}</CardTitle>

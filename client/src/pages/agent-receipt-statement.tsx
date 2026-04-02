@@ -159,7 +159,7 @@ export default function AgentReceiptStatementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <IconAgent className="h-7 w-7 text-primary" />

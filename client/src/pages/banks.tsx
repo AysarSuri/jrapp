@@ -103,11 +103,11 @@ export default function BanksPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Banks')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage banks for financial operations')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Banks')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage banks for financial operations')}</p>
         </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
           <DialogTrigger asChild>
@@ -170,7 +170,7 @@ export default function BanksPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Banks')}</CardTitle>

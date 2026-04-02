@@ -99,7 +99,7 @@ export default function OwnersPage() {
   const formatIQD = (val: number) => val.toLocaleString() + " IQD";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
@@ -107,7 +107,7 @@ export default function OwnersPage() {
           </div>
           {t('Owner Names')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('Manage owner names and balances')}</p>
+        <p className="text-muted-foreground text-sm">{t('Manage owner names and balances')}</p>
       </div>
 
       <Card className={`border-border/50 shadow-sm ${editingId ? "ring-2 ring-orange-400 border-orange-400" : ""}`}>
@@ -180,7 +180,7 @@ export default function OwnersPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Owners')}</CardTitle>

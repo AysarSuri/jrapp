@@ -128,7 +128,7 @@ export default function SupplierDebtsPage() {
   const suppliersWithDebt = debts?.filter(d => d.remainingUsd !== 0 || d.remainingIqd !== 0) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-4">
         <Link href="/supplier-management">
           <Button variant="ghost" size="icon" data-testid="button-back-supplier-management">

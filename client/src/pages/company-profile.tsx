@@ -437,7 +437,7 @@ export default function CompanyProfilePage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -485,7 +485,7 @@ export default function CompanyProfilePage() {
                 >
                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground">{t('Click to upload logo')}</span>
-                  <span className="text-xs text-muted-foreground mt-1">{t('Max 2MB')}</span>
+                  <span className="text-xs text-muted-foreground text-sm">{t('Max 2MB')}</span>
                 </div>
               )}
               {form.logo && (
@@ -550,7 +550,7 @@ export default function CompanyProfilePage() {
                 >
                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground">{t('Click to upload stamp')}</span>
-                  <span className="text-xs text-muted-foreground mt-1">{t('Max 2MB')}</span>
+                  <span className="text-xs text-muted-foreground text-sm">{t('Max 2MB')}</span>
                 </div>
               )}
               {form.stamp && (
@@ -620,7 +620,7 @@ export default function CompanyProfilePage() {
             >
               <Upload className="w-10 h-10 text-muted-foreground mb-2" />
               <span className="text-sm text-muted-foreground">{t('Click to upload cliché')}</span>
-              <span className="text-xs text-muted-foreground mt-1">{t('Max 2MB')}</span>
+              <span className="text-xs text-muted-foreground text-sm">{t('Max 2MB')}</span>
             </div>
           )}
           {form.cliche && (

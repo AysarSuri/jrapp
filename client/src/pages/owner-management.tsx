@@ -51,10 +51,10 @@ export default function OwnerManagementPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("Owner Management")}</h1>
-        <p className="text-muted-foreground mt-1">{t("Manage all owner operations from one place")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Owner Management")}</h1>
+        <p className="text-muted-foreground text-sm">{t("Manage all owner operations from one place")}</p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

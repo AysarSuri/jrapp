@@ -134,7 +134,7 @@ export default function CustomerDebtsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center gap-4">
         <Link href="/sales-management">
           <Button variant="ghost" size="icon" data-testid="button-back-sales-management">

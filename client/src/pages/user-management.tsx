@@ -296,7 +296,7 @@ export default function UserManagementPage() {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-user-management-title">
@@ -305,7 +305,7 @@ export default function UserManagementPage() {
             </div>
             {t('User Management')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Create and manage system users')}</p>
+          <p className="text-muted-foreground text-sm">{t('Create and manage system users')}</p>
         </div>
       </div>
 

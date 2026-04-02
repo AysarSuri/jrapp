@@ -94,7 +94,7 @@ export default function ExpenseTypesPage() {
   ) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -103,7 +103,7 @@ export default function ExpenseTypesPage() {
             </div>
             {t('Expense Types')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Manage expense categories and types')}</p>
+          <p className="text-muted-foreground text-sm">{t('Manage expense categories and types')}</p>
         </div>
       </div>
 

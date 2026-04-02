@@ -331,7 +331,7 @@ export default function BarcodePrintPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <IconBarcode className="w-7 h-7" />

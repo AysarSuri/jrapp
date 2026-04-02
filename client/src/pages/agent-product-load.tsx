@@ -230,7 +230,7 @@ export default function AgentProductLoadPage() {
   const paginatedLoads = filteredLoads.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
@@ -239,7 +239,7 @@ export default function AgentProductLoadPage() {
             </div>
             {t('Agent Product Load')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Load products to deliver to agents')}</p>
+          <p className="text-muted-foreground text-sm">{t('Load products to deliver to agents')}</p>
         </div>
       </div>
 

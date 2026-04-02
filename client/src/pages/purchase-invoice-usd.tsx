@@ -473,7 +473,7 @@ export default function PurchaseInvoiceUsdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/supplier-management">
         <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
           <ArrowLeft className="h-5 w-5" />
@@ -486,7 +486,7 @@ export default function PurchaseInvoiceUsdPage() {
             <IconDollar className="h-8 w-8 text-blue-600" />
             {isEditMode ? t('Edit Purchase Invoice - USD') : t('Purchase Invoice - USD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit purchase invoice in US Dollar') : t('Create purchase invoice in US Dollar')}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase invoice in US Dollar') : t('Create purchase invoice in US Dollar')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-form">

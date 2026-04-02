@@ -350,7 +350,7 @@ export default function AgentClientsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
@@ -359,7 +359,7 @@ export default function AgentClientsPage() {
             </div>
             {t('Agent Clients')}
           </h1>
-          <p className="text-muted-foreground mt-1">{t('Assign clients to agents')}</p>
+          <p className="text-muted-foreground text-sm">{t('Assign clients to agents')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-agent-clients">
@@ -374,7 +374,7 @@ export default function AgentClientsPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">{t('Assign Clients to Agent')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label>{t('Agent')}</Label>
               <SearchSelect
@@ -472,7 +472,7 @@ export default function AgentClientsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-3">
           <Card className="border-violet-200 dark:border-violet-900 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">{t('Assignment Summary')}</CardTitle>

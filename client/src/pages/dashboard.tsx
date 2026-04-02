@@ -77,7 +77,7 @@ export default function Dashboard() {
   const recentInvoices = (salesInvoices || []).slice(-5).reverse();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('Dashboard')}</h1>
@@ -101,7 +101,7 @@ export default function Dashboard() {
             </div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('Total Sales')}</p>
             <p className="text-xl font-bold" data-testid="text-total-sales">{usd(totalSalesUsd)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{fmtIqd(totalSalesIqd)} IQD</p>
+            <p className="text-xs text-muted-foreground text-sm">{fmtIqd(totalSalesIqd)} IQD</p>
           </CardContent>
         </Card>
 
@@ -117,7 +117,7 @@ export default function Dashboard() {
             </div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('Returns')}</p>
             <p className="text-xl font-bold" data-testid="text-total-returns">{usd(totalReturnsUsd)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{(salesReturns || []).length} {t('total')}</p>
+            <p className="text-xs text-muted-foreground text-sm">{(salesReturns || []).length} {t('total')}</p>
           </CardContent>
         </Card>
 
@@ -133,7 +133,7 @@ export default function Dashboard() {
             </div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('Customers')}</p>
             <p className="text-xl font-bold" data-testid="text-customer-count">{(customers || []).length}</p>
-            <p className="text-xs text-muted-foreground mt-1">{(products || []).length} {t('Products')}</p>
+            <p className="text-xs text-muted-foreground text-sm">{(products || []).length} {t('Products')}</p>
           </CardContent>
         </Card>
 
@@ -149,12 +149,12 @@ export default function Dashboard() {
             </div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('Receipts')}</p>
             <p className="text-xl font-bold" data-testid="text-total-receipts">{usd(totalReceiptsUsd)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{usd(totalPaymentsUsd)} {t('Payments')}</p>
+            <p className="text-xs text-muted-foreground text-sm">{usd(totalPaymentsUsd)} {t('Payments')}</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4 border-border/50" data-testid="card-revenue-chart">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">{t('Revenue Overview')} (USD)</CardTitle>
@@ -241,7 +241,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         <Card className="border-border/50" data-testid="card-recent-invoices">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">

@@ -1259,7 +1259,7 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <Link href="/material-management" data-testid="link-back-material">
         <Button variant="outline" size="sm" className="gap-2">
           <ArrowLeft className="h-5 w-5" />
@@ -1269,12 +1269,12 @@ export default function ProductsPage() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Products')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage your inventory items')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Products')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage your inventory items')}</p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Products')}</CardTitle>

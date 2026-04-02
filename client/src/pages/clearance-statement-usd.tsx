@@ -344,7 +344,7 @@ export default function ClearanceStatementUsdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <Link href="/clearance-management">
@@ -357,7 +357,7 @@ export default function ClearanceStatementUsdPage() {
           </div>
           {t('Clearance Statement USD')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('Clearance account statement in US Dollars')}</p>
+        <p className="text-muted-foreground text-sm">{t('Clearance account statement in US Dollars')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

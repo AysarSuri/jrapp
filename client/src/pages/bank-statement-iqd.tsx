@@ -71,7 +71,7 @@ export default function BankStatementIqdPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
           <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
@@ -79,7 +79,7 @@ export default function BankStatementIqdPage() {
           </div>
           {t('Bank Statement IQD')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('Bank account statement in Iraqi Dinars')}</p>
+        <p className="text-muted-foreground text-sm">{t('Bank account statement in Iraqi Dinars')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

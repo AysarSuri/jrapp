@@ -135,7 +135,7 @@ export default function ProfitsReportPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <IconReport className="w-7 h-7 text-primary" />
@@ -155,7 +155,7 @@ export default function ProfitsReportPage() {
               <p className="text-xs font-bold text-green-700 dark:text-green-400 uppercase">{t("Total Profit")} (USD)</p>
             </div>
             <p className={`text-2xl font-bold ${totalProfitUsd >= 0 ? "text-green-600" : "text-red-600"}`} data-testid="text-profit-usd">{usd(totalProfitUsd)}</p>
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground text-sm">
               <span>{t("Sales")}: {usd(totalSalesUsd)}</span>
               <span>{t("Cost")}: {usd(totalCostUsd)}</span>
             </div>
@@ -168,7 +168,7 @@ export default function ProfitsReportPage() {
               <p className="text-xs font-bold text-green-700 dark:text-green-400 uppercase">{t("Total Profit")} (IQD)</p>
             </div>
             <p className={`text-2xl font-bold ${totalProfitIqd >= 0 ? "text-green-600" : "text-red-600"}`} data-testid="text-profit-iqd">{fmtIqd(totalProfitIqd)}</p>
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground text-sm">
               <span>{t("Sales")}: {fmtIqd(totalSalesIqd)}</span>
               <span>{t("Cost")}: {fmtIqd(totalCostIqd)}</span>
             </div>
@@ -181,7 +181,7 @@ export default function ProfitsReportPage() {
               <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase">{t("Invoices")}</p>
             </div>
             <p className="text-2xl font-bold text-blue-600" data-testid="text-invoices-count">{rows.length}</p>
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground text-sm">
               <span>USD: {rows.filter(r => r.currency === "USD").length}</span>
               <span>IQD: {rows.filter(r => r.currency === "IQD").length}</span>
             </div>

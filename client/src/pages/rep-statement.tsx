@@ -1078,7 +1078,7 @@ export default function RepStatementPage() {
       return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><ShoppingCart className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No sales found')}</p></div>;
     }
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="flex justify-end">
           <Button onClick={handlePrintSalesTab} className="bg-primary text-white gap-2 h-11" data-testid="button-print-sales-tab">
             <Printer className="w-5 h-5" />
@@ -1283,7 +1283,7 @@ export default function RepStatementPage() {
       return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><RotateCcw className="w-10 h-10 mb-2" /><p className="font-semibold">{t('No returns found')}</p></div>;
     }
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="flex justify-end">
           <Button onClick={handlePrintReturnsTab} className="bg-primary text-white gap-2 h-11" data-testid="button-print-returns-tab">
             <Printer className="w-5 h-5" />
@@ -1616,7 +1616,7 @@ export default function RepStatementPage() {
     };
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         {renderPrintButton()}
         {receiptsUsd.length > 0 && (
           <div>
@@ -1907,7 +1907,7 @@ export default function RepStatementPage() {
     );
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         {renderPrintButton()}
         {returnPaymentsUsd.length > 0 && (
           <div>
@@ -1982,7 +1982,7 @@ export default function RepStatementPage() {
                     <span>{load.time}</span>
                   </div>
                 </div>
-                {load.note && <p className="text-sm text-muted-foreground mt-1">{load.note}</p>}
+                {load.note && <p className="text-sm text-muted-foreground text-sm">{load.note}</p>}
               </CardHeader>
               <CardContent className="pt-0 px-4 pb-4">
                 <div className="rounded-md border overflow-x-auto">
@@ -2271,7 +2271,7 @@ export default function RepStatementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-page-title">
           <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
@@ -2279,7 +2279,7 @@ export default function RepStatementPage() {
           </div>
           {t('Rep Statement')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('Representative account ledger')}</p>
+        <p className="text-muted-foreground text-sm">{t('Representative account ledger')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">

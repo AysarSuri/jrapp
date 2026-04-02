@@ -237,7 +237,7 @@ export default function WarehouseTransferPage() {
   const paginatedTransfers = filteredTransfers.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <IconCurrencyExchange className="w-7 h-7 text-primary" />

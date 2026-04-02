@@ -525,14 +525,14 @@ export default function PosIqdPage() {
   const userRole = user?.role || 'user';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-category-title">
             <IconPosUsd className="h-8 w-8 text-purple-600" />
             {isEditMode ? t('Edit Sales Invoice') : t('POS IQD')}
           </h1>
-          <p className="text-muted-foreground mt-1">{isEditMode ? t('Edit sales invoice') : t('Point of sale - IQD currency')}</p>
+          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit sales invoice') : t('Point of sale - IQD currency')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-sales-category-form">

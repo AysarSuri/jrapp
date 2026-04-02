@@ -73,11 +73,11 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Transactions')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Track financial movements')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Transactions')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Track financial movements')}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
