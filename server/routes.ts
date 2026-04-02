@@ -933,8 +933,31 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id as string, 10);
       const input = api.clients.update.input.parse(req.body);
-      const data = await storage.updateClient(id, input);
-      res.json(data);
+
+      const [existingClient] = await db.select().from(clients).where(eq(clients.id, id));
+
+      if (input.name && existingClient && input.name !== existingClient.name) {
+        const newName = input.name;
+        const data = await db.transaction(async (tx) => {
+          const [updated] = await tx.update(clients).set(input).where(eq(clients.id, id)).returning();
+
+          await tx.update(purchaseInvoices).set({ supplierName: newName }).where(eq(purchaseInvoices.supplierId, id));
+          await tx.update(supplierPayments).set({ supplierName: newName }).where(eq(supplierPayments.supplierId, id));
+          await tx.update(supplierAdjustments).set({ supplierName: newName }).where(eq(supplierAdjustments.supplierId, id));
+          await tx.update(purchaseReturns).set({ supplierName: newName }).where(eq(purchaseReturns.supplierId, id));
+          await tx.update(supplierOrders).set({ supplierName: newName }).where(eq(supplierOrders.supplierId, id));
+
+          await tx.update(salesInvoices).set({ customerName: newName }).where(eq(salesInvoices.customerId, id));
+          await tx.update(salesReturns).set({ customerName: newName }).where(eq(salesReturns.customerId, id));
+          await tx.update(customerReceipts).set({ customerName: newName }).where(eq(customerReceipts.customerId, id));
+
+          return updated;
+        });
+        res.json(data);
+      } else {
+        const data = await storage.updateClient(id, input);
+        res.json(data);
+      }
     } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
