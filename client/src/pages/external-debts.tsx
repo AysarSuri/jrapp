@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconExternalDebt } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -247,14 +248,13 @@ export default function ExternalDebtsPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
+            <SearchInput
               placeholder={t('Search external debts...')}
-              className="pl-9"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setShowSearchSuggestions(true); }}
               onFocus={() => setShowSearchSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+              onClear={() => { setSearchTerm(""); setShowSearchSuggestions(false); }}
               data-testid="input-search-external-debts"
               autoComplete="off"
             />

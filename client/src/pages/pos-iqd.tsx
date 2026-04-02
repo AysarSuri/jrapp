@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import { Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, Search, Eye, ScanBarcode, Star } from "lucide-react";
+import { Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, Eye, ScanBarcode, Star } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar, IconPosUsd, IconProduct } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -1089,8 +1090,7 @@ export default function PosIqdPage() {
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-pos-iqd-invoice-number" />
+                <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} onClear={() => setSearchNumber("")} containerClassName="w-48" className="h-9" data-testid="input-search-pos-iqd-invoice-number" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Customer')}</Label>

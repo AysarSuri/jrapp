@@ -20,7 +20,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, ArrowLeft, Pencil, Search, ScanBarcode, Printer } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, ArrowLeft, Pencil, ScanBarcode, Printer } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar } from "@/components/erp-icons";
 import { playDeleteSound } from "@/lib/sounds";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -736,8 +737,7 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t("Search by number...")} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-order-number" />
+                <SearchInput placeholder={t("Search by number...")} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} onClear={() => setSearchNumber("")} containerClassName="w-48" className="h-9" data-testid="input-search-order-number" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t("Supplier")}</Label>

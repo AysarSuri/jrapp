@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Search, Eye, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, ScanBarcode, Eye, ArrowLeft } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { useLocation } from "wouter";
 import { IconDinar } from "@/components/erp-icons";
 import {
@@ -985,8 +986,7 @@ export default function SalesInvoiceIqdPage() {
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-sales-iqd-invoice-number" />
+                <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} onClear={() => setSearchNumber("")} containerClassName="w-48" className="h-9" data-testid="input-search-sales-iqd-invoice-number" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Customer')}</Label>

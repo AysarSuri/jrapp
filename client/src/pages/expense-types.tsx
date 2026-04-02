@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Save, RotateCcw } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconExpenseType } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -146,16 +147,15 @@ export default function ExpenseTypesPage() {
               {t('Expense Types')}
               <Badge variant="secondary" className="ml-2">{filtered.length}</Badge>
             </CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t('Search expense types...')}
-                className="pl-9 h-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                data-testid="input-search-expense-types"
-              />
-            </div>
+            <SearchInput
+              placeholder={t('Search expense types...')}
+              containerClassName="w-64"
+              className="h-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm("")}
+              data-testid="input-search-expense-types"
+            />
           </div>
         </CardHeader>
         <CardContent>

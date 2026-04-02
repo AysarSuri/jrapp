@@ -13,7 +13,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SearchSelect } from "@/components/search-select";
-import { Plus, Search, Loader2, Pencil, Trash2, X, Save, Printer } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, X, Save, Printer } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers, IconAddress, IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -661,10 +662,14 @@ export default function CustomersPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-              <Input placeholder={t("Search customers...")} className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-customers" />
-            </div>
+            <SearchInput
+              placeholder={t("Search customers...")}
+              containerClassName="flex-1 min-w-[200px] max-w-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm("")}
+              data-testid="input-search-customers"
+            />
             {fv.customer_address && (
               <div className="w-48">
                 <AddressSearchSelect

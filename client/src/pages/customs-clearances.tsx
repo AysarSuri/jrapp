@@ -12,7 +12,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2, Pencil, Save, RotateCcw, Search, Undo2 } from "lucide-react";
+import { Loader2, Trash2, Pencil, Save, RotateCcw, Undo2 } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconClearance } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -183,16 +184,15 @@ export default function CustomsClearancesPage() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between gap-4">
             <CardTitle className="text-lg">{t('Customs Clearances')}</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t('Search customs clearances...')}
-                className="ps-9 h-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                data-testid="input-search-customs-clearances"
-              />
-            </div>
+            <SearchInput
+              placeholder={t('Search customs clearances...')}
+              containerClassName="w-64"
+              className="h-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm("")}
+              data-testid="input-search-customs-clearances"
+            />
           </div>
         </CardHeader>
         <CardContent>

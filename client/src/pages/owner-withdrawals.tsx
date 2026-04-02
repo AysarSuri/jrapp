@@ -14,7 +14,8 @@ import { SearchSelect } from "@/components/search-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, ArrowUpFromLine, Pencil, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar, IconDinar } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -389,16 +390,15 @@ export default function OwnerWithdrawalsPage() {
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-withdrawal-history-to-date" />
               </div>
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input
-                  value={historyInvoiceSearch}
-                  onChange={(e) => { setHistoryInvoiceSearch(e.target.value); setCurrentPage(1); }}
-                  placeholder={t('Invoice Number')}
-                  className="w-36 h-9 font-mono"
-                  data-testid="input-withdrawal-history-invoice-search"
-                />
-              </div>
+              <SearchInput
+                value={historyInvoiceSearch}
+                onChange={(e) => { setHistoryInvoiceSearch(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setHistoryInvoiceSearch(""); setCurrentPage(1); }}
+                placeholder={t('Invoice Number')}
+                containerClassName="w-48"
+                className="h-9 font-mono"
+                data-testid="input-withdrawal-history-invoice-search"
+              />
               <div className="w-48">
                 <SearchSelect
                   items={owners.map((o: Owner) => ({ id: o.id, name: o.name }))}

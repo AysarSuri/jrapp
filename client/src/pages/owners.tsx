@@ -12,7 +12,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Save, Search, Loader2, Trash2, Pencil, RotateCcw, X } from "lucide-react";
+import { Save, Loader2, Trash2, Pencil, RotateCcw, X } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconOwner } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,10 +194,7 @@ export default function OwnersPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('Search owners...')} className="pl-9 max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} data-testid="input-search-owners" />
-          </div>
+          <SearchInput placeholder={t('Search owners...')} containerClassName="max-w-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onClear={() => setSearchTerm("")} data-testid="input-search-owners" />
         </CardHeader>
         <CardContent>
           {isLoading ? (

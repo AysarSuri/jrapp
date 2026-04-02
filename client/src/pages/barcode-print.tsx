@@ -14,7 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Printer, Plus, Trash2, Settings2, Eye, Search, Save, RotateCcw } from "lucide-react";
+import { Printer, Plus, Trash2, Settings2, Eye, Save, RotateCcw } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconBarcode } from "@/components/erp-icons";
 import { getProductName } from "@/lib/language-utils";
 
@@ -796,12 +797,11 @@ export default function BarcodePrintPage() {
         </CardHeader>
         <CardContent>
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              className="pl-9"
+            <SearchInput
               placeholder={t('Search by code or name...')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery("")}
               data-testid="input-search-product"
             />
             {filteredProducts.length > 0 && (

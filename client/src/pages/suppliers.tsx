@@ -19,7 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconSupplierList, IconAddress } from "@/components/erp-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -578,13 +579,12 @@ export default function SuppliersPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
+              <SearchInput
                 placeholder={t('Search suppliers...')}
-                className="pl-9"
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
                 onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
+                onClear={() => { setSearchTerm(""); setSearchOpen(false); }}
                 data-testid="input-search-suppliers"
               />
               {searchOpen && searchTerm.trim() && filtered.length > 0 && (

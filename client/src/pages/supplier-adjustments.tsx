@@ -19,7 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, ArrowDownToLine, Percent, ArrowLeft, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, ArrowDownToLine, Percent, ArrowLeft, Eye, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar, IconDinar, IconExternalDebt, IconBank, IconOffice } from "@/components/erp-icons";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -525,8 +526,7 @@ export default function SupplierAdjustmentsPage() {
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-adj-number" />
+                <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} onClear={() => { setSearchNumber(""); setCurrentPage(1); }} containerClassName="w-48" className="h-9" data-testid="input-search-adj-number" />
               </div>
               <div className="w-44">
                 <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>

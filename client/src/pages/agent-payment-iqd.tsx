@@ -18,7 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Search, Eye, Pencil, Printer } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Trash2, ChevronLeft, ChevronRight, Eye, Pencil, Printer } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDinar, IconOffice, IconBank, IconAgent, IconExternalDebt } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -646,8 +647,7 @@ export default function AgentPaymentIqdPage() {
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-payment-number" />
+                <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} onClear={() => { setSearchNumber(""); setCurrentPage(1); }} containerClassName="w-48" className="h-9" data-testid="input-search-payment-number" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>

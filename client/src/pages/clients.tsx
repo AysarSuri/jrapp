@@ -13,7 +13,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Loader2, Trash2, Pencil, X, Save } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, X, Save } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -199,16 +200,14 @@ export default function ClientsPage() {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder={t("Search clients...")}
-              className="pl-9 max-w-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              data-testid="input-search-clients"
-            />
-          </div>
+          <SearchInput
+            placeholder={t("Search clients...")}
+            containerClassName="max-w-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onClear={() => setSearchTerm("")}
+            data-testid="input-search-clients"
+          />
         </CardHeader>
         <CardContent>
           {isLoading ? (

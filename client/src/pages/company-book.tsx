@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Loader2, Trash2, Pencil, Save, RotateCcw, BookOpen, Printer, Eye, X, Check } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { playDeleteSound } from "@/lib/sounds";
 import { formatDate } from "@/lib/format-utils";
 import i18n from "@/lib/i18n";
@@ -593,11 +594,13 @@ export default function CompanyBookPage() {
                 />
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
-              <Input
+              <SearchInput
                 placeholder={t("Search by book number...")}
                 value={searchBookNumber}
                 onChange={(e) => setSearchBookNumber(e.target.value)}
-                className="w-40 h-9"
+                onClear={() => setSearchBookNumber("")}
+                containerClassName="w-48"
+                className="h-9"
                 data-testid="input-search-book-number"
               />
               <Select value={filterTypeId} onValueChange={setFilterTypeId}>
@@ -611,16 +614,15 @@ export default function CompanyBookPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="flex items-center gap-1">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t("Search...")}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 h-9"
-                  data-testid="input-search-books"
-                />
-              </div>
+              <SearchInput
+                placeholder={t("Search...")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClear={() => setSearchTerm("")}
+                containerClassName="w-48"
+                className="h-9"
+                data-testid="input-search-books"
+              />
             </div>
           </div>
         </CardHeader>

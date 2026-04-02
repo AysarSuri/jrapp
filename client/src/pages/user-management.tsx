@@ -14,7 +14,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, Search, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers, IconSupplierList } from "@/components/erp-icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -651,16 +652,15 @@ export default function UserManagementPage() {
               <Badge variant="secondary" className="ml-2">{filteredUsers.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="relative w-48">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  placeholder={t('Search...')}
-                  className="ps-9 h-9"
-                  data-testid="input-search-users"
-                />
-              </div>
+              <SearchInput
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setSearchQuery(""); setCurrentPage(1); }}
+                placeholder={t('Search...')}
+                containerClassName="w-48"
+                className="h-9"
+                data-testid="input-search-users"
+              />
               <div className="w-40">
                 <Select value={filterRole} onValueChange={(v) => { setFilterRole(v); setCurrentPage(1); }}>
                   <SelectTrigger className="h-9" data-testid="select-filter-role">

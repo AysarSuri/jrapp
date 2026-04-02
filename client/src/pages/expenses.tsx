@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2, RotateCcw, ListOrdered, Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar, IconDinar, IconExpenseEntry } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -734,16 +735,15 @@ export default function ExpensesPage() {
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
                 <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-44 h-9" data-testid="input-expense-history-to-date" />
               </div>
-              <div className="w-40">
-                <Input
-                  value={invoiceSearch}
-                  onChange={(e) => { setInvoiceSearch(e.target.value); setCurrentPage(1); }}
-                  placeholder={t('Invoice Number')}
-                  className="h-9 font-mono"
-                  data-testid="input-search-expense-invoice"
-                  autoComplete="off"
-                />
-              </div>
+              <SearchInput
+                value={invoiceSearch}
+                onChange={(e) => { setInvoiceSearch(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setInvoiceSearch(""); setCurrentPage(1); }}
+                placeholder={t('Invoice Number')}
+                containerClassName="w-48"
+                className="h-9 font-mono"
+                data-testid="input-search-expense-invoice"
+              />
               <div className="w-48">
                 <ExpenseTypeSearchSelect
                   items={types}

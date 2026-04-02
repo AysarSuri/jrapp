@@ -23,8 +23,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useUser } from "@/hooks/use-auth";
 import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw, ArrowLeft,
-  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, Search, ScanBarcode,
+  ListOrdered, CheckCircle, Clock, Undo2, Eye, Pencil, ChevronLeft, ChevronRight, ScanBarcode,
 } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { playDeleteSound } from "@/lib/sounds";
 import { broadcastDataUpdate } from "@/lib/broadcast";
@@ -744,8 +745,7 @@ export default function PurchaseReturnIqdPage() {
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-search-return-iqd-number" />
+                <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => { setSearchNumber(e.target.value); setCurrentPage(1); }} onClear={() => { setSearchNumber(""); setCurrentPage(1); }} containerClassName="w-48" className="h-9" data-testid="input-search-return-iqd-number" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>

@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Loader2, RotateCcw, ListOrdered, FileText, Pencil, Trash2, Printer, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDollar, IconDinar } from "@/components/erp-icons";
 import { Link } from "wouter";
 import {
@@ -510,15 +511,15 @@ export default function ClearancePurchaseInvoicesPage() {
                   data-testid="select-filter-clearance"
                 />
               </div>
-              <div className="w-36">
-                <Input
-                  placeholder={t('List No')}
-                  value={searchListNumber}
-                  onChange={(e) => { setSearchListNumber(e.target.value); setCurrentPage(1); }}
-                  className="h-9"
-                  data-testid="input-search-list-number"
-                />
-              </div>
+              <SearchInput
+                placeholder={t('List No')}
+                value={searchListNumber}
+                onChange={(e) => { setSearchListNumber(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setSearchListNumber(""); setCurrentPage(1); }}
+                containerClassName="w-48"
+                className="h-9"
+                data-testid="input-search-list-number"
+              />
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-2 h-9" data-testid="button-print-report">
                 <Printer className="h-5 w-5" />
                 {t('Report')}

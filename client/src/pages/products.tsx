@@ -26,7 +26,8 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star, Shuffle } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star, Shuffle } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconProduct, IconDollar } from "@/components/erp-icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
@@ -597,13 +598,12 @@ export default function ProductsPage() {
     <div className="flex items-center justify-between gap-4 flex-wrap">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
+          <SearchInput
             placeholder={t('Search products...')}
-            className="pl-9"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
             onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
+            onClear={() => { setSearchTerm(""); setSearchOpen(false); }}
             data-testid="input-search-products"
           />
           {searchOpen && searchTerm.trim() && filtered.length > 0 && (

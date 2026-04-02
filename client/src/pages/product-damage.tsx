@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Loader2, RotateCcw, ListOrdered, ChevronLeft, ChevronRight, Eye, Printer, Pencil } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconDamage } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -552,21 +553,25 @@ export default function ProductDamagePage() {
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Damage No')}</Label>
-                <Input
+                <SearchInput
                   value={historyDamageNumber}
                   onChange={(e) => { setHistoryDamageNumber(e.target.value); setCurrentPage(1); }}
+                  onClear={() => { setHistoryDamageNumber(""); setCurrentPage(1); }}
                   placeholder={t('Search by damage number')}
-                  className="w-40 h-9 font-mono"
+                  containerClassName="w-48"
+                  className="h-9 font-mono"
                   data-testid="input-search-damage-number"
                 />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Product Name')}</Label>
-                <Input
+                <SearchInput
                   value={historyProductName}
                   onChange={(e) => { setHistoryProductName(e.target.value); setCurrentPage(1); }}
+                  onClear={() => { setHistoryProductName(""); setCurrentPage(1); }}
                   placeholder={t('Search by product name')}
-                  className="w-40 h-9"
+                  containerClassName="w-48"
+                  className="h-9"
                   data-testid="input-search-product-name"
                 />
               </div>

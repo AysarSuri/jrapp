@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, Trash2, ChevronLeft, ChevronRight, Search, Pencil } from "lucide-react";
+import { Save, Loader2, RotateCcw, Trash2, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { IconAgent, IconBank, IconOffice } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -374,16 +375,15 @@ export default function AgentReceiptPage() {
                   data-testid="select-filter-agent"
                 />
               </div>
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={searchNumber}
-                  onChange={e => { setSearchNumber(e.target.value); setCurrentPage(1); }}
-                  placeholder={t("Search by receipt#...")}
-                  className="h-9 text-sm pl-8 w-40"
-                  data-testid="input-search-receipt"
-                />
-              </div>
+              <SearchInput
+                value={searchNumber}
+                onChange={e => { setSearchNumber(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setSearchNumber(""); setCurrentPage(1); }}
+                placeholder={t("Search by receipt#...")}
+                containerClassName="w-48"
+                className="h-9 text-sm"
+                data-testid="input-search-receipt"
+              />
               <DateInput value={historyFromDate} onChange={e => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="h-9 text-xs w-44" data-testid="input-filter-from" />
               <DateInput value={historyToDate} onChange={e => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="h-9 text-xs w-44" data-testid="input-filter-to" />
             </div>

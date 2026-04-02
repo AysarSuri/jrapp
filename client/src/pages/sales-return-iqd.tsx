@@ -25,6 +25,7 @@ import {
   Plus, Trash2, Save, Loader2, FileText, RotateCcw,
   ListOrdered, CheckCircle, Clock, Undo2, ChevronLeft, ChevronRight, Pencil, Eye, ArrowLeft,
 } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { useLocation } from "wouter";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -804,9 +805,10 @@ export default function SalesReturnIqdPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Return #')}</Label>
-              <Input
+              <SearchInput
                 value={filterReturnNumber}
                 onChange={(e) => { setFilterReturnNumber(e.target.value); setCurrentPage(1); }}
+                onClear={() => { setFilterReturnNumber(""); setCurrentPage(1); }}
                 placeholder={t('Search by return number')}
                 className="h-9"
                 data-testid="input-filter-return-number"

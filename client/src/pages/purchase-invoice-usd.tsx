@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, Search, ScanBarcode } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, FileBarChart, ArrowLeft, Eye, Pencil, ScanBarcode } from "lucide-react";
 import { IconDollar } from "@/components/erp-icons";
 import { playDeleteSound } from "@/lib/sounds";
 import PurchaseInvoiceReport from "@/components/purchase-invoice-report";
@@ -969,10 +969,7 @@ export default function PurchaseInvoiceUsdPage() {
                 <Switch id="show-stamp-filter" checked={showStamp} onCheckedChange={(checked) => setShowStamp(!!checked)} data-testid="switch-show-stamp" />
                 <Label htmlFor="show-stamp-filter" className="text-sm font-bold cursor-pointer whitespace-nowrap">{t("Show Stamp")}</Label>
               </div>
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <Input placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} className="w-36 h-9" data-testid="input-search-invoice-number" />
-              </div>
+              <SearchInput placeholder={t('Search by number...')} value={searchNumber} onChange={(e) => setSearchNumber(e.target.value)} onClear={() => setSearchNumber("")} containerClassName="w-48" className="h-9" data-testid="input-search-invoice-number" />
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('Supplier')}</Label>
                 <div className="w-48">
