@@ -667,7 +667,6 @@ export default function SuppliersPage() {
                       <TableHead className="font-bold text-sm">{t('Contact')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Opening Balance (USD)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Opening Balance (IQD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Balance')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Created By')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
@@ -689,7 +688,6 @@ export default function SuppliersPage() {
                         <TableCell className="font-bold text-sm">{client.contact || '-'}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{usd(client.oldDebtUsd || 0)}</TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(client.balance).toLocaleString()}</TableCell>
                         <TableCell className="text-center">
                           {client.hidden ? (
                             <Badge variant="destructive" className="gap-1 text-xs font-bold">
