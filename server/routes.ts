@@ -993,6 +993,12 @@ export async function registerRoutes(
         return res.status(400).json({ message: "لا يمكن حذف هذا العميل لأنه مرتبط بسجلات موجودة" });
       }
 
+      const oldDebtUsd = parseFloat(existingClient.oldDebtUsd || "0");
+      const oldDebtIqd = parseFloat(existingClient.oldDebtIqd || "0");
+      if (oldDebtUsd !== 0 || oldDebtIqd !== 0) {
+        return res.status(400).json({ message: "لا يمكن حذف هذا العميل لأنه يحتوي على رصيد افتتاحي (دين قديم)" });
+      }
+
       await storage.deleteClient(id);
       res.json({ message: "Deleted" });
     } catch {
