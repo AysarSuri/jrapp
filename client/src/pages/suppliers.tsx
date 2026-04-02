@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertClientSchema, type Client } from "@shared/routes";
 import { z } from "zod";
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
-import { useSupplierAddresses } from "@/hooks/use-supplier-addresses";
+import { useSupplierAddresses, useCreateSupplierAddress, useUpdateSupplierAddress, useDeleteSupplierAddress } from "@/hooks/use-supplier-addresses";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +45,9 @@ export default function SuppliersPage() {
   const { t } = useTranslation();
   const { data: allClients, isLoading } = useClients();
   const { data: dbAddresses } = useSupplierAddresses();
+  const { mutate: createSupplierAddr, isPending: isCreatingAddr } = useCreateSupplierAddress();
+  const { mutate: updateSupplierAddr, isPending: isUpdatingAddr } = useUpdateSupplierAddress();
+  const { mutate: deleteSupplierAddr } = useDeleteSupplierAddress();
   const { mutate: createClient, isPending: isCreating } = useCreateClient();
   const { mutate: updateClient, isPending: isUpdating } = useUpdateClient();
   const { mutate: deleteClient } = useDeleteClient();
@@ -50,6 +56,9 @@ export default function SuppliersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [addrDialogOpen, setAddrDialogOpen] = useState(false);
+  const [addrEditId, setAddrEditId] = useState<number | null>(null);
+  const [addrName, setAddrName] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -544,22 +553,35 @@ export default function SuppliersPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="hidden" render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0 pt-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-supplier-hidden"
-                        className="h-5 w-5"
-                      />
-                    </FormControl>
-                    <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                      <EyeOff className="h-5 w-5 text-muted-foreground" />
-                      {t('Hide')}
-                    </FormLabel>
-                  </FormItem>
-                )} />
+                <div className="flex items-center gap-4 pt-4">
+                  <FormField control={form.control} name="hidden" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-supplier-hidden"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
+                        <EyeOff className="h-5 w-5 text-muted-foreground" />
+                        {t('Hide')}
+                      </FormLabel>
+                    </FormItem>
+                  )} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5 text-sm font-semibold"
+                    onClick={() => { setAddrEditId(null); setAddrName(""); setAddrDialogOpen(true); }}
+                    data-testid="button-manage-supplier-addresses"
+                  >
+                    <IconAddress className="h-4 w-4" />
+                    {t('Address')}
+                  </Button>
+                </div>
                 <div className="flex items-end gap-2">
                   <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11 flex-1" data-testid="button-save-supplier">
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
@@ -756,6 +778,126 @@ export default function SuppliersPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={addrDialogOpen} onOpenChange={(v) => { setAddrDialogOpen(v); if (!v) { setAddrEditId(null); setAddrName(""); } }}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>{t('Supplier Addresses')}</DialogTitle>
+            <DialogDescription>{t('Manage addresses for suppliers')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={addrName}
+                onChange={(e) => setAddrName(e.target.value)}
+                placeholder={t('Address Name')}
+                className="h-10 text-base font-semibold flex-1"
+                data-testid="input-inline-supplier-address"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (!addrName.trim()) return;
+                    if (addrEditId) {
+                      updateSupplierAddr({ id: addrEditId, data: { name: addrName.trim() } }, {
+                        onSuccess: () => { setAddrEditId(null); setAddrName(""); toast({ title: t("Supplier address updated successfully") }); },
+                        onError: (err) => { toast({ title: t("Failed to update supplier address"), description: err.message, variant: "destructive" }); },
+                      });
+                    } else {
+                      createSupplierAddr({ name: addrName.trim() }, {
+                        onSuccess: () => { setAddrName(""); toast({ title: t("Supplier address added successfully") }); },
+                        onError: (err) => { toast({ title: t("Failed to add supplier address"), description: err.message, variant: "destructive" }); },
+                      });
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="h-10 px-4"
+                disabled={!addrName.trim() || isCreatingAddr || isUpdatingAddr}
+                data-testid="button-save-inline-supplier-address"
+                onClick={() => {
+                  if (!addrName.trim()) return;
+                  if (addrEditId) {
+                    updateSupplierAddr({ id: addrEditId, data: { name: addrName.trim() } }, {
+                      onSuccess: () => { setAddrEditId(null); setAddrName(""); toast({ title: t("Supplier address updated successfully") }); },
+                      onError: (err) => { toast({ title: t("Failed to update supplier address"), description: err.message, variant: "destructive" }); },
+                    });
+                  } else {
+                    createSupplierAddr({ name: addrName.trim() }, {
+                      onSuccess: () => { setAddrName(""); toast({ title: t("Supplier address added successfully") }); },
+                      onError: (err) => { toast({ title: t("Failed to add supplier address"), description: err.message, variant: "destructive" }); },
+                    });
+                  }
+                }}
+              >
+                {(isCreatingAddr || isUpdatingAddr) ? <Loader2 className="h-4 w-4 animate-spin" /> : addrEditId ? t('Update') : <Plus className="h-4 w-4" />}
+              </Button>
+              {addrEditId && (
+                <Button type="button" variant="outline" size="sm" className="h-10" onClick={() => { setAddrEditId(null); setAddrName(""); }}>
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
+            <div className="max-h-[300px] overflow-y-auto rounded-md border">
+              {addresses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                  <IconAddress className="w-8 h-8 mb-2" />
+                  <p className="text-sm">{t('No supplier addresses found')}</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-sm font-bold">#</TableHead>
+                      <TableHead className="text-sm font-bold">{t('Address Name')}</TableHead>
+                      <TableHead className="text-sm font-bold text-right">{t('Actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {addresses.map((addr: { id: number; name: string }, idx: number) => (
+                      <TableRow key={addr.id} data-testid={`row-inline-supplier-address-${addr.id}`}>
+                        <TableCell className="text-sm font-semibold">{idx + 1}</TableCell>
+                        <TableCell className="text-sm font-semibold">{addr.name}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setAddrEditId(addr.id); setAddrName(addr.name); }} data-testid={`button-edit-inline-addr-${addr.id}`}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" data-testid={`button-delete-inline-addr-${addr.id}`}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t('Delete Address')}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t('Are you sure you want to delete this address?')} ({addr.name})</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteSupplierAddr(addr.id, {
+                                    onSuccess: () => toast({ title: t("Supplier address deleted successfully") }),
+                                    onError: (err) => toast({ title: t("Failed to delete supplier address"), description: err.message, variant: "destructive" }),
+                                  })} data-testid={`button-confirm-delete-inline-addr-${addr.id}`}>
+                                    {t('Delete')}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
