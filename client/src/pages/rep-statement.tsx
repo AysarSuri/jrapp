@@ -373,7 +373,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -478,7 +478,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
         </style>
       </head>
@@ -651,7 +651,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -800,7 +800,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -1029,7 +1029,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -1234,7 +1234,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -1467,7 +1467,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
@@ -1764,7 +1764,7 @@ export default function RepStatementPage() {
         <style>
           ${printStyles}
           @page { size: A4 portrait; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; color: #000; }
+          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px 40px; color: #000; }
           td, th, span, div, p, h1, h2, h3, h4, h5, h6, small, label { color: inherit; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }

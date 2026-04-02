@@ -391,7 +391,7 @@ export default function ExpensesPage() {
           }
           .amount-box {
             flex: 1;
-            padding: 20px;
+            padding: 20px 40px;
             border-radius: 12px;
             text-align: center;
           }
