@@ -752,7 +752,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-5 lg:p-8 overflow-auto">
+        <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
           <div className="max-w-7xl mx-auto animate-fade-in">
             {children}
           </div>
