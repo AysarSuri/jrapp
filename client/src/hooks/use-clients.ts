@@ -53,7 +53,10 @@ export function useDeleteClient() {
   return useMutation({
     mutationFn: async (id: number) => {
       const res = await fetch(`/api/clients/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete client");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete client");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.clients.list.path] });

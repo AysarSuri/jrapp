@@ -972,6 +972,27 @@ export async function registerRoutes(
   app.delete(api.clients.delete.path, requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
+
+      const [existingClient] = await db.select().from(clients).where(eq(clients.id, id));
+      if (!existingClient) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      const [piCount] = await db.select({ count: sql<number>`count(*)::int` }).from(purchaseInvoices).where(eq(purchaseInvoices.supplierId, id));
+      const [spCount] = await db.select({ count: sql<number>`count(*)::int` }).from(supplierPayments).where(eq(supplierPayments.supplierId, id));
+      const [saCount] = await db.select({ count: sql<number>`count(*)::int` }).from(supplierAdjustments).where(eq(supplierAdjustments.supplierId, id));
+      const [prCount] = await db.select({ count: sql<number>`count(*)::int` }).from(purchaseReturns).where(eq(purchaseReturns.supplierId, id));
+      const [soCount] = await db.select({ count: sql<number>`count(*)::int` }).from(supplierOrders).where(eq(supplierOrders.supplierId, id));
+      const [siCount] = await db.select({ count: sql<number>`count(*)::int` }).from(salesInvoices).where(eq(salesInvoices.customerId, id));
+      const [srCount] = await db.select({ count: sql<number>`count(*)::int` }).from(salesReturns).where(eq(salesReturns.customerId, id));
+      const [crCount] = await db.select({ count: sql<number>`count(*)::int` }).from(customerReceipts).where(eq(customerReceipts.customerId, id));
+
+      const totalUsage = piCount.count + spCount.count + saCount.count + prCount.count + soCount.count + siCount.count + srCount.count + crCount.count;
+
+      if (totalUsage > 0) {
+        return res.status(400).json({ message: "لا يمكن حذف هذا العميل لأنه مرتبط بسجلات موجودة" });
+      }
+
       await storage.deleteClient(id);
       res.json({ message: "Deleted" });
     } catch {
