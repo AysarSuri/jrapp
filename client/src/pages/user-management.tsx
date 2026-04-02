@@ -25,7 +25,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getAssignableModules, SALES_REP_PERMISSIONS, getDefaultPermissions, MODULE_FORMS, SUB_PERMISSION_ACTIONS, type DetailedPermissions, type DetailedFormPermissions } from "@/lib/permissions";
+import { getAssignableModules, getSalesRepModules, SALES_REP_PERMISSIONS, getDefaultPermissions, MODULE_FORMS, SUB_PERMISSION_ACTIONS, type DetailedPermissions, type DetailedFormPermissions } from "@/lib/permissions";
 
 type SafeUser = {
   id: string;
@@ -219,7 +219,7 @@ export default function UserManagementPage() {
         isActive,
         permissions: effectivePermissions,
       };
-      if (role === "user") {
+      if (role === "user" || role === "sales_rep") {
         data.detailedPermissions = detailedPermissions;
       }
       if (password.trim()) {
@@ -232,7 +232,7 @@ export default function UserManagementPage() {
       updateMutation.mutate({ id: editUser.id, data });
     } else {
       const createData: any = { username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions };
-      if (role === "user") {
+      if (role === "user" || role === "sales_rep") {
         createData.detailedPermissions = detailedPermissions;
       }
       if (role === "sales_rep") {
@@ -524,16 +524,116 @@ export default function UserManagementPage() {
                 {role === "sales_rep" && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground" data-testid="text-sales-rep-fixed">
-                      {t('Fixed permissions for representatives')}
+                      {t('Representative permissions')} — {t('Dashboard')}, {t('Sales Management')}, {t('Agent Management')}
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {getAssignableModules().map(mod => {
-                        const isChecked = SALES_REP_PERMISSIONS.includes(mod.key);
+                    <div className="space-y-1">
+                      {getSalesRepModules().map(mod => {
+                        const isExpanded = expandedModules.includes(mod.key);
+                        const forms = MODULE_FORMS[mod.key] || [];
+                        const hasForms = forms.length > 0;
+
+                        const toggleExpand = () => {
+                          setExpandedModules(prev =>
+                            prev.includes(mod.key)
+                              ? prev.filter(k => k !== mod.key)
+                              : [...prev, mod.key]
+                          );
+                        };
+
+                        const getFormPerms = (route: string): DetailedFormPermissions => {
+                          return detailedPermissions[mod.key]?.[route] || {};
+                        };
+
+                        const setFormPerm = (route: string, action: string, value: boolean | number) => {
+                          setDetailedPermissions(prev => {
+                            const updated = { ...prev };
+                            if (!updated[mod.key]) updated[mod.key] = {};
+                            if (!updated[mod.key][route]) updated[mod.key][route] = {};
+                            (updated[mod.key][route] as any)[action] = value;
+                            return updated;
+                          });
+                        };
+
                         return (
-                          <label key={mod.key} className={`flex items-center gap-2 p-2 rounded border text-sm ${isChecked ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'opacity-50'}`}>
-                            <Checkbox checked={isChecked} disabled data-testid={`checkbox-perm-${mod.key}`} />
-                            <span>{t(mod.labelKey)}</span>
-                          </label>
+                          <div key={mod.key} className="rounded border bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800">
+                            <div className="flex items-center gap-2 p-2">
+                              <Checkbox checked={true} disabled data-testid={`checkbox-perm-${mod.key}`} />
+                              <span className="text-sm flex-1 font-medium">{t(mod.labelKey)}</span>
+                              {hasForms && (
+                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={toggleExpand} data-testid={`btn-expand-${mod.key}`}>
+                                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                </Button>
+                              )}
+                            </div>
+                            {hasForms && isExpanded && (
+                              <div className="px-3 pb-3 space-y-2">
+                                {forms.map(form => {
+                                  const fp = getFormPerms(form.route);
+                                  const formEnabled = detailedPermissions[mod.key]?.[form.route] !== undefined;
+                                  return (
+                                    <div key={form.key} className="rounded border p-2 bg-background/50 space-y-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <Checkbox
+                                          checked={formEnabled}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setFormPerm(form.route, "create", true);
+                                              setFormPerm(form.route, "edit", true);
+                                              setFormPerm(form.route, "editDays", 0);
+                                              setFormPerm(form.route, "delete", true);
+                                              setFormPerm(form.route, "viewHistory", true);
+                                              setFormPerm(form.route, "print", true);
+                                            } else {
+                                              setDetailedPermissions(prev => {
+                                                const updated = { ...prev };
+                                                if (updated[mod.key]) {
+                                                  delete updated[mod.key][form.route];
+                                                }
+                                                return updated;
+                                              });
+                                            }
+                                          }}
+                                          data-testid={`checkbox-form-${form.key}`}
+                                        />
+                                        <span className="text-xs font-medium">{t(form.labelKey)}</span>
+                                      </div>
+                                      {formEnabled && (
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 ms-6">
+                                          {SUB_PERMISSION_ACTIONS.map(action => (
+                                            <label key={action.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                              <Checkbox
+                                                className="h-3.5 w-3.5"
+                                                checked={fp[action.key as keyof DetailedFormPermissions] !== false}
+                                                onCheckedChange={(checked) => {
+                                                  setFormPerm(form.route, action.key, !!checked);
+                                                }}
+                                                data-testid={`checkbox-action-${form.key}-${action.key}`}
+                                              />
+                                              <span>{t(action.labelKey)}</span>
+                                            </label>
+                                          ))}
+                                          {fp.edit !== false && (
+                                            <label className="flex items-center gap-1.5 text-xs">
+                                              <span>{t('Edit Days')}:</span>
+                                              <Input
+                                                type="number"
+                                                min={0}
+                                                value={fp.editDays ?? 0}
+                                                onChange={(e) => setFormPerm(form.route, "editDays", parseInt(e.target.value) || 0)}
+                                                className="h-6 w-16 text-xs px-1"
+                                                data-testid={`input-editdays-${form.key}`}
+                                              />
+                                              <span className="text-muted-foreground">({t('0 = unlimited')})</span>
+                                            </label>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>

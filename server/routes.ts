@@ -383,7 +383,7 @@ export async function registerRoutes(
       if (role === 'admin') effectivePerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
       if (role === 'sales_rep') effectivePerms = SALES_REP_PERMS;
       const userData: any = { username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms };
-      if (role === 'user' && detailedPermissions && typeof detailedPermissions === 'object') {
+      if ((role === 'user' || role === 'sales_rep') && detailedPermissions && typeof detailedPermissions === 'object') {
         userData.detailedPermissions = detailedPermissions;
       }
       const user = await storage.createUser(userData);
@@ -423,11 +423,10 @@ export async function registerRoutes(
         updateData.detailedPermissions = {};
       } else if (finalRole === 'sales_rep') {
         updateData.permissions = SALES_REP_PERMS;
-        updateData.detailedPermissions = {};
       } else if (permissions !== undefined) {
         updateData.permissions = Array.isArray(permissions) ? permissions : [];
       }
-      if (finalRole === 'user' && detailedPermissions !== undefined) {
+      if ((finalRole === 'user' || finalRole === 'sales_rep') && detailedPermissions !== undefined) {
         updateData.detailedPermissions = (detailedPermissions && typeof detailedPermissions === 'object') ? detailedPermissions : {};
       }
       if (isActive !== undefined) updateData.isActive = isActive;

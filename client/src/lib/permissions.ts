@@ -440,3 +440,7 @@ export function canEditRecord(
 export function getAssignableModules(): PermissionModule[] {
   return PERMISSION_MODULES.filter(m => m.key !== "user_management");
 }
+
+export function getSalesRepModules(): PermissionModule[] {
+  return PERMISSION_MODULES.filter(m => SALES_REP_PERMISSIONS.includes(m.key));
+}
