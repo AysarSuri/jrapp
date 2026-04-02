@@ -61,13 +61,17 @@ Preferred communication style: Simple, everyday language.
 ### Authentication & Authorization
 - Session-based authentication (not JWT)
 - User roles: `admin` (full access), `user` (configurable permissions), `sales_rep` (fixed limited permissions)
-- **Permissions system**: Module-based permissions stored as `text[]` in users table. Config in `client/src/lib/permissions.ts`.
-  - Admin: all modules accessible
+- **Permissions system**: 3-level granular permissions.
+  - **Level 1 — Module access**: stored as `text[]` in `users.permissions`. Config in `client/src/lib/permissions.ts` (PERMISSION_MODULES).
+  - **Level 2 — Form access**: Per-form within each module. Config in `MODULE_FORMS` mapping.
+  - **Level 3 — Action access**: Per-action within each form: create, edit, editDays (days limit for editing old records, 0=unlimited), delete, viewHistory, print. Stored as `jsonb` in `users.detailedPermissions`.
+  - Admin: all modules/forms/actions accessible (bypass all checks)
   - Sales Rep: fixed access to dashboard, sales_management, agent_management only
-  - User (accountant): admin selects which modules they can access via checkboxes in user management form
-  - 19 permission modules mapping to sidebar groups/pages (dashboard, sales_management, supplier_management, etc.)
+  - User (accountant): admin configures module + form + action permissions via expandable checkboxes in user management form
+  - 19+ permission modules mapping to sidebar groups/pages
   - Sidebar items filtered by user permissions in `layout-shell.tsx`
   - Route protection in `App.tsx` ProtectedRoute shows "Access Denied" page for unauthorized routes
+  - **Frontend hook**: `usePermissions()` in `client/src/hooks/use-permissions.ts` — provides canCreate, canEdit, canDelete, canPrint, canViewHistory, canEditRecord helpers
 - Protected routes on frontend redirect to `/auth` if no session
 - `/api/user` endpoint checks session and returns current user (including permissions)
 - Session secret configurable via `SESSION_SECRET` environment variable

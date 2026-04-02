@@ -130,8 +130,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   const userRole = (user as any).role || "user";
   const userPermissions = (user as any).permissions || [];
+  const userDetailedPerms = (user as any).detailedPermissions || null;
 
-  if (!hasRoutePermission(userRole, userPermissions, location)) {
+  if (!hasRoutePermission(userRole, userPermissions, location, userDetailedPerms)) {
     return (
       <LayoutShell>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4" data-testid="access-denied-page">

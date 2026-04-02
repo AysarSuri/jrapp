@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, serial, integer, timestamp, numeric, varchar, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric, varchar, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -91,6 +91,7 @@ export const users = pgTable("users", {
   role: text("role").notNull(), // 'admin', 'user', 'sales_rep'
   isActive: integer("is_active").notNull().default(1),
   permissions: text("permissions").array().default([]),
+  detailedPermissions: jsonb("detailed_permissions").default({}),
   lastLoginAt: timestamp("last_login_at"),
   lastLogoutAt: timestamp("last_logout_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

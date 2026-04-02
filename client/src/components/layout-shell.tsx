@@ -518,16 +518,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const userRole = user?.role || "user";
   const userPermissions = (user as any)?.permissions || [];
+  const userDetailedPerms = (user as any)?.detailedPermissions || null;
 
   const filteredSidebarItems = sidebarItems.filter((entry) => {
     if ('type' in entry && entry.type === 'group') {
       const firstChildRoute = entry.children[0]?.href;
       if (firstChildRoute) {
-        return hasRoutePermission(userRole, userPermissions, firstChildRoute);
+        return hasRoutePermission(userRole, userPermissions, firstChildRoute, userDetailedPerms);
       }
       return true;
     }
-    return hasRoutePermission(userRole, userPermissions, entry.href);
+    return hasRoutePermission(userRole, userPermissions, entry.href, userDetailedPerms);
   });
 
   const renderNavLink = (item: NavItem, indent = false) => {

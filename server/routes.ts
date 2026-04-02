@@ -235,6 +235,65 @@ export async function registerRoutes(
     };
   };
 
+  const API_ROUTE_TO_FORM: Record<string, string> = {
+    '/api/customers': '/customers',
+    '/api/sales-invoices': '/sales-invoice-usd',
+    '/api/sales-returns': '/sales-return-usd',
+    '/api/customer-receipts': '/customer-receipt-usd',
+    '/api/agent-payments': '/agent-payment-usd',
+    '/api/suppliers': '/suppliers',
+    '/api/purchase-invoices': '/purchase-invoice-usd',
+    '/api/purchase-returns': '/purchase-return-usd',
+    '/api/supplier-payments': '/supplier-payments',
+    '/api/supplier-adjustments': '/supplier-adjustments',
+    '/api/supplier-orders': '/supplier-order-usd',
+    '/api/products': '/products',
+    '/api/units': '/units',
+    '/api/categories': '/categories',
+    '/api/banks': '/banks',
+    '/api/bank-receipts': '/bank-receipts',
+    '/api/bank-payments': '/bank-payments',
+    '/api/customs-clearances': '/customs-clearances',
+    '/api/clearance-receipts': '/clearance-receipts',
+    '/api/clearance-payments': '/clearance-payments',
+    '/api/transfer-offices': '/transfer-offices',
+    '/api/office-receipts': '/office-receipts',
+    '/api/office-payments': '/office-payments',
+    '/api/expense-types': '/expense-types',
+    '/api/expenses': '/expenses',
+    '/api/external-debts': '/external-debts',
+    '/api/external-debt-transactions': '/external-debt-receipts',
+    '/api/owners': '/owners',
+    '/api/owner-withdrawals': '/owner-withdrawals',
+    '/api/owner-returns': '/owner-returns',
+    '/api/warehouses': '/warehouses',
+    '/api/warehouse-transfers': '/warehouse-transfer',
+    '/api/accounts': '/accounts',
+    '/api/currency-exchange': '/currency-exchange',
+    '/api/product-damage': '/product-damage',
+    '/api/addresses': '/addresses',
+    '/api/supplier-addresses': '/supplier-addresses',
+  };
+
+  function checkFormAction(detailedPerms: any, moduleKey: string, formRoute: string, action: string): boolean {
+    if (!detailedPerms || typeof detailedPerms !== 'object') return true;
+    const moduleLevelPerms = detailedPerms[moduleKey];
+    if (!moduleLevelPerms) return true;
+    const formPerms = moduleLevelPerms[formRoute];
+    if (!formPerms) return true;
+    if (action === 'editDays') return true;
+    return formPerms[action] !== false;
+  }
+
+  function getEditDaysLimit(detailedPerms: any, moduleKey: string, formRoute: string): number {
+    if (!detailedPerms || typeof detailedPerms !== 'object') return 0;
+    const moduleLevelPerms = detailedPerms[moduleKey];
+    if (!moduleLevelPerms) return 0;
+    const formPerms = moduleLevelPerms[formRoute];
+    if (!formPerms) return 0;
+    return formPerms.editDays ?? 0;
+  }
+
   app.use('/api', (req, res, next) => {
     const openPaths = ['/api/auth', '/api/user', '/api/login-users', '/api/notifications', '/api/dashboard'];
     const fullPath = req.path.startsWith('/api') ? req.path : `/api${req.path}`;
@@ -254,6 +313,22 @@ export async function registerRoutes(
       if (!effectivePerms.includes(permKey)) {
         return res.status(403).json({ message: "You do not have permission to access this resource" });
       }
+
+      if (user.role === 'admin') return next();
+
+      const formRoute = API_ROUTE_TO_FORM[matchedKey];
+      if (formRoute && user.detailedPermissions) {
+        const method = req.method.toUpperCase();
+        let action: string | null = null;
+        if (method === 'POST') action = 'create';
+        else if (method === 'PATCH' || method === 'PUT') action = 'edit';
+        else if (method === 'DELETE') action = 'delete';
+
+        if (action && !checkFormAction(user.detailedPermissions, permKey, formRoute, action)) {
+          return res.status(403).json({ message: "You do not have permission for this action" });
+        }
+      }
+
       next();
     }).catch(() => next());
   });
@@ -291,7 +366,7 @@ export async function registerRoutes(
       if (!currentUser || currentUser.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can manage users" });
       }
-      const { username, password, fullName, role, mobile, permissions, debtUsd, debtIqd } = req.body;
+      const { username, password, fullName, role, mobile, permissions, detailedPermissions, debtUsd, debtIqd } = req.body;
       if (!username || !password || !role) {
         return res.status(400).json({ message: "Username, password, and role are required" });
       }
@@ -307,7 +382,11 @@ export async function registerRoutes(
       let effectivePerms: string[] = Array.isArray(permissions) ? permissions : [];
       if (role === 'admin') effectivePerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
       if (role === 'sales_rep') effectivePerms = SALES_REP_PERMS;
-      const user = await storage.createUser({ username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms });
+      const userData: any = { username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms };
+      if (role === 'user' && detailedPermissions && typeof detailedPermissions === 'object') {
+        userData.detailedPermissions = detailedPermissions;
+      }
+      const user = await storage.createUser(userData);
       if (role === 'sales_rep') {
         const repName = fullName || username;
         await db.insert(representatives).values({ name: repName, mobile: mobile || null, debtUsd: debtUsd || "0", debtIqd: debtIqd || "0" }).onConflictDoNothing();
@@ -326,7 +405,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Only admins can manage users" });
       }
       const { id } = req.params;
-      const { username, password, fullName, role, isActive, mobile, permissions, debtUsd, debtIqd } = req.body;
+      const { username, password, fullName, role, isActive, mobile, permissions, detailedPermissions, debtUsd, debtIqd } = req.body;
       const updateData: any = {};
       if (username !== undefined) updateData.username = username;
       if (fullName !== undefined) updateData.fullName = fullName;
@@ -341,10 +420,15 @@ export async function registerRoutes(
       const finalRole = role || (await storage.getUser(id))?.role || 'user';
       if (finalRole === 'admin') {
         updateData.permissions = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
+        updateData.detailedPermissions = {};
       } else if (finalRole === 'sales_rep') {
         updateData.permissions = SALES_REP_PERMS;
+        updateData.detailedPermissions = {};
       } else if (permissions !== undefined) {
         updateData.permissions = Array.isArray(permissions) ? permissions : [];
+      }
+      if (finalRole === 'user' && detailedPermissions !== undefined) {
+        updateData.detailedPermissions = (detailedPermissions && typeof detailedPermissions === 'object') ? detailedPermissions : {};
       }
       if (isActive !== undefined) updateData.isActive = isActive;
       if (password) {

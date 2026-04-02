@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers, IconSupplierList } from "@/components/erp-icons";
 import {
@@ -25,7 +25,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getAssignableModules, SALES_REP_PERMISSIONS, getDefaultPermissions } from "@/lib/permissions";
+import { getAssignableModules, SALES_REP_PERMISSIONS, getDefaultPermissions, MODULE_FORMS, SUB_PERMISSION_ACTIONS, type DetailedPermissions, type DetailedFormPermissions } from "@/lib/permissions";
 
 type SafeUser = {
   id: string;
@@ -35,6 +35,7 @@ type SafeUser = {
   role: string;
   isActive: number;
   permissions: string[] | null;
+  detailedPermissions: DetailedPermissions | null;
   lastLoginAt: string | null;
   lastLogoutAt: string | null;
   createdAt: string;
@@ -59,6 +60,8 @@ export default function UserManagementPage() {
   const [isActive, setIsActive] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [detailedPermissions, setDetailedPermissions] = useState<DetailedPermissions>({});
+  const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [debtUsd, setDebtUsd] = useState("");
   const [debtIqd, setDebtIqd] = useState("");
 
@@ -81,6 +84,8 @@ export default function UserManagementPage() {
     setIsActive(1);
     setShowPassword(false);
     setPermissions([]);
+    setDetailedPermissions({});
+    setExpandedModules([]);
     setDebtUsd("");
     setDebtIqd("");
   };
@@ -98,6 +103,8 @@ export default function UserManagementPage() {
     setRole(u.role);
     setIsActive(u.isActive);
     setPermissions(u.permissions || []);
+    setDetailedPermissions(u.detailedPermissions || {});
+    setExpandedModules([]);
     setShowPassword(false);
     if (u.role === "sales_rep") {
       const rep = representativesList?.find(r => r.name === u.fullName || r.name === u.username);
@@ -212,6 +219,9 @@ export default function UserManagementPage() {
         isActive,
         permissions: effectivePermissions,
       };
+      if (role === "user") {
+        data.detailedPermissions = detailedPermissions;
+      }
       if (password.trim()) {
         data.password = password;
       }
@@ -222,6 +232,9 @@ export default function UserManagementPage() {
       updateMutation.mutate({ id: editUser.id, data });
     } else {
       const createData: any = { username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions };
+      if (role === "user") {
+        createData.detailedPermissions = detailedPermissions;
+      }
       if (role === "sales_rep") {
         createData.debtUsd = debtUsd || "0";
         createData.debtIqd = debtIqd || "0";
@@ -531,24 +544,150 @@ export default function UserManagementPage() {
                     <p className="text-sm text-muted-foreground">
                       {t('Select permissions for this user')}
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="space-y-1">
                       {getAssignableModules().map(mod => {
                         const isChecked = permissions.includes(mod.key);
+                        const isExpanded = expandedModules.includes(mod.key);
+                        const forms = MODULE_FORMS[mod.key] || [];
+                        const hasForms = forms.length > 0;
+
+                        const toggleExpand = () => {
+                          setExpandedModules(prev =>
+                            prev.includes(mod.key)
+                              ? prev.filter(k => k !== mod.key)
+                              : [...prev, mod.key]
+                          );
+                        };
+
+                        const getFormPerms = (route: string): DetailedFormPermissions => {
+                          return detailedPermissions[mod.key]?.[route] || {};
+                        };
+
+                        const setFormPerm = (route: string, action: string, value: boolean | number) => {
+                          setDetailedPermissions(prev => {
+                            const updated = { ...prev };
+                            if (!updated[mod.key]) updated[mod.key] = {};
+                            if (!updated[mod.key][route]) updated[mod.key][route] = {};
+                            (updated[mod.key][route] as any)[action] = value;
+                            return updated;
+                          });
+                        };
+
+                        const toggleAllFormsInModule = (enabled: boolean) => {
+                          setDetailedPermissions(prev => {
+                            const updated = { ...prev };
+                            if (enabled) {
+                              if (!updated[mod.key]) updated[mod.key] = {};
+                              forms.forEach(f => {
+                                updated[mod.key][f.route] = { create: true, edit: true, editDays: 0, delete: true, viewHistory: true, print: true };
+                              });
+                            } else {
+                              delete updated[mod.key];
+                            }
+                            return updated;
+                          });
+                        };
+
                         return (
-                          <label key={mod.key} className={`flex items-center gap-2 p-2 rounded border text-sm cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'hover:bg-muted/50'}`}>
-                            <Checkbox
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setPermissions(prev => [...prev, mod.key]);
-                                } else {
+                          <div key={mod.key} className={`rounded border transition-colors ${isChecked ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'hover:bg-muted/50'}`}>
+                            <div className="flex items-center gap-2 p-2">
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setPermissions(prev => [...prev, mod.key]);
+                                    toggleAllFormsInModule(true);
+                                  } else {
+                                    setPermissions(prev => prev.filter(p => p !== mod.key));
+                                    toggleAllFormsInModule(false);
+                                  }
+                                }}
+                                data-testid={`checkbox-perm-${mod.key}`}
+                              />
+                              <span className="text-sm flex-1 cursor-pointer" onClick={() => {
+                                if (isChecked) {
                                   setPermissions(prev => prev.filter(p => p !== mod.key));
+                                  toggleAllFormsInModule(false);
+                                } else {
+                                  setPermissions(prev => [...prev, mod.key]);
+                                  toggleAllFormsInModule(true);
                                 }
-                              }}
-                              data-testid={`checkbox-perm-${mod.key}`}
-                            />
-                            <span>{t(mod.labelKey)}</span>
-                          </label>
+                              }}>{t(mod.labelKey)}</span>
+                              {hasForms && isChecked && (
+                                <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={toggleExpand} data-testid={`btn-expand-${mod.key}`}>
+                                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                </Button>
+                              )}
+                            </div>
+                            {hasForms && isChecked && isExpanded && (
+                              <div className="px-3 pb-3 space-y-2">
+                                {forms.map(form => {
+                                  const fp = getFormPerms(form.route);
+                                  const formEnabled = detailedPermissions[mod.key]?.[form.route] !== undefined;
+                                  return (
+                                    <div key={form.key} className="rounded border p-2 bg-background/50 space-y-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <Checkbox
+                                          checked={formEnabled}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setFormPerm(form.route, "create", true);
+                                              setFormPerm(form.route, "edit", true);
+                                              setFormPerm(form.route, "editDays", 0);
+                                              setFormPerm(form.route, "delete", true);
+                                              setFormPerm(form.route, "viewHistory", true);
+                                              setFormPerm(form.route, "print", true);
+                                            } else {
+                                              setDetailedPermissions(prev => {
+                                                const updated = { ...prev };
+                                                if (updated[mod.key]) {
+                                                  delete updated[mod.key][form.route];
+                                                }
+                                                return updated;
+                                              });
+                                            }
+                                          }}
+                                          data-testid={`checkbox-form-${form.key}`}
+                                        />
+                                        <span className="text-xs font-medium">{t(form.labelKey)}</span>
+                                      </div>
+                                      {formEnabled && (
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 ms-6">
+                                          {SUB_PERMISSION_ACTIONS.map(action => (
+                                            <label key={action.key} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                                              <Checkbox
+                                                className="h-3.5 w-3.5"
+                                                checked={fp[action.key as keyof DetailedFormPermissions] !== false}
+                                                onCheckedChange={(checked) => {
+                                                  setFormPerm(form.route, action.key, !!checked);
+                                                }}
+                                                data-testid={`checkbox-action-${form.key}-${action.key}`}
+                                              />
+                                              <span>{t(action.labelKey)}</span>
+                                            </label>
+                                          ))}
+                                          {fp.edit !== false && (
+                                            <label className="flex items-center gap-1.5 text-xs">
+                                              <span>{t('Edit Days')}:</span>
+                                              <Input
+                                                type="number"
+                                                min={0}
+                                                value={fp.editDays ?? 0}
+                                                onChange={(e) => setFormPerm(form.route, "editDays", parseInt(e.target.value) || 0)}
+                                                className="h-6 w-16 text-xs px-1"
+                                                data-testid={`input-editdays-${form.key}`}
+                                              />
+                                              <span className="text-muted-foreground">({t('0 = unlimited')})</span>
+                                            </label>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
