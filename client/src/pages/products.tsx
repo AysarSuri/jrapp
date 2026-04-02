@@ -332,7 +332,7 @@ export default function ProductsPage() {
 
     body {
       font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, sans-serif;
-      padding: 18px 40px;
+      padding: 20px;
       font-size: 10pt;
       direction: ${dir};
       color: #1a1a2e;

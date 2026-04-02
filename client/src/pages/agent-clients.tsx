@@ -226,7 +226,7 @@ export default function AgentClientsPage() {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, sans-serif;
-      padding: 18px 40px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
+      padding: 20px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .header-row {
