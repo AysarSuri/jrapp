@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertClientSchema, type Client } from "@shared/routes";
 import { z } from "zod";
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
-import { useAddresses } from "@/hooks/use-addresses";
+import { useSupplierAddresses } from "@/hooks/use-supplier-addresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,7 +41,7 @@ const ITEMS_PER_PAGE = 10;
 export default function SuppliersPage() {
   const { t } = useTranslation();
   const { data: allClients, isLoading } = useClients();
-  const { data: dbAddresses } = useAddresses();
+  const { data: dbAddresses } = useSupplierAddresses();
   const { mutate: createClient, isPending: isCreating } = useCreateClient();
   const { mutate: updateClient, isPending: isUpdating } = useUpdateClient();
   const { mutate: deleteClient } = useDeleteClient();
