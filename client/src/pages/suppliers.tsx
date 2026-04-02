@@ -455,11 +455,11 @@ export default function SuppliersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('Suppliers')}</h1>
-          <p className="text-muted-foreground mt-1">{t('Manage your suppliers')}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Suppliers')}</h1>
+          <p className="text-muted-foreground text-sm">{t('Manage your suppliers')}</p>
         </div>
         <Link href="/supplier-management">
           <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
@@ -469,7 +469,7 @@ export default function SuppliersPage() {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Suppliers')}</CardTitle>
@@ -498,7 +498,7 @@ export default function SuppliersPage() {
       </div>
 
       <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-2 pt-4">
+        <CardHeader className="pb-1 pt-3 px-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
             {editingClient ? (
               <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Supplier')}</>
@@ -507,10 +507,10 @@ export default function SuppliersPage() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pb-4">
+        <CardContent className="pb-3 px-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Name')}</FormLabel>
@@ -598,7 +598,7 @@ export default function SuppliersPage() {
       </Card>
 
       <Card className="border-border/50 shadow-sm">
-        <CardHeader>
+        <CardHeader className="pb-2 pt-3 px-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
               <SearchInput
@@ -646,7 +646,7 @@ export default function SuppliersPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-3">
           {isLoading ? (
             <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filtered.length === 0 ? (
