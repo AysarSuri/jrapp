@@ -374,6 +374,12 @@ export default function PurchaseReturnUsdPage() {
   };
 
   const selectSupplier = (clientId: string) => {
+    if (!clientId) {
+      setSupplierId(null);
+      setSupplierName("");
+      setAddress("");
+      return;
+    }
     const client = suppliersList.find(c => c.id === parseInt(clientId));
     if (client) {
       setSupplierId(client.id);

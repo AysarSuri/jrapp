@@ -133,6 +133,11 @@ export default function SupplierPaymentsPage() {
   const transferOffices = transferOfficesList || [];
 
   const selectSupplier = useCallback((id: string) => {
+    if (!id) {
+      setSupplierId("");
+      setSupplierName("");
+      return;
+    }
     setSupplierId(id);
     const supplier = suppliers?.find(s => s.id === parseInt(id));
     if (supplier) {

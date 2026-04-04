@@ -112,6 +112,11 @@ export default function SupplierAdjustmentsPage() {
   }, [editId]);
 
   const selectSupplier = useCallback((id: string) => {
+    if (!id) {
+      setSupplierId("");
+      setSupplierName("");
+      return;
+    }
     setSupplierId(id);
     const supplier = suppliers?.find(s => s.id === parseInt(id));
     if (supplier) {
