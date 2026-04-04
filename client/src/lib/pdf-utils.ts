@@ -1,7 +1,7 @@
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
-const FONT_FAMILY = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Noto Kufi Arabic','Segoe UI',sans-serif";
+const FONT_FAMILY = "'Tajawal','Segoe UI',sans-serif";
 
 const A4_WIDTH_PX = 794;
 
@@ -11,8 +11,8 @@ async function ensureFontsLoaded(): Promise<void> {
   }
   const testChars = "پچڤگڵڕێۆژ فاتورة مبيعات فرۆشتن لیستی حسابی دۆلار";
   const fontFaces = [
-    '400 16px "Noto Naskh Arabic"',
-    '700 16px "Noto Naskh Arabic"',
+    '400 16px "Tajawal"',
+    '700 16px "Tajawal"',
     '400 16px "Tajawal"',
     '700 16px "Tajawal"',
   ];

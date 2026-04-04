@@ -224,7 +224,7 @@ export default function SupplierPaymentReport({ paymentId, open, onOpenChange, c
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : payment ? (
-          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
+          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />

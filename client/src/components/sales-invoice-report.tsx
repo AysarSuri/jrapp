@@ -286,7 +286,7 @@ export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, curr
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : invoice ? (
-          <div ref={printRef} style={{ position: "relative", width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif" }}>
+          <div ref={printRef} style={{ position: "relative", width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif" }}>
             {companyProfile?.logo && (
               <div style={{ position: "absolute", top: "58%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 0, pointerEvents: "none" }}>
                 <img src={companyProfile.logo} alt="" style={{ width: 300, height: 300, objectFit: "contain", opacity: 0.08 }} />

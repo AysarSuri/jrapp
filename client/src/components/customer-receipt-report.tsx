@@ -122,7 +122,7 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
         <title>${receiptTitle} - ${receipt?.customerName || ""}</title>
         <style>
           ${printStyles}
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+          body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         </style>
       </head>
       <body>${content.innerHTML}</body>
@@ -208,7 +208,7 @@ export default function CustomerReceiptReport({ receipt, open, onOpenChange }: C
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
+          <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 8 }}>
                 <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }} />

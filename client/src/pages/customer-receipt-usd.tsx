@@ -338,7 +338,7 @@ export default function CustomerReceiptUsdPage() {
         <style>
           ${printStyles}
           @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+          body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
           @media print { body { padding: 0; } }
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; }

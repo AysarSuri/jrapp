@@ -225,7 +225,7 @@ export default function AgentClientsPage() {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Noto Naskh Arabic', 'Tajawal', 'Noto Sans Arabic', 'Noto Kufi Arabic', 'Inter', -apple-system, sans-serif;
+      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
       padding: 20px; font-size: 10pt; direction: ${dir}; color: #1a1a2e; background: #fff;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
@@ -318,7 +318,7 @@ export default function AgentClientsPage() {
       container.style.left = "-9999px";
       container.style.top = "0";
       container.style.width = "794px";
-      container.style.fontFamily = "'Noto Naskh Arabic','Tajawal','Noto Sans Arabic','Segoe UI',sans-serif";
+      container.style.fontFamily = "'Tajawal','Segoe UI',sans-serif";
       container.innerHTML = html.replace(/<!DOCTYPE.*?<body>/s, "").replace(/<\/body>.*<\/html>/s, "");
       document.body.appendChild(container);
 
