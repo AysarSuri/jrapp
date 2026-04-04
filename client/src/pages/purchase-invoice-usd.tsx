@@ -483,13 +483,19 @@ export default function PurchaseInvoiceUsdPage() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Link href="/supplier-management">
-          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-            <ArrowLeft className="h-5 w-5" />
-            {t("Supplier Management")}
-          </Button>
-        </Link>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <Link href="/supplier-management">
+            <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+              <ArrowLeft className="h-5 w-5" />
+              {t("Supplier Management")}
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <IconDollar className="h-7 w-7 text-blue-600" />
+            {isEditMode ? t('Edit Purchase Invoice - USD') : t('Purchase Invoice - USD')}
+          </h1>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-form">
             <RotateCcw className="w-5 h-5 mr-2" />
@@ -500,13 +506,6 @@ export default function PurchaseInvoiceUsdPage() {
             {isEditMode ? t('Update Invoice') : t('Save Invoice')}
           </Button>
         </div>
-      </div>
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <IconDollar className="h-8 w-8 text-blue-600" />
-          {isEditMode ? t('Edit Purchase Invoice - USD') : t('Purchase Invoice - USD')}
-        </h1>
-        <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase invoice in US Dollar') : t('Create purchase invoice in US Dollar')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">
