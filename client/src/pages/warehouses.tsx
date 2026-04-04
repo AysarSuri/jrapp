@@ -1,18 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertWarehouseSchema, type Warehouse } from "@shared/routes";
-import { z } from "zod";
 import { useWarehouses, useCreateWarehouse, useUpdateWarehouse, useDeleteWarehouse } from "@/hooks/use-warehouses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -20,12 +11,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Loader2, Trash2, Pencil } from "lucide-react";
+import { Save, Loader2, Trash2, Pencil, RotateCcw, X } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconWarehouse } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { Warehouse } from "@shared/routes";
 
 export default function WarehousesPage() {
   const { t } = useTranslation();
@@ -34,49 +26,45 @@ export default function WarehousesPage() {
   const { mutate: updateWarehouse, isPending: isUpdating } = useUpdateWarehouse();
   const { mutate: deleteWarehouse } = useDeleteWarehouse();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Warehouse | null>(null);
+  const [warehouseName, setWarehouseName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const form = useForm<z.infer<typeof insertWarehouseSchema>>({
-    resolver: zodResolver(insertWarehouseSchema),
-    defaultValues: { name: "" },
-  });
+  const isSaving = isCreating || isUpdating;
 
-  const openCreateDialog = () => {
-    setEditing(null);
-    form.reset({ name: "" });
-    setOpen(true);
+  const resetForm = () => {
+    setWarehouseName("");
+    setEditingId(null);
   };
 
-  const openEditDialog = (item: Warehouse) => {
-    setEditing(item);
-    form.reset({ name: item.name });
-    setOpen(true);
+  const startEdit = (item: Warehouse) => {
+    setEditingId(item.id);
+    setWarehouseName(item.name);
   };
 
-  const onSubmit = (values: z.infer<typeof insertWarehouseSchema>) => {
-    if (editing) {
-      updateWarehouse({ id: editing.id, data: values }, {
+  const handleSave = () => {
+    if (!warehouseName.trim()) {
+      toast({ title: t("Please enter warehouse name"), variant: "destructive" });
+      return;
+    }
+    if (editingId) {
+      updateWarehouse({ id: editingId, data: { name: warehouseName.trim() } }, {
         onSuccess: () => {
-          setOpen(false);
-          setEditing(null);
-          form.reset();
+          resetForm();
           toast({ title: t("Warehouse updated successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to update warehouse"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to update warehouse"), description: err.message, variant: "destructive" });
         },
       });
     } else {
-      createWarehouse(values, {
+      createWarehouse({ name: warehouseName.trim() }, {
         onSuccess: () => {
-          setOpen(false);
-          form.reset();
+          resetForm();
           toast({ title: t("Warehouse added successfully") });
         },
         onError: (err) => {
-          toast({ title: t("Failed to add warehouse"), description: t(err.message), variant: "destructive" });
+          toast({ title: t("Failed to add warehouse"), description: err.message, variant: "destructive" });
         },
       });
     }
@@ -85,10 +73,11 @@ export default function WarehousesPage() {
   const handleDelete = (id: number) => {
     deleteWarehouse(id, {
       onSuccess: () => {
+        if (editingId === id) resetForm();
         toast({ title: t("Warehouse deleted successfully") });
       },
       onError: (err) => {
-        toast({ title: t("Failed to delete warehouse"), description: t(err.message), variant: "destructive" });
+        toast({ title: t("Failed to delete warehouse"), description: err.message, variant: "destructive" });
       },
     });
   };
@@ -97,48 +86,48 @@ export default function WarehousesPage() {
     a.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const isSaving = isCreating || isUpdating;
-
   return (
     <div className="space-y-3">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('Warehouses')}</h1>
-          <p className="text-muted-foreground text-sm">{t('Manage warehouse locations')}</p>
-        </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-warehouse" onClick={openCreateDialog}>
-              <Plus className="w-5 h-5 mr-2" />
-              {t('Add Warehouse')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]">
-            <DialogHeader>
-              <DialogTitle>{editing ? t('Edit Warehouse') : t('Add New Warehouse')}</DialogTitle>
-              <DialogDescription>{t('Enter the warehouse name')}</DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('Warehouse Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-warehouse-name" placeholder={t('e.g. Main Warehouse')} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <DialogFooter className="pt-4">
-                  <Button variant="outline" type="button" onClick={() => { setOpen(false); setEditing(null); }}>{t('Cancel')}</Button>
-                  <Button type="submit" disabled={isSaving} data-testid="button-save-warehouse">
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                    {t('Save')}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <IconWarehouse className="h-7 w-7 text-primary" />
+          {t('Warehouses')}
+        </h1>
+        <Button variant="outline" onClick={resetForm} data-testid="button-reset-warehouse">
+          <RotateCcw className="w-5 h-5 mr-2" />
+          {t('Reset')}
+        </Button>
       </div>
+
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">{editingId ? t('Edit Warehouse') : t('Add New Warehouse')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 space-y-1.5">
+              <Label className="text-sm font-bold">{t('Warehouse Name')}</Label>
+              <Input
+                data-testid="input-warehouse-name"
+                placeholder={t('e.g. Main Warehouse')}
+                value={warehouseName}
+                onChange={(e) => setWarehouseName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+              />
+            </div>
+            <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-warehouse">
+              {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+              {editingId ? t('Update') : t('Save')}
+            </Button>
+            {editingId && (
+              <Button variant="outline" onClick={resetForm} data-testid="button-cancel-edit">
+                <X className="w-5 h-5 mr-2" />
+                {t('Cancel')}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-2 md:grid-cols-2">
         <Card>
@@ -177,7 +166,7 @@ export default function WarehousesPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((item: Warehouse) => (
-                    <TableRow key={item.id} data-testid={`row-warehouse-${item.id}`}>
+                    <TableRow key={item.id} className={editingId === item.id ? "bg-accent" : ""} data-testid={`row-warehouse-${item.id}`}>
                       <TableCell className="font-mono text-xs">{item.id}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
@@ -187,7 +176,7 @@ export default function WarehousesPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} data-testid={`button-edit-warehouse-${item.id}`}>
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(item)} data-testid={`button-edit-warehouse-${item.id}`}>
                             <Pencil className="h-5 w-5" />
                           </Button>
                           <AlertDialog>
