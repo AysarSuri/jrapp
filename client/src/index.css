@@ -196,6 +196,21 @@
   }
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([role="combobox"]),
+select,
+textarea,
+[role="combobox"],
+button[role="combobox"] {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  min-height: 2.75rem;
+}
+
+label {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
+
 @layer utilities {
   .glass-effect {
     @apply bg-white/80 dark:bg-card/80 backdrop-blur-xl;
