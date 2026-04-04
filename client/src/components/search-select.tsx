@@ -127,9 +127,15 @@ export function SearchSelect({
         {(value && value !== "" && value !== "all" && !disabled) ? (
           <button
             type="button"
-            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleClear(); }}
-            className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10`}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleClear();
+              inputRef.current?.blur();
+            }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-20 cursor-pointer p-1`}
+            data-testid="button-clear-search"
           >
             <X className="h-5 w-5" />
           </button>
