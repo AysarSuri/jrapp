@@ -215,6 +215,14 @@ export default function PurchaseInvoiceIqdPage() {
   const amountPaidVal = parseFloat(amountPaid || "0");
   const remaining = subtotal - discountVal - amountPaidVal;
 
+  useEffect(() => {
+    if (remaining === 0) {
+      setInvoiceType("cash");
+    } else {
+      setInvoiceType("credit");
+    }
+  }, [remaining]);
+
   const getItemUnitWeight = (item: InvoiceItem) => {
     const product = products?.find(p => p.id === item.productId);
     if (!product) return parseFloat(item.weight || "0");
