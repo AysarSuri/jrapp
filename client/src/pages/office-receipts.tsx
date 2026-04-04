@@ -375,11 +375,11 @@ export default function OfficeReceiptsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('From Date')}</Label>
-                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-office-receipt-history-from-date" />
+                <DateInput value={historyFromDate} onChange={(e) => { setHistoryFromDate(e.target.value); setCurrentPage(1); }} className="w-44 h-9" data-testid="input-office-receipt-history-from-date" />
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs whitespace-nowrap">{t('To Date')}</Label>
-                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-36 h-9" data-testid="input-office-receipt-history-to-date" />
+                <DateInput value={historyToDate} onChange={(e) => { setHistoryToDate(e.target.value); setCurrentPage(1); }} className="w-44 h-9" data-testid="input-office-receipt-history-to-date" />
               </div>
               <div className="w-48">
                 <SearchSelect items={offices} value={historyFilter === "all" ? "" : historyFilter} onValueChange={(v) => { setHistoryFilter(v || "all"); setCurrentPage(1); }} placeholder={t('All Offices')} showAllOption allOptionLabel={t('All Offices')} data-testid="select-filter-office-receipt-history" />
