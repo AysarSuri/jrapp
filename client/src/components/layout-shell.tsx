@@ -273,6 +273,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     "/products",
     "/units",
     "/categories",
+    "/product-damage",
   ];
 
   const reportsSubRoutes = [
@@ -456,6 +457,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/products", icon: IconProduct, label: "Products" },
     { href: "/units", icon: IconUnit, label: "Units" },
     { href: "/categories", icon: IconCategory, label: "Categories" },
+    { href: "/product-damage", icon: IconDamage, label: "Product Damage" },
   ];
 
   const reportsNavItems: NavItem[] = [
@@ -505,7 +507,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/addresses", icon: IconAddress, label: "Customer Addresses" },
     { href: "/supplier-addresses", icon: IconAddress, label: "Supplier Addresses" },
     { type: 'group', label: "Warehouse Management", icon: IconWarehouse, children: warehouseNavItems },
-    { href: "/product-damage", icon: IconDamage, label: "Product Damage" },
     { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print" },
     { href: "/company-book", icon: IconCompanyBook, label: "Company Book Management" },
     { href: "/company-profile", icon: IconCompany, label: "Company Profile" },
