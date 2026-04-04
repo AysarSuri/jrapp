@@ -293,28 +293,26 @@ export default function SupplierPaymentsPage() {
 
   return (
     <div className="space-y-3">
-      <Link href="/supplier-management">
-        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-5 w-5" />
-          {t("Supplier Management")}
-        </Button>
-      </Link>
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <IconDinar className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            {isEditMode ? t('Edit Payment') : t('Supplier Payments')}
-          </h1>
-          <p className="text-muted-foreground text-sm">{t('Transfer or pay to supplier from bank or transfer office')}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-payment">
-            <RotateCcw className="h-5 w-5" />
-            {t('Reset')}
+        <Link href="/supplier-management">
+          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+            <ArrowLeft className="h-5 w-5" />
+            {t("Supplier Management")}
           </Button>
-        </div>
+        </Link>
+        <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-payment">
+          <RotateCcw className="h-5 w-5" />
+          {t('Reset')}
+        </Button>
+      </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+            <IconDinar className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          {isEditMode ? t('Edit Payment') : t('Supplier Payments')}
+        </h1>
+        <p className="text-muted-foreground text-sm">{t('Transfer or pay to supplier from bank or transfer office')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

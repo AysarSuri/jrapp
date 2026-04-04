@@ -243,27 +243,25 @@ export default function SupplierAdjustmentsPage() {
 
   return (
     <div className="space-y-3">
-      <Link href="/supplier-management">
-        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-5 w-5" />
-          {t("Supplier Management")}
-        </Button>
-      </Link>
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
-            {isEditMode ? t("Edit Adjustment") : t("Supplier Adjustments")}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {t("Record received amounts or discounts from suppliers")}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
-            <RotateCcw className="h-5 w-5" />
-            {t('Reset')}
+        <Link href="/supplier-management">
+          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+            <ArrowLeft className="h-5 w-5" />
+            {t("Supplier Management")}
           </Button>
-        </div>
+        </Link>
+        <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset">
+          <RotateCcw className="h-5 w-5" />
+          {t('Reset')}
+        </Button>
+      </div>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
+          {isEditMode ? t("Edit Adjustment") : t("Supplier Adjustments")}
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          {t("Record received amounts or discounts from suppliers")}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

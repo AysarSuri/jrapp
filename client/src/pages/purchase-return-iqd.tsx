@@ -412,20 +412,13 @@ export default function PurchaseReturnIqdPage() {
 
   return (
     <div className="space-y-3">
-      <Link href="/supplier-management">
-        <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-          <ArrowLeft className="h-5 w-5" />
-          {t("Supplier Management")}
-        </Button>
-      </Link>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-purchase-return-iqd-title">
-            <Undo2 className="h-8 w-8 text-red-600" />
-            {isEditMode ? t('Edit Purchase Return - IQD') : t('Purchase Return - IQD')}
-          </h1>
-          <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase return in Iraqi Dinar') : t('Create purchase return in Iraqi Dinar')}</p>
-        </div>
+      <div className="flex items-center justify-between">
+        <Link href="/supplier-management">
+          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+            <ArrowLeft className="h-5 w-5" />
+            {t("Supplier Management")}
+          </Button>
+        </Link>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetForm} data-testid="button-reset-purchase-return-iqd-form">
             <RotateCcw className="w-5 h-5 mr-2" />
@@ -436,6 +429,13 @@ export default function PurchaseReturnIqdPage() {
             {t('Save Return')}
           </Button>
         </div>
+      </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-purchase-return-iqd-title">
+          <Undo2 className="h-8 w-8 text-red-600" />
+          {isEditMode ? t('Edit Purchase Return - IQD') : t('Purchase Return - IQD')}
+        </h1>
+        <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit purchase return in Iraqi Dinar') : t('Create purchase return in Iraqi Dinar')}</p>
       </div>
 
       <Card className="border-border/50 shadow-sm">
