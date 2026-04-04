@@ -99,37 +99,37 @@ export default function WarehousesPage() {
         </Button>
       </div>
 
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">{editingId ? t('Edit Warehouse') : t('Add New Warehouse')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-3">
-            <div className="flex-1 space-y-1.5">
-              <Label className="text-sm font-bold">{t('Warehouse Name')}</Label>
-              <Input
-                data-testid="input-warehouse-name"
-                placeholder={t('e.g. Main Warehouse')}
-                value={warehouseName}
-                onChange={(e) => setWarehouseName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
-              />
-            </div>
-            <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-warehouse">
-              {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-              {editingId ? t('Update') : t('Save')}
-            </Button>
-            {editingId && (
-              <Button variant="outline" onClick={resetForm} data-testid="button-cancel-edit">
-                <X className="w-5 h-5 mr-2" />
-                {t('Cancel')}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">{editingId ? t('Edit Warehouse') : t('Add New Warehouse')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 space-y-1.5">
+                <Label className="text-sm font-bold">{t('Warehouse Name')}</Label>
+                <Input
+                  data-testid="input-warehouse-name"
+                  placeholder={t('e.g. Main Warehouse')}
+                  value={warehouseName}
+                  onChange={(e) => setWarehouseName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+                />
+              </div>
+              <Button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-[#ffffff]" data-testid="button-save-warehouse">
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+                {editingId ? t('Update') : t('Save')}
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              {editingId && (
+                <Button variant="outline" onClick={resetForm} data-testid="button-cancel-edit">
+                  <X className="w-5 h-5 mr-2" />
+                  {t('Cancel')}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="grid gap-2 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Warehouses')}</CardTitle>
