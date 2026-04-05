@@ -692,7 +692,7 @@ export default function PurchaseInvoiceIqdPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table className="min-w-[1400px] table-fixed">
+            <Table className={`table-fixed ${showDates ? "min-w-[1760px]" : "min-w-[1400px]"}`}>
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
                   <TableHead className="text-primary-foreground text-center w-[50px] font-bold">#</TableHead>
@@ -705,8 +705,8 @@ export default function PurchaseInvoiceIqdPage() {
                   <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Expense Cost')}</TableHead>
-                  {showDates && <TableHead className="text-primary-foreground w-[150px] font-bold">{t('Production Date')}</TableHead>}
-                  {showDates && <TableHead className="text-primary-foreground w-[150px] font-bold">{t('Expiry Date')}</TableHead>}
+                  {showDates && <TableHead className="text-primary-foreground w-[180px] font-bold">{t('Production Date')}</TableHead>}
+                  {showDates && <TableHead className="text-primary-foreground w-[180px] font-bold">{t('Expiry Date')}</TableHead>}
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
