@@ -694,21 +694,21 @@ export default function PurchaseInvoiceUsdPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[1400px] table-fixed">
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
-                  <TableHead className="text-primary-foreground text-center w-12 font-bold">#</TableHead>
-                  <TableHead className="text-primary-foreground min-w-[280px] font-bold">{t('Product')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Product Code')}</TableHead>
+                  <TableHead className="text-primary-foreground text-center w-[50px] font-bold">#</TableHead>
+                  <TableHead className="text-primary-foreground w-[280px] font-bold">{t('Product')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Product Code')}</TableHead>
                   <TableHead className="text-primary-foreground w-[120px] font-bold">{t('Quantity')}</TableHead>
                   <TableHead className="text-primary-foreground w-[90px] font-bold">{t('Gift')}</TableHead>
-                  <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Unit')}</TableHead>
+                  <TableHead className="text-primary-foreground w-[120px] font-bold">{t('Unit')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Price')}</TableHead>
                   <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Amount')}</TableHead>
                   <TableHead className="text-primary-foreground w-[110px] font-bold">{t('Weight')}</TableHead>
                   <TableHead className="text-primary-foreground w-[130px] font-bold">{t('Expense Cost')}</TableHead>
-                  {showDates && <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Production Date')}</TableHead>}
-                  {showDates && <TableHead className="text-primary-foreground w-[140px] font-bold">{t('Expiry Date')}</TableHead>}
+                  {showDates && <TableHead className="text-primary-foreground w-[150px] font-bold">{t('Production Date')}</TableHead>}
+                  {showDates && <TableHead className="text-primary-foreground w-[150px] font-bold">{t('Expiry Date')}</TableHead>}
                   <TableHead className="text-primary-foreground w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
