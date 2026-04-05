@@ -894,7 +894,7 @@ export default function PurchaseInvoiceUsdPage() {
             </div>
             <Separator />
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{t('Amount Paid')}</span>
+              <span className="text-sm font-medium">{t('Cash Amount Paid')}</span>
               <Input
                 type="number"
                 step="0.01"
