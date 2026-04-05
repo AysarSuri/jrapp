@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-auth";
-import { Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, Eye, ScanBarcode, Star, ArrowLeft } from "lucide-react";
+import { Trash2, Save, Loader2, FileText, RotateCcw, ListOrdered, CheckCircle, Clock, Pencil, Eye, ScanBarcode, Star, ArrowLeft, Search } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { useLocation } from "wouter";
 import { IconDollar, IconPosUsd, IconProduct } from "@/components/erp-icons";
