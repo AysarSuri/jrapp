@@ -815,7 +815,7 @@ export default function PurchaseInvoiceIqdPage() {
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
-                      <div className="flex items-center justify-center h-11 px-2 rounded bg-muted/50 font-mono text-base font-bold text-muted-foreground">
+                      <div className="flex items-center justify-center h-11 px-2 rounded bg-muted/50 font-mono text-xs font-bold text-muted-foreground">
                         {(getItemUnitWeight(item) * parseFloat(item.quantity || "0")).toFixed(2)} kg
                       </div>
                     </TableCell>
@@ -879,6 +879,7 @@ export default function PurchaseInvoiceIqdPage() {
               <div className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">{t('Total Weight')}</p>
                 <p className="text-lg font-bold text-primary" data-testid="text-purchase-iqd-total-weight">{totalWeightCalc.toFixed(2)} kg</p>
+                <p className="text-sm font-semibold text-muted-foreground">{(totalWeightCalc / 1000).toFixed(3)} {t('Ton')}</p>
               </div>
             </div>
           </CardContent>
