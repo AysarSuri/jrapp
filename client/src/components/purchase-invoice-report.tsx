@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { logExport } from "@/lib/export-log";
+import { useUser } from "@/hooks/use-auth";
 
 type InvoiceData = {
   id: number;
@@ -92,6 +93,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const { data: user } = useUser();
 
   const { data: invoice, isLoading: invoiceLoading } = useQuery<InvoiceData>({
     queryKey: ["/api/purchase-invoices", invoiceId],
@@ -489,13 +491,17 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             </div>
 
-            {companyProfile?.stamp && (
-              <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "center", fontSize: "9pt" }}>
-                <div style={{ textAlign: "center" }}>
+            <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "center", fontSize: "9pt" }}>
+              <div style={{ textAlign: "center", position: "relative" }}>
+                {companyProfile?.stamp && (
                   <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
+                )}
+                <div style={{ fontWeight: 700, fontSize: "11pt", color: "#1e293b", marginTop: companyProfile?.stamp ? -10 : 44 }}>
+                  {user?.fullName || user?.username || t("Accountant")}
                 </div>
+                <div style={{ borderTop: "1.5px solid #94a3b8", marginTop: 4, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Accountant")}</div>
               </div>
-            )}
+            </div>
           </div>
         ) : null}
       </DialogContent>
