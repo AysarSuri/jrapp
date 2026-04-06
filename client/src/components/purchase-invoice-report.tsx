@@ -86,9 +86,10 @@ interface PurchaseInvoiceReportProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currency: "USD" | "IQD";
+  showStamp?: boolean;
 }
 
-export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, currency }: PurchaseInvoiceReportProps) {
+export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, currency, showStamp = false }: PurchaseInvoiceReportProps) {
   const { t, i18n } = useTranslation();
   const printRef = useRef<HTMLDivElement>(null);
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
@@ -493,10 +494,10 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
 
             <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "center", fontSize: "9pt" }}>
               <div style={{ textAlign: "center", position: "relative" }}>
-                {companyProfile?.stamp && (
+                {showStamp && companyProfile?.stamp && (
                   <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
                 )}
-                <div style={{ fontWeight: 700, fontSize: "11pt", color: "#1e293b", marginTop: companyProfile?.stamp ? -10 : 44 }}>
+                <div style={{ fontWeight: 700, fontSize: "11pt", color: "#1e293b", marginTop: (showStamp && companyProfile?.stamp) ? -10 : 44 }}>
                   {user?.fullName || user?.username || t("Accountant")}
                 </div>
                 <div style={{ borderTop: "1.5px solid #94a3b8", marginTop: 4, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Accountant")}</div>

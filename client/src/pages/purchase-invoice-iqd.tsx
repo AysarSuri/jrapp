@@ -1104,6 +1104,7 @@ export default function PurchaseInvoiceIqdPage() {
         open={reportOpen}
         onOpenChange={setReportOpen}
         currency="IQD"
+        showStamp={showStamp}
       />
 
       <AlertDialog open={!!deleteInvoice} onOpenChange={(open) => { if (!open) setDeleteInvoice(null); }}>

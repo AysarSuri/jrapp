@@ -1105,6 +1105,7 @@ export default function PurchaseInvoiceUsdPage() {
         open={reportOpen}
         onOpenChange={setReportOpen}
         currency="USD"
+        showStamp={showStamp}
       />
 
       <AlertDialog open={!!deleteInvoice} onOpenChange={(open) => { if (!open) setDeleteInvoice(null); }}>
