@@ -322,9 +322,6 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                 </h1>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "13pt", fontWeight: 700, color: "#333", marginBottom: 3 }}>
-                  {invoice.supplierName}
-                </div>
                 <div style={{ fontSize: "11pt", fontWeight: 700, color: "#333", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, direction: isRtl ? "rtl" : "ltr" }}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>
@@ -344,7 +341,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             </div>
 
-            {(invoice.address || invoice.carNumber || invoice.manifest || invoice.note) && (
+            {(invoice.address || invoice.carNumber || invoice.note) && (
               <div className="info-grid" style={{
                 display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap",
                 marginBottom: 10, fontSize: "12pt", fontWeight: 700, textAlign: "center"
@@ -361,13 +358,6 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
                     <span className="info-label" style={{ fontWeight: 700, color: "#64748b" }}>{t("Car Number")}: </span>
                     <span className="info-value" style={{ fontWeight: 700, color: "#1e293b", direction: "ltr", unicodeBidi: "embed" }}>{invoice.carNumber}</span>
-                  </div>
-                )}
-                {invoice.manifest && (
-                  <div className="info-item" style={{ padding: "4px 0", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    <span className="info-label" style={{ fontWeight: 700, color: "#64748b" }}>{t("Manifest")}: </span>
-                    <span className="info-value" style={{ fontWeight: 700, color: "#1e293b" }}>{invoice.manifest}</span>
                   </div>
                 )}
                 {invoice.note && (
@@ -499,19 +489,13 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             </div>
 
-            <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "space-between", fontSize: "9pt" }}>
-              <div className="signature-box" style={{ textAlign: "center", width: 180 }}>
-                <div className="signature-line" style={{ borderTop: "1.5px solid #94a3b8", marginTop: 44, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Supplier Signature")}</div>
-              </div>
-              {companyProfile?.stamp && (
+            {companyProfile?.stamp && (
+              <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "center", fontSize: "9pt" }}>
                 <div style={{ textAlign: "center" }}>
                   <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
                 </div>
-              )}
-              <div className="signature-box" style={{ textAlign: "center", width: 180 }}>
-                <div className="signature-line" style={{ borderTop: "1.5px solid #94a3b8", marginTop: 44, paddingTop: 4, fontWeight: 500, color: "#64748b" }}>{t("Accountant")}</div>
               </div>
-            </div>
+            )}
           </div>
         ) : null}
       </DialogContent>
