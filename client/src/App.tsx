@@ -102,6 +102,7 @@ import SupplierOrderUsdPage from "@/pages/supplier-order-usd";
 import SupplierOrderIqdPage from "@/pages/supplier-order-iqd";
 import BarcodePrintPage from "@/pages/barcode-print";
 import AuditLogsPage from "@/pages/audit-logs";
+import BackupRestorePage from "@/pages/backup-restore";
 import CompanyBookPage from "@/pages/company-book";
 import CompanyProfilePage from "@/pages/company-profile";
 import SettingsPage from "@/pages/settings";
@@ -428,6 +429,9 @@ function Router() {
       </Route>
       <Route path="/audit-logs">
         <ProtectedRoute component={AuditLogsPage} />
+      </Route>
+      <Route path="/backup-restore">
+        <ProtectedRoute component={BackupRestorePage} />
       </Route>
       <Route path="/company-book">
         <ProtectedRoute component={CompanyBookPage} />

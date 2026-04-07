@@ -142,6 +142,13 @@ Tab 1 works by rep name only. Tabs 2-5 filter by rep name AND from/to dates from
 - **Tables**: `audit_logs` (id, userId, username, action, entity, entityId, details, ipAddress, riskLevel, flagged, createdAt), `login_attempts` (id, username, ipAddress, success, createdAt)
 - **Dev-only endpoint**: `/api/login-by-role` blocked in production, logged as critical in development
 
+### Backup & Restore
+- **Backup**: `GET /api/backup` — Admin-only endpoint that exports all database tables as a downloadable JSON file
+- **Restore**: `POST /api/restore` — Admin-only endpoint that replaces all current data with backup data (proper FK-aware delete/insert ordering)
+- **Frontend page**: `/backup-restore` — Two-panel UI with download backup button and file upload + restore with confirmation dialog
+- **Audit**: Both backup creation and restore operations are logged to the audit trail
+- **Body size limit**: JSON body parser set to 50MB to handle large backups
+
 ### Environment Variables
 | Variable | Required | Purpose |
 |----------|----------|---------|

@@ -6114,6 +6114,141 @@ export async function registerRoutes(
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 
+  const BACKUP_TABLES: Record<string, any> = {
+    addresses, supplierAddresses, units, categories, categoryGroups, transferOffices, banks,
+    customsClearances, warehouses, representatives, users, products, inventory, clients, accounts,
+    transactions, purchaseInvoices, purchaseInvoiceItems, supplierPayments, supplierAdjustments,
+    bankTransactions, customsClearanceTransactions, clearancePurchaseInvoices, transferOfficeTransactions,
+    externalDebts, externalDebtTransactions, owners, ownerTransactions, expenseTypes, expenses,
+    salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, notifications,
+    purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts,
+    currencyExchanges, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems,
+    companyProfile, exportLogs, agentProductLoads, agentProductLoadItems, agentClients, agentLocations,
+    systemSettings, supplierOrders, supplierOrderItems, bookTypes, companyBooks,
+  };
+
+  app.get('/api/backup', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const data: Record<string, any[]> = {};
+      for (const [name, table] of Object.entries(BACKUP_TABLES)) {
+        data[name] = await db.select().from(table);
+      }
+      const backup = {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser.username,
+        tables: data,
+      };
+      await logAudit(req, "BACKUP_CREATED", "system", null, { tableCount: Object.keys(data).length }, "high");
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Disposition", `attachment; filename="erp-backup-${new Date().toISOString().slice(0,10)}.json"`);
+      res.json(backup);
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.post('/api/restore', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const backup = req.body;
+      if (!backup || !backup.tables || !backup.version) {
+        return res.status(400).json({ message: "Invalid backup file format" });
+      }
+
+      const deleteOrder = [
+        "agentLocations", "agentClients", "agentProductLoadItems", "agentProductLoads",
+        "exportLogs", "productDamageItems", "productDamages",
+        "warehouseTransferItems", "warehouseTransfers", "currencyExchanges",
+        "agentReceipts", "agentPayments", "customerReceipts",
+        "purchaseReturnItems", "purchaseReturns", "salesReturnItems", "salesReturns",
+        "salesInvoiceItems", "salesInvoices", "notifications",
+        "ownerTransactions", "owners", "externalDebtTransactions", "externalDebts",
+        "transferOfficeTransactions", "clearancePurchaseInvoices",
+        "customsClearanceTransactions", "bankTransactions",
+        "supplierAdjustments", "supplierPayments",
+        "purchaseInvoiceItems", "purchaseInvoices",
+        "supplierOrderItems", "supplierOrders",
+        "companyBooks", "bookTypes",
+        "expenses", "expenseTypes",
+        "transactions",
+        "inventory", "accounts", "clients", "products",
+        "representatives", "systemSettings", "companyProfile",
+        "warehouses", "customsClearances", "banks", "transferOffices",
+        "categoryGroups", "categories", "units", "supplierAddresses", "addresses",
+      ];
+
+      for (const tableName of deleteOrder) {
+        if (BACKUP_TABLES[tableName]) {
+          await db.delete(BACKUP_TABLES[tableName]);
+        }
+      }
+
+      const insertOrder = [
+        "addresses", "supplierAddresses", "units", "categories", "categoryGroups",
+        "transferOffices", "banks", "customsClearances", "warehouses",
+        "representatives", "products", "clients", "accounts",
+        "systemSettings", "companyProfile", "inventory",
+        "expenseTypes", "bookTypes",
+        "transactions",
+        "purchaseInvoices", "purchaseInvoiceItems",
+        "supplierPayments", "supplierAdjustments",
+        "bankTransactions", "customsClearanceTransactions",
+        "clearancePurchaseInvoices", "transferOfficeTransactions",
+        "externalDebts", "externalDebtTransactions",
+        "owners", "ownerTransactions",
+        "expenses", "notifications",
+        "salesInvoices", "salesInvoiceItems",
+        "salesReturns", "salesReturnItems",
+        "purchaseReturns", "purchaseReturnItems",
+        "customerReceipts", "agentPayments", "agentReceipts",
+        "currencyExchanges",
+        "warehouseTransfers", "warehouseTransferItems",
+        "productDamages", "productDamageItems",
+        "exportLogs", "agentProductLoads", "agentProductLoadItems",
+        "agentClients", "agentLocations",
+        "supplierOrders", "supplierOrderItems",
+        "companyBooks",
+      ];
+
+      let restoredCount = 0;
+      for (const tableName of insertOrder) {
+        const rows = backup.tables[tableName];
+        if (rows && Array.isArray(rows) && rows.length > 0 && BACKUP_TABLES[tableName]) {
+          for (const row of rows) {
+            try {
+              await db.insert(BACKUP_TABLES[tableName]).values(row);
+            } catch (e: any) { }
+          }
+          restoredCount += rows.length;
+        }
+      }
+
+      const userRows = backup.tables["users"];
+      if (userRows && Array.isArray(userRows)) {
+        for (const row of userRows) {
+          const existing = await storage.getUserByUsername(row.username);
+          if (!existing) {
+            try { await db.insert(users).values(row); } catch (e: any) { }
+          }
+        }
+      }
+
+      await logAudit(req, "BACKUP_RESTORED", "system", null, {
+        backupDate: backup.createdAt,
+        backupBy: backup.createdBy,
+        restoredRows: restoredCount,
+      }, "critical");
+
+      res.json({ success: true, message: "Backup restored successfully", restoredRows: restoredCount });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
   app.get('/api/audit-logs', requireAuth, async (req, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId!);

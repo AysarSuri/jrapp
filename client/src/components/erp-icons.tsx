@@ -16,6 +16,7 @@ import {
   ArrowRightLeft,
   Settings,
   ShieldAlert,
+  HardDrive,
   Users,
   Building,
   CreditCard,
@@ -124,6 +125,10 @@ export function IconSettings({ className }: P) {
 
 export function IconAuditLog({ className }: P) {
   return <ShieldAlert className={className} />;
+}
+
+export function IconBackupRestore({ className }: P) {
+  return <HardDrive className={className} />;
 }
 
 export function IconUserManagement({ className }: P) {
