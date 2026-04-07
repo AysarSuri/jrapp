@@ -911,6 +911,31 @@ export const companyBooks = pgTable("company_books", {
 export type CompanyBook = typeof companyBooks.$inferSelect;
 export const insertCompanyBookSchema = createInsertSchema(companyBooks).omit({ id: true, createdAt: true });
 
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id"),
+  username: text("username"),
+  action: text("action").notNull(),
+  entity: text("entity").notNull(),
+  entityId: text("entity_id"),
+  details: jsonb("details"),
+  ipAddress: text("ip_address"),
+  riskLevel: text("risk_level").default("low"),
+  flagged: boolean("flagged").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, createdAt: true });
+
+export const loginAttempts = pgTable("login_attempts", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull(),
+  ipAddress: text("ip_address"),
+  success: boolean("success").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Auth types
 export const loginSchema = z.object({
   username: z.string(),

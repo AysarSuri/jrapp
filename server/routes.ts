@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
 import { eq, and, sql, inArray } from "drizzle-orm";
-import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, supplierAddresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes } from "@shared/schema";
+import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, supplierAddresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes, auditLogs, loginAttempts } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -31,17 +31,69 @@ export async function registerRoutes(
     })
   );
 
+  async function logAudit(req: import("express").Request, action: string, entity: string, entityId?: string | number | null, details?: any, riskLevel: string = "low") {
+    try {
+      const user = req.session.userId ? await storage.getUser(req.session.userId) : null;
+      await db.insert(auditLogs).values({
+        userId: req.session.userId || null,
+        username: user?.username || details?.username || null,
+        action,
+        entity,
+        entityId: entityId != null ? String(entityId) : null,
+        details: details || null,
+        ipAddress: req.ip || req.headers["x-forwarded-for"]?.toString() || null,
+        riskLevel,
+        flagged: riskLevel === "high" || riskLevel === "critical",
+      });
+    } catch (e) {
+      console.error("Audit log error:", e);
+    }
+  }
+
+  async function checkLoginAttempts(username: string, ip: string): Promise<{ blocked: boolean; remaining: number }> {
+    const windowMs = 15 * 60 * 1000;
+    const maxAttempts = 5;
+    const since = new Date(Date.now() - windowMs);
+    const result = await db.select({ count: sql<number>`count(*)` }).from(loginAttempts)
+      .where(and(eq(loginAttempts.username, username), eq(loginAttempts.success, false), sql`${loginAttempts.createdAt} > ${since}`));
+    const count = Number(result[0]?.count || 0);
+    return { blocked: count >= maxAttempts, remaining: Math.max(0, maxAttempts - count) };
+  }
+
   app.post(api.auth.login.path, async (req, res) => {
     try {
       const input = api.auth.login.input.parse(req.body);
+      const ip = req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
+
+      const { blocked } = await checkLoginAttempts(input.username, ip);
+      if (blocked) {
+        await logAudit(req, "LOGIN_BLOCKED", "auth", null, { username: input.username, reason: "too_many_attempts" }, "critical");
+        return res.status(429).json({ message: "Account temporarily locked due to too many failed attempts. Try again in 15 minutes." });
+      }
+
       const user = await storage.getUserByUsername(input.username);
       if (!user) {
+        await db.insert(loginAttempts).values({ username: input.username, ipAddress: ip, success: false });
+        await logAudit(req, "LOGIN_FAILED", "auth", null, { username: input.username, reason: "user_not_found" }, "medium");
         return res.status(401).json({ message: "Invalid username or password" });
       }
+
+      if (user.isActive !== 1) {
+        await db.insert(loginAttempts).values({ username: input.username, ipAddress: ip, success: false });
+        await logAudit(req, "LOGIN_FAILED", "auth", null, { username: input.username, reason: "account_disabled" }, "high");
+        return res.status(401).json({ message: "Account is disabled" });
+      }
+
       const valid = await bcrypt.compare(input.password, user.password);
       if (!valid) {
+        await db.insert(loginAttempts).values({ username: input.username, ipAddress: ip, success: false });
+        await logAudit(req, "LOGIN_FAILED", "auth", null, { username: input.username, reason: "wrong_password" }, "medium");
         return res.status(401).json({ message: "Invalid username or password" });
       }
+
+      await db.insert(loginAttempts).values({ username: input.username, ipAddress: ip, success: true });
+      await logAudit(req, "LOGIN_SUCCESS", "auth", user.id, { username: input.username }, "low");
+
       req.session.userId = user.id;
       if (user.role === 'admin') {
         const allPerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
@@ -98,6 +150,9 @@ export async function registerRoutes(
   });
 
   app.post('/api/login-by-role', async (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ message: "Not available in production" });
+    }
     try {
       const { role } = req.body;
       const allowedRoles = ["admin", "user", "sales_rep"];
@@ -111,6 +166,7 @@ export async function registerRoutes(
       }
       req.session.userId = user.id;
       await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+      await logAudit(req, "LOGIN_BY_ROLE", "auth", user.id, { role, username: user.username }, "critical");
       const { password, ...safeUser } = user;
       res.status(200).json(safeUser);
     } catch (err) {
@@ -331,6 +387,70 @@ export async function registerRoutes(
 
       next();
     }).catch(() => next());
+  });
+
+  const FINANCIAL_ENTITIES = [
+    '/api/purchase-invoices', '/api/sales-invoices', '/api/supplier-payments',
+    '/api/supplier-adjustments', '/api/customer-receipts', '/api/agent-payments',
+    '/api/currency-exchange', '/api/bank-transactions', '/api/clearance-transactions',
+    '/api/office-transactions', '/api/external-debt-transactions', '/api/owner-transactions',
+    '/api/expenses', '/api/warehouse-transfers', '/api/product-damages',
+    '/api/purchase-returns', '/api/sales-returns', '/api/supplier-orders',
+    '/api/clearance-purchase-invoices', '/api/accounts',
+  ];
+
+  app.use('/api', (req, res, next) => {
+    const method = req.method.toUpperCase();
+    if (method === 'GET') return next();
+
+    const fullPath = req.path.startsWith('/api') ? req.path : `/api${req.path}`;
+    const matchedEntity = FINANCIAL_ENTITIES.find(e => fullPath.startsWith(e));
+    if (!matchedEntity) return next();
+
+    const actionMap: Record<string, string> = { POST: 'CREATE', PATCH: 'UPDATE', PUT: 'UPDATE', DELETE: 'DELETE' };
+    const action = actionMap[method] || method;
+    const entityName = matchedEntity.replace('/api/', '').replace(/-/g, '_');
+
+    const idMatch = fullPath.replace(matchedEntity, '').match(/^\/(\d+)/);
+    const entityId = idMatch ? idMatch[1] : null;
+
+    let riskLevel = "low";
+    if (method === 'DELETE') riskLevel = "high";
+    if (method === 'PATCH' || method === 'PUT') riskLevel = "medium";
+
+    const body = req.body ? { ...req.body } : {};
+    if (body.password) delete body.password;
+
+    const originalJson = res.json.bind(res);
+    res.json = function(data: any) {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        const createdId = data?.id || entityId;
+        logAudit(req, action, entityName, createdId, {
+          ...(method === 'DELETE' ? {} : body),
+          responseStatus: res.statusCode,
+        }, riskLevel).catch(() => {});
+      }
+      return originalJson(data);
+    };
+
+    next();
+  });
+
+  app.use('/api', (req, res, next) => {
+    const method = req.method.toUpperCase();
+    if (method !== 'POST' && method !== 'PATCH') return next();
+
+    const fullPath = req.path.startsWith('/api') ? req.path : `/api${req.path}`;
+    if (!fullPath.startsWith('/api/users')) return next();
+
+    const body = req.body;
+    if (body?.role === 'admin' || body?.permissions) {
+      logAudit(req, method === 'POST' ? 'USER_CREATE' : 'USER_PERMISSION_CHANGE', 'users', body?.id || null, {
+        role: body.role,
+        hasPermissionChanges: !!body.permissions,
+      }, "high").catch(() => {});
+    }
+    next();
   });
 
   app.get('/api/agents', requireAuth, async (_req, res) => {
@@ -5991,6 +6111,54 @@ export async function registerRoutes(
       const id = parseInt(req.params.id, 10);
       await db.delete(companyBooks).where(eq(companyBooks.id, id));
       res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/audit-logs', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const { entity, action, riskLevel, flagged, limit: limitStr, offset: offsetStr } = req.query;
+      let query = db.select().from(auditLogs).orderBy(sql`${auditLogs.createdAt} DESC`);
+      const conditions: any[] = [];
+      if (entity) conditions.push(eq(auditLogs.entity, entity as string));
+      if (action) conditions.push(eq(auditLogs.action, action as string));
+      if (riskLevel) conditions.push(eq(auditLogs.riskLevel, riskLevel as string));
+      if (flagged === 'true') conditions.push(eq(auditLogs.flagged, true));
+      const limit = Math.min(parseInt(limitStr as string) || 100, 500);
+      const offset = parseInt(offsetStr as string) || 0;
+      if (conditions.length > 0) {
+        const rows = await db.select().from(auditLogs).where(and(...conditions)).orderBy(sql`${auditLogs.createdAt} DESC`).limit(limit).offset(offset);
+        const countResult = await db.select({ count: sql<number>`count(*)` }).from(auditLogs).where(and(...conditions));
+        res.json({ logs: rows, total: Number(countResult[0]?.count || 0) });
+      } else {
+        const rows = await db.select().from(auditLogs).orderBy(sql`${auditLogs.createdAt} DESC`).limit(limit).offset(offset);
+        const countResult = await db.select({ count: sql<number>`count(*)` }).from(auditLogs);
+        res.json({ logs: rows, total: Number(countResult[0]?.count || 0) });
+      }
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  });
+
+  app.get('/api/audit-logs/stats', requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(auditLogs);
+      const [todayResult] = await db.select({ count: sql<number>`count(*)` }).from(auditLogs).where(sql`${auditLogs.createdAt} >= ${today}`);
+      const [flaggedResult] = await db.select({ count: sql<number>`count(*)` }).from(auditLogs).where(eq(auditLogs.flagged, true));
+      const [failedLoginsResult] = await db.select({ count: sql<number>`count(*)` }).from(loginAttempts).where(eq(loginAttempts.success, false));
+      res.json({
+        total: Number(totalResult?.count || 0),
+        today: Number(todayResult?.count || 0),
+        flagged: Number(flaggedResult?.count || 0),
+        failedLogins: Number(failedLoginsResult?.count || 0),
+      });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
 

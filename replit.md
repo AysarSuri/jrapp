@@ -132,6 +132,16 @@ Tab 1 works by rep name only. Tabs 2-5 filter by rep name AND from/to dates from
 - Used by `populateCostPrices()` to determine cost price when selling in a different currency than the purchase currency
 - `costPrice` field on `sales_invoice_items` and `sales_return_items` stores the buy price at time of sale (auto-populated server-side)
 
+### Security & Fraud Protection
+- **Rate Limiting**: `express-rate-limit` — 10 login attempts per 15 min, 200 API requests per minute
+- **Security Headers**: `helmet` with CSP and COEP disabled for compatibility
+- **Audit Logging**: All financial POST/PATCH/DELETE operations are logged to `audit_logs` table with user, action, entity, IP, risk level
+- **Login Security**: Failed login attempts tracked in `login_attempts` table. Accounts locked after 5 failed attempts within 15 minutes. Login success/failure events logged to audit trail.
+- **User Permission Changes**: Creating admin users or changing permissions logged as high-risk events
+- **Audit Log Viewer**: Admin-only page at `/audit-logs` with stat cards, filterable table (action, risk level, flagged), and pagination
+- **Tables**: `audit_logs` (id, userId, username, action, entity, entityId, details, ipAddress, riskLevel, flagged, createdAt), `login_attempts` (id, username, ipAddress, success, createdAt)
+- **Dev-only endpoint**: `/api/login-by-role` blocked in production, logged as critical in development
+
 ### Environment Variables
 | Variable | Required | Purpose |
 |----------|----------|---------|

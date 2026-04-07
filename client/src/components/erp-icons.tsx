@@ -15,6 +15,7 @@ import {
   Barcode,
   ArrowRightLeft,
   Settings,
+  ShieldAlert,
   Users,
   Building,
   CreditCard,
@@ -119,6 +120,10 @@ export function IconCurrencyExchange({ className }: P) {
 
 export function IconSettings({ className }: P) {
   return <Settings className={className} />;
+}
+
+export function IconAuditLog({ className }: P) {
+  return <ShieldAlert className={className} />;
 }
 
 export function IconUserManagement({ className }: P) {
