@@ -492,7 +492,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
               </div>
             </div>
 
-            <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: "flex-start", fontSize: "9pt" }}>
+            <div className="footer" style={{ marginTop: 28, display: "flex", justifyContent: isRtl ? "flex-end" : "flex-start", fontSize: "9pt" }}>
               <div style={{ textAlign: "center", position: "relative" }}>
                 {showStamp && companyProfile?.stamp && (
                   <img src={companyProfile.stamp} alt={t("Stamp")} style={{ width: 120, height: 120, objectFit: "contain", opacity: 0.8 }} />
