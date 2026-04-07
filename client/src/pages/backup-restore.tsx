@@ -24,10 +24,14 @@ export default function BackupRestorePage() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const date = new Date().toISOString().slice(0, 10);
-      const time = new Date().toTimeString().slice(0, 5).replace(":", "-");
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      const h = String(now.getHours()).padStart(2, "0");
+      const min = String(now.getMinutes()).padStart(2, "0");
       a.href = url;
-      a.download = `erp-backup-${date}_${time}.json`;
+      a.download = `ERP-Backup_${y}-${m}-${d}_${h}-${min}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
