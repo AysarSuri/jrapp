@@ -139,7 +139,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const { mutate: approveInvoice } = useApproveSalesInvoice();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(true);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [, navigate] = useLocation();
 
@@ -502,51 +502,50 @@ export function LayoutShell({ children }: LayoutShellProps) {
         </div>
       </header>
 
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => { setMenuOpen(false); setActiveGroup(null); }} />
-          <div className="relative w-full max-w-6xl mx-4 mt-4 mb-4 max-h-[calc(100vh-2rem)] bg-background rounded-3xl shadow-2xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
-              <div className="flex items-center gap-3">
-                {activeGroup && (
-                  <button
-                    onClick={() => setActiveGroup(null)}
-                    className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                    data-testid="button-nav-back"
-                  >
-                    <BackArrow className="w-5 h-5" />
-                  </button>
-                )}
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{user?.fullName || user?.username}</p>
-                  <p className="text-[11px] text-muted-foreground capitalize">
-                    {user?.username} · {user?.role}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {activeGroup && (
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {t(activeGroup)}
-                  </span>
-                )}
+      {menuOpen ? (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/20">
+            <div className="flex items-center gap-3">
+              {activeGroup && (
                 <button
-                  onClick={() => { setMenuOpen(false); setActiveGroup(null); }}
-                  className="p-2 rounded-xl hover:bg-muted transition-colors"
-                  data-testid="button-close-menu"
+                  onClick={() => setActiveGroup(null)}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  data-testid="button-nav-back"
                 >
-                  <X className="w-5 h-5" />
+                  <BackArrow className="w-5 h-5" />
                 </button>
+              )}
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold">{user?.fullName || user?.username}</p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {user?.username} · {user?.role}
+                </p>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5">
+            <div className="flex items-center gap-2">
+              {activeGroup && (
+                <span className="text-[15px] font-medium text-muted-foreground">
+                  {t(activeGroup)}
+                </span>
+              )}
+              <button
+                onClick={() => { setMenuOpen(false); setActiveGroup(null); }}
+                className="p-2 rounded-xl hover:bg-muted transition-colors"
+                data-testid="button-close-menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-6xl mx-auto">
               {!activeGroup ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">
                   {filteredSidebarItems.map((entry) => {
@@ -588,29 +587,29 @@ export function LayoutShell({ children }: LayoutShellProps) {
                 </div>
               ) : null}
             </div>
+          </div>
 
-            <div className="flex items-center justify-between px-6 py-3 border-t border-border/40 bg-muted/30">
-              <span className="text-xs text-muted-foreground">ProERP © {new Date().getFullYear()}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-2 text-xs"
-                data-testid="button-logout"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                {t("Logout")}
-              </Button>
-            </div>
+          <div className="flex items-center justify-between px-6 py-3 border-t border-border/40 bg-muted/20">
+            <span className="text-xs text-muted-foreground">ProERP © {new Date().getFullYear()}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-2 text-xs"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              {t("Logout")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
+          <div className="max-w-7xl mx-auto animate-fade-in">
+            {children}
           </div>
         </div>
       )}
-
-      <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
-        <div className="max-w-7xl mx-auto animate-fade-in">
-          {children}
-        </div>
-      </div>
     </div>
   );
 }
