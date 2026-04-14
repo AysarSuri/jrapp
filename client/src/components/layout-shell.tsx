@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
   LogOut,
@@ -7,10 +7,12 @@ import {
   Moon,
   Sun,
   Globe,
-  ChevronDown,
   Bell,
   TrendingUp,
   Gift,
+  X,
+  ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 import {
   IconDashboard,
@@ -82,8 +84,6 @@ import {
   IconReport,
   IconExpiry,
   IconWarehouseTransfer,
-  IconDollar,
-  IconDinar,
 } from "@/components/erp-icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,10 +92,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useLogout, useUser } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { hasRoutePermission, PERMISSION_MODULES } from "@/lib/permissions";
+import { hasRoutePermission } from "@/lib/permissions";
 import { useUnreadNotificationCount, useNotifications, useMarkNotificationRead } from "@/hooks/use-notifications";
 import { useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
 import AgentSummaryBell from "@/components/agent-summary-bell";
@@ -103,6 +102,30 @@ import AgentSummaryBell from "@/components/agent-summary-bell";
 interface LayoutShellProps {
   children: React.ReactNode;
 }
+
+type NavItem = { href: string; icon: any; label: string; color?: string };
+type NavGroup = { type: 'group'; label: string; icon: any; color: string; children: NavItem[] };
+type NavEntry = (NavItem & { color?: string }) | NavGroup;
+
+const COLORS: Record<string, { bg: string; text: string }> = {
+  blue:    { bg: "bg-blue-100 dark:bg-blue-900/40",    text: "text-blue-600 dark:text-blue-400" },
+  green:   { bg: "bg-emerald-100 dark:bg-emerald-900/40", text: "text-emerald-600 dark:text-emerald-400" },
+  red:     { bg: "bg-red-100 dark:bg-red-900/40",      text: "text-red-500 dark:text-red-400" },
+  purple:  { bg: "bg-purple-100 dark:bg-purple-900/40",  text: "text-purple-600 dark:text-purple-400" },
+  orange:  { bg: "bg-orange-100 dark:bg-orange-900/40",  text: "text-orange-500 dark:text-orange-400" },
+  teal:    { bg: "bg-teal-100 dark:bg-teal-900/40",    text: "text-teal-600 dark:text-teal-400" },
+  pink:    { bg: "bg-pink-100 dark:bg-pink-900/40",    text: "text-pink-500 dark:text-pink-400" },
+  indigo:  { bg: "bg-indigo-100 dark:bg-indigo-900/40",  text: "text-indigo-600 dark:text-indigo-400" },
+  amber:   { bg: "bg-amber-100 dark:bg-amber-900/40",   text: "text-amber-600 dark:text-amber-500" },
+  cyan:    { bg: "bg-cyan-100 dark:bg-cyan-900/40",    text: "text-cyan-600 dark:text-cyan-400" },
+  rose:    { bg: "bg-rose-100 dark:bg-rose-900/40",    text: "text-rose-500 dark:text-rose-400" },
+  lime:    { bg: "bg-lime-100 dark:bg-lime-900/40",    text: "text-lime-600 dark:text-lime-500" },
+  violet:  { bg: "bg-violet-100 dark:bg-violet-900/40",  text: "text-violet-600 dark:text-violet-400" },
+  sky:     { bg: "bg-sky-100 dark:bg-sky-900/40",      text: "text-sky-600 dark:text-sky-400" },
+  fuchsia: { bg: "bg-fuchsia-100 dark:bg-fuchsia-900/40", text: "text-fuchsia-500 dark:text-fuchsia-400" },
+  emerald: { bg: "bg-emerald-100 dark:bg-emerald-900/40", text: "text-emerald-600 dark:text-emerald-400" },
+  slate:   { bg: "bg-slate-200 dark:bg-slate-700/40",   text: "text-slate-600 dark:text-slate-400" },
+};
 
 export function LayoutShell({ children }: LayoutShellProps) {
   const [location] = useLocation();
@@ -116,6 +139,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const { mutate: approveInvoice } = useApproveSalesInvoice();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -131,34 +157,27 @@ export function LayoutShell({ children }: LayoutShellProps) {
   useEffect(() => {
     const handleEnterAsTab = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
-
       const target = e.target as HTMLElement;
       const tag = target.tagName.toLowerCase();
-
       if (tag === "textarea") return;
-
       if (tag === "button" || tag === "a" || target.getAttribute("role") === "button" || target.getAttribute("role") === "menuitem" || target.getAttribute("role") === "option") {
         e.preventDefault();
         return;
       }
-
       if (tag === "input" || tag === "select") {
         e.preventDefault();
         e.stopPropagation();
-
         const focusable = Array.from(
           document.querySelectorAll<HTMLElement>(
             'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"])'
           )
         ).filter(el => el.offsetParent !== null);
-
         const currentIndex = focusable.indexOf(target);
         if (currentIndex >= 0 && currentIndex < focusable.length - 1) {
           focusable[currentIndex + 1].focus();
         }
       }
     };
-
     window.addEventListener("keydown", handleEnterAsTab, true);
     return () => window.removeEventListener("keydown", handleEnterAsTab, true);
   }, []);
@@ -190,580 +209,408 @@ export function LayoutShell({ children }: LayoutShellProps) {
     });
   };
 
-  const [, navigate] = useLocation();
-  const sidebarScrollRef = useRef<HTMLElement>(null);
+  const isRtl = i18n.language === 'ar' || i18n.language === 'ckb';
+  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
 
-  const supplierSubRoutes = [
-    "/supplier-management",
-    "/suppliers",
-    "/purchase-invoice-usd",
-    "/purchase-invoice-iqd",
-    "/purchase-return-usd",
-    "/purchase-return-iqd",
-    "/supplier-payments",
-    "/supplier-adjustments",
-    "/supplier-statement-usd",
-    "/supplier-statement-iqd",
-    "/supplier-debts",
-    "/supplier-order-usd",
-    "/supplier-order-iqd",
+  const salesNavItems: NavItem[] = [
+    { href: "/customers", icon: IconCustomers, label: "Customers", color: "blue" },
+    { href: "/sales-invoice-usd", icon: IconInvoiceUsd, label: "Sales Invoice USD", color: "green" },
+    { href: "/sales-invoice-iqd", icon: IconInvoiceIqd, label: "Sales Invoice IQD", color: "teal" },
+    { href: "/sales-by-category", icon: IconPosUsd, label: "POS USD", color: "purple" },
+    { href: "/pos-iqd", icon: IconPosIqd, label: "POS IQD", color: "violet" },
+    { href: "/sales-return-usd", icon: IconReturnUsd, label: "Sales Return USD", color: "orange" },
+    { href: "/sales-return-iqd", icon: IconReturnIqd, label: "Sales Return IQD", color: "amber" },
+    { href: "/customer-receipt-usd", icon: IconReceiptUsd, label: "Customer Receipt USD", color: "cyan" },
+    { href: "/customer-receipt-iqd", icon: IconReceiptIqd, label: "Customer Receipt IQD", color: "sky" },
+    { href: "/agent-payment-usd", icon: IconPaymentUsd, label: "Customer Payment USD", color: "pink" },
+    { href: "/agent-payment-iqd", icon: IconPaymentIqd, label: "Customer Payment IQD", color: "rose" },
+    { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD", color: "indigo" },
+    { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD", color: "fuchsia" },
+    { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts", color: "red" },
   ];
-
-  const bankSubRoutes = [
-    "/bank-management",
-    "/banks",
-    "/bank-receipts",
-    "/bank-payments",
-    "/bank-statement-usd",
-    "/bank-statement-iqd",
-  ];
-
-  const clearanceSubRoutes = [
-    "/clearance-management",
-    "/customs-clearances",
-    "/clearance-receipts",
-    "/clearance-payments",
-    "/clearance-purchase-invoices",
-    "/clearance-statement-usd",
-    "/clearance-statement-iqd",
-  ];
-
-  const officeSubRoutes = [
-    "/office-management",
-    "/transfer-offices",
-    "/office-receipts",
-    "/office-payments",
-    "/office-statement-usd",
-    "/office-statement-iqd",
-  ];
-
-  const expenseSubRoutes = [
-    "/expense-management",
-    "/expense-types",
-    "/expenses",
-  ];
-
-  const externalDebtSubRoutes = [
-    "/external-debt-management",
-    "/external-debts",
-    "/external-debt-receipts",
-    "/external-debt-payments",
-    "/external-debt-statement-usd",
-    "/external-debt-statement-iqd",
-  ];
-
-  const ownerSubRoutes = [
-    "/owner-management",
-    "/owners",
-    "/owner-withdrawals",
-    "/owner-returns",
-    "/owner-statement-usd",
-    "/owner-statement-iqd",
-  ];
-
-  const agentSubRoutes = [
-    "/agent-management",
-    "/agent-clients",
-    "/agent-product-load",
-    "/agent-receipt",
-    "/agent-gps",
-    "/rep-statement",
-  ];
-
-  const materialSubRoutes = [
-    "/material-management",
-    "/products",
-    "/units",
-    "/categories",
-    "/product-damage",
-  ];
-
-  const reportsSubRoutes = [
-    "/inventory-report",
-    "/expiry-report",
-    "/max-stock-report",
-    "/profits-report",
-    "/sales-discounts-gifts-report",
-    "/supplier-discounts-gifts-report",
-  ];
-
-  const warehouseSubRoutes = [
-    "/warehouse-management",
-    "/warehouses",
-    "/warehouse-transfer",
-  ];
-
-  const salesSubRoutes = [
-    "/sales-management",
-    "/customers",
-    "/sales-invoice-usd",
-    "/sales-invoice-iqd",
-    "/sales-by-category",
-    "/pos-iqd",
-    "/sales-return-usd",
-    "/sales-return-iqd",
-    "/customer-receipt-usd",
-    "/customer-receipt-iqd",
-    "/agent-payment-usd",
-    "/agent-payment-iqd",
-    "/agent-statement-usd",
-    "/agent-statement-iqd",
-    "/customer-debts",
-  ];
-
-  const isSupplierSection = supplierSubRoutes.includes(location);
-  const isBankSection = bankSubRoutes.includes(location);
-  const isClearanceSection = clearanceSubRoutes.includes(location);
-  const isOfficeSection = officeSubRoutes.includes(location);
-  const isExpenseSection = expenseSubRoutes.includes(location);
-  const isExternalDebtSection = externalDebtSubRoutes.includes(location);
-  const isOwnerSection = ownerSubRoutes.includes(location);
-  const isAgentSection = agentSubRoutes.includes(location);
-  const isMaterialSection = materialSubRoutes.includes(location);
-  const isReportsSection = reportsSubRoutes.includes(location);
-  const isWarehouseSection = warehouseSubRoutes.includes(location);
-  const isSalesSection = salesSubRoutes.includes(location);
-  const [supplierOpen, setSupplierOpen] = useState(isSupplierSection);
-  const [bankOpen, setBankOpen] = useState(isBankSection);
-  const [clearanceOpen, setClearanceOpen] = useState(isClearanceSection);
-  const [officeOpen, setOfficeOpen] = useState(isOfficeSection);
-  const [expenseOpen, setExpenseOpen] = useState(isExpenseSection);
-  const [externalDebtOpen, setExternalDebtOpen] = useState(isExternalDebtSection);
-  const [ownerOpen, setOwnerOpen] = useState(isOwnerSection);
-  const [agentOpen, setAgentOpen] = useState(isAgentSection);
-  const [materialOpen, setMaterialOpen] = useState(isMaterialSection);
-  const [reportsOpen, setReportsOpen] = useState(isReportsSection);
-  const [warehouseOpen, setWarehouseOpen] = useState(isWarehouseSection);
-  const [salesOpen, setSalesOpen] = useState(isSalesSection);
-
-  useEffect(() => {
-    if (isSupplierSection) setSupplierOpen(true);
-  }, [isSupplierSection]);
-
-  useEffect(() => {
-    if (isBankSection) setBankOpen(true);
-  }, [isBankSection]);
-
-  useEffect(() => {
-    if (isClearanceSection) setClearanceOpen(true);
-  }, [isClearanceSection]);
-
-  useEffect(() => {
-    if (isOfficeSection) setOfficeOpen(true);
-  }, [isOfficeSection]);
-
-  useEffect(() => {
-    if (isExpenseSection) setExpenseOpen(true);
-  }, [isExpenseSection]);
-
-  useEffect(() => {
-    if (isExternalDebtSection) setExternalDebtOpen(true);
-  }, [isExternalDebtSection]);
-
-  useEffect(() => {
-    if (isOwnerSection) setOwnerOpen(true);
-  }, [isOwnerSection]);
-
-  useEffect(() => {
-    if (isAgentSection) setAgentOpen(true);
-  }, [isAgentSection]);
-
-  useEffect(() => {
-    if (isMaterialSection) setMaterialOpen(true);
-  }, [isMaterialSection]);
-
-  useEffect(() => {
-    if (isReportsSection) setReportsOpen(true);
-  }, [isReportsSection]);
-
-  useEffect(() => {
-    if (isWarehouseSection) setWarehouseOpen(true);
-  }, [isWarehouseSection]);
-
-  useEffect(() => {
-    if (isSalesSection) setSalesOpen(true);
-  }, [isSalesSection]);
-
-  type NavItem = { href: string; icon: any; label: string };
-  type NavEntry = NavItem | { type: 'group'; label: string; icon: any; children: NavItem[] };
 
   const supplierNavItems: NavItem[] = [
-    { href: "/suppliers", icon: IconSupplierList, label: "Suppliers" },
-    { href: "/purchase-invoice-usd", icon: IconPurchaseUsd, label: "Purchase Invoice USD" },
-    { href: "/purchase-invoice-iqd", icon: IconPurchaseIqd, label: "Purchase Invoice IQD" },
-    { href: "/purchase-return-usd", icon: IconReturnUsd, label: "Purchase Return USD" },
-    { href: "/purchase-return-iqd", icon: IconReturnIqd, label: "Purchase Return IQD" },
-    { href: "/supplier-payments", icon: IconSupplierPayment, label: "Supplier Payments" },
-    { href: "/supplier-adjustments", icon: IconSupplierAdjust, label: "Supplier Adjustments" },
-    { href: "/supplier-statement-usd", icon: IconStatementUsd, label: "Supplier Statement USD" },
-    { href: "/supplier-statement-iqd", icon: IconStatementIqd, label: "Supplier Statement IQD" },
-    { href: "/supplier-debts", icon: IconSupplierDebt, label: "Supplier Debts" },
-    { href: "/supplier-order-usd", icon: IconSupplierOrderUsd, label: "Supplier Order USD" },
-    { href: "/supplier-order-iqd", icon: IconSupplierOrderIqd, label: "Supplier Order IQD" },
+    { href: "/suppliers", icon: IconSupplierList, label: "Suppliers", color: "purple" },
+    { href: "/purchase-invoice-usd", icon: IconPurchaseUsd, label: "Purchase Invoice USD", color: "blue" },
+    { href: "/purchase-invoice-iqd", icon: IconPurchaseIqd, label: "Purchase Invoice IQD", color: "cyan" },
+    { href: "/purchase-return-usd", icon: IconReturnUsd, label: "Purchase Return USD", color: "orange" },
+    { href: "/purchase-return-iqd", icon: IconReturnIqd, label: "Purchase Return IQD", color: "amber" },
+    { href: "/supplier-payments", icon: IconSupplierPayment, label: "Supplier Payments", color: "green" },
+    { href: "/supplier-adjustments", icon: IconSupplierAdjust, label: "Supplier Adjustments", color: "teal" },
+    { href: "/supplier-statement-usd", icon: IconStatementUsd, label: "Supplier Statement USD", color: "indigo" },
+    { href: "/supplier-statement-iqd", icon: IconStatementIqd, label: "Supplier Statement IQD", color: "violet" },
+    { href: "/supplier-debts", icon: IconSupplierDebt, label: "Supplier Debts", color: "red" },
+    { href: "/supplier-order-usd", icon: IconSupplierOrderUsd, label: "Supplier Order USD", color: "pink" },
+    { href: "/supplier-order-iqd", icon: IconSupplierOrderIqd, label: "Supplier Order IQD", color: "rose" },
   ];
 
   const bankNavItems: NavItem[] = [
-    { href: "/banks", icon: IconBank, label: "Banks" },
-    { href: "/bank-receipts", icon: IconBankReceipt, label: "Bank Receipts" },
-    { href: "/bank-payments", icon: IconBankPayment, label: "Bank Payments" },
-    { href: "/bank-statement-usd", icon: IconStatementUsd, label: "Bank Statement USD" },
-    { href: "/bank-statement-iqd", icon: IconStatementIqd, label: "Bank Statement IQD" },
+    { href: "/banks", icon: IconBank, label: "Banks", color: "emerald" },
+    { href: "/bank-receipts", icon: IconBankReceipt, label: "Bank Receipts", color: "green" },
+    { href: "/bank-payments", icon: IconBankPayment, label: "Bank Payments", color: "red" },
+    { href: "/bank-statement-usd", icon: IconStatementUsd, label: "Bank Statement USD", color: "blue" },
+    { href: "/bank-statement-iqd", icon: IconStatementIqd, label: "Bank Statement IQD", color: "indigo" },
   ];
 
   const clearanceNavItems: NavItem[] = [
-    { href: "/customs-clearances", icon: IconClearance, label: "Customs Clearances" },
-    { href: "/clearance-receipts", icon: IconClearanceReceipt, label: "Clearance Receipts" },
-    { href: "/clearance-payments", icon: IconClearancePayment, label: "Clearance Payments" },
-    { href: "/clearance-purchase-invoices", icon: IconClearanceInvoice, label: "Clearance Purchase Invoices" },
-    { href: "/clearance-statement-usd", icon: IconStatementUsd, label: "Clearance Statement USD" },
-    { href: "/clearance-statement-iqd", icon: IconStatementIqd, label: "Clearance Statement IQD" },
+    { href: "/customs-clearances", icon: IconClearance, label: "Customs Clearances", color: "teal" },
+    { href: "/clearance-receipts", icon: IconClearanceReceipt, label: "Clearance Receipts", color: "green" },
+    { href: "/clearance-payments", icon: IconClearancePayment, label: "Clearance Payments", color: "red" },
+    { href: "/clearance-purchase-invoices", icon: IconClearanceInvoice, label: "Clearance Purchase Invoices", color: "blue" },
+    { href: "/clearance-statement-usd", icon: IconStatementUsd, label: "Clearance Statement USD", color: "indigo" },
+    { href: "/clearance-statement-iqd", icon: IconStatementIqd, label: "Clearance Statement IQD", color: "violet" },
   ];
 
   const officeNavItems: NavItem[] = [
-    { href: "/transfer-offices", icon: IconOffice, label: "Transfer Offices" },
-    { href: "/office-receipts", icon: IconOfficeReceipt, label: "Office Receipts" },
-    { href: "/office-payments", icon: IconOfficePayment, label: "Office Payments" },
-    { href: "/office-statement-usd", icon: IconStatementUsd, label: "Office Account Statement USD" },
-    { href: "/office-statement-iqd", icon: IconStatementIqd, label: "Office Account Statement IQD" },
+    { href: "/transfer-offices", icon: IconOffice, label: "Transfer Offices", color: "orange" },
+    { href: "/office-receipts", icon: IconOfficeReceipt, label: "Office Receipts", color: "green" },
+    { href: "/office-payments", icon: IconOfficePayment, label: "Office Payments", color: "red" },
+    { href: "/office-statement-usd", icon: IconStatementUsd, label: "Office Account Statement USD", color: "blue" },
+    { href: "/office-statement-iqd", icon: IconStatementIqd, label: "Office Account Statement IQD", color: "indigo" },
   ];
 
   const expenseNavItems: NavItem[] = [
-    { href: "/expense-types", icon: IconExpenseType, label: "Expense Types" },
-    { href: "/expenses", icon: IconExpenseEntry, label: "Expenses" },
+    { href: "/expense-types", icon: IconExpenseType, label: "Expense Types", color: "amber" },
+    { href: "/expenses", icon: IconExpenseEntry, label: "Expenses", color: "orange" },
   ];
 
   const externalDebtNavItems: NavItem[] = [
-    { href: "/external-debts", icon: IconExternalDebt, label: "External Debts" },
-    { href: "/external-debt-receipts", icon: IconDebtReceipt, label: "External Debt Receipts" },
-    { href: "/external-debt-payments", icon: IconDebtPayment, label: "External Debt Payments" },
-    { href: "/external-debt-statement-usd", icon: IconStatementUsd, label: "External Debt Statement USD" },
-    { href: "/external-debt-statement-iqd", icon: IconStatementIqd, label: "External Debt Statement IQD" },
+    { href: "/external-debts", icon: IconExternalDebt, label: "External Debts", color: "red" },
+    { href: "/external-debt-receipts", icon: IconDebtReceipt, label: "External Debt Receipts", color: "green" },
+    { href: "/external-debt-payments", icon: IconDebtPayment, label: "External Debt Payments", color: "orange" },
+    { href: "/external-debt-statement-usd", icon: IconStatementUsd, label: "External Debt Statement USD", color: "blue" },
+    { href: "/external-debt-statement-iqd", icon: IconStatementIqd, label: "External Debt Statement IQD", color: "indigo" },
   ];
 
   const ownerNavItems: NavItem[] = [
-    { href: "/owners", icon: IconOwnerNames, label: "Owner Names" },
-    { href: "/owner-withdrawals", icon: IconOwnerWithdraw, label: "Owner Withdrawals" },
-    { href: "/owner-returns", icon: IconOwnerReturn, label: "Owner Returns" },
-    { href: "/owner-statement-usd", icon: IconStatementUsd, label: "Owner Statement USD" },
-    { href: "/owner-statement-iqd", icon: IconStatementIqd, label: "Owner Statement IQD" },
+    { href: "/owners", icon: IconOwnerNames, label: "Owner Names", color: "amber" },
+    { href: "/owner-withdrawals", icon: IconOwnerWithdraw, label: "Owner Withdrawals", color: "red" },
+    { href: "/owner-returns", icon: IconOwnerReturn, label: "Owner Returns", color: "green" },
+    { href: "/owner-statement-usd", icon: IconStatementUsd, label: "Owner Statement USD", color: "blue" },
+    { href: "/owner-statement-iqd", icon: IconStatementIqd, label: "Owner Statement IQD", color: "indigo" },
   ];
 
   const agentManagementNavItems: NavItem[] = [
-    { href: "/agent-clients", icon: IconAgentClients, label: "Agent Clients" },
-    { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load" },
-    { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS" },
-    { href: "/rep-statement", icon: IconStatementUsd, label: "Rep Statement" },
+    { href: "/agent-clients", icon: IconAgentClients, label: "Agent Clients", color: "purple" },
+    { href: "/agent-product-load", icon: IconAgentLoad, label: "Agent Product Load", color: "blue" },
+    { href: "/agent-gps", icon: IconAgentGps, label: "Agent GPS", color: "green" },
+    { href: "/rep-statement", icon: IconStatementUsd, label: "Rep Statement", color: "indigo" },
   ];
 
   const materialNavItems: NavItem[] = [
-    { href: "/products", icon: IconProduct, label: "Products" },
-    { href: "/units", icon: IconUnit, label: "Units" },
-    { href: "/categories", icon: IconCategory, label: "Categories" },
-    { href: "/product-damage", icon: IconDamage, label: "Product Damage" },
+    { href: "/products", icon: IconProduct, label: "Products", color: "blue" },
+    { href: "/units", icon: IconUnit, label: "Units", color: "teal" },
+    { href: "/categories", icon: IconCategory, label: "Categories", color: "green" },
+    { href: "/product-damage", icon: IconDamage, label: "Product Damage", color: "orange" },
   ];
 
   const reportsNavItems: NavItem[] = [
-    { href: "/inventory-report", icon: IconInventory, label: "Inventory Report" },
-    { href: "/expiry-report", icon: IconExpiry, label: "Expiry Report" },
-    { href: "/max-stock-report", icon: IconReport, label: "Max Stock Report" },
-    { href: "/profits-report", icon: TrendingUp, label: "Profits Report" },
-    { href: "/sales-discounts-gifts-report", icon: Gift, label: "Sales Discounts & Gifts Report" },
-    { href: "/supplier-discounts-gifts-report", icon: Gift, label: "Supplier Discounts & Gifts Report" },
+    { href: "/inventory-report", icon: IconInventory, label: "Inventory Report", color: "blue" },
+    { href: "/expiry-report", icon: IconExpiry, label: "Expiry Report", color: "red" },
+    { href: "/max-stock-report", icon: IconReport, label: "Max Stock Report", color: "purple" },
+    { href: "/profits-report", icon: TrendingUp, label: "Profits Report", color: "green" },
+    { href: "/sales-discounts-gifts-report", icon: Gift, label: "Sales Discounts & Gifts Report", color: "pink" },
+    { href: "/supplier-discounts-gifts-report", icon: Gift, label: "Supplier Discounts & Gifts Report", color: "orange" },
   ];
 
   const warehouseNavItems: NavItem[] = [
-    { href: "/warehouses", icon: IconWarehouse, label: "Warehouses" },
-    { href: "/warehouse-transfer", icon: IconWarehouseTransfer, label: "Warehouse Transfer" },
-  ];
-
-  const salesNavItems: NavItem[] = [
-    { href: "/customers", icon: IconCustomers, label: "Customers" },
-    { href: "/sales-invoice-usd", icon: IconInvoiceUsd, label: "Sales Invoice USD" },
-    { href: "/sales-invoice-iqd", icon: IconInvoiceIqd, label: "Sales Invoice IQD" },
-    { href: "/sales-by-category", icon: IconPosUsd, label: "POS USD" },
-    { href: "/pos-iqd", icon: IconPosIqd, label: "POS IQD" },
-    { href: "/sales-return-usd", icon: IconReturnUsd, label: "Sales Return USD" },
-    { href: "/sales-return-iqd", icon: IconReturnIqd, label: "Sales Return IQD" },
-    { href: "/customer-receipt-usd", icon: IconReceiptUsd, label: "Customer Receipt USD" },
-    { href: "/customer-receipt-iqd", icon: IconReceiptIqd, label: "Customer Receipt IQD" },
-    { href: "/agent-payment-usd", icon: IconPaymentUsd, label: "Customer Payment USD" },
-    { href: "/agent-payment-iqd", icon: IconPaymentIqd, label: "Customer Payment IQD" },
-    { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD" },
-    { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD" },
-    { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts" },
+    { href: "/warehouses", icon: IconWarehouse, label: "Warehouses", color: "teal" },
+    { href: "/warehouse-transfer", icon: IconWarehouseTransfer, label: "Warehouse Transfer", color: "blue" },
   ];
 
   const sidebarItems: NavEntry[] = [
-    { href: "/", icon: IconDashboard, label: "Dashboard" },
-    { type: 'group', label: "Sales Management", icon: IconSales, children: salesNavItems },
-    { type: 'group', label: "Supplier Management", icon: IconSupplier, children: supplierNavItems },
-    { type: 'group', label: "Agent Management", icon: IconAgent, children: agentManagementNavItems },
-    { type: 'group', label: "Material Management", icon: IconMaterial, children: materialNavItems },
-    { type: 'group', label: "Reports", icon: IconReport, children: reportsNavItems },
-    { type: 'group', label: "Bank Management", icon: IconBank, children: bankNavItems },
-    { type: 'group', label: "Clearance Management", icon: IconClearance, children: clearanceNavItems },
-    { type: 'group', label: "Office Management", icon: IconOffice, children: officeNavItems },
-    { type: 'group', label: "Expense Management", icon: IconExpense, children: expenseNavItems },
-    { type: 'group', label: "External Debt Management", icon: IconExternalDebt, children: externalDebtNavItems },
-    { type: 'group', label: "Owner Management", icon: IconOwner, children: ownerNavItems },
-    { href: "/addresses", icon: IconAddress, label: "Customer Addresses" },
-    { href: "/supplier-addresses", icon: IconAddress, label: "Supplier Addresses" },
-    { type: 'group', label: "Warehouse Management", icon: IconWarehouse, children: warehouseNavItems },
-    { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print" },
-    { href: "/company-book", icon: IconCompanyBook, label: "Company Book Management" },
-    { href: "/company-profile", icon: IconCompany, label: "Company Profile" },
-    { href: "/currency-exchange", icon: IconCurrencyExchange, label: "Currency Exchange" },
-    { href: "/accounts", icon: IconAccounts, label: "Accounts" },
-    { href: "/audit-logs", icon: IconAuditLog, label: "Audit Logs" },
-    { href: "/backup-restore", icon: IconBackupRestore, label: "Backup & Restore" },
-    { href: "/settings", icon: IconSettings, label: "Settings" },
-    { href: "/user-management", icon: IconUserManagement, label: "User Management" },
-    { href: "/data-reset", icon: IconDataReset, label: "Data Reset" },
+    { href: "/", icon: IconDashboard, label: "Dashboard", color: "blue" },
+    { type: 'group', label: "Sales Management", icon: IconSales, color: "green", children: salesNavItems },
+    { type: 'group', label: "Supplier Management", icon: IconSupplier, color: "red", children: supplierNavItems },
+    { type: 'group', label: "Agent Management", icon: IconAgent, color: "purple", children: agentManagementNavItems },
+    { type: 'group', label: "Material Management", icon: IconMaterial, color: "teal", children: materialNavItems },
+    { type: 'group', label: "Reports", icon: IconReport, color: "indigo", children: reportsNavItems },
+    { type: 'group', label: "Bank Management", icon: IconBank, color: "emerald", children: bankNavItems },
+    { type: 'group', label: "Clearance Management", icon: IconClearance, color: "cyan", children: clearanceNavItems },
+    { type: 'group', label: "Office Management", icon: IconOffice, color: "orange", children: officeNavItems },
+    { type: 'group', label: "Expense Management", icon: IconExpense, color: "amber", children: expenseNavItems },
+    { type: 'group', label: "External Debt Management", icon: IconExternalDebt, color: "rose", children: externalDebtNavItems },
+    { type: 'group', label: "Owner Management", icon: IconOwner, color: "violet", children: ownerNavItems },
+    { href: "/addresses", icon: IconAddress, label: "Customer Addresses", color: "sky" },
+    { href: "/supplier-addresses", icon: IconAddress, label: "Supplier Addresses", color: "cyan" },
+    { type: 'group', label: "Warehouse Management", icon: IconWarehouse, color: "teal", children: warehouseNavItems },
+    { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print", color: "slate" },
+    { href: "/company-book", icon: IconCompanyBook, label: "Company Book Management", color: "indigo" },
+    { href: "/company-profile", icon: IconCompany, label: "Company Profile", color: "emerald" },
+    { href: "/currency-exchange", icon: IconCurrencyExchange, label: "Currency Exchange", color: "green" },
+    { href: "/accounts", icon: IconAccounts, label: "Accounts", color: "blue" },
+    { href: "/audit-logs", icon: IconAuditLog, label: "Audit Logs", color: "red" },
+    { href: "/backup-restore", icon: IconBackupRestore, label: "Backup & Restore", color: "purple" },
+    { href: "/settings", icon: IconSettings, label: "Settings", color: "slate" },
+    { href: "/user-management", icon: IconUserManagement, label: "User Management", color: "pink" },
+    { href: "/data-reset", icon: IconDataReset, label: "Data Reset", color: "red" },
   ];
 
   const userRole = user?.role || "user";
   const userPermissions = (user as any)?.permissions || [];
   const userDetailedPerms = (user as any)?.detailedPermissions || null;
 
-  const filteredSidebarItems = sidebarItems.filter((entry) => {
+  const filteredSidebarItems = sidebarItems.reduce<NavEntry[]>((acc, entry) => {
     if ('type' in entry && entry.type === 'group') {
-      const firstChildRoute = entry.children[0]?.href;
-      if (firstChildRoute) {
-        return hasRoutePermission(userRole, userPermissions, firstChildRoute, userDetailedPerms);
+      const filteredChildren = entry.children.filter(child =>
+        hasRoutePermission(userRole, userPermissions, child.href, userDetailedPerms)
+      );
+      if (filteredChildren.length > 0) {
+        acc.push({ ...entry, children: filteredChildren });
       }
-      return true;
+    } else {
+      if (hasRoutePermission(userRole, userPermissions, (entry as NavItem).href, userDetailedPerms)) {
+        acc.push(entry);
+      }
     }
-    return hasRoutePermission(userRole, userPermissions, entry.href, userDetailedPerms);
-  });
+    return acc;
+  }, []);
 
-  const renderNavLink = (item: NavItem, indent = false) => {
-    const isActive = location === item.href;
-    const testId = `link-nav-${item.href.replace(/\//g, '') || 'dashboard'}`;
+  const handleCardClick = (entry: NavEntry) => {
+    if ('type' in entry && entry.type === 'group') {
+      setActiveGroup(entry.label);
+    } else {
+      const item = entry as NavItem;
+      navigate(item.href);
+      setMenuOpen(false);
+      setActiveGroup(null);
+    }
+  };
+
+  const activeGroupData = activeGroup
+    ? filteredSidebarItems.find(e => 'type' in e && e.type === 'group' && e.label === activeGroup) as NavGroup | undefined
+    : null;
+
+  const renderGridCard = (
+    icon: any,
+    label: string,
+    colorName: string,
+    onClick: () => void,
+    isActive: boolean,
+    testId: string,
+  ) => {
+    const c = COLORS[colorName] || COLORS.blue;
+    const Icon = icon;
     return (
-      <Link key={item.href} href={item.href} data-testid={testId} className={`
-        flex items-center gap-3 ${indent ? 'px-3 py-2 ms-8 text-[13px]' : 'px-3.5 py-2.5'} rounded-lg transition-all duration-200
-        ${isActive
-          ? "bg-[hsl(var(--sidebar-primary))] text-white shadow-lg shadow-amber-500/25 font-semibold"
-          : "text-[hsl(var(--sidebar-foreground))]/65 hover:bg-white/[0.06] hover:text-[hsl(var(--sidebar-foreground))]"
-        }
-      `}>
-        <item.icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-white" : "opacity-70"}`} />
-        <span>{t(item.label)}</span>
-        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white/80 ms-auto shrink-0" />}
-      </Link>
+      <button
+        key={label}
+        onClick={onClick}
+        data-testid={testId}
+        className={`
+          flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl transition-all duration-200 cursor-pointer min-h-[100px]
+          ${isActive
+            ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
+            : "bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.08] hover:shadow-md"
+          }
+        `}
+      >
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${c.bg}`}>
+          <Icon className={`w-5 h-5 ${c.text}`} />
+        </div>
+        <span className="text-xs font-medium text-center text-foreground/80 leading-tight line-clamp-2 max-w-[100px]">
+          {t(label)}
+        </span>
+      </button>
     );
   };
 
-  const renderSidebar = () => (
-    <div className="flex flex-col h-full bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))]">
-      <div className="px-5 py-5 border-b border-white/[0.06]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">ProERP</h1>
-            <p className="text-[10px] text-[hsl(var(--sidebar-foreground))]/40 font-medium uppercase tracking-widest">Enterprise Management</p>
-          </div>
-        </div>
-      </div>
-
-      <nav ref={sidebarScrollRef} className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        {filteredSidebarItems.map((entry) => {
-          if ('type' in entry && entry.type === 'group') {
-            const groupMap: Record<string, { isOpen: boolean; setOpen: (v: boolean) => void; isActive: boolean }> = {
-              "Sales Management": { isOpen: salesOpen, setOpen: setSalesOpen, isActive: isSalesSection },
-              "Supplier Management": { isOpen: supplierOpen, setOpen: setSupplierOpen, isActive: isSupplierSection },
-              "Bank Management": { isOpen: bankOpen, setOpen: setBankOpen, isActive: isBankSection },
-              "Clearance Management": { isOpen: clearanceOpen, setOpen: setClearanceOpen, isActive: isClearanceSection },
-              "Office Management": { isOpen: officeOpen, setOpen: setOfficeOpen, isActive: isOfficeSection },
-              "Expense Management": { isOpen: expenseOpen, setOpen: setExpenseOpen, isActive: isExpenseSection },
-              "External Debt Management": { isOpen: externalDebtOpen, setOpen: setExternalDebtOpen, isActive: isExternalDebtSection },
-              "Owner Management": { isOpen: ownerOpen, setOpen: setOwnerOpen, isActive: isOwnerSection },
-              "Agent Management": { isOpen: agentOpen, setOpen: setAgentOpen, isActive: isAgentSection },
-              "Material Management": { isOpen: materialOpen, setOpen: setMaterialOpen, isActive: isMaterialSection },
-              "Reports": { isOpen: reportsOpen, setOpen: setReportsOpen, isActive: isReportsSection },
-              "Warehouse Management": { isOpen: warehouseOpen, setOpen: setWarehouseOpen, isActive: isWarehouseSection },
-            };
-            const group = groupMap[entry.label] || { isOpen: false, setOpen: () => {}, isActive: false };
-            const isOpen = group.isOpen;
-            const setOpen = group.setOpen;
-            const isActiveSection = group.isActive;
-            const landingRouteMap: Record<string, string> = {
-              "Sales Management": "/sales-management",
-              "Supplier Management": "/supplier-management",
-              "Bank Management": "/bank-management",
-              "Clearance Management": "/clearance-management",
-              "Office Management": "/office-management",
-              "Expense Management": "/expense-management",
-              "External Debt Management": "/external-debt-management",
-              "Owner Management": "/owner-management",
-              "Agent Management": "/agent-management",
-              "Material Management": "/material-management",
-              "Reports": "/inventory-report",
-              "Warehouse Management": "/warehouses",
-            };
-            const landingRoute = landingRouteMap[entry.label] || entry.children[0]?.href || "/";
-            const isLandingActive = location === landingRoute;
-            const testIdName = entry.label.toLowerCase().replace(/\s+/g, '-');
-            return (
-              <div key={entry.label} className="space-y-0.5">
-                <button
-                  onClick={() => {
-                    const scrollPos = sidebarScrollRef.current?.scrollTop || 0;
-                    setOpen(true);
-                    navigate(landingRoute);
-                    requestAnimationFrame(() => {
-                      if (sidebarScrollRef.current) sidebarScrollRef.current.scrollTop = scrollPos;
-                    });
-                  }}
-                  data-testid={`button-${testIdName}`}
-                  className={`
-                    w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200
-                    ${isLandingActive
-                      ? "bg-[hsl(var(--sidebar-primary))] text-white shadow-lg shadow-amber-500/25 font-semibold"
-                      : isActiveSection
-                        ? "bg-white/[0.08] text-amber-400 font-medium"
-                        : "text-[hsl(var(--sidebar-foreground))]/65 hover:bg-white/[0.06] hover:text-[hsl(var(--sidebar-foreground))]"
-                    }
-                  `}
-                >
-                  <entry.icon className={`w-[18px] h-[18px] shrink-0 ${isLandingActive ? "text-white" : "opacity-70"}`} />
-                  <span className="flex-1 text-start text-sm">{t(entry.label)}</span>
-                  <ChevronDown
-                    onClick={(e) => { e.stopPropagation(); setOpen(!isOpen); }}
-                    className={`w-3.5 h-3.5 transition-transform duration-200 opacity-50 ${isOpen ? "rotate-180" : ""} ${isLandingActive ? "text-white opacity-80" : ""}`}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="space-y-0.5 mt-0.5">
-                    {entry.children.map((subItem) => renderNavLink(subItem, true))}
-                  </div>
-                )}
-              </div>
-            );
-          }
-          return renderNavLink(entry as NavItem);
-        })}
-      </nav>
-
-      <div className="px-3 py-3 border-t border-white/[0.06]">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400 font-bold text-sm">
-            {user?.username?.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate text-white/90">{user?.username}</p>
-            <p className="text-[11px] text-white/35 truncate capitalize">{user?.role}</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8">
-            <LogOut className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-72 h-screen sticky top-0 z-30">
-        {renderSidebar()}
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-20 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4 lg:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side={document.documentElement.dir === 'rtl' ? 'right' : 'left'} className="p-0 w-72 border-r">
-                {renderSidebar()}
-              </SheetContent>
-            </Sheet>
-            <span className="font-bold text-lg">ProERP</span>
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="sticky top-0 z-30 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => { setMenuOpen(true); setActiveGroup(null); }}
+            data-testid="button-menu-toggle"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-xs">P</span>
+            </div>
+            <span className="font-bold text-lg hidden sm:inline">ProERP</span>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2 ms-auto">
-            {(user?.role === 'admin' || user?.role === 'user') && (
-              <AgentSummaryBell />
-            )}
-            {(user?.role === 'admin' || user?.role === 'user') && (
-              <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground relative" data-testid="button-notifications">
-                    <Bell className="w-5 h-5" />
-                    {(unreadCount?.count || 0) > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" data-testid="text-notification-count">
-                        {unreadCount?.count}
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
-                  {(!notificationsList || notificationsList.length === 0) ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">{t('No notifications')}</div>
-                  ) : (
-                    notificationsList.slice(0, 20).map((notif) => (
-                      <DropdownMenuItem
-                        key={notif.id}
-                        className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${notif.isRead === 0 ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
-                        onClick={() => {
-                          if (notif.isRead === 0) markRead(notif.id);
-                          if (notif.referenceType === 'sales_invoice' && notif.referenceId) {
-                            approveInvoice(notif.referenceId, {
-                              onSuccess: () => {
-                                toast({ title: t("Invoice approved successfully") });
-                              },
-                            });
-                          }
-                        }}
-                        data-testid={`notification-item-${notif.id}`}
-                      >
-                        <span className="text-sm font-medium">{notif.title}</span>
-                        <span className="text-xs text-muted-foreground">{notif.message}</span>
-                        {notif.referenceType === 'sales_invoice' && (
-                          <span className="text-xs font-semibold text-green-600 mt-1">{t('Click to approve')}</span>
-                        )}
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-            <DropdownMenu>
+        <div className="flex items-center gap-2">
+          {(user?.role === 'admin' || user?.role === 'user') && (
+            <AgentSummaryBell />
+          )}
+          {(user?.role === 'admin' || user?.role === 'user') && (
+            <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
-                  <Globe className="w-5 h-5" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground relative" data-testid="button-notifications">
+                  <Bell className="w-5 h-5" />
+                  {(unreadCount?.count || 0) > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" data-testid="text-notification-count">
+                      {unreadCount?.count}
+                    </span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+                {(!notificationsList || notificationsList.length === 0) ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">{t('No notifications')}</div>
+                ) : (
+                  notificationsList.slice(0, 20).map((notif) => (
+                    <DropdownMenuItem
+                      key={notif.id}
+                      className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${notif.isRead === 0 ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
+                      onClick={() => {
+                        if (notif.isRead === 0) markRead(notif.id);
+                        if (notif.referenceType === 'sales_invoice' && notif.referenceId) {
+                          approveInvoice(notif.referenceId, {
+                            onSuccess: () => {
+                              toast({ title: t("Invoice approved successfully") });
+                            },
+                          });
+                        }
+                      }}
+                      data-testid={`notification-item-${notif.id}`}
+                    >
+                      <span className="text-sm font-medium">{notif.title}</span>
+                      <span className="text-xs text-muted-foreground">{notif.message}</span>
+                      {notif.referenceType === 'sales_invoice' && (
+                        <span className="text-xs font-semibold text-green-600 mt-1">{t('Click to approve')}</span>
+                      )}
+                    </DropdownMenuItem>
+                  ))
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
 
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground">
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            </Button>
-          </div>
-        </header>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <Globe className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Page Content */}
-        <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
-          <div className="max-w-7xl mx-auto animate-fade-in">
-            {children}
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground">
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </Button>
+        </div>
+      </header>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => { setMenuOpen(false); setActiveGroup(null); }} />
+          <div className="relative w-full max-w-5xl mx-4 mt-4 mb-4 max-h-[calc(100vh-2rem)] bg-background rounded-3xl shadow-2xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+              <div className="flex items-center gap-3">
+                {activeGroup && (
+                  <button
+                    onClick={() => setActiveGroup(null)}
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                    data-testid="button-nav-back"
+                  >
+                    <BackArrow className="w-5 h-5" />
+                  </button>
+                )}
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{user?.fullName || user?.username}</p>
+                  <p className="text-[11px] text-muted-foreground capitalize">
+                    {user?.username} · {user?.role}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {activeGroup && (
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {t(activeGroup)}
+                  </span>
+                )}
+                <button
+                  onClick={() => { setMenuOpen(false); setActiveGroup(null); }}
+                  className="p-2 rounded-xl hover:bg-muted transition-colors"
+                  data-testid="button-close-menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              {!activeGroup ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">
+                  {filteredSidebarItems.map((entry) => {
+                    const isGroup = 'type' in entry && entry.type === 'group';
+                    const label = isGroup ? (entry as NavGroup).label : (entry as NavItem).label;
+                    const icon = isGroup ? (entry as NavGroup).icon : (entry as NavItem).icon;
+                    const color = isGroup ? (entry as NavGroup).color : ((entry as NavItem).color || "blue");
+                    const isActive = !isGroup && location === (entry as NavItem).href;
+                    const testId = isGroup
+                      ? `button-grid-${label.toLowerCase().replace(/\s+/g, '-')}`
+                      : `link-grid-${(entry as NavItem).href.replace(/\//g, '') || 'dashboard'}`;
+                    return renderGridCard(
+                      icon,
+                      label,
+                      color,
+                      () => handleCardClick(entry),
+                      isActive,
+                      testId,
+                    );
+                  })}
+                </div>
+              ) : activeGroupData ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">
+                  {activeGroupData.children.map((item) => {
+                    const isActive = location === item.href;
+                    return renderGridCard(
+                      item.icon,
+                      item.label,
+                      item.color || "blue",
+                      () => {
+                        navigate(item.href);
+                        setMenuOpen(false);
+                        setActiveGroup(null);
+                      },
+                      isActive,
+                      `link-grid-${item.href.replace(/\//g, '')}`,
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex items-center justify-between px-6 py-3 border-t border-border/40 bg-muted/30">
+              <span className="text-xs text-muted-foreground">ProERP © {new Date().getFullYear()}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-2 text-xs"
+                data-testid="button-logout"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {t("Logout")}
+              </Button>
+            </div>
           </div>
         </div>
-      </main>
+      )}
+
+      <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
+        <div className="max-w-7xl mx-auto animate-fade-in">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
