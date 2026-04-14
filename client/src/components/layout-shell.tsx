@@ -397,17 +397,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
         onClick={onClick}
         data-testid={testId}
         className={`
-          flex flex-col items-center justify-center gap-3 p-5 rounded-2xl transition-all duration-200 cursor-pointer min-h-[120px]
+          flex flex-col items-center justify-center gap-3.5 p-6 rounded-2xl transition-all duration-200 cursor-pointer min-h-[140px]
           ${isActive
             ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
             : "bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.08] hover:shadow-md"
           }
         `}
       >
-        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${c.bg}`}>
-          <Icon className={`w-7 h-7 ${c.text}`} />
+        <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${c.bg}`}>
+          <Icon className={`w-8 h-8 ${c.text}`} />
         </div>
-        <span className="text-[15px] font-medium text-center text-foreground/80 leading-tight line-clamp-2 max-w-[120px]">
+        <span className="text-[16px] font-semibold text-center text-foreground/80 leading-tight line-clamp-2 max-w-[130px]">
           {t(label)}
         </span>
       </button>
