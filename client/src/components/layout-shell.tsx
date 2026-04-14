@@ -397,17 +397,17 @@ export function LayoutShell({ children }: LayoutShellProps) {
         onClick={onClick}
         data-testid={testId}
         className={`
-          flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl transition-all duration-200 cursor-pointer min-h-[100px]
+          flex flex-col items-center justify-center gap-3 p-5 rounded-2xl transition-all duration-200 cursor-pointer min-h-[120px]
           ${isActive
             ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
             : "bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.08] hover:shadow-md"
           }
         `}
       >
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${c.bg}`}>
-          <Icon className={`w-5 h-5 ${c.text}`} />
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${c.bg}`}>
+          <Icon className={`w-7 h-7 ${c.text}`} />
         </div>
-        <span className="text-xs font-medium text-center text-foreground/80 leading-tight line-clamp-2 max-w-[100px]">
+        <span className="text-[15px] font-medium text-center text-foreground/80 leading-tight line-clamp-2 max-w-[120px]">
           {t(label)}
         </span>
       </button>
@@ -505,7 +505,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
       {menuOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => { setMenuOpen(false); setActiveGroup(null); }} />
-          <div className="relative w-full max-w-5xl mx-4 mt-4 mb-4 max-h-[calc(100vh-2rem)] bg-background rounded-3xl shadow-2xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-6xl mx-4 mt-4 mb-4 max-h-[calc(100vh-2rem)] bg-background rounded-3xl shadow-2xl border border-border/50 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
               <div className="flex items-center gap-3">
                 {activeGroup && (
