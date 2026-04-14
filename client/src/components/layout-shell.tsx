@@ -426,6 +426,18 @@ export function LayoutShell({ children }: LayoutShellProps) {
           >
             <Menu className="w-5 h-5" />
           </Button>
+          {!menuOpen && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setMenuOpen(true); setActiveGroup(null); }}
+              className="gap-2 text-[13px] font-semibold"
+              data-testid="button-exit-to-sidebar"
+            >
+              <BackArrow className="w-4 h-4" />
+              {t("Exit")}
+            </Button>
+          )}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-xs">P</span>
