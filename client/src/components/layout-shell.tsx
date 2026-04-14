@@ -139,7 +139,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const { mutate: approveInvoice } = useApproveSalesInvoice();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [menuOpen, setMenuOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [, navigate] = useLocation();
 
