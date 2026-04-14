@@ -429,12 +429,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
           {!menuOpen && (
             <Button
               variant="outline"
-              size="sm"
               onClick={() => { setMenuOpen(true); setActiveGroup(null); }}
-              className="gap-2 text-[13px] font-semibold"
+              className="gap-2.5 h-10 px-5 text-[14px] font-bold rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary shadow-sm transition-all duration-200"
               data-testid="button-exit-to-sidebar"
             >
-              <BackArrow className="w-4 h-4" />
+              <BackArrow className="w-5 h-5" />
               {t("Exit")}
             </Button>
           )}
@@ -521,10 +520,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
               {activeGroup && (
                 <button
                   onClick={() => setActiveGroup(null)}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 h-10 px-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary font-bold text-[14px] shadow-sm transition-all duration-200"
                   data-testid="button-nav-back"
                 >
                   <BackArrow className="w-5 h-5" />
+                  {t("Exit")}
                 </button>
               )}
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
