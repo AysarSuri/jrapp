@@ -25,7 +25,7 @@ export function getModernPrintStyles(opts: PrintStyleOptions): string {
     }
 
     .cliche { text-align: center; margin-bottom: 12px; }
-    .cliche img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; }
+    .cliche img { width: 100%; max-height: 140px; object-fit: contain; border-radius: 6px; }
 
     .company-header {
       display: flex;

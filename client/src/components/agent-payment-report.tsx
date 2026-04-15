@@ -208,7 +208,7 @@ export default function AgentPaymentReport({ payment, open, onOpenChange }: Agen
           <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", direction: isRtl ? "rtl" : "ltr" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 8 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "cover", borderRadius: 8 }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 150, objectFit: "contain", borderRadius: 8 }} />
               </div>
             )}
 

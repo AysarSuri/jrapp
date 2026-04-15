@@ -185,7 +185,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
         <style>
           ${printStyles}
           .cliche-container { text-align: center; margin-bottom: 12px; }
-          .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }
+          .cliche-container img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 6px; }
           table { font-size: 10pt; }
           th { font-size: 9.5pt; }
           td { font-size: 10pt; }
@@ -280,7 +280,7 @@ export default function PurchaseReturnReport({ returnId, open, onOpenChange, cur
           <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "contain" }} />
               </div>
             )}
             <div className="header" style={{ textAlign: "center", marginBottom: 15, borderBottom: "2px solid #dc2626", paddingBottom: 10 }}>

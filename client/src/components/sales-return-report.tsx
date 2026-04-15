@@ -180,7 +180,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
         <style>
           ${printStyles}
           .cliche-container { text-align: center; margin-bottom: 12px; }
-          .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }
+          .cliche-container img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 6px; }
           table { font-size: 10pt; }
           th { font-size: 9.5pt; }
           td { font-size: 10pt; }
@@ -273,7 +273,7 @@ export default function SalesReturnReport({ returnId, open, onOpenChange, curren
             )}
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10, position: "relative", zIndex: 1 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "contain" }} />
               </div>
             )}
             <div className="header" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 15, borderBottom: `2px solid ${fieldColor}`, paddingBottom: 10, position: "relative", zIndex: 1, direction: "ltr" }}>

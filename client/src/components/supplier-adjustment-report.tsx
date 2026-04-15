@@ -136,7 +136,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
         <style>
           ${printStyles}
           .cliche-container { text-align: center; margin-bottom: 12px; }
-          .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }
+          .cliche-container img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 6px; }
         </style>
       </head>
       <body>${content.innerHTML}</body>
@@ -213,7 +213,7 @@ export default function SupplierAdjustmentReport({ adjustmentId, open, onOpenCha
           <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif" }}>
             {companyProfile?.cliche && (
               <div style={{ textAlign: "center", marginBottom: 10 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", height: 170, objectFit: "contain" }} />
               </div>
             )}
 

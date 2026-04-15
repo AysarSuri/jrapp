@@ -565,7 +565,7 @@ export default function ClearanceStatementIqdPage() {
                   const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: viewEntry?.type === "receipt" ? "#1e293b" : "#dc2626", accentTextColor: "#ffffff" });
                   const title = viewEntry?.type === "receipt" ? t("Clearance Receipt") : t("Clearance Payment");
                   printWindow.document.write(`<!DOCTYPE html><html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}"><head>
-        ${PRINT_FONT_LINKS}<meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
+        ${PRINT_FONT_LINKS}<meta charset="UTF-8" /><title>${title}</title><style>${printStyles} .cliche-container { text-align: center; margin-bottom: 12px; } .cliche-container img { width: 100%; max-height: 160px; object-fit: contain; border-radius: 6px; }</style></head><body>${content.innerHTML}</body></html>`);
                   printWindow.document.close();
                   const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
                 }} data-testid="button-print-statement-iqd">
@@ -580,7 +580,7 @@ export default function ClearanceStatementIqdPage() {
             <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif", padding: 15 }}>
               {companyProfile?.cliche && (
                 <div style={{ textAlign: "center", marginBottom: 10 }}>
-                  <img src={companyProfile.cliche} alt={companyProfile?.name || ""} style={{ width: "100%", height: 170, objectFit: "cover" }} />
+                  <img src={companyProfile.cliche} alt={companyProfile?.name || ""} style={{ width: "100%", height: 170, objectFit: "contain" }} />
                 </div>
               )}
               <div style={{ textAlign: "center", marginBottom: 15, borderBottom: `2px solid ${viewEntry.type === "receipt" ? "#333" : "#dc2626"}`, paddingBottom: 10 }}>

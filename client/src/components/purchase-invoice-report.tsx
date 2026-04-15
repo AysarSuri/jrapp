@@ -291,7 +291,7 @@ export default function PurchaseInvoiceReport({ invoiceId, open, onOpenChange, c
           <div ref={printRef} style={{ width: 794, minWidth: 794, fontFamily: "'Tajawal','Segoe UI',sans-serif" }}>
             {companyProfile?.cliche && (
               <div className="cliche" style={{ textAlign: "center", marginBottom: 10 }}>
-                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 6 }} />
+                <img src={companyProfile.cliche} alt={companyProfile.name || "Company"} style={{ width: "100%", maxHeight: 160, objectFit: "contain", borderRadius: 6 }} />
               </div>
             )}
 
