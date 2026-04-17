@@ -402,7 +402,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         onClick={onClick}
         data-testid={testId}
         className={`
-          flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all duration-200 cursor-pointer min-h-[100px]
+          flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all duration-200 cursor-pointer min-h-[135px]
           ${isActive
             ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
             : "bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.08] hover:shadow-md"
