@@ -421,8 +421,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-30 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <Button
             variant="ghost"
             size="icon"
@@ -449,36 +449,8 @@ export function LayoutShell({ children }: LayoutShellProps) {
             <span className="font-bold text-lg hidden sm:inline">ProERP</span>
           </div>
 
-          {(companyProfile?.logo || companyProfile?.name) && (
-            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50 ms-1">
-              {companyProfile?.logo ? (
-                <img
-                  src={companyProfile.logo}
-                  alt=""
-                  className="w-7 h-7 rounded-md object-contain bg-white"
-                  data-testid="img-header-company-logo"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-[11px]">
-                    {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
-                  </span>
-                </div>
-              )}
-              {companyProfile?.name && (
-                <span
-                  className="text-[13px] font-bold truncate max-w-[180px]"
-                  style={{ color: companyProfile?.primaryColor || undefined }}
-                  data-testid="text-header-company-name"
-                >
-                  {companyProfile.name}
-                </span>
-              )}
-            </div>
-          )}
-
           {user && (
-            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50">
+            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50 ms-1">
               <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
                 <span className="text-white font-bold text-[11px]">
                   {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
@@ -492,7 +464,35 @@ export function LayoutShell({ children }: LayoutShellProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        {(companyProfile?.logo || companyProfile?.name) && (
+          <div className="hidden md:flex items-center justify-center gap-2.5 h-10 px-4 rounded-xl bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 border border-border/60 shadow-sm">
+            {companyProfile?.logo ? (
+              <img
+                src={companyProfile.logo}
+                alt=""
+                className="w-8 h-8 rounded-md object-contain bg-white"
+                data-testid="img-header-company-logo"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">
+                  {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+                </span>
+              </div>
+            )}
+            {companyProfile?.name && (
+              <span
+                className="text-[15px] font-extrabold truncate max-w-[260px] tracking-wide"
+                style={{ color: companyProfile?.primaryColor || undefined }}
+                data-testid="text-header-company-name"
+              >
+                {companyProfile.name}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 justify-end">
           {(user?.role === 'admin' || user?.role === 'user') && (
             <AgentSummaryBell />
           )}
