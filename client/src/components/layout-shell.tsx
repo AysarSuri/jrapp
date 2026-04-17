@@ -442,7 +442,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <div className={`relative z-10 w-12 h-12 rounded-xl flex items-center justify-center ${c.bg} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:shadow-lg`}>
           <Icon className={`w-6 h-6 ${c.text} transition-transform duration-300 group-hover:scale-110`} />
         </div>
-        <span className="relative z-10 text-[14px] font-bold text-center leading-snug line-clamp-3 w-full px-1 text-foreground break-words" title={t(label)}>
+        <span dir="auto" className="relative z-10 text-[14px] font-bold text-center leading-snug line-clamp-3 w-full px-1 text-foreground break-words" title={t(label)}>
           {t(label)}
         </span>
       </button>

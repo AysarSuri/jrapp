@@ -5,7 +5,7 @@
 :root {
   --font-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
   --font-display: 'Inter', 'DM Sans', system-ui, sans-serif;
-  --font-arabic: 'Tajawal', system-ui, sans-serif;
+  --font-arabic: 'Tajawal', 'Noto Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
 
   --background: 220 20% 97%;
   --foreground: 220 20% 12%;
@@ -112,11 +112,11 @@
   [dir="rtl"] body,
   [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
   [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
-    font-family: 'Tajawal', system-ui, sans-serif;
+    font-family: 'Tajawal', 'Noto Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
   }
 
   [dir="rtl"] * {
-    font-family: 'Tajawal', system-ui, sans-serif;
+    font-family: 'Tajawal', 'Noto Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
   }
 }
 
