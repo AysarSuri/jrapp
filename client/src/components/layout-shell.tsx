@@ -562,36 +562,6 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
       {menuOpen ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/20">
-            <div className="flex items-center gap-3">
-              {activeGroup && (
-                <button
-                  onClick={() => setActiveGroup(null)}
-                  className="flex items-center gap-2 h-10 px-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary font-bold text-[14px] shadow-sm transition-all duration-200"
-                  data-testid="button-nav-back"
-                >
-                  <BackArrow className="w-5 h-5" />
-                  {t("Exit")}
-                </button>
-              )}
-              {activeGroup && (
-                <span className="text-[15px] font-semibold text-muted-foreground">
-                  {t(activeGroup)}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setMenuOpen(false); setActiveGroup(null); }}
-                className="p-2 rounded-xl hover:bg-muted transition-colors"
-                data-testid="button-close-menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
           <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-6xl mx-auto">
               {!activeGroup ? (
