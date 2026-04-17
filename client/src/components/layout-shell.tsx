@@ -184,6 +184,22 @@ export function LayoutShell({ children }: LayoutShellProps) {
     return () => window.removeEventListener("keydown", handleEnterAsTab, true);
   }, []);
 
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const interactive = target.closest(
+        'button, a, [role="button"], [role="menuitem"], [role="option"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], summary'
+      ) as HTMLElement | null;
+      if (!interactive) return;
+      if (interactive.hasAttribute("disabled") || interactive.getAttribute("aria-disabled") === "true") return;
+      if (interactive.dataset.silent === "true") return;
+      playSidebarClickSound();
+    };
+    document.addEventListener("click", handleGlobalClick, true);
+    return () => document.removeEventListener("click", handleGlobalClick, true);
+  }, []);
+
   const { data: companyProfile } = useQuery<{ name: string; logo: string | null; primaryColor?: string }>({
     queryKey: ["/api/company-profile"],
   });
