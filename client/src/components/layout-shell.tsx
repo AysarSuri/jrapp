@@ -93,7 +93,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
-import { playSidebarClickSound } from "@/lib/sounds";
+import { playSidebarClickSound, playHoverSound } from "@/lib/sounds";
 import { useLogout, useUser } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { hasRoutePermission } from "@/lib/permissions";
@@ -418,6 +418,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
       <button
         key={label}
         onClick={onClick}
+        onMouseEnter={() => playHoverSound()}
         data-testid={testId}
         className={`
           group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl cursor-pointer min-h-[138px] min-w-[143px] overflow-hidden border border-transparent
