@@ -1,3 +1,27 @@
+export const SOUND_SETTINGS_KEY = "erp_sound_settings";
+
+export interface SoundSettings {
+  clickEnabled: boolean;
+  hoverEnabled: boolean;
+}
+
+export const defaultSoundSettings: SoundSettings = {
+  clickEnabled: true,
+  hoverEnabled: true,
+};
+
+export function loadSoundSettings(): SoundSettings {
+  try {
+    const saved = localStorage.getItem(SOUND_SETTINGS_KEY);
+    if (saved) return { ...defaultSoundSettings, ...JSON.parse(saved) };
+  } catch {}
+  return defaultSoundSettings;
+}
+
+export function saveSoundSettings(settings: SoundSettings) {
+  localStorage.setItem(SOUND_SETTINGS_KEY, JSON.stringify(settings));
+}
+
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
@@ -74,6 +98,7 @@ function emitHoverTone(ctx: AudioContext) {
 let lastHoverTime = 0;
 export function playHoverSound() {
   try {
+    if (!loadSoundSettings().hoverEnabled) return;
     const nowMs = performance.now();
     if (nowMs - lastHoverTime < 60) return;
     lastHoverTime = nowMs;
@@ -90,6 +115,7 @@ export function playHoverSound() {
 
 export function playSidebarClickSound() {
   try {
+    if (!loadSoundSettings().clickEnabled) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;

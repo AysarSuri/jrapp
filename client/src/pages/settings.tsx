@@ -11,7 +11,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick } from "lucide-react";
+import { loadSoundSettings, saveSoundSettings, type SoundSettings } from "@/lib/sounds";
 import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent } from "@/components/erp-icons";
 
 const DEVICE_NAME_KEY = "erp_device_name";
@@ -164,6 +165,7 @@ export default function SettingsPage() {
   const [deviceType, setDeviceType] = useState<DeviceType>(loadDeviceType);
   const [printerSettings, setPrinterSettings] = useState<PrinterSettings>(loadPrinterSettings);
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(loadGeneralSettings);
+  const [soundSettings, setSoundSettings] = useState<SoundSettings>(loadSoundSettings);
   const [fieldVisibility, setFieldVisibility] = useState<FieldVisibilitySettings>(loadFieldVisibility);
   const [exchangeRate, setExchangeRate] = useState<string>("1500");
 
@@ -479,6 +481,49 @@ export default function SettingsPage() {
                   />
                   <p className="text-xs text-muted-foreground text-end">{generalSettings.invoiceFooterText.length} / 80</p>
                   <p className="text-xs text-muted-foreground">{t('This text will appear at the bottom of every sales invoice')}</p>
+                </div>
+
+                <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800 space-y-3">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <Volume2 className="h-5 w-5 text-blue-600" />
+                    {t('Sound Effects')}
+                  </Label>
+                  <div className="flex items-center justify-between gap-4 p-3 rounded-md bg-white dark:bg-white/5 border">
+                    <div className="flex items-center gap-3">
+                      <MousePointerClick className="h-5 w-5 text-emerald-600" />
+                      <div>
+                        <Label className="text-sm font-bold">{t('Click Sound')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('Play a sound when clicking buttons')}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={soundSettings.clickEnabled}
+                      onCheckedChange={(v) => {
+                        const next = { ...soundSettings, clickEnabled: v };
+                        setSoundSettings(next);
+                        saveSoundSettings(next);
+                      }}
+                      data-testid="switch-sound-click"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-4 p-3 rounded-md bg-white dark:bg-white/5 border">
+                    <div className="flex items-center gap-3">
+                      <Volume2 className="h-5 w-5 text-purple-600" />
+                      <div>
+                        <Label className="text-sm font-bold">{t('Hover Sound')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('Play a sound when hovering over sidebar buttons')}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={soundSettings.hoverEnabled}
+                      onCheckedChange={(v) => {
+                        const next = { ...soundSettings, hoverEnabled: v };
+                        setSoundSettings(next);
+                        saveSoundSettings(next);
+                      }}
+                      data-testid="switch-sound-hover"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end pt-4">
