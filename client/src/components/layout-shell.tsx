@@ -464,33 +464,47 @@ export function LayoutShell({ children }: LayoutShellProps) {
           )}
         </div>
 
-        {(companyProfile?.logo || companyProfile?.name) && (
-          <div className="hidden md:flex items-center justify-center gap-2.5 h-10 px-4 rounded-xl bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 border border-border/60 shadow-sm">
-            {companyProfile?.logo ? (
-              <img
-                src={companyProfile.logo}
-                alt=""
-                className="w-8 h-8 rounded-md object-contain bg-white"
-                data-testid="img-header-company-logo"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">
-                  {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+        <div className="hidden md:flex items-center justify-center min-w-0">
+          {(companyProfile?.logo || companyProfile?.name) && (
+            <div className="inline-flex items-center gap-3 h-11 ps-2 pe-4 rounded-full bg-background border-2 shadow-md max-w-full"
+              style={{
+                borderColor: companyProfile?.primaryColor ? `${companyProfile.primaryColor}40` : undefined,
+              }}
+            >
+              {companyProfile?.logo ? (
+                <img
+                  src={companyProfile.logo}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-contain bg-white p-0.5 shrink-0 ring-1 ring-border/50"
+                  data-testid="img-header-company-logo"
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{
+                    background: companyProfile?.primaryColor
+                      ? `linear-gradient(135deg, ${companyProfile.primaryColor}, ${companyProfile.primaryColor}cc)`
+                      : "linear-gradient(135deg, #10b981, #059669)",
+                  }}
+                >
+                  <span className="text-white font-bold text-sm">
+                    {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+                  </span>
+                </div>
+              )}
+              {companyProfile?.name && (
+                <span
+                  className="text-[15px] font-extrabold truncate tracking-wide leading-none"
+                  style={{ color: companyProfile?.primaryColor || undefined, maxWidth: "280px" }}
+                  data-testid="text-header-company-name"
+                  title={companyProfile.name}
+                >
+                  {companyProfile.name}
                 </span>
-              </div>
-            )}
-            {companyProfile?.name && (
-              <span
-                className="text-[15px] font-extrabold truncate max-w-[260px] tracking-wide"
-                style={{ color: companyProfile?.primaryColor || undefined }}
-                data-testid="text-header-company-name"
-              >
-                {companyProfile.name}
-              </span>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 justify-end">
           {(user?.role === 'admin' || user?.role === 'user') && (
