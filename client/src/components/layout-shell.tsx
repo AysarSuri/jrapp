@@ -402,17 +402,29 @@ export function LayoutShell({ children }: LayoutShellProps) {
         onClick={onClick}
         data-testid={testId}
         className={`
-          flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all duration-200 cursor-pointer min-h-[138px] min-w-[143px]
+          group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl cursor-pointer min-h-[138px] min-w-[143px] overflow-hidden border border-transparent
+          transition-all duration-300 ease-out
+          hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/40 hover:border-current/20
+          active:scale-[0.98] active:translate-y-0
           ${isActive
             ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
-            : "bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.08] hover:shadow-md"
+            : "bg-gray-50 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.08]"
           }
         `}
       >
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${c.bg}`}>
-          <Icon className={`w-6 h-6 ${c.text}`} />
+        <span
+          className={`pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${c.bg}`}
+          style={{ filter: "blur(24px)", transform: "scale(0.85)" }}
+          aria-hidden="true"
+        />
+        <span
+          className="pointer-events-none absolute -top-1/2 -left-1/2 w-[200%] h-[200%] rotate-12 bg-gradient-to-r from-transparent via-white/20 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 transition-all duration-700 ease-out"
+          aria-hidden="true"
+        />
+        <div className={`relative z-10 w-12 h-12 rounded-xl flex items-center justify-center ${c.bg} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:shadow-lg`}>
+          <Icon className={`w-6 h-6 ${c.text} transition-transform duration-300 group-hover:scale-110`} />
         </div>
-        <span className="text-[15px] font-bold text-center text-foreground leading-tight line-clamp-2 max-w-[130px]">
+        <span className="relative z-10 text-[15px] font-bold text-center leading-tight line-clamp-2 max-w-[130px] text-foreground">
           {t(label)}
         </span>
       </button>
