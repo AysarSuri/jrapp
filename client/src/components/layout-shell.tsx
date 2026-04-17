@@ -448,6 +448,48 @@ export function LayoutShell({ children }: LayoutShellProps) {
             </div>
             <span className="font-bold text-lg hidden sm:inline">ProERP</span>
           </div>
+
+          {(companyProfile?.logo || companyProfile?.name) && (
+            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50 ms-1">
+              {companyProfile?.logo ? (
+                <img
+                  src={companyProfile.logo}
+                  alt=""
+                  className="w-7 h-7 rounded-md object-contain bg-white"
+                  data-testid="img-header-company-logo"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
+                  <span className="text-white font-bold text-[11px]">
+                    {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+                  </span>
+                </div>
+              )}
+              {companyProfile?.name && (
+                <span
+                  className="text-[13px] font-bold truncate max-w-[180px]"
+                  style={{ color: companyProfile?.primaryColor || undefined }}
+                  data-testid="text-header-company-name"
+                >
+                  {companyProfile.name}
+                </span>
+              )}
+            </div>
+          )}
+
+          {user && (
+            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50">
+              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
+                <span className="text-white font-bold text-[11px]">
+                  {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[12px] font-semibold truncate max-w-[140px]" data-testid="text-header-user-name">{user?.fullName || user?.username}</span>
+                <span className="text-[10px] text-muted-foreground capitalize truncate max-w-[140px]">{user?.role}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -520,96 +562,32 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
       {menuOpen ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-border/40 bg-gradient-to-r from-muted/30 via-muted/10 to-muted/30">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-border/40 bg-muted/20">
+            <div className="flex items-center gap-3">
               {activeGroup && (
                 <button
                   onClick={() => setActiveGroup(null)}
-                  className="shrink-0 flex items-center gap-1.5 h-9 px-3 rounded-lg border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary font-bold text-[13px] shadow-sm transition-all duration-200"
+                  className="flex items-center gap-2 h-10 px-4 rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary font-bold text-[14px] shadow-sm transition-all duration-200"
                   data-testid="button-nav-back"
                 >
-                  <BackArrow className="w-4 h-4" />
+                  <BackArrow className="w-5 h-5" />
                   {t("Exit")}
                 </button>
               )}
-
-              {(companyProfile?.logo || companyProfile?.name) && (
-                <div className="shrink-0 flex items-center gap-2 h-9 px-2.5 rounded-lg bg-background/70 border border-border/60 shadow-sm">
-                  {companyProfile?.logo ? (
-                    <img
-                      src={companyProfile.logo}
-                      alt=""
-                      className="w-7 h-7 rounded-md object-contain bg-white"
-                      data-testid="img-sidebar-company-logo"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                      <span className="text-white font-bold text-[11px]">
-                        {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
-                      </span>
-                    </div>
-                  )}
-                  {companyProfile?.name && (
-                    <span
-                      className="text-[13px] font-bold truncate max-w-[180px]"
-                      style={{ color: companyProfile?.primaryColor || undefined }}
-                      data-testid="text-sidebar-company-name"
-                    >
-                      {companyProfile.name}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              <div className="shrink-0 hidden md:flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-background/70 border border-border/60 shadow-sm">
-                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-[10px]">P</span>
-                </div>
-                <span className="text-[13px] font-bold text-foreground/80">ProERP</span>
-              </div>
-
-              <div className="shrink-0 flex items-center gap-2 h-9 px-2.5 rounded-lg bg-background/70 border border-border/60 shadow-sm">
-                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-[11px]">
-                    {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="text-[12px] font-semibold truncate max-w-[140px]">{user?.fullName || user?.username}</span>
-                  <span className="text-[10px] text-muted-foreground capitalize truncate max-w-[140px]">{user?.role}</span>
-                </div>
-              </div>
-
               {activeGroup && (
-                <span className="hidden lg:inline text-[13px] font-semibold text-muted-foreground truncate ms-1">
-                  · {t(activeGroup)}
+                <span className="text-[15px] font-semibold text-muted-foreground">
+                  {t(activeGroup)}
                 </span>
               )}
             </div>
 
-            <div className="shrink-0 flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 text-muted-foreground" data-testid="button-sidebar-theme">
-                {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" data-testid="button-sidebar-language">
-                    <Globe className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => { setMenuOpen(false); setActiveGroup(null); }}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                className="p-2 rounded-xl hover:bg-muted transition-colors"
                 data-testid="button-close-menu"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           </div>
