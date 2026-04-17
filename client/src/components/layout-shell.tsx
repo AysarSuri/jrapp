@@ -93,6 +93,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
+import { playSidebarClickSound } from "@/lib/sounds";
 import { useLogout, useUser } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { hasRoutePermission } from "@/lib/permissions";
@@ -372,6 +373,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
   }, []);
 
   const handleCardClick = (entry: NavEntry) => {
+    playSidebarClickSound();
     if ('type' in entry && entry.type === 'group') {
       setActiveGroup(entry.label);
     } else {
