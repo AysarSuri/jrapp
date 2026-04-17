@@ -412,7 +412,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${c.bg}`}>
           <Icon className={`w-6 h-6 ${c.text}`} />
         </div>
-        <span className="text-[13px] font-semibold text-center text-foreground/80 leading-tight line-clamp-2 max-w-[130px]">
+        <span className="text-[15px] font-bold text-center text-foreground leading-tight line-clamp-2 max-w-[130px]">
           {t(label)}
         </span>
       </button>
