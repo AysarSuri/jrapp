@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick, Coins, Hash } from "lucide-react";
 import { loadSoundSettings, saveSoundSettings, type SoundSettings } from "@/lib/sounds";
 import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent } from "@/components/erp-icons";
 
@@ -33,7 +34,21 @@ interface GeneralSettings {
   adminSalesPrintMode: string;
   agentSalesPrintMode: string;
   invoiceFooterText: string;
+  defaultCurrency: string;
+  decimalPlaces: number;
 }
+
+export const CURRENCY_OPTIONS = [
+  { code: "IQD", symbol: "د.ع", flag: "🇮🇶", nameEn: "Iraqi Dinar", nameAr: "دينار عراقي", nameKu: "دیناری عێراقی", nameTr: "Irak Dinarı" },
+  { code: "USD", symbol: "$",   flag: "🇺🇸", nameEn: "US Dollar",  nameAr: "دولار أمريكي", nameKu: "دۆلاری ئەمریکی", nameTr: "ABD Doları" },
+  { code: "EUR", symbol: "€",   flag: "🇪🇺", nameEn: "Euro",       nameAr: "يورو أوروبي",  nameKu: "یۆرۆی ئەورووپی", nameTr: "Euro" },
+  { code: "IRR", symbol: "﷼",   flag: "🇮🇷", nameEn: "Iranian Rial", nameAr: "ريال إيراني", nameKu: "ڕیاڵی ئێرانی", nameTr: "İran Riyali" },
+  { code: "GBP", symbol: "£",   flag: "🇬🇧", nameEn: "British Pound", nameAr: "جنيه إسترليني", nameKu: "پاوەندی بەریتانی", nameTr: "İngiliz Sterlini" },
+  { code: "TRY", symbol: "₺",   flag: "🇹🇷", nameEn: "Turkish Lira", nameAr: "ليرة تركية", nameKu: "لیرەی تورکی", nameTr: "Türk Lirası" },
+  { code: "CNY", symbol: "¥",   flag: "🇨🇳", nameEn: "Chinese RMB", nameAr: "يوان صيني",  nameKu: "یوانی چینی",  nameTr: "Çin Yuanı" },
+  { code: "AED", symbol: "د.إ", flag: "🇦🇪", nameEn: "UAE Dirham", nameAr: "درهم إماراتي", nameKu: "درهەمی ئیماراتی", nameTr: "BAE Dirhemi" },
+  { code: "SAR", symbol: "﷼",   flag: "🇸🇦", nameEn: "Saudi Riyal", nameAr: "ريال سعودي",  nameKu: "ڕیاڵی سعودی",  nameTr: "Suudi Riyali" },
+];
 
 interface FieldVisibilitySettings {
   salesInvoice_address: boolean;
@@ -72,6 +87,8 @@ const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
   invoiceFooterText: "",
+  defaultCurrency: "IQD",
+  decimalPlaces: 2,
 };
 
 const defaultFieldVisibility: FieldVisibilitySettings = {
@@ -418,6 +435,66 @@ export default function SettingsPage() {
                     data-testid="input-settings-exchange-rate"
                   />
                   <p className="text-xs text-muted-foreground">{t('Daily exchange rate used for cross-currency buy price calculations')}</p>
+                </div>
+
+                <div className="p-4 rounded-lg border-2 border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 space-y-3">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-emerald-600" />
+                    {t('Currency & Number Format')}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold">{t('Default Currency')}</Label>
+                      <Select
+                        value={generalSettings.defaultCurrency}
+                        onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, defaultCurrency: val }))}
+                      >
+                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-currency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CURRENCY_OPTIONS.map(c => {
+                            const lang = i18n.language || 'en';
+                            const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                            return (
+                              <SelectItem key={c.code} value={c.code}>
+                                <span className="flex items-center gap-2">
+                                  <span className="text-lg">{c.flag}</span>
+                                  <span className="font-bold w-12">{c.symbol}</span>
+                                  <span>{localized}</span>
+                                  <span className="text-xs text-muted-foreground">({c.code})</span>
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">{t('Currency icon and country shown across the system')}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-purple-600" />
+                        {t('Decimal Places')}
+                      </Label>
+                      <Select
+                        value={String(generalSettings.decimalPlaces)}
+                        onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, decimalPlaces: Number(val) }))}
+                      >
+                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-decimal-places">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0, 1, 2, 3, 4].map(n => (
+                            <SelectItem key={n} value={String(n)}>
+                              {n} — {(1234.56789).toFixed(n)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">{t('Number of digits after decimal point in amounts')}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
