@@ -162,11 +162,11 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Sales Management",
     routes: [
       "/sales-management", "/customers",
-      "/sales-invoice-usd", "/sales-invoice-iqd",
-      "/sales-return-usd", "/sales-return-iqd",
-      "/customer-receipt-usd", "/customer-receipt-iqd",
-      "/agent-payment-usd", "/agent-payment-iqd",
-      "/agent-statement-usd", "/agent-statement-iqd",
+      "/sales-invoice-usd", "/sales-invoice-iqd", "/sales-invoice",
+      "/sales-return-usd", "/sales-return-iqd", "/sales-return",
+      "/customer-receipt-usd", "/customer-receipt-iqd", "/customer-receipt",
+      "/agent-payment-usd", "/agent-payment-iqd", "/agent-payment",
+      "/agent-statement-usd", "/agent-statement-iqd", "/agent-statement",
       "/customer-debts",
       "/sales-by-category", "/pos-iqd",
     ],
@@ -176,8 +176,8 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Supplier Management",
     routes: [
       "/supplier-management", "/suppliers",
-      "/purchase-invoice-usd", "/purchase-invoice-iqd",
-      "/purchase-return-usd", "/purchase-return-iqd",
+      "/purchase-invoice-usd", "/purchase-invoice-iqd", "/purchase-invoice",
+      "/purchase-return-usd", "/purchase-return-iqd", "/purchase-return",
       "/supplier-payments", "/supplier-adjustments",
       "/supplier-statement-usd", "/supplier-statement-iqd", "/supplier-statement",
       "/supplier-debts",
@@ -211,7 +211,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Bank Management",
     routes: [
       "/bank-management", "/banks", "/bank-receipts", "/bank-payments",
-      "/bank-statement-usd", "/bank-statement-iqd",
+      "/bank-statement-usd", "/bank-statement-iqd", "/bank-statement",
     ],
   },
   {
@@ -221,7 +221,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/clearance-management", "/customs-clearances",
       "/clearance-receipts", "/clearance-payments",
       "/clearance-purchase-invoices",
-      "/clearance-statement-usd", "/clearance-statement-iqd",
+      "/clearance-statement-usd", "/clearance-statement-iqd", "/clearance-statement",
     ],
   },
   {
@@ -229,7 +229,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Office Management",
     routes: [
       "/office-management", "/transfer-offices",
-      "/office-receipts", "/office-payments", "/office-statement-usd", "/office-statement-iqd",
+      "/office-receipts", "/office-payments", "/office-statement-usd", "/office-statement-iqd", "/office-statement",
     ],
   },
   {
@@ -254,7 +254,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Owner Management",
     routes: [
       "/owner-management", "/owners", "/owner-withdrawals", "/owner-returns",
-      "/owner-statement-usd", "/owner-statement-iqd",
+      "/owner-statement-usd", "/owner-statement-iqd", "/owner-statement",
     ],
   },
   {

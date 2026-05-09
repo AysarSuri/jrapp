@@ -236,31 +236,23 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const salesNavItems: NavItem[] = [
     { href: "/customers", icon: IconCustomers, label: "Customers", color: "blue" },
-    { href: "/sales-invoice-usd", icon: IconInvoiceUsd, label: "Sales Invoice USD", color: "green" },
-    { href: "/sales-invoice-iqd", icon: IconInvoiceIqd, label: "Sales Invoice IQD", color: "teal" },
+    { href: "/sales-invoice", icon: IconInvoiceUsd, label: "Sales Invoice", color: "green" },
     { href: "/sales-by-category", icon: IconPosUsd, label: "POS USD", color: "purple" },
     { href: "/pos-iqd", icon: IconPosIqd, label: "POS IQD", color: "violet" },
-    { href: "/sales-return-usd", icon: IconReturnUsd, label: "Sales Return USD", color: "orange" },
-    { href: "/sales-return-iqd", icon: IconReturnIqd, label: "Sales Return IQD", color: "amber" },
-    { href: "/customer-receipt-usd", icon: IconReceiptUsd, label: "Customer Receipt USD", color: "cyan" },
-    { href: "/customer-receipt-iqd", icon: IconReceiptIqd, label: "Customer Receipt IQD", color: "sky" },
-    { href: "/agent-payment-usd", icon: IconPaymentUsd, label: "Customer Payment USD", color: "pink" },
-    { href: "/agent-payment-iqd", icon: IconPaymentIqd, label: "Customer Payment IQD", color: "rose" },
-    { href: "/agent-statement-usd", icon: IconStatementUsd, label: "Agent Statement USD", color: "indigo" },
-    { href: "/agent-statement-iqd", icon: IconStatementIqd, label: "Agent Statement IQD", color: "fuchsia" },
+    { href: "/sales-return", icon: IconReturnUsd, label: "Sales Return", color: "orange" },
+    { href: "/customer-receipt", icon: IconReceiptUsd, label: "Customer Receipt", color: "cyan" },
+    { href: "/agent-payment", icon: IconPaymentUsd, label: "Customer Payment", color: "pink" },
+    { href: "/agent-statement", icon: IconStatementUsd, label: "Agent Statement", color: "indigo" },
     { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts", color: "red" },
   ];
 
   const supplierNavItems: NavItem[] = [
     { href: "/suppliers", icon: IconSupplierList, label: "Suppliers", color: "purple" },
-    { href: "/purchase-invoice-usd", icon: IconPurchaseUsd, label: "Purchase Invoice USD", color: "blue" },
-    { href: "/purchase-invoice-iqd", icon: IconPurchaseIqd, label: "Purchase Invoice IQD", color: "cyan" },
-    { href: "/purchase-return-usd", icon: IconReturnUsd, label: "Purchase Return USD", color: "orange" },
-    { href: "/purchase-return-iqd", icon: IconReturnIqd, label: "Purchase Return IQD", color: "amber" },
+    { href: "/purchase-invoice", icon: IconPurchaseUsd, label: "Purchase Invoice", color: "blue" },
+    { href: "/purchase-return", icon: IconReturnUsd, label: "Purchase Return", color: "orange" },
     { href: "/supplier-payments", icon: IconSupplierPayment, label: "Supplier Payments", color: "green" },
     { href: "/supplier-adjustments", icon: IconSupplierAdjust, label: "Supplier Adjustments", color: "teal" },
-    { href: "/supplier-statement-usd", icon: IconStatementUsd, label: "Supplier Statement USD", color: "indigo" },
-    { href: "/supplier-statement-iqd", icon: IconStatementIqd, label: "Supplier Statement IQD", color: "violet" },
+    { href: "/supplier-statement", icon: IconStatementUsd, label: "Supplier Statement", color: "indigo" },
     { href: "/supplier-debts", icon: IconSupplierDebt, label: "Supplier Debts", color: "red" },
     { href: "/supplier-order-usd", icon: IconSupplierOrderUsd, label: "Supplier Order USD", color: "pink" },
     { href: "/supplier-order-iqd", icon: IconSupplierOrderIqd, label: "Supplier Order IQD", color: "rose" },
@@ -270,8 +262,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/banks", icon: IconBank, label: "Banks", color: "emerald" },
     { href: "/bank-receipts", icon: IconBankReceipt, label: "Bank Receipts", color: "green" },
     { href: "/bank-payments", icon: IconBankPayment, label: "Bank Payments", color: "red" },
-    { href: "/bank-statement-usd", icon: IconStatementUsd, label: "Bank Statement USD", color: "blue" },
-    { href: "/bank-statement-iqd", icon: IconStatementIqd, label: "Bank Statement IQD", color: "indigo" },
+    { href: "/bank-statement", icon: IconStatementUsd, label: "Bank Statement", color: "blue" },
   ];
 
   const clearanceNavItems: NavItem[] = [
@@ -279,16 +270,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/clearance-receipts", icon: IconClearanceReceipt, label: "Clearance Receipts", color: "green" },
     { href: "/clearance-payments", icon: IconClearancePayment, label: "Clearance Payments", color: "red" },
     { href: "/clearance-purchase-invoices", icon: IconClearanceInvoice, label: "Clearance Purchase Invoices", color: "blue" },
-    { href: "/clearance-statement-usd", icon: IconStatementUsd, label: "Clearance Statement USD", color: "indigo" },
-    { href: "/clearance-statement-iqd", icon: IconStatementIqd, label: "Clearance Statement IQD", color: "violet" },
+    { href: "/clearance-statement", icon: IconStatementUsd, label: "Clearance Statement", color: "indigo" },
   ];
 
   const officeNavItems: NavItem[] = [
     { href: "/transfer-offices", icon: IconOffice, label: "Transfer Offices", color: "orange" },
     { href: "/office-receipts", icon: IconOfficeReceipt, label: "Office Receipts", color: "green" },
     { href: "/office-payments", icon: IconOfficePayment, label: "Office Payments", color: "red" },
-    { href: "/office-statement-usd", icon: IconStatementUsd, label: "Office Account Statement USD", color: "blue" },
-    { href: "/office-statement-iqd", icon: IconStatementIqd, label: "Office Account Statement IQD", color: "indigo" },
+    { href: "/office-statement", icon: IconStatementUsd, label: "Office Account Statement", color: "blue" },
   ];
 
   const expenseNavItems: NavItem[] = [
@@ -300,16 +289,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/external-debts", icon: IconExternalDebt, label: "External Debts", color: "red" },
     { href: "/external-debt-receipts", icon: IconDebtReceipt, label: "External Debt Receipts", color: "green" },
     { href: "/external-debt-payments", icon: IconDebtPayment, label: "External Debt Payments", color: "orange" },
-    { href: "/external-debt-statement-usd", icon: IconStatementUsd, label: "External Debt Statement USD", color: "blue" },
-    { href: "/external-debt-statement-iqd", icon: IconStatementIqd, label: "External Debt Statement IQD", color: "indigo" },
+    { href: "/external-debt-statement", icon: IconStatementUsd, label: "External Debt Statement", color: "blue" },
   ];
 
   const ownerNavItems: NavItem[] = [
     { href: "/owners", icon: IconOwnerNames, label: "Owner Names", color: "amber" },
     { href: "/owner-withdrawals", icon: IconOwnerWithdraw, label: "Owner Withdrawals", color: "red" },
     { href: "/owner-returns", icon: IconOwnerReturn, label: "Owner Returns", color: "green" },
-    { href: "/owner-statement-usd", icon: IconStatementUsd, label: "Owner Statement USD", color: "blue" },
-    { href: "/owner-statement-iqd", icon: IconStatementIqd, label: "Owner Statement IQD", color: "indigo" },
+    { href: "/owner-statement", icon: IconStatementUsd, label: "Owner Statement", color: "blue" },
   ];
 
   const agentManagementNavItems: NavItem[] = [

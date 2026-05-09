@@ -150,6 +150,11 @@ Tab 1 works by rep name only. Tabs 2-5 filter by rep name AND from/to dates from
 - **Audit**: Both backup creation and restore operations are logged to the audit trail
 - **Body size limit**: JSON body parser set to 50MB to handle large backups
 
+### Unified Currency Pages (Phase 2)
+- **Wrapper pattern**: `client/src/components/currency-page-switcher.tsx` renders either a USD or IQD page based on a Select dropdown at the top. Reads default currency from `useDefaultCurrency` (which reads `erp_general_settings` localStorage). Per-page choice persisted in `localStorage["page-cur:<name>"]`.
+- **Unified routes**: `/sales-invoice`, `/purchase-invoice`, `/sales-return`, `/purchase-return`, `/customer-receipt`, `/agent-payment`, `/agent-statement`, `/bank-statement`, `/clearance-statement`, `/office-statement`, `/owner-statement`, `/external-debt-statement`, `/supplier-statement` — sidebar uses these single entries. Old `-usd`/`-iqd` routes still work for backward compat.
+- All unified routes are mapped in `client/src/lib/permissions.ts` `PERMISSION_MODULES` so RBAC is preserved.
+
 ### Environment Variables
 | Variable | Required | Purpose |
 |----------|----------|---------|

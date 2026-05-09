@@ -59,6 +59,7 @@ import ExternalDebtReceiptsPage from "@/pages/external-debt-receipts";
 import ExternalDebtPaymentsPage from "@/pages/external-debt-payments";
 import ExternalDebtStatementUsdPage from "@/pages/external-debt-statement-usd";
 import ExternalDebtStatementIqdPage from "@/pages/external-debt-statement-iqd";
+import ExternalDebtStatementPage from "@/pages/external-debt-statement";
 import ExternalDebtDebtsPage from "@/pages/external-debt-debts";
 import OwnersPage from "@/pages/owners";
 import OwnerWithdrawalsPage from "@/pages/owner-withdrawals";
@@ -100,6 +101,17 @@ import SalesDiscountsGiftsReportPage from "@/pages/sales-discounts-gifts-report"
 import SupplierDiscountsGiftsReportPage from "@/pages/supplier-discounts-gifts-report";
 import SupplierOrderUsdPage from "@/pages/supplier-order-usd";
 import SupplierOrderIqdPage from "@/pages/supplier-order-iqd";
+import SalesInvoicePage from "@/pages/sales-invoice";
+import PurchaseInvoicePage from "@/pages/purchase-invoice";
+import SalesReturnPage from "@/pages/sales-return";
+import PurchaseReturnPage from "@/pages/purchase-return";
+import CustomerReceiptPage from "@/pages/customer-receipt";
+import AgentPaymentPage from "@/pages/agent-payment";
+import AgentStatementPage from "@/pages/agent-statement";
+import BankStatementPage from "@/pages/bank-statement";
+import ClearanceStatementPage from "@/pages/clearance-statement";
+import OfficeStatementPage from "@/pages/office-statement";
+import OwnerStatementPage from "@/pages/owner-statement";
 import BarcodePrintPage from "@/pages/barcode-print";
 import AuditLogsPage from "@/pages/audit-logs";
 import BackupRestorePage from "@/pages/backup-restore";
@@ -453,6 +465,42 @@ function Router() {
       </Route>
       <Route path="/data-reset">
         <ProtectedRoute component={DataResetPage} />
+      </Route>
+      <Route path="/sales-invoice">
+        <ProtectedRoute component={SalesInvoicePage} />
+      </Route>
+      <Route path="/purchase-invoice">
+        <ProtectedRoute component={PurchaseInvoicePage} />
+      </Route>
+      <Route path="/sales-return">
+        <ProtectedRoute component={SalesReturnPage} />
+      </Route>
+      <Route path="/purchase-return">
+        <ProtectedRoute component={PurchaseReturnPage} />
+      </Route>
+      <Route path="/customer-receipt">
+        <ProtectedRoute component={CustomerReceiptPage} />
+      </Route>
+      <Route path="/agent-payment">
+        <ProtectedRoute component={AgentPaymentPage} />
+      </Route>
+      <Route path="/agent-statement">
+        <ProtectedRoute component={AgentStatementPage} />
+      </Route>
+      <Route path="/bank-statement">
+        <ProtectedRoute component={BankStatementPage} />
+      </Route>
+      <Route path="/clearance-statement">
+        <ProtectedRoute component={ClearanceStatementPage} />
+      </Route>
+      <Route path="/office-statement">
+        <ProtectedRoute component={OfficeStatementPage} />
+      </Route>
+      <Route path="/owner-statement">
+        <ProtectedRoute component={OwnerStatementPage} />
+      </Route>
+      <Route path="/external-debt-statement">
+        <ProtectedRoute component={ExternalDebtStatementPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>
