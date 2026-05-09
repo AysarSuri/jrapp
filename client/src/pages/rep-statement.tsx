@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
+import { getCurrencyMeta, formatAmount } from "@/hooks/use-default-currency";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usd, fmtIqd, formatDate } from "@/lib/format-utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -2091,14 +2092,21 @@ export default function RepStatementPage() {
       return <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground"><DollarSign className="w-10 h-10 mb-2" /><p className="font-semibold">{t("No expenses found")}</p></div>;
     }
 
-    const totalUsd = filteredAgentExpenses.reduce((s: number, e: any) => s + parseFloat(e.amountUsd || "0"), 0);
-    const totalIqd = filteredAgentExpenses.reduce((s: number, e: any) => s + parseFloat(e.amountIqd || "0"), 0);
+    const totalsByCurrency: Record<string, number> = {};
+    filteredAgentExpenses.forEach((e: any) => {
+      const c = e.currency || "IQD";
+      totalsByCurrency[c] = (totalsByCurrency[c] || 0) + parseFloat(e.amount || "0");
+    });
 
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card className="border-blue-200 dark:border-blue-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total USD")}</p><p className="text-lg font-bold text-blue-600 font-mono">{usd(totalUsd)}</p></CardContent></Card>
-          <Card className="border-orange-200 dark:border-orange-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total IQD")}</p><p className="text-lg font-bold text-orange-600 font-mono">{fmtIqd(totalIqd)}</p></CardContent></Card>
+          {Object.entries(totalsByCurrency).map(([code, total]) => {
+            const m = getCurrencyMeta(code);
+            return (
+              <Card key={code} className="border-blue-200 dark:border-blue-900"><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total")} {m.flag} {code}</p><p className="text-lg font-bold text-blue-600 font-mono">{formatAmount(total, code)}</p></CardContent></Card>
+            );
+          })}
           <Card><CardContent className="pt-3 pb-3 text-center"><p className="text-xs text-muted-foreground mb-1">{t("Total Records")}</p><p className="text-lg font-bold font-mono">{filteredAgentExpenses.length}</p></CardContent></Card>
         </div>
         <div className="rounded-md border overflow-x-auto">
@@ -2108,30 +2116,28 @@ export default function RepStatementPage() {
                 <TableHead className="text-sm font-bold">#</TableHead>
                 <TableHead className="text-sm font-bold">{t("Invoice #")}</TableHead>
                 <TableHead className="text-sm font-bold">{t("Expense Type")}</TableHead>
-                <TableHead className="text-sm font-bold">{t("USD Amount")}</TableHead>
-                <TableHead className="text-sm font-bold">{t("IQD Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Amount")}</TableHead>
+                <TableHead className="text-sm font-bold">{t("Currency")}</TableHead>
                 <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                 <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAgentExpenses.map((e: any, i: number) => (
-                <TableRow key={e.id} data-testid={`row-agent-expense-${e.id}`}>
-                  <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
-                  <TableCell className="font-mono text-sm font-semibold">{e.invoiceNumber || "-"}</TableCell>
-                  <TableCell className="text-sm font-semibold">{e.expenseTypeName || "-"}</TableCell>
-                  <TableCell className="font-mono text-sm font-semibold text-blue-600">{parseFloat(e.amountUsd || "0") > 0 ? usd(parseFloat(e.amountUsd)) : "-"}</TableCell>
-                  <TableCell className="font-mono text-sm font-semibold text-orange-600">{parseFloat(e.amountIqd || "0") > 0 ? fmtIqd(parseFloat(e.amountIqd)) : "-"}</TableCell>
-                  <TableCell className="text-sm font-semibold">{formatDate(e.date)}</TableCell>
-                  <TableCell className="text-sm font-semibold max-w-[200px] truncate">{e.description || "-"}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="bg-muted/60 font-bold border-t-2">
-                <TableCell colSpan={3} className="text-sm font-bold">{t("Total")}</TableCell>
-                <TableCell className="font-mono text-sm font-bold text-blue-600">{totalUsd > 0 ? usd(totalUsd) : "-"}</TableCell>
-                <TableCell className="font-mono text-sm font-bold text-orange-600">{totalIqd > 0 ? fmtIqd(totalIqd) : "-"}</TableCell>
-                <TableCell colSpan={2}></TableCell>
-              </TableRow>
+              {filteredAgentExpenses.map((e: any, i: number) => {
+                const ccode = e.currency || "IQD";
+                const m = getCurrencyMeta(ccode);
+                return (
+                  <TableRow key={e.id} data-testid={`row-agent-expense-${e.id}`}>
+                    <TableCell className="font-mono text-sm font-semibold">{i + 1}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold">{e.invoiceNumber || "-"}</TableCell>
+                    <TableCell className="text-sm font-semibold">{e.expenseTypeName || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-blue-600">{formatAmount(e.amount, ccode)}</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><span>{m.flag}</span><span className="font-mono text-xs">{ccode}</span></span></TableCell>
+                    <TableCell className="text-sm font-semibold">{formatDate(e.date)}</TableCell>
+                    <TableCell className="text-sm font-semibold max-w-[200px] truncate">{e.description || "-"}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

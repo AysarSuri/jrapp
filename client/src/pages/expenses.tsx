@@ -4,28 +4,30 @@ import { useQuery } from "@tanstack/react-query";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { useExpenseTypes } from "@/hooks/use-expense-types";
 import { useUser } from "@/hooks/use-auth";
+import { useDefaultCurrency, getCurrencyMeta, formatAmount } from "@/hooks/use-default-currency";
 import type { ExpenseType, Expense } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ExpenseTypeSearchSelect } from "@/components/expense-type-search-select";
 import { SearchSelect } from "@/components/search-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, RotateCcw, ListOrdered, Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText } from "lucide-react";
+import { Save, Loader2, RotateCcw, ListOrdered, Pencil, Trash2, ChevronLeft, ChevronRight, Printer, FileText, DollarSign } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
-import { IconDollar, IconDinar, IconExpenseEntry } from "@/components/erp-icons";
+import { IconExpenseEntry } from "@/components/erp-icons";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
-import { usd, formatDate } from "@/lib/format-utils";
+import { formatDate } from "@/lib/format-utils";
 import { numberToWords } from "@/lib/number-to-words";
 import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 import i18n from "@/lib/i18n";
@@ -39,9 +41,12 @@ type CompanyProfileData = {
   secondaryColor: string;
 };
 
+const CURRENCY_CODES = ["IQD", "USD", "EUR", "IRR", "GBP", "TRY", "CNY", "AED", "SAR"];
+
 export default function ExpensesPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const defaultCurrency = useDefaultCurrency();
   const { data: allExpenses, isLoading: expensesLoading } = useExpenses();
   const { mutate: createExpense, isPending: isSaving } = useCreateExpense();
   const { mutate: updateExpense, isPending: isUpdating } = useUpdateExpense();
@@ -70,8 +75,8 @@ export default function ExpensesPage() {
   const [expenseTypeId, setExpenseTypeId] = useState<string>("");
   const [expenseTypeName, setExpenseTypeName] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [amountUsd, setAmountUsd] = useState("");
-  const [amountIqd, setAmountIqd] = useState("");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState<string>(defaultCurrency.code);
   const [description, setDescription] = useState("");
   const [reference, setReference] = useState("");
   const [agentName, setAgentName] = useState("");
@@ -79,6 +84,7 @@ export default function ExpensesPage() {
   const [time, setTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [historyFilter, setHistoryFilter] = useState<string>("");
   const [agentFilter, setAgentFilter] = useState<string>("");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("all");
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [historyFromDate, setHistoryFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [historyToDate, setHistoryToDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -88,6 +94,11 @@ export default function ExpensesPage() {
 
   const types: ExpenseType[] = expenseTypesList || [];
   const isBusy = isSaving || isUpdating;
+
+  // Sync currency with default when not editing
+  useEffect(() => {
+    if (!editingId) setCurrency(defaultCurrency.code);
+  }, [defaultCurrency.code, editingId]);
 
   const nextInvoiceNumber = useMemo(() => {
     const expensesList = allExpenses || [];
@@ -129,8 +140,8 @@ export default function ExpensesPage() {
     setExpenseTypeId("");
     setExpenseTypeName("");
     setInvoiceNumber(nextNum);
-    setAmountUsd("");
-    setAmountIqd("");
+    setAmount("");
+    setCurrency(defaultCurrency.code);
     setDescription("");
     setReference("");
     setAgentName(isSalesRep && user?.fullName ? user.fullName : "");
@@ -143,8 +154,8 @@ export default function ExpensesPage() {
     setExpenseTypeId(String(e.expenseTypeId));
     setExpenseTypeName(e.expenseTypeName);
     setInvoiceNumber(e.invoiceNumber || "");
-    setAmountUsd(e.amountUsd);
-    setAmountIqd(e.amountIqd);
+    setAmount(e.amount);
+    setCurrency(e.currency || defaultCurrency.code);
     setDescription(e.description || "");
     setReference(e.reference || "");
     setAgentName(e.agentName || "");
@@ -167,10 +178,9 @@ export default function ExpensesPage() {
         return;
       }
     }
-    const usdVal = parseFloat(amountUsd || "0");
-    const iqdVal = parseFloat(amountIqd || "0");
-    if (usdVal <= 0 && iqdVal <= 0) {
-      toast({ title: t("Please enter at least one amount"), variant: "destructive" });
+    const amtVal = parseFloat(amount || "0");
+    if (amtVal <= 0) {
+      toast({ title: t("Please enter an amount"), variant: "destructive" });
       return;
     }
 
@@ -178,8 +188,8 @@ export default function ExpensesPage() {
       expenseTypeId: parseInt(expenseTypeId),
       expenseTypeName,
       invoiceNumber: invoiceNumber || null,
-      amountUsd: amountUsd || "0",
-      amountIqd: amountIqd || "0",
+      amount: amount || "0",
+      currency,
       description: description || null,
       reference: reference || null,
       agentName: agentName || null,
@@ -227,6 +237,7 @@ export default function ExpensesPage() {
   const expensesList = allExpenses || [];
   const filteredExpenses = expensesList.filter((e: Expense) => {
     if (historyFilter && historyFilter !== "all" && String(e.expenseTypeId) !== historyFilter) return false;
+    if (currencyFilter && currencyFilter !== "all" && (e.currency || "IQD") !== currencyFilter) return false;
     if (historyFromDate && e.date < historyFromDate) return false;
     if (historyToDate && e.date > historyToDate) return false;
     if (invoiceSearch.trim() && !(e.invoiceNumber || "").toLowerCase().includes(invoiceSearch.trim().toLowerCase())) return false;
@@ -236,9 +247,25 @@ export default function ExpensesPage() {
   const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedExpenses = filteredExpenses.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const formatIQD = (val: number) => val.toLocaleString() + " IQD";
-  const totalUsd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountUsd || "0"), 0);
-  const totalIqd = expensesList.reduce((sum: number, e: Expense) => sum + parseFloat(e.amountIqd || "0"), 0);
+
+  // Group totals by currency
+  const totalsByCurrency = useMemo(() => {
+    const map: Record<string, number> = {};
+    expensesList.forEach((e: Expense) => {
+      const c = e.currency || "IQD";
+      map[c] = (map[c] || 0) + parseFloat(e.amount || "0");
+    });
+    return map;
+  }, [expensesList]);
+
+  const filteredTotalsByCurrency = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredExpenses.forEach((e: Expense) => {
+      const c = e.currency || "IQD";
+      map[c] = (map[c] || 0) + parseFloat(e.amount || "0");
+    });
+    return map;
+  }, [filteredExpenses]);
 
   const agentFilterItems = useMemo(() => {
     const names = [...new Set(expensesList.map((e: Expense) => e.agentName).filter(Boolean))];
@@ -257,9 +284,6 @@ export default function ExpensesPage() {
       ? types.find(et => String(et.id) === historyFilter)?.name || ""
       : t("All Expense Types");
 
-    const filteredTotalUsd = filteredExpenses.reduce((s: number, e: Expense) => s + parseFloat(e.amountUsd || "0"), 0);
-    const filteredTotalIqd = filteredExpenses.reduce((s: number, e: Expense) => s + parseFloat(e.amountIqd || "0"), 0);
-
     const rows = filteredExpenses.map((e: Expense, idx: number) => `
       <tr>
         <td>${idx + 1}</td>
@@ -267,8 +291,8 @@ export default function ExpensesPage() {
         <td>${formatDate(e.date)}</td>
         <td>${e.time || "-"}</td>
         <td><strong>${e.expenseTypeName}</strong></td>
-        <td class="debit">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</td>
-        <td class="credit">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
+        <td class="debit">${formatAmount(e.amount, e.currency || "IQD")}</td>
+        <td>${e.currency || "IQD"}</td>
         <td>${e.description || "-"}</td>
         <td>${e.reference || "-"}</td>
         <td>${e.agentName || "-"}</td>
@@ -283,6 +307,10 @@ export default function ExpensesPage() {
 
     const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
 
+    const summaryCards = Object.entries(filteredTotalsByCurrency)
+      .map(([code, total]) => `<div class="summary-card accent-blue"><div class="label">${t("Total")} ${code}</div><div class="value blue">${formatAmount(total, code)}</div></div>`)
+      .join("");
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="${isRtl ? "rtl" : "ltr"}" lang="${i18n.language}">
@@ -293,7 +321,6 @@ export default function ExpensesPage() {
         <style>${printStyles}</style>
       </head>
       <body>
-        
         <div class="report-banner">
           <div class="banner-right">
             <h1>${t("Expense Report")}</h1>
@@ -306,8 +333,7 @@ export default function ExpensesPage() {
           </div>
         </div>
         <div class="summary-cards">
-          <div class="summary-card accent-blue"><div class="label">${t("Total USD")}</div><div class="value blue">${usd(filteredTotalUsd)}</div></div>
-          <div class="summary-card accent-red"><div class="label">${t("Total IQD")}</div><div class="value red">${filteredTotalIqd.toLocaleString()} IQD</div></div>
+          ${summaryCards}
           <div class="summary-card accent-green"><div class="label">${t("Total Records")}</div><div class="value green">${filteredExpenses.length}</div></div>
         </div>
         <table>
@@ -318,8 +344,8 @@ export default function ExpensesPage() {
               <th>${t("Date")}</th>
               <th>${t("Time")}</th>
               <th>${t("Expense Type")}</th>
-              <th>${t("USD Amount")}</th>
-              <th>${t("IQD Amount")}</th>
+              <th>${t("Amount")}</th>
+              <th>${t("Currency")}</th>
               <th>${t("Note")}</th>
               <th>${t("Reference")}</th>
               <th>${t("Agent Name")}</th>
@@ -327,12 +353,6 @@ export default function ExpensesPage() {
           </thead>
           <tbody>
             ${rows}
-            <tr class="total-row">
-              <td colspan="5"><strong>${t("Total")}</strong></td>
-              <td class="debit"><strong>${usd(filteredTotalUsd)}</strong></td>
-              <td class="credit"><strong>${filteredTotalIqd.toLocaleString()} IQD</strong></td>
-              <td colspan="3"></td>
-            </tr>
           </tbody>
         </table>
       </body>
@@ -340,7 +360,10 @@ export default function ExpensesPage() {
     `);
     printWindow.document.close();
     printWindow.focus();
-    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
+    const doPrintFn = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200));
+    } else { setTimeout(doPrintFn, 800); }
   };
 
   const handlePrintReceipt = (e: Expense) => {
@@ -348,6 +371,9 @@ export default function ExpensesPage() {
     if (!printWindow) return;
 
     const printStyles = getModernPrintStyles({ direction: isRtl ? "rtl" : "ltr", accentColor: fieldColor, accentTextColor: textColor });
+    const ccode = e.currency || "IQD";
+    const amtNum = parseFloat(e.amount || "0");
+    const meta = getCurrencyMeta(ccode);
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -358,68 +384,19 @@ export default function ExpensesPage() {
         <title>${t("Expense Voucher")} #${e.id}</title>
         <style>
           ${printStyles}
-          .voucher-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 16px 0;
-            padding: 16px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: #fafafa;
-          }
-          .voucher-details .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-          }
-          .voucher-details .detail-label {
-            font-size: 8pt;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-          }
-          .voucher-details .detail-value {
-            font-size: 12pt;
-            font-weight: 700;
-            color: #1a1a2e;
-          }
-          .amount-section {
-            display: flex;
-            gap: 16px;
-            margin: 20px 0;
-          }
-          .amount-box {
-            flex: 1;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-          }
-          .amount-box.usd { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; }
-          .amount-box.iqd { background: linear-gradient(135deg, #fff7ed, #fed7aa); border: 2px solid #f97316; }
-          .amount-box .amount-label { font-size: 9pt; color: #666; font-weight: 600; margin-bottom: 6px; }
-          .amount-box .amount-value { font-size: 18pt; font-weight: 800; }
-          .amount-box.usd .amount-value { color: #2563eb; }
-          .amount-box.iqd .amount-value { color: #ea580c; }
-          .description-box {
-            margin: 16px 0;
-            padding: 14px 18px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background: #fafafa;
-          }
+          .voucher-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; padding: 16px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; }
+          .voucher-details .detail-item { display: flex; flex-direction: column; gap: 4px; }
+          .voucher-details .detail-label { font-size: 8pt; color: #888; font-weight: 600; text-transform: uppercase; }
+          .voucher-details .detail-value { font-size: 12pt; font-weight: 700; color: #1a1a2e; }
+          .amount-section { margin: 20px 0; }
+          .amount-box { padding: 24px; border-radius: 12px; text-align: center; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; }
+          .amount-box .amount-label { font-size: 10pt; color: #666; font-weight: 600; margin-bottom: 8px; }
+          .amount-box .amount-value { font-size: 22pt; font-weight: 800; color: #2563eb; }
+          .description-box { margin: 16px 0; padding: 14px 18px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fafafa; }
           .description-box .desc-label { font-size: 8pt; color: #888; font-weight: 600; margin-bottom: 4px; }
           .description-box .desc-value { font-size: 10pt; color: #333; }
-          .signature-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 60px;
-            padding-top: 20px;
-          }
-          .signature-box {
-            text-align: center;
-            width: 200px;
-          }
+          .signature-section { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 20px; }
+          .signature-box { text-align: center; width: 200px; }
           .signature-box .sig-line { border-top: 1px solid #999; margin-bottom: 6px; }
           .signature-box .sig-label { font-size: 9pt; color: #666; font-weight: 600; }
         </style>
@@ -438,69 +415,40 @@ export default function ExpensesPage() {
         </div>
 
         <div class="voucher-details">
-          <div class="detail-item">
-            <span class="detail-label">${t("Date")}</span>
-            <span class="detail-value">${formatDate(e.date)}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">${t("Time")}</span>
-            <span class="detail-value">${e.time || "-"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">${t("Expense Type")}</span>
-            <span class="detail-value">${e.expenseTypeName}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">${t("Invoice Number")}</span>
-            <span class="detail-value">${e.invoiceNumber || "-"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">${t("Reference")}</span>
-            <span class="detail-value">${e.reference || "-"}</span>
-          </div>
-          ${e.agentName ? `<div class="detail-item">
-            <span class="detail-label">${t("Agent Name")}</span>
-            <span class="detail-value">${e.agentName}</span>
-          </div>` : ""}
+          <div class="detail-item"><span class="detail-label">${t("Date")}</span><span class="detail-value">${formatDate(e.date)}</span></div>
+          <div class="detail-item"><span class="detail-label">${t("Time")}</span><span class="detail-value">${e.time || "-"}</span></div>
+          <div class="detail-item"><span class="detail-label">${t("Expense Type")}</span><span class="detail-value">${e.expenseTypeName}</span></div>
+          <div class="detail-item"><span class="detail-label">${t("Invoice Number")}</span><span class="detail-value">${e.invoiceNumber || "-"}</span></div>
+          <div class="detail-item"><span class="detail-label">${t("Reference")}</span><span class="detail-value">${e.reference || "-"}</span></div>
+          ${e.agentName ? `<div class="detail-item"><span class="detail-label">${t("Agent Name")}</span><span class="detail-value">${e.agentName}</span></div>` : ""}
         </div>
 
         <div class="amount-section">
-          <div class="amount-box usd">
-            <div class="amount-label">${t("USD Amount")}</div>
-            <div class="amount-value">${parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}</div>
-            ${parseFloat(e.amountUsd) > 0 ? `<div style="font-size:9pt;color:#666;font-style:italic;margin-top:4px">${numberToWords(parseFloat(e.amountUsd), i18n.language, t("Dollar"))}</div>` : ""}
-          </div>
-          <div class="amount-box iqd">
-            <div class="amount-label">${t("IQD Amount")}</div>
-            <div class="amount-value">${parseFloat(e.amountIqd) > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</div>
-            ${parseFloat(e.amountIqd) > 0 ? `<div style="font-size:9pt;color:#666;font-style:italic;margin-top:4px">${numberToWords(parseFloat(e.amountIqd), i18n.language, t("Dinar"))}</div>` : ""}
+          <div class="amount-box">
+            <div class="amount-label">${t("Amount")} (${meta.flag} ${ccode})</div>
+            <div class="amount-value">${formatAmount(e.amount, ccode)}</div>
+            <div style="font-size:10pt;color:#666;font-style:italic;margin-top:6px">${numberToWords(amtNum, i18n.language, ccode)}</div>
           </div>
         </div>
 
-        ${e.description ? `
-          <div class="description-box">
-            <div class="desc-label">${t("Note")}</div>
-            <div class="desc-value">${e.description}</div>
-          </div>
-        ` : ""}
+        ${e.description ? `<div class="description-box"><div class="desc-label">${t("Note")}</div><div class="desc-value">${e.description}</div></div>` : ""}
 
         <div class="signature-section">
-          <div class="signature-box">
-            <div class="sig-line"></div>
-            <div class="sig-label">${t("Received By")}</div>
-          </div>
-          <div class="signature-box">
-            <div class="sig-line"></div>
-            <div class="sig-label">${t("Approved By")}</div>
-          </div>
+          <div class="signature-box"><div class="sig-line"></div><div class="sig-label">${t("Received By")}</div></div>
+          <div class="signature-box"><div class="sig-line"></div><div class="sig-label">${t("Approved By")}</div></div>
         </div>
       </body>
       </html>
     `);
     printWindow.document.close();
     printWindow.focus();
-    const doPrintFn = () => printWindow.print(); if (printWindow.document.fonts?.ready) { printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200)); } else { setTimeout(doPrintFn, 800); }
+    const doPrintFn = () => printWindow.print();
+    if (printWindow.document.fonts?.ready) {
+      printWindow.document.fonts.ready.then(() => setTimeout(doPrintFn, 200));
+    } else { setTimeout(doPrintFn, 800); }
   };
+
+  const currencyMeta = getCurrencyMeta(currency);
 
   return (
     <div className="space-y-3">
@@ -512,10 +460,10 @@ export default function ExpensesPage() {
             </div>
             {t('Expenses')}
           </h1>
-          <p className="text-muted-foreground text-sm">{t('Record expenses in USD and IQD')}</p>
+          <p className="text-muted-foreground text-sm">{t('Record expenses with currency selection')}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-expense">
+          <Button variant="outline" onClick={() => resetForm()} className="gap-2" data-testid="button-reset-expense">
             <RotateCcw className="h-5 w-5" />
             {t('Reset')}
           </Button>
@@ -582,40 +530,45 @@ export default function ExpensesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-blue-200 dark:border-blue-900">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDollar className="h-5 w-5 text-blue-600" />
-                    {t('USD Amount')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number" step="0.01" min="0" placeholder="0.00"
-                    value={amountUsd} onChange={(e) => setAmountUsd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-expense-usd"
-                  />
-                </CardContent>
-              </Card>
-              <Card className="border-orange-200 dark:border-orange-900">
-                <CardHeader className="pb-3 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <IconDinar className="h-5 w-5 text-orange-600" />
-                    {t('IQD Amount')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    type="number" step="250" min="0" placeholder="0"
-                    value={amountIqd} onChange={(e) => setAmountIqd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-expense-iqd"
-                  />
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border-blue-200 dark:border-blue-900">
+              <CardHeader className="pb-3 pt-4">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-blue-600" />
+                  {t('Amount')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-xs">{t('Amount')}</Label>
+                    <Input
+                      type="number" step="0.01" min="0" placeholder="0.00"
+                      value={amount} onChange={(e) => setAmount(e.target.value)}
+                      className="text-lg font-mono text-center h-12"
+                      data-testid="input-expense-amount"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">{t('Currency')}</Label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger className="h-12" data-testid="select-expense-currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCY_CODES.map(code => {
+                          const m = getCurrencyMeta(code);
+                          return (
+                            <SelectItem key={code} value={code} data-testid={`option-currency-${code}`}>
+                              <span className="flex items-center gap-2"><span>{m.flag}</span><span className="font-bold">{m.symbol}</span><span className="text-muted-foreground">{code}</span></span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -648,19 +601,11 @@ export default function ExpensesPage() {
                   <p className="font-bold text-lg">{expenseTypeName}</p>
                 </div>
               )}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-blue-600">{t('USD Amount')}</span>
-                  <span className="font-mono font-bold text-lg text-blue-600" data-testid="text-expense-usd-total">
-                    {usd(amountUsd || "0")}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-orange-600">{t('IQD Amount')}</span>
-                  <span className="font-mono font-bold text-lg text-orange-600" data-testid="text-expense-iqd-total">
-                    {formatIQD(parseFloat(amountIqd || "0"))}
-                  </span>
-                </div>
+              <div className="rounded-lg border p-3 text-center bg-blue-50 dark:bg-blue-950/30">
+                <p className="text-xs text-muted-foreground mb-1">{t('Amount')}</p>
+                <p className="font-bold text-2xl text-blue-600 font-mono" data-testid="text-expense-amount-total">
+                  {currencyMeta.flag} {formatAmount(amount || "0", currency)}
+                </p>
               </div>
 
               <div className="flex gap-2">
@@ -670,20 +615,11 @@ export default function ExpensesPage() {
                   className={`flex-1 h-12 text-base gap-2 text-[#ffffff] ${editingId ? 'bg-orange-600 hover:bg-orange-700' : 'bg-red-600 hover:bg-red-700'}`}
                   data-testid="button-save-expense"
                 >
-                  {isBusy ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Save className="h-5 w-5" />
-                  )}
+                  {isBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
                   {editingId ? t('Update Expense') : t('Save Expense')}
                 </Button>
                 {editingId && (
-                  <Button
-                    variant="outline"
-                    onClick={resetForm}
-                    className="h-12 gap-2"
-                    data-testid="button-cancel-edit-expense"
-                  >
+                  <Button variant="outline" onClick={() => resetForm()} className="h-12 gap-2" data-testid="button-cancel-edit-expense">
                     <RotateCcw className="h-5 w-5" />
                     {t('Cancel')}
                   </Button>
@@ -697,19 +633,19 @@ export default function ExpensesPage() {
               <CardTitle className="text-sm">{t('Total Expenses')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">{t('Total USD')}</span>
-                <span className="font-mono font-bold text-red-600" data-testid="text-total-expenses-usd">
-                  {usd(totalUsd)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">{t('Total IQD')}</span>
-                <span className="font-mono font-bold text-red-600" data-testid="text-total-expenses-iqd">
-                  {formatIQD(totalIqd)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center pt-1">
+              {Object.keys(totalsByCurrency).length === 0 && (
+                <div className="text-xs text-muted-foreground text-center py-2">{t('No expenses yet')}</div>
+              )}
+              {Object.entries(totalsByCurrency).map(([code, total]) => {
+                const m = getCurrencyMeta(code);
+                return (
+                  <div key={code} className="flex justify-between items-center" data-testid={`text-total-${code}`}>
+                    <span className="text-xs text-muted-foreground">{t('Total')} {m.flag} {code}</span>
+                    <span className="font-mono font-bold text-red-600">{formatAmount(total, code)}</span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between items-center pt-1 border-t mt-2">
                 <span className="text-xs text-muted-foreground">{t('Total Records')}</span>
                 <span className="font-mono font-bold">{expensesList.length}</span>
               </div>
@@ -744,6 +680,24 @@ export default function ExpensesPage() {
                 className="h-9 font-mono"
                 data-testid="input-search-expense-invoice"
               />
+              <div className="w-40">
+                <Select value={currencyFilter} onValueChange={(v) => { setCurrencyFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-9" data-testid="select-filter-currency">
+                    <SelectValue placeholder={t('All Currencies')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('All Currencies')}</SelectItem>
+                    {CURRENCY_CODES.map(code => {
+                      const m = getCurrencyMeta(code);
+                      return (
+                        <SelectItem key={code} value={code}>
+                          <span className="flex items-center gap-2"><span>{m.flag}</span><span>{code}</span></span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="w-48">
                 <ExpenseTypeSearchSelect
                   items={types}
@@ -789,8 +743,8 @@ export default function ExpensesPage() {
                     <TableHead>{t('Date')}</TableHead>
                     <TableHead>{t('Time')}</TableHead>
                     <TableHead>{t('Expense Type')}</TableHead>
-                    <TableHead>{t('USD Amount')}</TableHead>
-                    <TableHead>{t('IQD Amount')}</TableHead>
+                    <TableHead>{t('Amount')}</TableHead>
+                    <TableHead>{t('Currency')}</TableHead>
                     <TableHead>{t('Description')}</TableHead>
                     <TableHead>{t('Reference')}</TableHead>
                     <TableHead>{t('Agent Name')}</TableHead>
@@ -798,62 +752,44 @@ export default function ExpensesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedExpenses.map((e: Expense, i: number) => (
-                    <TableRow
-                      key={e.id}
-                      className={editingId === e.id ? "bg-orange-50 dark:bg-orange-900/10" : ""}
-                      data-testid={`row-expense-${e.id}`}
-                    >
-                      <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                      <TableCell className="font-mono text-sm font-medium">{e.invoiceNumber || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm">{formatDate(e.date)}</TableCell>
-                      <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
-                      <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(e.amountUsd) > 0 ? usd(e.amountUsd) : "-"}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-red-600">
-                        {parseFloat(e.amountIqd) > 0 ? formatIQD(parseFloat(e.amountIqd)) : "-"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{e.description || "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{e.reference || "-"}</TableCell>
-                      <TableCell className="text-sm font-semibold">{e.agentName || "-"}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            onClick={() => handlePrintReceipt(e)}
-                            data-testid={`button-receipt-expense-${e.id}`}
-                          >
-                            <FileText className="h-5 w-5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                            onClick={() => startEdit(e)}
-                            data-testid={`button-edit-expense-${e.id}`}
-                          >
-                            <Pencil className="h-5 w-5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => setDeleteItem(e)}
-                            data-testid={`button-delete-expense-${e.id}`}
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {paginatedExpenses.map((e: Expense, i: number) => {
+                    const ccode = e.currency || "IQD";
+                    const m = getCurrencyMeta(ccode);
+                    return (
+                      <TableRow
+                        key={e.id}
+                        className={editingId === e.id ? "bg-orange-50 dark:bg-orange-900/10" : ""}
+                        data-testid={`row-expense-${e.id}`}
+                      >
+                        <TableCell className="font-mono text-xs">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                        <TableCell className="font-mono text-sm font-medium">{e.invoiceNumber || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm">{formatDate(e.date)}</TableCell>
+                        <TableCell className="font-mono text-sm">{e.time || "-"}</TableCell>
+                        <TableCell className="font-medium">{e.expenseTypeName}</TableCell>
+                        <TableCell className="font-mono text-sm font-bold text-red-600">{formatAmount(e.amount, ccode)}</TableCell>
+                        <TableCell><span className="inline-flex items-center gap-1"><span>{m.flag}</span><span className="font-mono text-xs">{ccode}</span></span></TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{e.description || "-"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{e.reference || "-"}</TableCell>
+                        <TableCell className="text-sm font-semibold">{e.agentName || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => handlePrintReceipt(e)} data-testid={`button-receipt-expense-${e.id}`}>
+                              <FileText className="h-5 w-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => startEdit(e)} data-testid={`button-edit-expense-${e.id}`}>
+                              <Pencil className="h-5 w-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => setDeleteItem(e)} data-testid={`button-delete-expense-${e.id}`}>
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {paginatedExpenses.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                         {t('No expenses yet')}
                       </TableCell>
                     </TableRow>
@@ -867,36 +803,15 @@ export default function ExpensesPage() {
                   {t('Showing')} {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredExpenses.length)} {t('of')} {filteredExpenses.length}
                 </p>
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={safePage <= 1}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    data-testid="button-expense-prev-page"
-                  >
+                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} data-testid="button-expense-prev-page">
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <Button
-                      key={page}
-                      variant={page === safePage ? "default" : "outline"}
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setCurrentPage(page)}
-                      data-testid={`button-expense-page-${page}`}
-                    >
+                    <Button key={page} variant={page === safePage ? "default" : "outline"} size="icon" className="h-8 w-8" onClick={() => setCurrentPage(page)} data-testid={`button-expense-page-${page}`}>
                       {page}
                     </Button>
                   ))}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={safePage >= totalPages}
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    data-testid="button-expense-next-page"
-                  >
+                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} data-testid="button-expense-next-page">
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>

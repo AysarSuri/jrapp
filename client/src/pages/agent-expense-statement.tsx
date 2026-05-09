@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Printer, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { IconExpense } from "@/components/erp-icons";
-import { usd, fmtIqd, formatDate } from "@/lib/format-utils";
+import { formatDate } from "@/lib/format-utils";
+import { getCurrencyMeta, formatAmount } from "@/hooks/use-default-currency";
 import { getModernPrintStyles, PRINT_FONT_LINKS } from "@/lib/print-styles";
 
 interface CompanyProfileData {
@@ -24,6 +26,8 @@ interface CompanyProfileData {
   secondaryColor?: string;
 }
 
+const CURRENCY_CODES = ["IQD", "USD", "EUR", "IRR", "GBP", "TRY", "CNY", "AED", "SAR"];
+
 export default function AgentExpenseStatementPage() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar" || i18n.language === "ckb";
@@ -31,6 +35,7 @@ export default function AgentExpenseStatementPage() {
   const firstOfMonth = today.slice(0, 8) + "01";
 
   const [selectedAgent, setSelectedAgent] = useState<string>("");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("all");
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate, setToDate] = useState(today);
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,14 +58,21 @@ export default function AgentExpenseStatementPage() {
     return all.filter((e: any) => {
       if (selectedAgent && selectedAgent !== "all" && e.agentName !== selectedAgent) return false;
       if (!e.agentName) return false;
+      if (currencyFilter !== "all" && (e.currency || "IQD") !== currencyFilter) return false;
       if (fromDate && e.date < fromDate) return false;
       if (toDate && e.date > toDate) return false;
       return true;
     });
-  }, [allExpenses, selectedAgent, fromDate, toDate]);
+  }, [allExpenses, selectedAgent, currencyFilter, fromDate, toDate]);
 
-  const totalUsd = filteredExpenses.reduce((sum: number, e: any) => sum + parseFloat(e.amountUsd || "0"), 0);
-  const totalIqd = filteredExpenses.reduce((sum: number, e: any) => sum + parseFloat(e.amountIqd || "0"), 0);
+  const totalsByCurrency = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredExpenses.forEach((e: any) => {
+      const c = e.currency || "IQD";
+      map[c] = (map[c] || 0) + parseFloat(e.amount || "0");
+    });
+    return map;
+  }, [filteredExpenses]);
 
   const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -85,14 +97,18 @@ export default function AgentExpenseStatementPage() {
         <td>${e.invoiceNumber || "-"}</td>
         <td>${e.agentName || "-"}</td>
         <td>${e.expenseTypeName || "-"}</td>
-        <td class="debit">${parseFloat(e.amountUsd || "0") > 0 ? "$" + parseFloat(e.amountUsd).toLocaleString("en-US", { minimumFractionDigits: 2 }) : "-"}</td>
-        <td class="credit">${parseFloat(e.amountIqd || "0") > 0 ? parseFloat(e.amountIqd).toLocaleString() + " IQD" : "-"}</td>
+        <td class="debit">${formatAmount(e.amount, e.currency || "IQD")}</td>
+        <td>${e.currency || "IQD"}</td>
         <td>${formatDate(e.date)}</td>
         <td>${e.description || "-"}</td>
       </tr>
     `).join("");
 
     const dateRangeText = `${formatDate(fromDate)} - ${formatDate(toDate)}`;
+
+    const summaryCards = Object.entries(totalsByCurrency)
+      .map(([code, total]) => `<div class="summary-card accent-blue"><div class="label">${t("Total")} ${code}</div><div class="value blue">${formatAmount(total, code)}</div></div>`)
+      .join("");
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -116,8 +132,7 @@ export default function AgentExpenseStatementPage() {
           </div>
         </div>
         <div class="summary-cards">
-          <div class="summary-card accent-blue"><div class="label">${t("Total USD")}</div><div class="value blue">${usd(totalUsd)}</div></div>
-          <div class="summary-card accent-red"><div class="label">${t("Total IQD")}</div><div class="value red">${totalIqd.toLocaleString()} IQD</div></div>
+          ${summaryCards}
           <div class="summary-card accent-green"><div class="label">${t("Total Records")}</div><div class="value green">${filteredExpenses.length}</div></div>
         </div>
         <table>
@@ -127,20 +142,14 @@ export default function AgentExpenseStatementPage() {
               <th>${t("Invoice #")}</th>
               <th>${t("Agent Name")}</th>
               <th>${t("Expense Type")}</th>
-              <th>${t("USD Amount")}</th>
-              <th>${t("IQD Amount")}</th>
+              <th>${t("Amount")}</th>
+              <th>${t("Currency")}</th>
               <th>${t("Date")}</th>
               <th>${t("Note")}</th>
             </tr>
           </thead>
           <tbody>
             ${rows}
-            <tr class="total-row">
-              <td colspan="4"><strong>${t("Total")}</strong></td>
-              <td class="debit"><strong>${totalUsd > 0 ? usd(totalUsd) : "-"}</strong></td>
-              <td class="credit"><strong>${totalIqd > 0 ? totalIqd.toLocaleString() + " IQD" : "-"}</strong></td>
-              <td colspan="2"></td>
-            </tr>
           </tbody>
         </table>
       </body>
@@ -183,6 +192,25 @@ export default function AgentExpenseStatementPage() {
                 data-testid="select-filter-agent"
               />
             </div>
+            <div className="w-44">
+              <Label className="text-sm font-bold mb-1 block">{t("Currency")}</Label>
+              <Select value={currencyFilter} onValueChange={(v) => { setCurrencyFilter(v); setCurrentPage(1); }}>
+                <SelectTrigger data-testid="select-filter-currency">
+                  <SelectValue placeholder={t('All Currencies')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('All Currencies')}</SelectItem>
+                  {CURRENCY_CODES.map(code => {
+                    const m = getCurrencyMeta(code);
+                    return (
+                      <SelectItem key={code} value={code}>
+                        <span className="flex items-center gap-2"><span>{m.flag}</span><span>{code}</span></span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label className="text-sm font-bold mb-1 block">{t("From Date")}</Label>
               <DateInput value={fromDate} onChange={e => { setFromDate(e.target.value); setCurrentPage(1); }} className="w-44 h-9" data-testid="input-from-date" />
@@ -200,18 +228,17 @@ export default function AgentExpenseStatementPage() {
       </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-blue-200 dark:border-blue-900">
-          <CardContent className="pt-4 pb-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">{t("Total USD")}</p>
-            <p className="text-xl font-bold text-blue-600 font-mono" data-testid="text-total-usd">{usd(totalUsd)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-orange-200 dark:border-orange-900">
-          <CardContent className="pt-4 pb-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">{t("Total IQD")}</p>
-            <p className="text-xl font-bold text-orange-600 font-mono" data-testid="text-total-iqd">{fmtIqd(totalIqd)}</p>
-          </CardContent>
-        </Card>
+        {Object.entries(totalsByCurrency).map(([code, total]) => {
+          const m = getCurrencyMeta(code);
+          return (
+            <Card key={code} className="border-blue-200 dark:border-blue-900">
+              <CardContent className="pt-4 pb-4 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t("Total")} {m.flag} {code}</p>
+                <p className="text-xl font-bold text-blue-600 font-mono" data-testid={`text-total-${code}`}>{formatAmount(total, code)}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <p className="text-xs text-muted-foreground mb-1">{t("Total Records")}</p>
@@ -239,8 +266,8 @@ export default function AgentExpenseStatementPage() {
                   <TableHead className="text-sm font-bold">{t("Invoice #")}</TableHead>
                   <TableHead className="text-sm font-bold">{t("Agent Name")}</TableHead>
                   <TableHead className="text-sm font-bold">{t("Expense Type")}</TableHead>
-                  <TableHead className="text-sm font-bold">{t("USD Amount")}</TableHead>
-                  <TableHead className="text-sm font-bold">{t("IQD Amount")}</TableHead>
+                  <TableHead className="text-sm font-bold">{t("Amount")}</TableHead>
+                  <TableHead className="text-sm font-bold">{t("Currency")}</TableHead>
                   <TableHead className="text-sm font-bold">{t("Date")}</TableHead>
                   <TableHead className="text-sm font-bold">{t("Note")}</TableHead>
                 </TableRow>
@@ -254,30 +281,22 @@ export default function AgentExpenseStatementPage() {
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">{t("No expenses found")}</TableCell>
                   </TableRow>
-                ) : paginatedExpenses.map((e: any, i: number) => (
-                  <TableRow key={e.id} data-testid={`row-expense-${e.id}`}>
-                    <TableCell className="font-mono text-sm font-semibold">{(safePage - 1) * pageSize + i + 1}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold">{e.invoiceNumber || "-"}</TableCell>
-                    <TableCell className="text-sm font-semibold">{e.agentName || "-"}</TableCell>
-                    <TableCell className="text-sm font-semibold">{e.expenseTypeName || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-blue-600">
-                      {parseFloat(e.amountUsd || "0") > 0 ? usd(parseFloat(e.amountUsd)) : "-"}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm font-semibold text-orange-600">
-                      {parseFloat(e.amountIqd || "0") > 0 ? fmtIqd(parseFloat(e.amountIqd)) : "-"}
-                    </TableCell>
-                    <TableCell className="text-sm font-semibold">{formatDate(e.date)}</TableCell>
-                    <TableCell className="text-sm font-semibold max-w-[200px] truncate">{e.description || "-"}</TableCell>
-                  </TableRow>
-                ))}
-                {filteredExpenses.length > 0 && (
-                  <TableRow className="bg-muted/60 font-bold border-t-2">
-                    <TableCell colSpan={4} className="text-sm font-bold">{t("Total")}</TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-blue-600">{totalUsd > 0 ? usd(totalUsd) : "-"}</TableCell>
-                    <TableCell className="font-mono text-sm font-bold text-orange-600">{totalIqd > 0 ? fmtIqd(totalIqd) : "-"}</TableCell>
-                    <TableCell colSpan={2}></TableCell>
-                  </TableRow>
-                )}
+                ) : paginatedExpenses.map((e: any, i: number) => {
+                  const ccode = e.currency || "IQD";
+                  const m = getCurrencyMeta(ccode);
+                  return (
+                    <TableRow key={e.id} data-testid={`row-expense-${e.id}`}>
+                      <TableCell className="font-mono text-sm font-semibold">{(safePage - 1) * pageSize + i + 1}</TableCell>
+                      <TableCell className="font-mono text-sm font-semibold">{e.invoiceNumber || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{e.agentName || "-"}</TableCell>
+                      <TableCell className="text-sm font-semibold">{e.expenseTypeName || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm font-bold text-blue-600">{formatAmount(e.amount, ccode)}</TableCell>
+                      <TableCell><span className="inline-flex items-center gap-1"><span>{m.flag}</span><span className="font-mono text-xs">{ccode}</span></span></TableCell>
+                      <TableCell className="text-sm font-semibold">{formatDate(e.date)}</TableCell>
+                      <TableCell className="text-sm font-semibold max-w-[200px] truncate">{e.description || "-"}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

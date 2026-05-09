@@ -2923,11 +2923,10 @@ export async function registerRoutes(
   app.post(api.expenses.create.path, requireAuth, async (req, res) => {
     try {
       const input = api.expenses.create.input.parse(req.body);
-      const usdAmount = parseFloat(input.amountUsd || "0");
-      const iqdAmount = parseFloat(input.amountIqd || "0");
+      const amt = parseFloat((input as any).amount || "0");
 
-      if (usdAmount <= 0 && iqdAmount <= 0) {
-        return res.status(400).json({ message: "At least one amount must be greater than zero" });
+      if (amt <= 0) {
+        return res.status(400).json({ message: "Amount must be greater than zero" });
       }
 
       const result = await storage.createExpense(input);
@@ -2943,9 +2942,9 @@ export async function registerRoutes(
   app.patch('/api/expenses/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
-      const { expenseTypeId, expenseTypeName, invoiceNumber, amountUsd, amountIqd, description, reference, agentName, date, time } = req.body;
+      const { expenseTypeId, expenseTypeName, invoiceNumber, amount, currency, description, reference, agentName, date, time } = req.body;
       const [updated] = await db.update(expenses).set({
-        expenseTypeId, expenseTypeName, invoiceNumber, amountUsd, amountIqd, description, reference, agentName, date, time,
+        expenseTypeId, expenseTypeName, invoiceNumber, amount, currency, description, reference, agentName, date, time,
       }).where(eq(expenses.id, id)).returning();
       if (!updated) return res.status(404).json({ message: "Expense not found" });
       res.json(updated);
