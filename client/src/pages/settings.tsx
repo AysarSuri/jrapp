@@ -45,7 +45,7 @@ export const CURRENCY_OPTIONS = [
   { code: "IRR", symbol: "﷼",   flag: "🇮🇷", nameEn: "Iranian Rial", nameAr: "ريال إيراني", nameKu: "ڕیاڵی ئێرانی", nameTr: "İran Riyali" },
   { code: "GBP", symbol: "£",   flag: "🇬🇧", nameEn: "British Pound", nameAr: "جنيه إسترليني", nameKu: "پاوەندی بەریتانی", nameTr: "İngiliz Sterlini" },
   { code: "TRY", symbol: "₺",   flag: "🇹🇷", nameEn: "Turkish Lira", nameAr: "ليرة تركية", nameKu: "لیرەی تورکی", nameTr: "Türk Lirası" },
-  { code: "CNY", symbol: "¥",   flag: "🇨🇳", nameEn: "Chinese RMB", nameAr: "يوان صيني",  nameKu: "یوانی چینی",  nameTr: "Çin Yuanı" },
+  { code: "CNY", symbol: "¥",   flag: "🇨🇳", nameEn: "Chinese Renminbi (RMB)", nameAr: "رنمينبي صيني (يوان)",  nameKu: "ڕێنمینبی چینی (یوان)",  nameTr: "Çin Renminbisi (Yuan)" },
   { code: "AED", symbol: "د.إ", flag: "🇦🇪", nameEn: "UAE Dirham", nameAr: "درهم إماراتي", nameKu: "درهەمی ئیماراتی", nameTr: "BAE Dirhemi" },
   { code: "SAR", symbol: "﷼",   flag: "🇸🇦", nameEn: "Saudi Riyal", nameAr: "ريال سعودي",  nameKu: "ڕیاڵی سعودی",  nameTr: "Suudi Riyali" },
 ];
