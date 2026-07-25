@@ -29,16 +29,13 @@ import {
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, FileText, Printer, EyeOff, Star, Shuffle } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw, ChevronLeft, ChevronRight, Filter, X, EyeOff, Star, Shuffle } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
-import { IconProduct, IconDollar } from "@/components/erp-icons";
+import { IconProduct } from "@/components/erp-icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
-import { formatDate } from "@/lib/format-utils";
-import { PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -49,6 +46,7 @@ const productFormSchema = insertProductSchema.extend({
   bigUnit: z.string().min(1, "Big Unit is required"),
   smallUnit: z.string().min(1, "Small Unit is required"),
   weight: z.string().min(1, "Weight is required").refine(v => v !== "" && v !== undefined, "Weight is required"),
+  openingQty: z.coerce.number().int().min(0),
 }).superRefine((data, ctx) => {
   if (data.bigUnit && data.smallUnit && data.bigUnit === data.smallUnit && data.conversionFactor !== 1) {
     ctx.addIssue({
@@ -80,14 +78,13 @@ const defaultValues: FormValues = {
   smallUnitBuyPriceUsd: "0",
   smallUnitBuyPriceIqd: "0",
   minStock: 0,
+  openingQty: 0,
   image: null,
   hidden: false,
   favorite: false,
 };
 
 const ITEMS_PER_PAGE = 10;
-
-type TabType = "products" | "report" | "prices";
 
 export default function ProductsPage() {
   const { t } = useTranslation();
@@ -101,7 +98,6 @@ export default function ProductsPage() {
   const { mutate: deleteProduct } = useDeleteProduct();
   const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; secondaryColor: string; address: string; mobile1: string; mobile2: string; businessType: string }>({ queryKey: ["/api/company-profile"] });
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<TabType>("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -115,6 +111,9 @@ export default function ProductsPage() {
   const buyBigField = isUsdDefault ? "bigUnitBuyPriceUsd" : "bigUnitBuyPriceIqd";
   const buySmallField = isUsdDefault ? "smallUnitBuyPriceUsd" : "smallUnitBuyPriceIqd";
   const priceStep = isUsdDefault ? "0.01" : "250";
+  const currencyCode = defaultCurrency.code;
+  const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
+    isUsdDefault ? `$${usd ?? "0"}` : `${Number(iqd ?? 0).toLocaleString()} ${currencyCode}`;
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -170,6 +169,7 @@ export default function ProductsPage() {
       smallUnitBuyPriceUsd: product.smallUnitBuyPriceUsd ?? "0",
       smallUnitBuyPriceIqd: product.smallUnitBuyPriceIqd ?? "0",
       minStock: product.minStock,
+      openingQty: product.openingQty ?? 0,
       image: product.image || null,
       hidden: product.hidden ?? false,
       favorite: product.favorite ?? false,
@@ -192,7 +192,7 @@ export default function ProductsPage() {
   };
 
   const onSubmit = (values: FormValues) => {
-    const payload = { ...values, minStock: Number(values.minStock), conversionFactor: Number(values.conversionFactor) };
+    const payload = { ...values, minStock: Number(values.minStock), openingQty: Number(values.openingQty), conversionFactor: Number(values.conversionFactor) };
 
     if (editingProduct) {
       updateProduct({ id: editingProduct.id, data: payload }, {
@@ -239,381 +239,6 @@ export default function ProductsPage() {
   const paginatedData = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   const isSaving = isCreating || isUpdating;
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab as TabType);
-    setSearchTerm("");
-    setCategoryFilter("");
-    setCurrentPage(1);
-    setSearchOpen(false);
-  };
-
-  const handlePrint = () => {
-    const isReport = activeTab === "report";
-    const title = isReport ? t('Material Report') : t('Price List');
-    const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
-    const accent = companyProfile?.primaryColor || "#6b8e23";
-    const companyName = companyProfile?.name || "";
-    const companyLogo = companyProfile?.logo || "";
-    const companyAddress = companyProfile?.address || "";
-    const companyMobile = companyProfile?.mobile1 || "";
-    const today = formatDate(new Date());
-
-    const categoryCounts = new Map<string, number>();
-    filtered.forEach(p => categoryCounts.set(p.category, (categoryCounts.get(p.category) || 0) + 1));
-    const uniqueCategories = categoryCounts.size;
-
-    let tableHeaders = "";
-    let tableRows = "";
-
-    if (isReport) {
-      tableHeaders = `
-        <th>#</th>
-        <th>${t('Barcode')}</th>
-        <th>${t('Name')}</th>
-        <th>${t('Category')}</th>
-        <th>${t('Units')}</th>
-        <th>${t('Weight (KG)')}</th>
-        <th>${t('Big Unit Price (USD)')}</th>
-        <th>${t('Big Unit Price (IQD)')}</th>
-        <th>${t('Small Unit Price (USD)')}</th>
-        <th>${t('Small Unit Price (IQD)')}</th>
-        <th>${t('Big Unit Buy Price (USD)')}</th>
-        <th>${t('Big Unit Buy Price (IQD)')}</th>
-        <th>${t('Small Unit Buy Price (USD)')}</th>
-        <th>${t('Small Unit Buy Price (IQD)')}</th>
-        <th>${t('Min Stock Alert')}</th>
-      `;
-      tableRows = filtered.map((p, i) => `
-        <tr>
-          <td class="num">${i + 1}</td>
-          <td class="mono">${p.barcode}</td>
-          <td class="name-cell">${getProductName(p)}</td>
-          <td>${p.category}</td>
-          <td>1 ${resolveUnitName(p.bigUnit, unitsList)} = ${p.conversionFactor} ${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td class="mono">${p.weight} kg</td>
-          <td class="mono price-usd">$${p.bigUnitPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.bigUnitPriceIqd).toLocaleString()}</td>
-          <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
-          <td class="mono price-usd">$${p.bigUnitBuyPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.bigUnitBuyPriceIqd).toLocaleString()}</td>
-          <td class="mono price-usd">$${p.smallUnitBuyPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.smallUnitBuyPriceIqd).toLocaleString()}</td>
-          <td class="mono">${p.minStock}</td>
-        </tr>
-      `).join("");
-    } else {
-      tableHeaders = `
-        <th>#</th>
-        <th>${t('Product Name')}</th>
-        <th>${t('Barcode')}</th>
-        <th>${t('Big Unit')}</th>
-        <th>${t('Big Unit Price (USD)')}</th>
-        <th>${t('Big Unit Price (IQD)')}</th>
-        <th>${t('Small Unit')}</th>
-        <th>${t('Small Unit Price (USD)')}</th>
-        <th>${t('Small Unit Price (IQD)')}</th>
-        <th>${t('Big Unit')}</th>
-        <th>${t('Big Unit Buy Price (USD)')}</th>
-        <th>${t('Big Unit Buy Price (IQD)')}</th>
-        <th>${t('Small Unit')}</th>
-        <th>${t('Small Unit Buy Price (USD)')}</th>
-        <th>${t('Small Unit Buy Price (IQD)')}</th>
-      `;
-      tableRows = filtered.map((p, i) => `
-        <tr>
-          <td class="num">${i + 1}</td>
-          <td class="name-cell">${getProductName(p)}</td>
-          <td class="mono">${p.barcode}</td>
-          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
-          <td class="mono price-usd">$${p.bigUnitPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.bigUnitPriceIqd).toLocaleString()}</td>
-          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td class="mono price-usd">$${p.smallUnitPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.smallUnitPriceIqd).toLocaleString()}</td>
-          <td>${resolveUnitName(p.bigUnit, unitsList)}</td>
-          <td class="mono price-usd">$${p.bigUnitBuyPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.bigUnitBuyPriceIqd).toLocaleString()}</td>
-          <td>${resolveUnitName(p.smallUnit, unitsList)}</td>
-          <td class="mono price-usd">$${p.smallUnitBuyPriceUsd}</td>
-          <td class="mono price-iqd">IQD ${Number(p.smallUnitBuyPriceIqd).toLocaleString()}</td>
-        </tr>
-      `).join("");
-    }
-
-    const html = `<!DOCTYPE html>
-<html dir="${dir}">
-<head>
-  ${PRINT_FONT_LINKS}
-  <meta charset="utf-8">
-  <title>${title} — ${companyName}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
-      padding: 20px;
-      font-size: 10pt;
-      direction: ${dir};
-      color: #1a1a2e;
-      background: #fff;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    /* ===== HEADER ===== */
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      margin-bottom: 14px;
-      border: 2px solid ${accent}30;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #fafbfc, ${accent}08);
-    }
-    .header-center {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      justify-content: center;
-    }
-    .header-center img {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      border-radius: 10px;
-    }
-    .header-center .company-name {
-      font-size: 18pt;
-      font-weight: 800;
-      color: ${accent};
-      letter-spacing: -0.3px;
-    }
-    .header-right {
-      text-align: ${dir === "rtl" ? "right" : "left"};
-      min-width: 180px;
-    }
-    .header-right .report-title {
-      font-size: 16pt;
-      font-weight: 800;
-      color: ${accent};
-      margin-bottom: 2px;
-    }
-    .header-right .report-date {
-      font-size: 9pt;
-      color: #64748b;
-      font-weight: 500;
-    }
-    .header-left {
-      text-align: ${dir === "rtl" ? "left" : "right"};
-      min-width: 200px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      font-size: 8.5pt;
-      color: #64748b;
-    }
-    .header-left .contact-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"};
-    }
-
-    /* ===== SUMMARY CARDS ===== */
-    .summary-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .stat-card {
-      flex: 1;
-      border-radius: 10px;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      opacity: 0.08;
-      border-radius: 10px;
-    }
-    .stat-card.blue {
-      border: 2px solid #3b82f6;
-      background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    }
-    .stat-card.green {
-      border: 2px solid #22c55e;
-      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    }
-    .stat-card .stat-label {
-      font-size: 9pt;
-      font-weight: 600;
-      color: #475569;
-    }
-    .stat-card .stat-value {
-      font-size: 18pt;
-      font-weight: 800;
-    }
-    .stat-card.blue .stat-value { color: #2563eb; }
-    .stat-card.green .stat-value { color: #16a34a; }
-
-    /* ===== TABLE ===== */
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 9pt;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1.5px solid #d4d4d8;
-    }
-    th {
-      background: linear-gradient(145deg, ${accent}, ${accent}dd);
-      color: #fff;
-      padding: 8px 7px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 8.5pt;
-      white-space: nowrap;
-      letter-spacing: 0.2px;
-    }
-    td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 6px 7px;
-      text-align: center;
-      font-size: 9pt;
-      color: #334155;
-      font-weight: 500;
-    }
-    tr:nth-child(even) {
-      background: #f8fafc;
-    }
-    tr:hover {
-      background: #f1f5f9;
-    }
-    .mono {
-      font-family: 'Inter', monospace;
-      letter-spacing: 0.3px;
-    }
-    .num {
-      font-weight: 700;
-      color: #64748b;
-      width: 36px;
-    }
-    .name-cell {
-      font-weight: 700;
-      color: #1e293b;
-      text-align: ${dir === "rtl" ? "right" : "left"};
-    }
-    .price-usd {
-      color: #16a34a;
-      font-weight: 700;
-    }
-    .price-iqd {
-      color: #2563eb;
-      font-weight: 700;
-    }
-
-    /* ===== FOOTER ===== */
-    .report-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 14px;
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: 1.5px solid #e2e8f0;
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      font-size: 9pt;
-      color: #475569;
-      font-weight: 600;
-    }
-    .report-footer .footer-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .report-footer .footer-value {
-      font-weight: 800;
-      color: ${accent};
-      font-size: 10pt;
-    }
-
-    @media print {
-      body { padding: 6mm 8mm; }
-      @page { margin: 5mm; size: A4 landscape; }
-      .stat-card, th, .report-footer {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="header-row">
-    <div class="header-right">
-      <div class="report-title">${title}</div>
-      <div class="report-date">${today}${categoryFilter ? ` — ${categoryFilter}` : ""}</div>
-    </div>
-    <div class="header-center">
-      ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
-      <span class="company-name">${companyName}</span>
-    </div>
-    <div class="header-left">
-      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
-      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
-    </div>
-  </div>
-
-  <div class="summary-row">
-    <div class="stat-card blue">
-      <span class="stat-label">${t('Total Products')}</span>
-      <span class="stat-value">${filtered.length}</span>
-    </div>
-    <div class="stat-card green">
-      <span class="stat-label">${t('Categories Used')}</span>
-      <span class="stat-value">${uniqueCategories}</span>
-    </div>
-  </div>
-
-  <table>
-    <thead><tr>${tableHeaders}</tr></thead>
-    <tbody>${tableRows}</tbody>
-  </table>
-
-  <div class="report-footer">
-    <div class="footer-item">${t('Total Products')}: <span class="footer-value">${filtered.length}</span></div>
-    <div class="footer-item">${t('Categories Used')}: <span class="footer-value">${uniqueCategories}</span></div>
-    <div class="footer-item">${t('Date')}: <span class="footer-value">${today}</span></div>
-  </div>
-
-  <script>
-    window.onload = function() {
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function() { setTimeout(function() { window.print(); }, 300); });
-      } else {
-        setTimeout(function() { window.print(); }, 1200);
-      }
-    };
-  </script>
-</body>
-</html>`;
-
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
-    }
-  };
 
   const renderSearchAndFilter = () => (
     <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -669,12 +294,6 @@ export default function ProductsPage() {
         )}
       </div>
       <div className="flex items-center gap-3">
-        {activeTab !== "products" && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint} data-testid="button-print">
-            <Printer className="h-5 w-5" />
-            {t('Print')}
-          </Button>
-        )}
         <div className="text-sm text-muted-foreground font-medium">
           {filtered.length} {t('Total Products')}
         </div>
@@ -893,6 +512,13 @@ export default function ProductsPage() {
                   </div>
                 </div>
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap items-end gap-4">
+                  <FormField control={form.control} name="openingQty" render={({ field }) => (
+                    <FormItem className="flex-1 min-w-[120px]">
+                      <FormLabel className="text-base font-bold">{t('Opening Quantity (Big Unit)')}</FormLabel>
+                      <FormControl><Input type="number" className="h-11 text-base font-semibold" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                   <FormField control={form.control} name="minStock" render={({ field }) => (
                     <FormItem className="flex-1 min-w-[120px]">
                       <FormLabel className="text-base font-bold">{t('Min Stock Alert')}</FormLabel>
@@ -1023,14 +649,10 @@ export default function ProductsPage() {
                       <TableHead className="font-bold text-sm">{t('Group')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Units')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Weight (KG)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Price')} ({currencyCode})</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Price')} ({currencyCode})</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price')} ({currencyCode})</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price')} ({currencyCode})</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Favorite')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Actions')}</TableHead>
@@ -1049,14 +671,10 @@ export default function ProductsPage() {
                           1 {resolveUnitName(product.bigUnit, unitsList)} = {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
                         </TableCell>
                         <TableCell className="text-right font-bold font-mono text-sm">{product.weight} kg</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitPriceUsd}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitBuyPriceUsd}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitBuyPriceUsd}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{fmtPrice(product.bigUnitPriceUsd, product.bigUnitPriceIqd)}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{fmtPrice(product.smallUnitPriceUsd, product.smallUnitPriceIqd)}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{fmtPrice(product.bigUnitBuyPriceUsd, product.bigUnitBuyPriceIqd)}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">{fmtPrice(product.smallUnitBuyPriceUsd, product.smallUnitBuyPriceIqd)}</TableCell>
                         <TableCell className="text-center">
                           {product.hidden ? (
                             <Badge variant="outline" className="bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700 font-bold" data-testid={`badge-product-hidden-${product.id}`}>
@@ -1118,146 +736,6 @@ export default function ProductsPage() {
     </>
   );
 
-  const renderReportTab = () => (
-    <Card className="border-border/50 shadow-sm">
-      <CardHeader>{renderSearchAndFilter()}</CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-            <div className="bg-muted/50 p-4 rounded-full mb-4"><IconProduct className="w-10 h-10" /></div>
-            <h3 className="font-semibold text-lg">{t('No products found')}</h3>
-          </div>
-        ) : (
-          <>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-bold text-sm">#</TableHead>
-                    <TableHead className="font-bold text-sm">{t('Barcode')}</TableHead>
-                    <TableHead className="font-bold text-sm">{t('Name')}</TableHead>
-                    <TableHead className="font-bold text-sm">{t('Category')}</TableHead>
-                    <TableHead className="text-center font-bold text-sm">{t('Units')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Weight (KG)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Min Stock Alert')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.map((product, idx) => (
-                    <TableRow key={product.id} data-testid={`row-report-${product.id}`}>
-                      <TableCell className="font-bold font-mono text-sm">{(safePage - 1) * ITEMS_PER_PAGE + idx + 1}</TableCell>
-                      <TableCell className="font-bold font-mono text-sm">{product.barcode}</TableCell>
-                      <TableCell className="font-bold text-sm">{getProductName(product)}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-bold">{product.category}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center text-sm font-bold">
-                        1 {resolveUnitName(product.bigUnit, unitsList)} = {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
-                      </TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{product.weight} kg</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">${product.bigUnitBuyPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">${product.smallUnitBuyPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm">{product.minStock}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {renderPagination()}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-
-  const renderPriceListTab = () => (
-    <Card className="border-border/50 shadow-sm">
-      <CardHeader>{renderSearchAndFilter()}</CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-            <div className="bg-muted/50 p-4 rounded-full mb-4"><IconDollar className="w-10 h-10" /></div>
-            <h3 className="font-semibold text-lg">{t('No products found')}</h3>
-          </div>
-        ) : (
-          <>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-bold text-sm">#</TableHead>
-                    <TableHead className="font-bold text-sm">{t('Barcode')}</TableHead>
-                    <TableHead className="font-bold text-sm">{t('Product Name')}</TableHead>
-                    <TableHead className="text-center font-bold text-sm">{t('Big Unit')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Price (IQD)')}</TableHead>
-                    <TableHead className="text-center font-bold text-sm">{t('Small Unit')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Price (IQD)')}</TableHead>
-                    <TableHead className="text-center font-bold text-sm">{t('Big Unit')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price (IQD)')}</TableHead>
-                    <TableHead className="text-center font-bold text-sm">{t('Small Unit')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (USD)')}</TableHead>
-                    <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price (IQD)')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.map((product, idx) => (
-                    <TableRow key={product.id} data-testid={`row-price-${product.id}`}>
-                      <TableCell className="font-bold font-mono text-sm">{(safePage - 1) * ITEMS_PER_PAGE + idx + 1}</TableCell>
-                      <TableCell className="font-bold font-mono text-sm">{product.barcode}</TableCell>
-                      <TableCell className="font-bold text-sm">{getProductName(product)}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.bigUnit, unitsList)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-green-600">${product.bigUnitPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-blue-600">{Number(product.bigUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.smallUnit, unitsList)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-green-600">${product.smallUnitPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-blue-600">{Number(product.smallUnitPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.bigUnit, unitsList)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-orange-600">${product.bigUnitBuyPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-purple-600">{Number(product.bigUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="font-bold">{resolveUnitName(product.smallUnit, unitsList)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-orange-600">${product.smallUnitBuyPriceUsd}</TableCell>
-                      <TableCell className="text-right font-bold font-mono text-sm text-purple-600">{Number(product.smallUnitBuyPriceIqd).toLocaleString()} IQD</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {renderPagination()}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-
   return (
     <div className="space-y-3">
       <Link href="/material-management" data-testid="link-back-material">
@@ -1302,26 +780,8 @@ export default function ProductsPage() {
         </Card>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="prices" className="gap-2 font-bold" data-testid="tab-prices">
-            <IconDollar className="h-5 w-5" />
-            {t('Price List')}
-          </TabsTrigger>
-          <TabsTrigger value="report" className="gap-2 font-bold" data-testid="tab-report">
-            <FileText className="h-5 w-5" />
-            {t('Material Report')}
-          </TabsTrigger>
-          <TabsTrigger value="products" className="gap-2 font-bold" data-testid="tab-products">
-            <IconProduct className="h-5 w-5" />
-            {t('Products')}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
 
-      {activeTab === "products" && renderProductsTab()}
-      {activeTab === "report" && renderReportTab()}
-      {activeTab === "prices" && renderPriceListTab()}
+      {renderProductsTab()}
     </div>
   );
 }

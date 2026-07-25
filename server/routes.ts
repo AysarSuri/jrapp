@@ -4188,45 +4188,45 @@ export async function registerRoutes(
 
       const query = `
         WITH purchase_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM purchase_invoice_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM purchase_invoice_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         sales_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM sales_invoice_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM sales_invoice_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         purchase_return_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM purchase_return_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM purchase_return_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         sales_return_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM sales_return_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM sales_return_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         damage_agg AS (
-          SELECT di.product_id, di.unit, SUM(di.quantity) as total
+          SELECT di.product_id, SUM(di.quantity * CASE WHEN di.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM product_damage_items di
+          JOIN products p ON p.id = di.product_id
           ${damageFilter}
-          AND di.product_id IS NOT NULL
-          GROUP BY di.product_id, di.unit
+          GROUP BY di.product_id
         ),
         transfer_in_agg AS (
-          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          SELECT ti.product_id, SUM(ti.quantity * CASE WHEN ti.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM warehouse_transfer_items ti
+          JOIN products p ON p.id = ti.product_id
           ${transferInFilter}
-          AND ti.product_id IS NOT NULL
-          GROUP BY ti.product_id, ti.unit
+          GROUP BY ti.product_id
         ),
         transfer_out_agg AS (
-          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          SELECT ti.product_id, SUM(ti.quantity * CASE WHEN ti.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM warehouse_transfer_items ti
+          JOIN products p ON p.id = ti.product_id
           ${transferOutFilter}
-          AND ti.product_id IS NOT NULL
-          GROUP BY ti.product_id, ti.unit
+          GROUP BY ti.product_id
         )
         SELECT
           p.id as product_id,
@@ -4237,13 +4237,14 @@ export async function registerRoutes(
           p.big_unit,
           p.small_unit,
           p.conversion_factor,
-          COALESCE(SUM(CASE WHEN pa.unit = p.big_unit THEN pa.total * p.conversion_factor ELSE pa.total END), 0)::INTEGER as purchased,
-          COALESCE(SUM(CASE WHEN sa.unit = p.big_unit THEN sa.total * p.conversion_factor ELSE sa.total END), 0)::INTEGER as sold,
-          COALESCE(SUM(CASE WHEN pra.unit = p.big_unit THEN pra.total * p.conversion_factor ELSE pra.total END), 0)::INTEGER as purchase_returned,
-          COALESCE(SUM(CASE WHEN sra.unit = p.big_unit THEN sra.total * p.conversion_factor ELSE sra.total END), 0)::INTEGER as sales_returned,
-          COALESCE(SUM(CASE WHEN da.unit = p.big_unit THEN da.total * p.conversion_factor ELSE da.total END), 0)::INTEGER as damaged,
-          COALESCE(SUM(CASE WHEN tia.unit = p.big_unit THEN tia.total * p.conversion_factor ELSE tia.total END), 0)::INTEGER as transfer_in,
-          COALESCE(SUM(CASE WHEN toa.unit = p.big_unit THEN toa.total * p.conversion_factor ELSE toa.total END), 0)::INTEGER as transfer_out
+          p.opening_qty,
+          COALESCE(pa.total, 0)::INTEGER as purchased,
+          COALESCE(sa.total, 0)::INTEGER as sold,
+          COALESCE(pra.total, 0)::INTEGER as purchase_returned,
+          COALESCE(sra.total, 0)::INTEGER as sales_returned,
+          COALESCE(da.total, 0)::INTEGER as damaged,
+          COALESCE(tia.total, 0)::INTEGER as transfer_in,
+          COALESCE(toa.total, 0)::INTEGER as transfer_out
         FROM products p
         LEFT JOIN purchase_agg pa ON pa.product_id = p.id
         LEFT JOIN sales_agg sa ON sa.product_id = p.id
@@ -4252,7 +4253,6 @@ export async function registerRoutes(
         LEFT JOIN damage_agg da ON da.product_id = p.id
         LEFT JOIN transfer_in_agg tia ON tia.product_id = p.id
         LEFT JOIN transfer_out_agg toa ON toa.product_id = p.id
-        GROUP BY p.id, p.barcode, p.name, p.name_en, p.category, p.big_unit, p.small_unit, p.conversion_factor
         ORDER BY p.name
       `;
 
@@ -4268,7 +4268,8 @@ export async function registerRoutes(
         const transferIn = parseInt(row.transfer_in) || 0;
         const transferOut = parseInt(row.transfer_out) || 0;
 
-        const netSmall = purchased + salesReturned + transferIn - sold - purchaseReturned - damaged - transferOut;
+        const openingSmall = (parseInt(row.opening_qty) || 0) * cf;
+        const netSmall = openingSmall + purchased + salesReturned + transferIn - sold - purchaseReturned - damaged - transferOut;
 
         return {
           productId: row.product_id,
@@ -4331,45 +4332,45 @@ export async function registerRoutes(
 
       const query = `
         WITH purchase_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM purchase_invoice_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM purchase_invoice_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         sales_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM sales_invoice_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM sales_invoice_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         purchase_return_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM purchase_return_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM purchase_return_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         sales_return_agg AS (
-          SELECT product_id, unit, SUM(CAST(quantity AS NUMERIC)) as total
-          FROM sales_return_items WHERE product_id IS NOT NULL
-          GROUP BY product_id, unit
+          SELECT i.product_id, SUM(CAST(i.quantity AS NUMERIC) * CASE WHEN i.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
+          FROM sales_return_items i JOIN products p ON p.id = i.product_id
+          GROUP BY i.product_id
         ),
         damage_agg AS (
-          SELECT di.product_id, di.unit, SUM(di.quantity) as total
+          SELECT di.product_id, SUM(di.quantity * CASE WHEN di.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM product_damage_items di
+          JOIN products p ON p.id = di.product_id
           ${damageFilter}
-          AND di.product_id IS NOT NULL
-          GROUP BY di.product_id, di.unit
+          GROUP BY di.product_id
         ),
         transfer_in_agg AS (
-          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          SELECT ti.product_id, SUM(ti.quantity * CASE WHEN ti.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM warehouse_transfer_items ti
+          JOIN products p ON p.id = ti.product_id
           ${transferInFilter}
-          AND ti.product_id IS NOT NULL
-          GROUP BY ti.product_id, ti.unit
+          GROUP BY ti.product_id
         ),
         transfer_out_agg AS (
-          SELECT ti.product_id, ti.unit, SUM(ti.quantity) as total
+          SELECT ti.product_id, SUM(ti.quantity * CASE WHEN ti.unit = p.big_unit THEN p.conversion_factor ELSE 1 END) as total
           FROM warehouse_transfer_items ti
+          JOIN products p ON p.id = ti.product_id
           ${transferOutFilter}
-          AND ti.product_id IS NOT NULL
-          GROUP BY ti.product_id, ti.unit
+          GROUP BY ti.product_id
         )
         SELECT
           p.id as product_id,
@@ -4380,14 +4381,15 @@ export async function registerRoutes(
           p.big_unit,
           p.small_unit,
           p.conversion_factor,
+          p.opening_qty,
           p.min_stock,
-          COALESCE(SUM(CASE WHEN pa.unit = p.big_unit THEN pa.total * p.conversion_factor ELSE pa.total END), 0)::INTEGER as purchased,
-          COALESCE(SUM(CASE WHEN sa.unit = p.big_unit THEN sa.total * p.conversion_factor ELSE sa.total END), 0)::INTEGER as sold,
-          COALESCE(SUM(CASE WHEN pra.unit = p.big_unit THEN pra.total * p.conversion_factor ELSE pra.total END), 0)::INTEGER as purchase_returned,
-          COALESCE(SUM(CASE WHEN sra.unit = p.big_unit THEN sra.total * p.conversion_factor ELSE sra.total END), 0)::INTEGER as sales_returned,
-          COALESCE(SUM(CASE WHEN da.unit = p.big_unit THEN da.total * p.conversion_factor ELSE da.total END), 0)::INTEGER as damaged,
-          COALESCE(SUM(CASE WHEN tia.unit = p.big_unit THEN tia.total * p.conversion_factor ELSE tia.total END), 0)::INTEGER as transfer_in,
-          COALESCE(SUM(CASE WHEN toa.unit = p.big_unit THEN toa.total * p.conversion_factor ELSE toa.total END), 0)::INTEGER as transfer_out
+          COALESCE(pa.total, 0)::INTEGER as purchased,
+          COALESCE(sa.total, 0)::INTEGER as sold,
+          COALESCE(pra.total, 0)::INTEGER as purchase_returned,
+          COALESCE(sra.total, 0)::INTEGER as sales_returned,
+          COALESCE(da.total, 0)::INTEGER as damaged,
+          COALESCE(tia.total, 0)::INTEGER as transfer_in,
+          COALESCE(toa.total, 0)::INTEGER as transfer_out
         FROM products p
         LEFT JOIN purchase_agg pa ON pa.product_id = p.id
         LEFT JOIN sales_agg sa ON sa.product_id = p.id
@@ -4396,7 +4398,6 @@ export async function registerRoutes(
         LEFT JOIN damage_agg da ON da.product_id = p.id
         LEFT JOIN transfer_in_agg tia ON tia.product_id = p.id
         LEFT JOIN transfer_out_agg toa ON toa.product_id = p.id
-        GROUP BY p.id, p.barcode, p.name, p.name_en, p.category, p.big_unit, p.small_unit, p.conversion_factor, p.min_stock
         ORDER BY p.name
       `;
 
@@ -4411,7 +4412,8 @@ export async function registerRoutes(
         const damaged = parseInt(row.damaged) || 0;
         const transferIn = parseInt(row.transfer_in) || 0;
         const transferOut = parseInt(row.transfer_out) || 0;
-        const netSmall = purchased + salesReturned + transferIn - sold - purchaseReturned - damaged - transferOut;
+        const openingSmall = (parseInt(row.opening_qty) || 0) * cf;
+        const netSmall = openingSmall + purchased + salesReturned + transferIn - sold - purchaseReturned - damaged - transferOut;
 
         return {
           productId: row.product_id,

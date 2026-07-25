@@ -113,6 +113,7 @@ export const products = pgTable("products", {
   smallUnitBuyPriceUsd: numeric("small_unit_buy_price_usd").notNull().default("0"),
   smallUnitBuyPriceIqd: numeric("small_unit_buy_price_iqd").notNull().default("0"),
   minStock: integer("min_stock").notNull().default(0),
+  openingQty: integer("opening_qty").notNull().default(0), // opening stock quantity in big units
   weight: numeric("weight").notNull().default("0"), // weight per big unit in KG
   bigUnit: text("big_unit").notNull(), // e.g. Box
   smallUnit: text("small_unit").notNull(), // e.g. Piece
