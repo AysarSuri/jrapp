@@ -77,6 +77,10 @@ const defaultValues: FormValues = {
   bigUnitBuyPriceIqd: "0",
   smallUnitBuyPriceUsd: "0",
   smallUnitBuyPriceIqd: "0",
+  bigUnitWholesalePriceUsd: "0",
+  bigUnitWholesalePriceIqd: "0",
+  smallUnitWholesalePriceUsd: "0",
+  smallUnitWholesalePriceIqd: "0",
   minStock: 0,
   openingQty: 0,
   image: null,
@@ -110,6 +114,8 @@ export default function ProductsPage() {
   const sellSmallField = isUsdDefault ? "smallUnitPriceUsd" : "smallUnitPriceIqd";
   const buyBigField = isUsdDefault ? "bigUnitBuyPriceUsd" : "bigUnitBuyPriceIqd";
   const buySmallField = isUsdDefault ? "smallUnitBuyPriceUsd" : "smallUnitBuyPriceIqd";
+  const wholesaleBigField = isUsdDefault ? "bigUnitWholesalePriceUsd" : "bigUnitWholesalePriceIqd";
+  const wholesaleSmallField = isUsdDefault ? "smallUnitWholesalePriceUsd" : "smallUnitWholesalePriceIqd";
   const priceStep = isUsdDefault ? "0.01" : "250";
   const currencyCode = defaultCurrency.code;
   const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
@@ -168,6 +174,10 @@ export default function ProductsPage() {
       bigUnitBuyPriceIqd: product.bigUnitBuyPriceIqd ?? "0",
       smallUnitBuyPriceUsd: product.smallUnitBuyPriceUsd ?? "0",
       smallUnitBuyPriceIqd: product.smallUnitBuyPriceIqd ?? "0",
+      bigUnitWholesalePriceUsd: product.bigUnitWholesalePriceUsd ?? "0",
+      bigUnitWholesalePriceIqd: product.bigUnitWholesalePriceIqd ?? "0",
+      smallUnitWholesalePriceUsd: product.smallUnitWholesalePriceUsd ?? "0",
+      smallUnitWholesalePriceIqd: product.smallUnitWholesalePriceIqd ?? "0",
       minStock: product.minStock,
       openingQty: product.openingQty ?? 0,
       image: product.image || null,
@@ -487,6 +497,20 @@ export default function ProductsPage() {
                       <FormItem>
                         <FormLabel className="text-base font-bold">{t('Small Unit Price')} ({defaultCurrency.code})</FormLabel>
                         <FormControl><Input type="number" step={priceStep} className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name={wholesaleBigField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Wholesale Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-wholesale-price" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name={wholesaleSmallField} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Wholesale Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-wholesale-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />

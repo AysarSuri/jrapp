@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick, Coins, Hash } from "lucide-react";
 import { loadSoundSettings, saveSoundSettings, type SoundSettings } from "@/lib/sounds";
-import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent } from "@/components/erp-icons";
+import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent, IconProduct } from "@/components/erp-icons";
 
 const DEVICE_NAME_KEY = "erp_device_name";
 const DEVICE_TYPE_KEY = "erp_device_type";
@@ -34,6 +34,7 @@ interface GeneralSettings {
   adminSalesPrintMode: string;
   agentSalesPrintMode: string;
   invoiceFooterText: string;
+  defaultSaleType: string;
   defaultCurrency: string;
   decimalPlaces: number;
 }
@@ -87,6 +88,7 @@ const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
   invoiceFooterText: "",
+  defaultSaleType: "retail",
   defaultCurrency: "IQD",
   decimalPlaces: 2,
 };
@@ -252,6 +254,7 @@ export default function SettingsPage() {
       adminSalesPrintMode: generalSettings.adminSalesPrintMode,
       agentSalesPrintMode: generalSettings.agentSalesPrintMode,
       invoiceFooterText: generalSettings.invoiceFooterText,
+      defaultSaleType: generalSettings.defaultSaleType,
     });
     toast({ title: t("Settings saved successfully") });
   };
@@ -525,6 +528,26 @@ export default function SettingsPage() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">{t('Print format when agent creates a sales invoice')}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-base font-bold flex items-center gap-2">
+                      <IconProduct className="h-5 w-5 text-green-600" />
+                      {t('Default Sale Type')}
+                    </Label>
+                    <Select
+                      value={generalSettings.defaultSaleType || "retail"}
+                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, defaultSaleType: val }))}
+                    >
+                      <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-default-sale-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="retail">{t('Retail Sale')}</SelectItem>
+                        <SelectItem value="wholesale">{t('Wholesale Sale')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">{t('The default sale type used in sales invoices')}</p>
                   </div>
                 </div>
 
