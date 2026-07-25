@@ -159,6 +159,30 @@ function saveGeneralSettings(settings: GeneralSettings) {
   localStorage.setItem(GENERAL_SETTINGS_KEY, JSON.stringify(settings));
 }
 
+const EXCHANGE_RATES_KEY = "erp_exchange_rates";
+
+interface ExchangeRatesData {
+  base: string;
+  rates: Record<string, string>;
+}
+
+export function loadExchangeRates(): ExchangeRatesData {
+  try {
+    const saved = localStorage.getItem(EXCHANGE_RATES_KEY);
+    if (saved) {
+      const obj = JSON.parse(saved);
+      if (obj && typeof obj.base === "string" && obj.rates && typeof obj.rates === "object") {
+        return { base: obj.base, rates: obj.rates };
+      }
+    }
+  } catch {}
+  return { base: loadGeneralSettings().defaultCurrency, rates: {} };
+}
+
+function saveExchangeRates(data: ExchangeRatesData) {
+  localStorage.setItem(EXCHANGE_RATES_KEY, JSON.stringify(data));
+}
+
 export function loadFieldVisibility(): FieldVisibilitySettings {
   try {
     const saved = localStorage.getItem(FIELD_VISIBILITY_KEY);
@@ -171,7 +195,7 @@ function saveFieldVisibility(settings: FieldVisibilitySettings) {
   localStorage.setItem(FIELD_VISIBILITY_KEY, JSON.stringify(settings));
 }
 
-type SettingsTab = "printers" | "general" | "field_visibility";
+type SettingsTab = "printers" | "general" | "currency" | "field_visibility";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -185,6 +209,10 @@ export default function SettingsPage() {
   const [soundSettings, setSoundSettings] = useState<SoundSettings>(loadSoundSettings);
   const [fieldVisibility, setFieldVisibility] = useState<FieldVisibilitySettings>(loadFieldVisibility);
   const [exchangeRate, setExchangeRate] = useState<string>("1500");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, string>>(() => {
+    const stored = loadExchangeRates();
+    return stored.base === loadGeneralSettings().defaultCurrency ? stored.rates : {};
+  });
 
   const { data: exchangeRateData } = useQuery<{ key: string; value: string | null }>({
     queryKey: ['/api/system-settings', 'usd_to_iqd_rate'],
@@ -200,6 +228,7 @@ export default function SettingsPage() {
   const tabs: { key: SettingsTab; label: string; icon: typeof Printer }[] = [
     { key: "printers", label: t("Printer Settings"), icon: Printer },
     { key: "general", label: t("General Settings"), icon: Cog },
+    { key: "currency", label: t("Currency Settings"), icon: Coins },
     { key: "field_visibility", label: t("Show & Hide Fields"), icon: Eye },
   ];
 
@@ -216,11 +245,50 @@ export default function SettingsPage() {
     toast({ title: t("Settings saved successfully") });
   };
 
-  const handleSaveGeneralSettings = async () => {
-    saveGeneralSettings(generalSettings);
+  const handleSaveGeneralSettings = () => {
+    const stored = loadGeneralSettings();
+    saveGeneralSettings({
+      ...stored,
+      adminSalesPrintMode: generalSettings.adminSalesPrintMode,
+      agentSalesPrintMode: generalSettings.agentSalesPrintMode,
+      invoiceFooterText: generalSettings.invoiceFooterText,
+    });
+    toast({ title: t("Settings saved successfully") });
+  };
+
+  const handleChangeDefaultCurrency = (val: string) => {
+    setGeneralSettings(prev => ({ ...prev, defaultCurrency: val }));
+    const stored = loadExchangeRates();
+    setExchangeRates(stored.base === val ? stored.rates : {});
+  };
+
+  const handleSaveCurrencySettings = async () => {
+    for (const v of Object.values(exchangeRates)) {
+      if (v !== "" && (!isFinite(parseFloat(v)) || parseFloat(v) <= 0)) {
+        toast({ title: t("Invalid exchange rate value"), variant: "destructive" });
+        return;
+      }
+    }
+    const stored = loadGeneralSettings();
+    saveGeneralSettings({
+      ...stored,
+      defaultCurrency: generalSettings.defaultCurrency,
+      decimalPlaces: generalSettings.decimalPlaces,
+    });
+    saveExchangeRates({ base: generalSettings.defaultCurrency, rates: exchangeRates });
+
+    let usdIqd = exchangeRate;
+    if (generalSettings.defaultCurrency === "IQD") {
+      const r = parseFloat(exchangeRates["USD"] || "");
+      if (r > 0) usdIqd = String(r);
+    } else if (generalSettings.defaultCurrency === "USD") {
+      const r = parseFloat(exchangeRates["IQD"] || "");
+      if (r > 0) usdIqd = String(Math.round(1 / r));
+    }
     try {
-      await apiRequest('PUT', '/api/system-settings/usd_to_iqd_rate', { value: exchangeRate });
+      await apiRequest('PUT', '/api/system-settings/usd_to_iqd_rate', { value: usdIqd });
       queryClient.invalidateQueries({ queryKey: ['/api/system-settings'] });
+      setExchangeRate(usdIqd);
     } catch (err) {
       console.error("Failed to save exchange rate:", err);
     }
@@ -418,85 +486,6 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="p-4 rounded-lg border-2 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 space-y-2">
-                  <Label className="text-base font-bold flex items-center gap-2">
-                    <IconDollar className="h-5 w-5 text-green-600" />
-                    <IconDinar className="h-5 w-5 text-amber-600" />
-                    {t('Exchange Rate (1 USD = ? IQD)')}
-                  </Label>
-                  <Input
-                    type="number"
-                    step="1"
-                    min="1"
-                    value={exchangeRate}
-                    onChange={(e) => setExchangeRate(e.target.value)}
-                    className="h-11 text-lg font-bold text-center max-w-xs"
-                    placeholder="1500"
-                    data-testid="input-settings-exchange-rate"
-                  />
-                  <p className="text-xs text-muted-foreground">{t('Daily exchange rate used for cross-currency buy price calculations')}</p>
-                </div>
-
-                <div className="p-4 rounded-lg border-2 border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 space-y-3">
-                  <Label className="text-base font-bold flex items-center gap-2">
-                    <Coins className="h-5 w-5 text-emerald-600" />
-                    {t('Currency & Number Format')}
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-bold">{t('Default Currency')}</Label>
-                      <Select
-                        value={generalSettings.defaultCurrency}
-                        onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, defaultCurrency: val }))}
-                      >
-                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-currency">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CURRENCY_OPTIONS.map(c => {
-                            const lang = i18n.language || 'en';
-                            const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
-                            return (
-                              <SelectItem key={c.code} value={c.code}>
-                                <span className="flex items-center gap-2">
-                                  <span className="text-lg">{c.flag}</span>
-                                  <span className="font-bold w-12">{c.symbol}</span>
-                                  <span>{localized}</span>
-                                  <span className="text-xs text-muted-foreground">({c.code})</span>
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">{t('Currency icon and country shown across the system')}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-bold flex items-center gap-2">
-                        <Hash className="h-4 w-4 text-purple-600" />
-                        {t('Decimal Places')}
-                      </Label>
-                      <Select
-                        value={String(generalSettings.decimalPlaces)}
-                        onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, decimalPlaces: Number(val) }))}
-                      >
-                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-decimal-places">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[0, 1, 2, 3, 4].map(n => (
-                            <SelectItem key={n} value={String(n)}>
-                              {n} — {(1234.56789).toFixed(n)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">{t('Number of digits after decimal point in amounts')}</p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-base font-bold flex items-center gap-2">
@@ -605,6 +594,125 @@ export default function SettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleSaveGeneralSettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-general">
+                    <Save className="h-5 w-5" />
+                    {t('Save Settings')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "currency" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-emerald-600" />
+                  {t('Currency Settings')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-4 rounded-lg border-2 border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 space-y-3">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-emerald-600" />
+                    {t('Currency & Number Format')}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold">{t('Default Currency')}</Label>
+                      <Select
+                        value={generalSettings.defaultCurrency}
+                        onValueChange={handleChangeDefaultCurrency}
+                      >
+                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-currency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CURRENCY_OPTIONS.map(c => {
+                            const lang = i18n.language || 'en';
+                            const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                            return (
+                              <SelectItem key={c.code} value={c.code}>
+                                <span className="flex items-center gap-2">
+                                  <span className="text-lg">{c.flag}</span>
+                                  <span className="font-bold w-12">{c.symbol}</span>
+                                  <span>{localized}</span>
+                                  <span className="text-xs text-muted-foreground">({c.code})</span>
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">{t('Currency icon and country shown across the system')}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-purple-600" />
+                        {t('Decimal Places')}
+                      </Label>
+                      <Select
+                        value={String(generalSettings.decimalPlaces)}
+                        onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, decimalPlaces: Number(val) }))}
+                      >
+                        <SelectTrigger className="h-11 text-base font-semibold" data-testid="select-settings-decimal-places">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[0, 1, 2, 3, 4].map(n => (
+                            <SelectItem key={n} value={String(n)}>
+                              {n} — {(1234.56789).toFixed(n)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">{t('Number of digits after decimal point in amounts')}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border-2 border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 space-y-3">
+                  <Label className="text-base font-bold flex items-center gap-2">
+                    <IconDollar className="h-5 w-5 text-green-600" />
+                    <IconDinar className="h-5 w-5 text-amber-600" />
+                    {t('Exchange Rates')}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">{t('Set the exchange rate of each currency against the default currency')} — {t('Leave empty for currencies you do not use')}</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {CURRENCY_OPTIONS.filter(c => c.code !== generalSettings.defaultCurrency).map(c => {
+                      const lang = i18n.language || 'en';
+                      const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                      const def = CURRENCY_OPTIONS.find(x => x.code === generalSettings.defaultCurrency);
+                      return (
+                        <div key={c.code} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-white/5 hover:shadow-sm transition-shadow">
+                          <span className="text-2xl shrink-0">{c.flag}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold truncate">{localized}</p>
+                            <p className="text-xs text-muted-foreground" dir="ltr">1 {c.code} =</p>
+                          </div>
+                          <Input
+                            type="number"
+                            step="any"
+                            min="0"
+                            inputMode="decimal"
+                            value={exchangeRates[c.code] ?? ""}
+                            onChange={(e) => setExchangeRates(prev => ({ ...prev, [c.code]: e.target.value }))}
+                            className="h-10 w-32 text-base font-bold text-center shrink-0"
+                            placeholder="0"
+                            data-testid={`input-exchange-rate-${c.code}`}
+                          />
+                          <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 shrink-0 flex items-center gap-1">
+                            <span className="text-lg">{def?.flag}</span>
+                            {generalSettings.defaultCurrency}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSaveCurrencySettings} className="bg-green-600 hover:bg-green-700 text-white gap-2" data-testid="button-settings-save-currency">
                     <Save className="h-5 w-5" />
                     {t('Save Settings')}
                   </Button>
