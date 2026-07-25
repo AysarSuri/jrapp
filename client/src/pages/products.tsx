@@ -9,6 +9,7 @@ type Product = typeof products.$inferSelect;
 import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
+import { useDefaultCurrency } from "@/hooks/use-default-currency";
 import { useCategories, useCategoryGroups } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +108,13 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const defaultCurrency = useDefaultCurrency();
+  const isUsdDefault = defaultCurrency.code === "USD";
+  const sellBigField = isUsdDefault ? "bigUnitPriceUsd" : "bigUnitPriceIqd";
+  const sellSmallField = isUsdDefault ? "smallUnitPriceUsd" : "smallUnitPriceIqd";
+  const buyBigField = isUsdDefault ? "bigUnitBuyPriceUsd" : "bigUnitBuyPriceIqd";
+  const buySmallField = isUsdDefault ? "smallUnitBuyPriceUsd" : "smallUnitBuyPriceIqd";
+  const priceStep = isUsdDefault ? "0.01" : "250";
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -849,31 +857,17 @@ export default function ProductsPage() {
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Selling Prices')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <FormField control={form.control} name="bigUnitPriceUsd" render={({ field }) => (
+                    <FormField control={form.control} name={sellBigField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Big Unit Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-usd" /></FormControl>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
-                    <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
+                    <FormField control={form.control} name={sellSmallField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Big Unit Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-big-unit-price-iqd" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Small Unit Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-usd" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Small Unit Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price-iqd" /></FormControl>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} className="h-11 text-base font-semibold" {...field} data-testid="input-small-unit-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -882,31 +876,17 @@ export default function ProductsPage() {
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Purchase Prices')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <FormField control={form.control} name="bigUnitBuyPriceUsd" render={({ field }) => (
+                    <FormField control={form.control} name={buyBigField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price-usd" /></FormControl>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
-                    <FormField control={form.control} name="bigUnitBuyPriceIqd" render={({ field }) => (
+                    <FormField control={form.control} name={buySmallField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price-iqd" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="smallUnitBuyPriceUsd" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (USD)')}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price-usd" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="smallUnitBuyPriceIqd" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price (IQD)')}</FormLabel>
-                        <FormControl><Input type="number" step="250" readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price-iqd" /></FormControl>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
