@@ -23,6 +23,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,6 +106,7 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,8 +134,15 @@ export default function ProductsPage() {
     }
   }, [bigUnit, smallUnit, sameUnits, form]);
 
+  const openAddForm = () => {
+    setEditingProduct(null);
+    form.reset(defaultValues);
+    setFormOpen(true);
+  };
+
   const startEdit = (product: Product) => {
     setEditingProduct(product);
+    setFormOpen(true);
     form.reset({
       name: product.name,
       nameEn: product.nameEn || "",
@@ -160,6 +171,7 @@ export default function ProductsPage() {
   const cancelEdit = () => {
     setEditingProduct(null);
     form.reset(defaultValues);
+    setFormOpen(false);
   };
 
   const generateRandomBarcode = () => {
@@ -186,6 +198,7 @@ export default function ProductsPage() {
       createProduct(payload, {
         onSuccess: () => {
           form.reset(defaultValues);
+          setFormOpen(false);
           toast({ title: t('Product added successfully') });
         },
         onError: (err) => toast({ title: t('Failed to add product'), description: t(err.message), variant: "destructive" }),
@@ -694,17 +707,24 @@ export default function ProductsPage() {
 
   const renderProductsTab = () => (
     <>
-      <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            {editingProduct ? (
-              <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Product')}</>
-            ) : (
-              <><Plus className="h-5 w-5 text-primary" /> {t('Add New Product')}</>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="flex justify-end">
+        <Button onClick={openAddForm} size="lg" className="h-11 text-base font-bold gap-2" data-testid="button-open-add-product">
+          <Plus className="h-5 w-5" />
+          {t('Add New Product')}
+        </Button>
+      </div>
+
+      <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              {editingProduct ? (
+                <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Product')}</>
+              ) : (
+                <><Plus className="h-5 w-5 text-primary" /> {t('Add New Product')}</>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -991,14 +1011,14 @@ export default function ProductsPage() {
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                   {editingProduct ? t('Update') : t('Save')}
                 </Button>
-                <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
+                <Button type="button" variant="outline" size="lg" className="h-11" onClick={() => { setEditingProduct(null); form.reset(defaultValues); }} data-testid="button-reset-form">
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>{renderSearchAndFilter()}</CardHeader>
