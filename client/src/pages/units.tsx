@@ -25,6 +25,7 @@ import { IconUnit } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 10;
@@ -38,6 +39,7 @@ export default function UnitsPage() {
   const { mutate: deleteUnit } = useDeleteUnit();
   const { toast } = useToast();
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -61,11 +63,19 @@ export default function UnitsPage() {
   const startEdit = (unit: Unit) => {
     setEditingUnit(unit);
     form.reset({ name: unit.name, nameEn: unit.nameEn || "", nameKu: unit.nameKu || "", nameTr: unit.nameTr || "" });
+    setFormOpen(true);
   };
 
   const cancelEdit = () => {
     setEditingUnit(null);
     form.reset(defaultVals);
+    setFormOpen(false);
+  };
+
+  const openAddForm = () => {
+    setEditingUnit(null);
+    form.reset(defaultVals);
+    setFormOpen(true);
   };
 
   const onSubmit = (values: z.infer<typeof insertUnitSchema>) => {
@@ -81,6 +91,7 @@ export default function UnitsPage() {
       createUnit(values, {
         onSuccess: () => {
           form.reset(defaultVals);
+          setFormOpen(false);
           toast({ title: t("Unit added successfully") });
         },
         onError: (err) => toast({ title: t("Failed to add unit"), description: t(err.message), variant: "destructive" }),
@@ -127,6 +138,10 @@ export default function UnitsPage() {
           <h1 className="text-2xl font-bold tracking-tight">{t('Units')}</h1>
           <p className="text-muted-foreground text-sm">{t('Manage measurement units for products')}</p>
         </div>
+        <Button size="lg" className="gap-2 text-base font-bold" onClick={openAddForm} data-testid="button-open-add-unit">
+          <Plus className="h-5 w-5" />
+          {t('Add New Unit')}
+        </Button>
       </div>
 
       <div className="grid gap-2 md:grid-cols-2">
@@ -141,20 +156,20 @@ export default function UnitsPage() {
         </Card>
       </div>
 
-      <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            {editingUnit ? (
-              <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Unit')}</>
-            ) : (
-              <><Plus className="h-5 w-5 text-primary" /> {t('Add New Unit')}</>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              {editingUnit ? (
+                <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Unit')}</>
+              ) : (
+                <><Plus className="h-5 w-5 text-primary" /> {t('Add New Unit')}</>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Unit Name')}</FormLabel>
@@ -188,15 +203,15 @@ export default function UnitsPage() {
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {editingUnit ? t('Update') : t('Save')}
                   </Button>
-                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
+                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={() => { setEditingUnit(null); form.reset(defaultVals); }} data-testid="button-reset-form">
                     <RotateCcw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>

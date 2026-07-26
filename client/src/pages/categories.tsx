@@ -26,6 +26,7 @@ import { IconCategory } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 10;
@@ -44,6 +45,7 @@ export default function CategoriesPage() {
   const { mutate: deleteGroup } = useDeleteCategoryGroup();
   const { toast } = useToast();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [catFormOpen, setCatFormOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<CategoryGroup | null>(null);
   const [groupFormCategoryId, setGroupFormCategoryId] = useState<number | null>(null);
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
@@ -76,11 +78,20 @@ export default function CategoriesPage() {
     setEditingCategory(cat);
     catForm.reset({ name: cat.name, nameEn: cat.nameEn || "", nameKu: cat.nameKu || "", nameTr: cat.nameTr || "" });
     cancelGroupEdit();
+    setCatFormOpen(true);
   };
 
   const cancelCategoryEdit = () => {
     setEditingCategory(null);
     catForm.reset(defaultCatVals);
+    setCatFormOpen(false);
+  };
+
+  const openAddCategory = () => {
+    setEditingCategory(null);
+    catForm.reset(defaultCatVals);
+    cancelGroupEdit();
+    setCatFormOpen(true);
   };
 
   const startGroupAdd = (categoryId: number) => {
@@ -118,6 +129,7 @@ export default function CategoriesPage() {
       createCategory(values, {
         onSuccess: () => {
           catForm.reset(defaultCatVals);
+          setCatFormOpen(false);
           toast({ title: t("Category added successfully") });
         },
         onError: (err) => toast({ title: t("Failed to add category"), description: t(err.message), variant: "destructive" }),
@@ -137,7 +149,7 @@ export default function CategoriesPage() {
     } else {
       createGroup(values, {
         onSuccess: () => {
-          groupForm.reset({ ...defaultGroupVals, categoryId: values.categoryId });
+          cancelGroupEdit();
           toast({ title: t("Group added successfully") });
         },
         onError: (err) => toast({ title: t("Failed to add group"), description: t(err.message), variant: "destructive" }),
@@ -200,6 +212,10 @@ export default function CategoriesPage() {
           <h1 className="text-2xl font-bold tracking-tight">{t('Categories')}</h1>
           <p className="text-muted-foreground text-sm">{t('Manage product categories')}</p>
         </div>
+        <Button size="lg" className="gap-2 text-base font-bold" onClick={openAddCategory} data-testid="button-open-add-category">
+          <Plus className="h-5 w-5" />
+          {t('Add New Category')}
+        </Button>
       </div>
 
       <div className="grid gap-2 md:grid-cols-2">
@@ -223,20 +239,20 @@ export default function CategoriesPage() {
         </Card>
       </div>
 
-      <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            {editingCategory ? (
-              <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Category')}</>
-            ) : (
-              <><Plus className="h-5 w-5 text-primary" /> {t('Add New Category')}</>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Dialog open={catFormOpen} onOpenChange={(open) => { if (!open) cancelCategoryEdit(); else setCatFormOpen(true); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              {editingCategory ? (
+                <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Category')}</>
+              ) : (
+                <><Plus className="h-5 w-5 text-primary" /> {t('Add New Category')}</>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <Form {...catForm}>
             <form onSubmit={catForm.handleSubmit(onCategorySubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={catForm.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Category Name')}</FormLabel>
@@ -270,29 +286,28 @@ export default function CategoriesPage() {
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     {editingCategory ? t('Update') : t('Save')}
                   </Button>
-                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelCategoryEdit} data-testid="button-reset-form">
+                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={() => { setEditingCategory(null); catForm.reset(defaultCatVals); }} data-testid="button-reset-form">
                     <RotateCcw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
-      {groupFormCategoryId && (
-        <Card className="border-blue-200 dark:border-blue-900 shadow-md">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
+      <Dialog open={groupFormCategoryId !== null} onOpenChange={(open) => { if (!open) cancelGroupEdit(); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Layers className="h-5 w-5 text-blue-600" />
               {editingGroup ? t('Edit Group') : t('Add New Group')}
               <Badge variant="secondary">{allCategories.find(c => c.id === groupFormCategoryId)?.name}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...groupForm}>
+            </DialogTitle>
+          </DialogHeader>
+          <Form {...groupForm}>
               <form onSubmit={groupForm.handleSubmit(onGroupSubmit)}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={groupForm.control} name="name" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-base font-bold">{t('Group Name')}</FormLabel>
@@ -326,16 +341,15 @@ export default function CategoriesPage() {
                       {isSavingGroup ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                       {editingGroup ? t('Update') : t('Save')}
                     </Button>
-                    <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelGroupEdit} data-testid="button-reset-group-form">
+                    <Button type="button" variant="outline" size="lg" className="h-11" onClick={() => { setEditingGroup(null); groupForm.reset({ ...defaultGroupVals, categoryId: groupFormCategoryId ?? 0 }); }} data-testid="button-reset-group-form">
                       <RotateCcw className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
               </form>
             </Form>
-          </CardContent>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader>
