@@ -517,18 +517,18 @@ export default function ProductsPage() {
                   </div>
                 </div>
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Purchase Prices')}</h3>
+                  <h3 className="text-base font-bold text-primary border-b border-primary/30 pb-1 mb-3">{t('Cost Prices')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <FormField control={form.control} name={buyBigField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Big Unit Buy Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormLabel className="text-base font-bold">{t('Big Unit Cost Price')} ({defaultCurrency.code})</FormLabel>
                         <FormControl><Input type="number" step={priceStep} readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-big-unit-buy-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name={buySmallField} render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-bold">{t('Small Unit Buy Price')} ({defaultCurrency.code})</FormLabel>
+                        <FormLabel className="text-base font-bold">{t('Small Unit Cost Price')} ({defaultCurrency.code})</FormLabel>
                         <FormControl><Input type="number" step={priceStep} readOnly className="h-11 text-base font-semibold bg-muted/50 cursor-not-allowed" {...field} data-testid="input-small-unit-buy-price" /></FormControl>
                         <FormMessage />
                       </FormItem>
@@ -675,8 +675,8 @@ export default function ProductsPage() {
                       <TableHead className="text-right font-bold text-sm">{t('Weight (KG)')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Big Unit Price')} ({currencyCode})</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Small Unit Price')} ({currencyCode})</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Buy Price')} ({currencyCode})</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Buy Price')} ({currencyCode})</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Big Unit Cost Price')} ({currencyCode})</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t('Small Unit Cost Price')} ({currencyCode})</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Favorite')}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Actions')}</TableHead>
