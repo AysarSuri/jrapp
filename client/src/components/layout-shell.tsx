@@ -339,7 +339,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: IconDashboard, label: "Dashboard", color: "blue" },
-    { type: 'group', label: "سوبرماركت", icon: IconMaterial, color: "violet", children: supermarketNavItems },
+    ...supermarketNavItems,
     { type: 'group', label: "Sales Management", icon: IconSales, color: "green", children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: IconSupplier, color: "red", children: supplierNavItems },
     { type: 'group', label: "Agent Management", icon: IconAgent, color: "purple", children: agentManagementNavItems },
