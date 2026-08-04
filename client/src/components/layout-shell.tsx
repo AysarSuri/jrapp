@@ -439,29 +439,49 @@ export function LayoutShell({ children }: LayoutShellProps) {
         onMouseEnter={() => playHoverSound()}
         data-testid={testId}
         className={`
-          group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl cursor-pointer min-h-[138px] min-w-[143px] overflow-hidden border border-transparent
+          group relative flex flex-col items-center justify-center gap-3 p-4 rounded-3xl cursor-pointer min-h-[150px] min-w-[148px] overflow-hidden
           transition-all duration-300 ease-out
-          hover:-translate-y-1 hover:scale-[1.03] hover:shadow-xl hover:shadow-black/10 dark:hover:shadow-black/40 hover:border-current/20
-          active:scale-[0.98] active:translate-y-0
+          hover:-translate-y-1.5 hover:scale-[1.04]
+          active:scale-[0.97] active:translate-y-0
           ${isActive
-            ? "bg-gray-200 dark:bg-white/10 shadow-sm ring-2 ring-offset-1 ring-blue-400/40"
-            : "bg-gray-50 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.08]"
+            ? `shadow-lg ${c.bg} border-2 ${c.text} border-current/30`
+            : "bg-white dark:bg-white/[0.05] border border-gray-200/80 dark:border-white/10 hover:border-transparent hover:shadow-xl"
           }
         `}
+        style={isActive ? {} : undefined}
       >
+        {/* Gradient border glow on hover */}
         <span
-          className={`pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${c.bg}`}
-          style={{ filter: "blur(24px)", transform: "scale(0.85)" }}
+          className={`pointer-events-none absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-300`}
+          style={{
+            background: `linear-gradient(135deg, transparent 40%, color-mix(in srgb, currentColor 15%, transparent))`,
+            boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, currentColor 35%, transparent)`,
+          }}
           aria-hidden="true"
         />
+        {/* Coloured background wash */}
         <span
-          className="pointer-events-none absolute -top-1/2 -left-1/2 w-[200%] h-[200%] rotate-12 bg-gradient-to-r from-transparent via-white/20 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-1/4 transition-all duration-700 ease-out"
+          className={`pointer-events-none absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${c.bg}`}
+          style={{ opacity: undefined }}
           aria-hidden="true"
         />
-        <div className={`relative z-10 w-16 h-16 rounded-xl flex items-center justify-center ${c.bg} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:shadow-lg`}>
-          <Icon className={`w-9 h-9 ${c.text} transition-transform duration-300 group-hover:scale-110`} />
+        {/* Shine sweep */}
+        <span
+          className="pointer-events-none absolute -top-1/2 -left-1/2 w-[200%] h-[200%] rotate-12 bg-gradient-to-r from-transparent via-white/25 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-1/3 transition-all duration-700 ease-out"
+          aria-hidden="true"
+        />
+        {/* Icon bubble */}
+        <div className={`
+          relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center
+          ${c.bg} ${c.text}
+          shadow-sm group-hover:shadow-md
+          transition-all duration-300 ease-out
+          group-hover:scale-110 group-hover:rotate-[-5deg]
+          ring-1 ring-current/20
+        `}>
+          <Icon className={`w-9 h-9 transition-transform duration-300 group-hover:scale-105`} />
         </div>
-        <span dir="auto" className="relative z-10 text-[14px] font-bold text-center leading-snug line-clamp-3 w-full px-1 text-foreground break-words" title={t(label)}>
+        <span dir="auto" className={`relative z-10 text-[13px] font-bold text-center leading-snug line-clamp-3 w-full px-1 break-words transition-colors duration-200 ${isActive ? c.text : "text-foreground group-hover:" + c.text}`} title={t(label)}>
           {t(label)}
         </span>
       </button>
