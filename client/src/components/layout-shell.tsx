@@ -470,16 +470,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
           className="pointer-events-none absolute -top-1/2 -left-1/2 w-[200%] h-[200%] rotate-12 bg-gradient-to-r from-transparent via-white/25 dark:via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-1/3 transition-all duration-700 ease-out"
           aria-hidden="true"
         />
-        {/* Icon bubble */}
-        <div className={`
-          relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center
-          ${c.bg} ${c.text}
-          shadow-sm group-hover:shadow-md
-          transition-all duration-300 ease-out
-          group-hover:scale-110 group-hover:rotate-[-5deg]
-          ring-1 ring-current/20
-        `}>
-          <Icon className={`w-9 h-9 transition-transform duration-300 group-hover:scale-105`} />
+        {/* Icon — no frame */}
+        <div className={`relative z-10 flex items-center justify-center ${c.text} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-5deg]`}>
+          <Icon className={`w-11 h-11 transition-transform duration-300 group-hover:scale-105`} />
         </div>
         <span dir="auto" className={`relative z-10 text-[13px] font-bold text-center leading-snug line-clamp-3 w-full px-1 break-words transition-colors duration-200 ${isActive ? c.text : "text-foreground group-hover:" + c.text}`} title={t(label)}>
           {t(label)}
