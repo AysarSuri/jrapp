@@ -219,6 +219,10 @@ export default function UserManagementPage() {
       toast({ title: t("Please select a role"), variant: "destructive" });
       return;
     }
+    if (role === "admin" && (!branchId || branchId === "none")) {
+      toast({ title: "يجب اختيار الفرع لمدير الفرع", variant: "destructive" });
+      return;
+    }
 
     const effectivePermissions = role === "admin" ? getDefaultPermissions("admin") : role === "sales_rep" ? getDefaultPermissions("sales_rep") : permissions;
 
@@ -241,9 +245,7 @@ export default function UserManagementPage() {
         data.debtUsd = debtUsd || "0";
         data.debtIqd = debtIqd || "0";
       }
-      if (role !== "admin") {
-        data.branchId = branchId ? parseInt(branchId) : null;
-      }
+      data.branchId = branchId && branchId !== "none" ? parseInt(branchId) : null;
       updateMutation.mutate({ id: editUser.id, data });
     } else {
       const createData: any = { username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions };
@@ -254,9 +256,7 @@ export default function UserManagementPage() {
         createData.debtUsd = debtUsd || "0";
         createData.debtIqd = debtIqd || "0";
       }
-      if (role !== "admin") {
-        createData.branchId = branchId ? parseInt(branchId) : null;
-      }
+      createData.branchId = branchId && branchId !== "none" ? parseInt(branchId) : null;
       createMutation.mutate(createData);
     }
   };
@@ -271,7 +271,7 @@ export default function UserManagementPage() {
   };
 
   const roleConfig = {
-    admin: { icon: Shield, color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300", label: "Admin" },
+    admin: { icon: Shield, color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300", label: "مدير الفرع" },
     user: { icon: User, color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300", label: "User" },
     sales_rep: { icon: IconSupplierList, color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300", label: "Representative" },
   };
@@ -395,7 +395,7 @@ export default function UserManagementPage() {
               </div>
               <div className="space-y-2">
                 <Label className="font-semibold">{t('User Role')}</Label>
-                <Select value={role} onValueChange={(v) => { setRole(v); if (v === "admin") setBranchId(""); }}>
+                <Select value={role} onValueChange={(v) => { setRole(v); }}>
                   <SelectTrigger className="h-11" data-testid="select-user-role">
                     <SelectValue placeholder={t('Select role...')} />
                   </SelectTrigger>
@@ -403,7 +403,7 @@ export default function UserManagementPage() {
                     <SelectItem value="admin">
                       <div className="flex items-center gap-2">
                         <Shield className="h-5 w-5 text-purple-600" />
-                        {t('Admin')}
+                        مدير الفرع
                       </div>
                     </SelectItem>
                     <SelectItem value="user">
@@ -422,19 +422,20 @@ export default function UserManagementPage() {
                 </Select>
               </div>
 
-              {/* Branch selector — only for non-admin users */}
-              {role && role !== "admin" && (
+              {/* Branch selector — required for all roles */}
+              {role && (
                 <div className="space-y-2">
                   <Label className="font-semibold flex items-center gap-1">
                     <Building2 className="h-4 w-4 text-primary" />
                     {t('Branch')}
+                    {role === "admin" && <span className="text-red-500 ms-1">*</span>}
                   </Label>
                   <Select value={branchId} onValueChange={setBranchId}>
                     <SelectTrigger className="h-11" data-testid="select-user-branch">
-                      <SelectValue placeholder={t('No branch (all branches)') || "بدون فرع"} />
+                      <SelectValue placeholder={role === "admin" ? "اختر الفرع (إجباري)" : (t('No branch (all branches)') || "بدون فرع")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">{t('No branch') || "بدون فرع"}</SelectItem>
+                      {role !== "admin" && <SelectItem value="none">{t('No branch') || "بدون فرع"}</SelectItem>}
                       {branchOptions.map(b => (
                         <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
                       ))}
