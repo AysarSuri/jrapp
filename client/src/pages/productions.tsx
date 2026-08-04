@@ -859,12 +859,13 @@ export default function ProductionsPage() {
   const [fTo, setFTo] = useState("");
 
   const listParams = selectedBranchId != null ? { branchId: selectedBranchId } : {};
-  const { data: productions = [], refetch } = useListProductions(listParams);
+  const { data: productionsRaw, refetch } = useListProductions(listParams);
+  const productions: any[] = Array.isArray(productionsRaw) ? productionsRaw : [];
 
   useEffect(() => { refetch(); }, [selectedBranchId, refetch]);
 
   const filtered = useMemo(() => {
-    return (productions as any[]).filter(p => {
+    return productions.filter(p => {
       if (fNumber.trim() && !String(p.productionNumber).includes(toEn(fNumber.trim()))) return false;
       if (fProduct.trim()) {
         const q = normalizeAr(fProduct.trim());
