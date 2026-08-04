@@ -9,45 +9,31 @@ import {
   Globe,
   Bell,
   TrendingUp,
+  TrendingDown,
   Gift,
   X,
   ArrowRight,
   ArrowLeft,
+  ShoppingCart,
+  Store,
+  Users,
+  Package2,
+  BarChart2,
+  Landmark,
+  BadgePercent,
+  Headset,
+  Calculator,
+  HandCoins,
+  CreditCard,
+  Wallet,
+  Factory,
+  Building2,
+  Building,
+  UserCheck,
+  Monitor,
+  Banknote,
+  MapPin,
 } from "lucide-react";
-
-/* ── Custom bold PNG icon factory ── */
-const mkPngIcon = (n: number) =>
-  function PngIcon({ className }: { className?: string }) {
-    return (
-      <img
-        src={`/icons/si${n}.png`}
-        className="w-full h-full object-contain rounded-md"
-        alt=""
-        draggable={false}
-      />
-    );
-  };
-
-const SiSales        = mkPngIcon(1);
-const SiReports      = mkPngIcon(2);
-const SiAgent        = mkPngIcon(3);
-const SiExtDebt      = mkPngIcon(4);
-const SiClearance    = mkPngIcon(5);
-const SiSupplier     = mkPngIcon(6);
-const SiExpense      = mkPngIcon(7);
-const SiUserMgmt     = mkPngIcon(8);
-const SiOffice       = mkPngIcon(9);
-const SiBarcode      = mkPngIcon(10);
-const SiCompanyBook  = mkPngIcon(11);
-const SiOwner        = mkPngIcon(12);
-const SiCardCashier  = mkPngIcon(13);
-const SiBank         = mkPngIcon(14);
-const SiDashboard    = mkPngIcon(15);
-const SiCashier      = mkPngIcon(16);
-const SiProductions  = mkPngIcon(17);
-const SiMaterial     = mkPngIcon(18);
-const SiCompany      = mkPngIcon(19);
-const SiBranches     = mkPngIcon(20);
 import {
   IconDashboard,
   IconSales,
@@ -368,36 +354,36 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const supermarketNavItems: NavItem[] = [
-    { href: "/sm/productions", icon: SiProductions, label: "تحويل وإنتاج", color: "teal" },
-    { href: "/sm/cashier", icon: SiCashier, label: "القاصة", color: "green" },
-    { href: "/sm/card-cashier", icon: SiCardCashier, label: "قاصة البطاقات", color: "orange" },
-    { href: "/sm/branches", icon: SiBranches, label: "الفروع", color: "indigo" },
-    { href: "/sm/payment-cards", icon: IconAccounts, label: "بطاقات الدفع", color: "purple" },
+    { href: "/sm/productions", icon: Factory, label: "تحويل وإنتاج", color: "teal" },
+    { href: "/sm/cashier", icon: Wallet, label: "القاصة", color: "green" },
+    { href: "/sm/card-cashier", icon: CreditCard, label: "قاصة البطاقات", color: "orange" },
+    { href: "/sm/branches", icon: Building2, label: "الفروع", color: "indigo" },
+    { href: "/sm/payment-cards", icon: Banknote, label: "بطاقات الدفع", color: "purple" },
   ];
 
   const sidebarItems: NavEntry[] = [
-    { href: "/", icon: SiDashboard, label: "Dashboard", color: "blue" },
+    { href: "/", icon: Monitor, label: "Dashboard", color: "blue" },
     ...supermarketNavItems,
-    { type: 'group', label: "Sales Management", icon: SiSales, color: "green", children: salesNavItems },
-    { type: 'group', label: "Supplier Management", icon: SiSupplier, color: "red", children: supplierNavItems },
-    { type: 'group', label: "Agent Management", icon: SiAgent, color: "purple", children: agentManagementNavItems },
-    { type: 'group', label: "Material Management", icon: SiMaterial, color: "teal", children: materialNavItems },
-    { type: 'group', label: "Reports", icon: SiReports, color: "indigo", children: reportsNavItems },
-    { type: 'group', label: "Bank Management", icon: SiBank, color: "emerald", children: bankNavItems },
-    { type: 'group', label: "Clearance Management", icon: SiClearance, color: "cyan", children: clearanceNavItems },
-    { type: 'group', label: "Office Management", icon: SiOffice, color: "orange", children: officeNavItems },
-    { type: 'group', label: "Expense Management", icon: SiExpense, color: "amber", children: expenseNavItems },
-    { type: 'group', label: "External Debt Management", icon: SiExtDebt, color: "rose", children: externalDebtNavItems },
-    { type: 'group', label: "Owner Management", icon: SiOwner, color: "violet", children: ownerNavItems },
-    { href: "/addresses", icon: IconAddress, label: "Customer Addresses", color: "sky" },
-    { href: "/supplier-addresses", icon: IconAddress, label: "Supplier Addresses", color: "cyan" },
+    { type: 'group', label: "Sales Management", icon: ShoppingCart, color: "green", children: salesNavItems },
+    { type: 'group', label: "Supplier Management", icon: Store, color: "red", children: supplierNavItems },
+    { type: 'group', label: "Agent Management", icon: Users, color: "purple", children: agentManagementNavItems },
+    { type: 'group', label: "Material Management", icon: Package2, color: "teal", children: materialNavItems },
+    { type: 'group', label: "Reports", icon: BarChart2, color: "indigo", children: reportsNavItems },
+    { type: 'group', label: "Bank Management", icon: Landmark, color: "emerald", children: bankNavItems },
+    { type: 'group', label: "Clearance Management", icon: BadgePercent, color: "cyan", children: clearanceNavItems },
+    { type: 'group', label: "Office Management", icon: Headset, color: "orange", children: officeNavItems },
+    { type: 'group', label: "Expense Management", icon: Calculator, color: "amber", children: expenseNavItems },
+    { type: 'group', label: "External Debt Management", icon: TrendingDown, color: "rose", children: externalDebtNavItems },
+    { type: 'group', label: "Owner Management", icon: HandCoins, color: "violet", children: ownerNavItems },
+    { href: "/addresses", icon: MapPin, label: "Customer Addresses", color: "sky" },
+    { href: "/supplier-addresses", icon: MapPin, label: "Supplier Addresses", color: "cyan" },
     { type: 'group', label: "Warehouse Management", icon: IconWarehouse, color: "teal", children: warehouseNavItems },
-    { href: "/barcode-print", icon: SiBarcode, label: "Barcode Print", color: "slate" },
-    { href: "/company-profile", icon: SiCompany, label: "Company Profile", color: "emerald" },
+    { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print", color: "slate" },
+    { href: "/company-profile", icon: Building, label: "Company Profile", color: "emerald" },
     { href: "/currency-exchange", icon: IconCurrencyExchange, label: "Currency Exchange", color: "green" },
     { href: "/backup-restore", icon: IconBackupRestore, label: "Backup & Restore", color: "purple" },
     { href: "/settings", icon: IconSettings, label: "Settings", color: "slate" },
-    { href: "/user-management", icon: SiUserMgmt, label: "User Management", color: "pink" },
+    { href: "/user-management", icon: UserCheck, label: "User Management", color: "pink" },
   ];
 
   const userRole = user?.role || "user";
