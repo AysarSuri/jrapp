@@ -472,7 +472,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         />
         {/* Icon — no frame */}
         <div className={`relative z-10 flex items-center justify-center ${c.text} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-5deg]`}>
-          <Icon className={`w-11 h-11 transition-transform duration-300 group-hover:scale-105`} />
+          <Icon className={`w-14 h-14 transition-transform duration-300 group-hover:scale-105`} />
         </div>
         <span dir="auto" className={`relative z-10 text-[15px] font-bold text-center leading-snug line-clamp-3 w-full px-1 break-words transition-colors duration-200 ${isActive ? c.text : "text-foreground group-hover:" + c.text}`} title={t(label)}>
           {t(label)}
@@ -506,7 +506,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
           )}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-xs">P</span>
+              <span className="text-white font-bold text-xs">JR</span>
             </div>
             <span className="font-bold text-lg hidden sm:inline">JR</span>
           </div>
