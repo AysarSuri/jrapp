@@ -474,7 +474,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         <div className={`relative z-10 flex items-center justify-center ${c.text} transition-all duration-300 ease-out group-hover:scale-110 group-hover:rotate-[-5deg]`}>
           <Icon className={`w-11 h-11 transition-transform duration-300 group-hover:scale-105`} />
         </div>
-        <span dir="auto" className={`relative z-10 text-[13px] font-bold text-center leading-snug line-clamp-3 w-full px-1 break-words transition-colors duration-200 ${isActive ? c.text : "text-foreground group-hover:" + c.text}`} title={t(label)}>
+        <span dir="auto" className={`relative z-10 text-[15px] font-bold text-center leading-snug line-clamp-3 w-full px-1 break-words transition-colors duration-200 ${isActive ? c.text : "text-foreground group-hover:" + c.text}`} title={t(label)}>
           {t(label)}
         </span>
       </button>
