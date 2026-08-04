@@ -24,6 +24,18 @@ export function registerSmRoutes(app: Express): void {
   const router = Router();
 
   // Public (writes are protected inline inside the router).
+  router.get("/login-branches", async (_req, res) => {
+    try {
+      const { db } = await import("./db");
+      const { branchesTable } = await import("@shared/schema");
+      const rows = await db.select({ id: branchesTable.id, name: branchesTable.name, color: branchesTable.color })
+        .from(branchesTable)
+        .orderBy(branchesTable.id);
+      res.json(rows);
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   router.use("/branches", branchesRouter);
 
   // All routes below require a valid session.

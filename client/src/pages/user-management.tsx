@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Save, Shield, User, Eye, EyeOff, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, UserPlus, RotateCcw, CheckCircle, XCircle, Phone, LogOut, KeyRound, LogIn, Building2 } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers, IconSupplierList } from "@/components/erp-icons";
 import {
@@ -39,7 +39,10 @@ type SafeUser = {
   lastLoginAt: string | null;
   lastLogoutAt: string | null;
   createdAt: string;
+  branchId?: number | null;
 };
+
+type BranchOption = { id: number; name: string; color: string | null };
 
 export default function UserManagementPage() {
   const { t, i18n } = useTranslation();
@@ -64,6 +67,8 @@ export default function UserManagementPage() {
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [debtUsd, setDebtUsd] = useState("");
   const [debtIqd, setDebtIqd] = useState("");
+  const [branchId, setBranchId] = useState<string>("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [passwordUser, setPasswordUser] = useState<SafeUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -73,6 +78,10 @@ export default function UserManagementPage() {
   const [filterRole, setFilterRole] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+
+  const { data: branchOptions = [] } = useQuery<BranchOption[]>({
+    queryKey: ["/api/login-branches"],
+  });
 
   const resetForm = () => {
     setEditUser(null);
@@ -88,6 +97,8 @@ export default function UserManagementPage() {
     setExpandedModules([]);
     setDebtUsd("");
     setDebtIqd("");
+    setBranchId("");
+    setDialogOpen(false);
   };
 
   const { data: representativesList } = useQuery<{ id: string; name: string; repId: number | null; debtUsd: string; debtIqd: string }[]>({
@@ -106,6 +117,7 @@ export default function UserManagementPage() {
     setDetailedPermissions(u.detailedPermissions || {});
     setExpandedModules([]);
     setShowPassword(false);
+    setBranchId(u.branchId != null ? String(u.branchId) : "");
     if (u.role === "sales_rep") {
       const rep = representativesList?.find(r => r.name === u.fullName || r.name === u.username);
       setDebtUsd(rep?.debtUsd || "0");
@@ -114,7 +126,7 @@ export default function UserManagementPage() {
       setDebtUsd("");
       setDebtIqd("");
     }
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setDialogOpen(true);
   };
 
   const createMutation = useMutation({
@@ -229,6 +241,9 @@ export default function UserManagementPage() {
         data.debtUsd = debtUsd || "0";
         data.debtIqd = debtIqd || "0";
       }
+      if (role !== "admin") {
+        data.branchId = branchId ? parseInt(branchId) : null;
+      }
       updateMutation.mutate({ id: editUser.id, data });
     } else {
       const createData: any = { username: username.trim(), password, fullName: fullName.trim(), mobile: mobile.trim(), role, permissions: effectivePermissions };
@@ -238,6 +253,9 @@ export default function UserManagementPage() {
       if (role === "sales_rep") {
         createData.debtUsd = debtUsd || "0";
         createData.debtIqd = debtIqd || "0";
+      }
+      if (role !== "admin") {
+        createData.branchId = branchId ? parseInt(branchId) : null;
       }
       createMutation.mutate(createData);
     }
@@ -308,38 +326,9 @@ export default function UserManagementPage() {
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-user-management-title">
-            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <IconCustomers className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-            </div>
-            {t('User Management')}
-          </h1>
-          <p className="text-muted-foreground text-sm">{t('Create and manage system users')}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" ref={formRef}>
-        <Card className={`lg:col-span-2 shadow-sm ${editUser ? 'border-orange-300 dark:border-orange-700' : 'border-border/50'}`}>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              {editUser ? (
-                <>
-                  <Pencil className="h-5 w-5 text-orange-600" />
-                  {t('Edit User')} - <span className="text-orange-600">{editUser.fullName || editUser.username}</span>
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-5 w-5 text-purple-600" />
-                  {t('Add New User')}
-                </>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
+  /* ---- form JSX shown inside Dialog ---- */
+  const formContent = (
+    <div className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="font-semibold">{t('Full Name')}</Label>
@@ -406,7 +395,7 @@ export default function UserManagementPage() {
               </div>
               <div className="space-y-2">
                 <Label className="font-semibold">{t('User Role')}</Label>
-                <Select value={role} onValueChange={setRole}>
+                <Select value={role} onValueChange={(v) => { setRole(v); if (v === "admin") setBranchId(""); }}>
                   <SelectTrigger className="h-11" data-testid="select-user-role">
                     <SelectValue placeholder={t('Select role...')} />
                   </SelectTrigger>
@@ -432,6 +421,30 @@ export default function UserManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Branch selector — only for non-admin users */}
+              {role && role !== "admin" && (
+                <div className="space-y-2">
+                  <Label className="font-semibold flex items-center gap-1">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    {t('Branch')}
+                  </Label>
+                  <Select value={branchId} onValueChange={setBranchId}>
+                    <SelectTrigger className="h-11" data-testid="select-user-branch">
+                      <SelectValue placeholder={t('No branch (all branches)') || "بدون فرع"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('No branch') || "بدون فرع"}</SelectItem>
+                      {branchOptions.map(b => (
+                        <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {t('branchAssignDesc') || "يظهر هذا المستخدم فقط عند اختيار هذا الفرع في شاشة تسجيل الدخول"}
+                  </p>
+                </div>
+              )}
               {role === "sales_rep" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -795,92 +808,76 @@ export default function UserManagementPage() {
                 )}
               </div>
             )}
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`gap-2 text-[#ffffff] ${editUser ? 'bg-orange-600 hover:bg-orange-700' : 'bg-purple-600 hover:bg-purple-700'}`}
-                data-testid={editUser ? "button-update-user" : "button-create-user"}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : editUser ? (
-                  <Save className="h-5 w-5" />
-                ) : (
-                  <Plus className="h-5 w-5" />
-                )}
-                {editUser ? t('Update') : t('Add User')}
-              </Button>
-              <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-user-form">
-                <RotateCcw className="h-5 w-5" />
-                {editUser ? t('Cancel') : t('Reset')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    </div>
+  );
 
-        <Card className="border-purple-200 dark:border-purple-900 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">{t('Statistics')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <IconCustomers className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">{t('Total Users')}</span>
-                </div>
-                <span className="font-bold text-lg" data-testid="text-total-users">{allUsers.length}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm font-medium">{t('Admin')}</span>
-                </div>
-                <span className="font-bold text-lg text-purple-600" data-testid="text-admin-count">
-                  {allUsers.filter(u => u.role === 'admin').length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium">{t('User')}</span>
-                </div>
-                <span className="font-bold text-lg text-blue-600" data-testid="text-user-count">
-                  {allUsers.filter(u => u.role === 'user').length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <IconSupplierList className="h-5 w-5 text-emerald-600" />
-                  <span className="text-sm font-medium">{t('Representative')}</span>
-                </div>
-                <span className="font-bold text-lg text-emerald-600" data-testid="text-rep-count">
-                  {allUsers.filter(u => u.role === 'sales_rep').length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium">{t('Active')}</span>
-                </div>
-                <span className="font-bold text-lg text-green-600" data-testid="text-active-count">
-                  {allUsers.filter(u => u.isActive === 1).length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm font-medium">{t('Online')}</span>
-                </div>
-                <span className="font-bold text-lg text-green-600" data-testid="text-online-count">
-                  {allUsers.filter(u => isUserOnline(u)).length}
-                </span>
-              </div>
+  return (
+    <div className="space-y-3">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-user-management-title">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <IconCustomers className="h-7 w-7 text-purple-600 dark:text-purple-400" />
             </div>
-          </CardContent>
-        </Card>
+            {t('User Management')}
+          </h1>
+          <p className="text-muted-foreground text-sm">{t('Create and manage system users')}</p>
+        </div>
+        <Button
+          onClick={() => { resetForm(); setDialogOpen(true); }}
+          className="gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+          data-testid="button-open-add-user"
+        >
+          <UserPlus className="h-5 w-5" />
+          {t('Add New User')}
+        </Button>
       </div>
+
+      {/* ── Add / Edit Dialog ── */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {editUser ? (
+                <>
+                  <Pencil className="h-5 w-5 text-orange-600" />
+                  {t('Edit User')} — <span className="text-orange-600">{editUser.fullName || editUser.username}</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-5 w-5 text-purple-600" />
+                  {t('Add New User')}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          {formContent}
+
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`gap-2 text-white ${editUser ? 'bg-orange-600 hover:bg-orange-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+              data-testid={editUser ? "button-update-user" : "button-create-user"}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : editUser ? (
+                <Save className="h-5 w-5" />
+              ) : (
+                <Plus className="h-5 w-5" />
+              )}
+              {editUser ? t('Update') : t('Add User')}
+            </Button>
+            <Button variant="outline" onClick={resetForm} className="gap-2" data-testid="button-reset-user-form">
+              <RotateCcw className="h-5 w-5" />
+              {editUser ? t('Cancel') : t('Reset')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-4">

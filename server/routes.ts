@@ -138,12 +138,38 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/login-users', async (_req, res) => {
+  // Public: list branches for login screen (no auth required)
+  app.get('/api/login-branches', async (_req, res) => {
     try {
+      const { branchesTable } = await import('@shared/schema');
+      const rows = await db.select({ id: branchesTable.id, name: branchesTable.name, color: branchesTable.color })
+        .from(branchesTable)
+        .orderBy(branchesTable.id);
+      res.json(rows);
+    } catch {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/login-users', async (req, res) => {
+    try {
+      const { branchId, adminOnly } = req.query as { branchId?: string; adminOnly?: string };
       const allUsers = await storage.getAllUsers();
-      const safeList = allUsers
-        .filter(u => u.isActive !== false)
-        .map(u => ({ id: u.id, username: u.username, fullName: u.fullName, role: u.role }));
+      let filtered = allUsers.filter(u => u.isActive !== false && u.isActive !== 0);
+
+      if (adminOnly === 'true') {
+        // Show only admin users (no branch required)
+        filtered = filtered.filter(u => u.role === 'admin');
+      } else if (branchId) {
+        const bid = parseInt(branchId);
+        // Show users assigned to this branch (non-admin)
+        filtered = filtered.filter(u => u.role !== 'admin' && (u as any).branchId === bid);
+      } else {
+        // No filter: return empty (must select branch or admin mode)
+        filtered = [];
+      }
+
+      const safeList = filtered.map(u => ({ id: u.id, username: u.username, fullName: u.fullName, role: u.role }));
       res.json(safeList);
     } catch {
       res.status(500).json({ message: "Internal server error" });
@@ -352,7 +378,7 @@ export async function registerRoutes(
   }
 
   app.use('/api', (req, res, next) => {
-    const openPaths = ['/api/auth', '/api/user', '/api/login-users', '/api/notifications', '/api/dashboard'];
+    const openPaths = ['/api/auth', '/api/user', '/api/login-users', '/api/login-branches', '/api/notifications', '/api/dashboard'];
     const fullPath = req.path.startsWith('/api') ? req.path : `/api${req.path}`;
     if (openPaths.some(p => fullPath.startsWith(p))) return next();
     if (!req.session.userId) return next();
@@ -503,7 +529,9 @@ export async function registerRoutes(
       let effectivePerms: string[] = Array.isArray(permissions) ? permissions : [];
       if (role === 'admin') effectivePerms = Object.keys(API_PERMISSION_MAP).map(k => API_PERMISSION_MAP[k]).filter((v, i, a) => a.indexOf(v) === i).concat(['dashboard']);
       if (role === 'sales_rep') effectivePerms = SALES_REP_PERMS;
+      const { branchId: branchIdRaw } = req.body;
       const userData: any = { username, password: hashed, fullName: fullName || "", mobile: mobile || "", role, permissions: effectivePerms };
+      if (branchIdRaw != null && role !== 'admin') userData.branchId = parseInt(branchIdRaw) || null;
       if ((role === 'user' || role === 'sales_rep') && detailedPermissions && typeof detailedPermissions === 'object') {
         userData.detailedPermissions = detailedPermissions;
       }
@@ -526,7 +554,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Only admins can manage users" });
       }
       const { id } = req.params;
-      const { username, password, fullName, role, isActive, mobile, permissions, detailedPermissions, debtUsd, debtIqd } = req.body;
+      const { username, password, fullName, role, isActive, mobile, permissions, detailedPermissions, debtUsd, debtIqd, branchId: branchIdPatch } = req.body;
       const updateData: any = {};
       if (username !== undefined) updateData.username = username;
       if (fullName !== undefined) updateData.fullName = fullName;
@@ -537,6 +565,11 @@ export async function registerRoutes(
           return res.status(400).json({ message: "Invalid role" });
         }
         updateData.role = role;
+        // Admins have no branch restriction
+        if (role === 'admin') updateData.branchId = null;
+      }
+      if (branchIdPatch !== undefined && (role || 'user') !== 'admin') {
+        updateData.branchId = branchIdPatch != null ? (parseInt(branchIdPatch) || null) : null;
       }
       const finalRole = role || (await storage.getUser(id))?.role || 'user';
       if (finalRole === 'admin') {

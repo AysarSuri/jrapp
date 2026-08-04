@@ -95,6 +95,7 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   lastLogoutAt: timestamp("last_logout_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  branchId: integer("branch_id"), // null = no branch restriction (admin)
 });
 
 export const products = pgTable("products", {

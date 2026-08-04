@@ -320,6 +320,12 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/profits-report", icon: TrendingUp, label: "Profits Report", color: "green" },
     { href: "/sales-discounts-gifts-report", icon: Gift, label: "Sales Discounts & Gifts Report", color: "pink" },
     { href: "/supplier-discounts-gifts-report", icon: Gift, label: "Supplier Discounts & Gifts Report", color: "orange" },
+    { href: "/sm/shifts", icon: IconStatementUsd, label: "كشف المواعيد", color: "blue" },
+    { href: "/sm/capital", icon: IconBank, label: "رأس المال", color: "emerald" },
+    { href: "/company-book", icon: IconCompanyBook, label: "Company Book Management", color: "indigo" },
+    { href: "/accounts", icon: IconAccounts, label: "Accounts", color: "blue" },
+    { href: "/audit-logs", icon: IconAuditLog, label: "Audit Logs", color: "red" },
+    { href: "/data-reset", icon: IconDataReset, label: "Data Reset", color: "red" },
   ];
 
   const warehouseNavItems: NavItem[] = [
@@ -328,11 +334,9 @@ export function LayoutShell({ children }: LayoutShellProps) {
   ];
 
   const supermarketNavItems: NavItem[] = [
-    { href: "/sm/shifts", icon: IconStatementUsd, label: "كشف المواعيد", color: "blue" },
     { href: "/sm/productions", icon: IconWarehouseTransfer, label: "تحويل وإنتاج", color: "teal" },
     { href: "/sm/cashier", icon: IconPaymentUsd, label: "القاصة", color: "green" },
     { href: "/sm/card-cashier", icon: IconPaymentIqd, label: "قاصة البطاقات", color: "orange" },
-    { href: "/sm/capital", icon: IconBank, label: "رأس المال", color: "emerald" },
     { href: "/sm/branches", icon: IconCompany, label: "الفروع", color: "indigo" },
     { href: "/sm/payment-cards", icon: IconAccounts, label: "بطاقات الدفع", color: "purple" },
   ];
@@ -355,15 +359,11 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/supplier-addresses", icon: IconAddress, label: "Supplier Addresses", color: "cyan" },
     { type: 'group', label: "Warehouse Management", icon: IconWarehouse, color: "teal", children: warehouseNavItems },
     { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print", color: "slate" },
-    { href: "/company-book", icon: IconCompanyBook, label: "Company Book Management", color: "indigo" },
     { href: "/company-profile", icon: IconCompany, label: "Company Profile", color: "emerald" },
     { href: "/currency-exchange", icon: IconCurrencyExchange, label: "Currency Exchange", color: "green" },
-    { href: "/accounts", icon: IconAccounts, label: "Accounts", color: "blue" },
-    { href: "/audit-logs", icon: IconAuditLog, label: "Audit Logs", color: "red" },
     { href: "/backup-restore", icon: IconBackupRestore, label: "Backup & Restore", color: "purple" },
     { href: "/settings", icon: IconSettings, label: "Settings", color: "slate" },
     { href: "/user-management", icon: IconUserManagement, label: "User Management", color: "pink" },
-    { href: "/data-reset", icon: IconDataReset, label: "Data Reset", color: "red" },
   ];
 
   const userRole = user?.role || "user";
