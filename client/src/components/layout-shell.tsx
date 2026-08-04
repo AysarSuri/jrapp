@@ -641,7 +641,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="w-full">
               {!activeGroup ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-5">
                   {filteredSidebarItems.map((entry) => {
                     const isGroup = 'type' in entry && entry.type === 'group';
                     const label = isGroup ? (entry as NavGroup).label : (entry as NavItem).label;
@@ -662,7 +662,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
                   })}
                 </div>
               ) : activeGroupData ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-5">
                   {activeGroupData.children.map((item) => {
                     const isActive = location === item.href;
                     return renderGridCard(
