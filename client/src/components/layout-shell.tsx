@@ -508,7 +508,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-xs">P</span>
             </div>
-            <span className="font-bold text-lg hidden sm:inline">ProERP</span>
+            <span className="font-bold text-lg hidden sm:inline">JR</span>
           </div>
 
           {user && (
