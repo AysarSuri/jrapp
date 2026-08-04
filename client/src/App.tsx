@@ -123,6 +123,15 @@ import DataResetPage from "@/pages/data-reset";
 import AuthPage from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import { LayoutShell } from "@/components/layout-shell";
+import {
+  SmShiftsPage,
+  SmProductionsPage,
+  SmCashierPage,
+  SmCardCashierPage,
+  SmCapitalPage,
+  SmBranchesPage,
+  SmPaymentCardsPage,
+} from "@/sm/SmProviders";
 import "./lib/i18n";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -501,6 +510,27 @@ function Router() {
       </Route>
       <Route path="/external-debt-statement">
         <ProtectedRoute component={ExternalDebtStatementPage} />
+      </Route>
+      <Route path="/sm/shifts">
+        <ProtectedRoute component={SmShiftsPage} />
+      </Route>
+      <Route path="/sm/productions">
+        <ProtectedRoute component={SmProductionsPage} />
+      </Route>
+      <Route path="/sm/cashier">
+        <ProtectedRoute component={SmCashierPage} />
+      </Route>
+      <Route path="/sm/card-cashier">
+        <ProtectedRoute component={SmCardCashierPage} />
+      </Route>
+      <Route path="/sm/capital">
+        <ProtectedRoute component={SmCapitalPage} />
+      </Route>
+      <Route path="/sm/branches">
+        <ProtectedRoute component={SmBranchesPage} />
+      </Route>
+      <Route path="/sm/payment-cards">
+        <ProtectedRoute component={SmPaymentCardsPage} />
       </Route>
       <Route component={NotFound} />
     </Switch>

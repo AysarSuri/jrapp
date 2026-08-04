@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect, useRef, type ElementType } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLang } from "@/contexts/LanguageContext";
-import { useBranch } from "@/contexts/BranchContext";
+import { useLang } from "@/sm/contexts/LanguageContext";
+import { useBranch } from "@/sm/contexts/BranchContext";
 import { useToast } from "@/hooks/use-toast";
-import { fmtN, fmtQty } from "@/lib/utils";
+import { fmtN, fmtQty } from "@/sm/lib/utils";
 import { format } from "date-fns";
 import {
   useListProducts,
@@ -11,14 +11,15 @@ import {
   useCreateProduction,
   useUpdateProduction,
   useGetProduction,
+  getGetProductionQueryKey,
   useDeleteProduction,
   useGetNextProductionNumber,
-} from "@workspace/api-client-react";
-import { BranchSelectField } from "@/components/BranchSelectField";
-import { DateInput } from "@/components/DateInput";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
-import { printReport } from "@/utils/printReport";
-import { resolveStoreIdentity } from "@/lib/print-store";
+} from "@/sm/api-client-react";
+import { BranchSelectField } from "@/sm/components/BranchSelectField";
+import { DateInput } from "@/sm/components/DateInput";
+import { useAppSettings } from "@/sm/contexts/AppSettingsContext";
+import { printReport } from "@/sm/utils/printReport";
+import { resolveStoreIdentity } from "@/sm/lib/print-store";
 import {
   Split, Plus, X, Search, Package, Trash2, PackagePlus,
   List, Calendar, Clock, FileText, ArrowLeft, Eye, AlertCircle, Hash, Boxes, Building2, Printer, Pencil, RotateCcw,
@@ -183,6 +184,7 @@ function ProductCombobox({
   accent: keyof typeof ACCENTS;
   Icon: ElementType;
 }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const ac = ACCENTS[accent];
@@ -283,6 +285,7 @@ function ProductionForm({ editing, onSaved, onCancelEdit }: {
   onSaved: () => void;
   onCancelEdit: () => void;
 }) {
+  const { t } = useLang();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { selectedBranchId, isBranchLocked } = useBranch();
@@ -721,6 +724,7 @@ function ProductionForm({ editing, onSaved, onCancelEdit }: {
    PRODUCTION DETAIL MODAL
 ════════════════════════════════ */
 function ProductionDetail({ id, onClose }: { id: number; onClose: () => void }) {
+  const { t } = useLang();
   const { data: prod, isLoading } = useGetProduction(id);
 
   return (
@@ -811,7 +815,7 @@ function ProductionDetail({ id, onClose }: { id: number; onClose: () => void }) 
    so a stale React Query cache can never prefill/print old data. */
 function ProductionEditLoader({ id, onLoaded }: { id: number; onLoaded: (d: any) => void }) {
   const { data, isSuccess, isFetching } = useGetProduction(id, {
-    query: { staleTime: 0, refetchOnMount: "always" },
+    query: { queryKey: getGetProductionQueryKey(id), staleTime: 0, refetchOnMount: "always" },
   });
   const done = useRef(false);
   useEffect(() => {
@@ -822,7 +826,7 @@ function ProductionEditLoader({ id, onLoaded }: { id: number; onLoaded: (d: any)
 
 function ProductionPrinter({ id, storeName, onDone }: { id: number; storeName: string; onDone: () => void }) {
   const { data, isSuccess, isFetching } = useGetProduction(id, {
-    query: { staleTime: 0, refetchOnMount: "always" },
+    query: { queryKey: getGetProductionQueryKey(id), staleTime: 0, refetchOnMount: "always" },
   });
   const done = useRef(false);
   useEffect(() => {
@@ -835,6 +839,7 @@ function ProductionPrinter({ id, storeName, onDone }: { id: number; storeName: s
    MAIN PAGE
 ════════════════════════════════ */
 export default function ProductionsPage() {
+  const { t } = useLang();
   const { toast } = useToast();
   const { selectedBranchId, selectedBranch, activeBranches, isBranchLocked } = useBranch();
   const { storeName } = useAppSettings();

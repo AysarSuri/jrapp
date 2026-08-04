@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { useLang } from '@/contexts/LanguageContext';
-import { useAppSettings } from "@/contexts/AppSettingsContext";
-import { useAuth, canSeeAllBranches } from "@/contexts/AuthContext";
-import { useBranch } from "@/contexts/BranchContext";
-import { DateInput } from "@/components/DateInput";
+import { useLang } from '@/sm/contexts/LanguageContext';
+import { useAppSettings } from "@/sm/contexts/AppSettingsContext";
+import { useAuth, canSeeAllBranches } from "@/sm/contexts/AuthContext";
+import { useBranch } from "@/sm/contexts/BranchContext";
+import { DateInput } from "@/sm/components/DateInput";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { fetchJson } from "@/lib/utils";
-import { printHtmlDirect } from "@/lib/print-html-direct";
-import { requireReportPrinter } from "@/lib/printers";
-import { REPORT_FONT_FACE_CSS } from "@/lib/report-font";
+import { fetchJson } from "@/sm/lib/utils";
+import { printHtmlDirect } from "@/sm/lib/print-html-direct";
+import { requireReportPrinter } from "@/sm/lib/printers";
+import { REPORT_FONT_FACE_CSS } from "@/sm/lib/report-font";
 import {
   Landmark, ArrowDownCircle, ArrowUpCircle, Wallet,
   ShoppingCart, TrendingDown, TrendingUp,

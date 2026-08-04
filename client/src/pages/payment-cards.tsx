@@ -1,16 +1,16 @@
 import { useState, type ChangeEvent } from "react";
-import { useLang } from '@/contexts/LanguageContext';
+import { useLang } from '@/sm/contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
-import { useBranch } from "@/contexts/BranchContext";
+import { useAppSettings } from "@/sm/contexts/AppSettingsContext";
+import { useBranch } from "@/sm/contexts/BranchContext";
 import {
   CreditCard, Plus, Pencil, Trash2, X, Check, Loader2,
   Wifi, Shield, BadgePercent, HelpCircle, ToggleLeft, ToggleRight,
   Phone, QrCode, Wallet, Upload, Lock,
 } from "lucide-react";
-import { useConfirm } from "@/contexts/ConfirmDialogContext";
-import { fetchJson, fetchOk } from "@/lib/utils";
+import { useConfirm } from "@/sm/contexts/ConfirmDialogContext";
+import { fetchJson, fetchOk } from "@/sm/lib/utils";
 
 /* Resize an uploaded image to a max dimension and return a data URL (keeps QR scannable, avoids 413) */
 function resizeImageFile(file: File, maxSize: number, mime = "image/png"): Promise<string> {

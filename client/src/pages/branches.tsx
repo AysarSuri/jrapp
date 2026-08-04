@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
-import { useLang } from "@/contexts/LanguageContext";
+import { useLang } from "@/sm/contexts/LanguageContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Plus, Pencil, Trash2, X, Check, Loader2, Phone, MapPin, Smartphone, Image, UploadCloud, QrCode, Lock } from "lucide-react";
-import type { Branch } from "@/contexts/BranchContext";
-import { BRANCH_COLORS as COLORS, getBranchColor as getColor } from "@/lib/branchColors";
-import { fetchJson, fetchOk, FetchError } from "@/lib/utils";
+import type { Branch } from "@/sm/contexts/BranchContext";
+import { BRANCH_COLORS as COLORS, getBranchColor as getColor } from "@/sm/lib/branchColors";
+import { fetchJson, fetchOk, FetchError } from "@/sm/lib/utils";
 
 const emptyForm = { name: "", address: "", phone: "", mobile: "", notes: "", isActive: true, headerImage: "", qrImage: "", storeName: "", storeLogo: "", color: "teal" };
 

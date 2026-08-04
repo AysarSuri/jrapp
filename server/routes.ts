@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool, db } from "./db";
+import { registerSmRoutes } from "./sm-routes";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { purchaseInvoices, purchaseInvoiceItems, clients, supplierPayments, supplierAdjustments, accounts, bankTransactions, banks, customsClearanceTransactions, customsClearances, clearancePurchaseInvoices, transferOfficeTransactions, transferOffices, externalDebts, externalDebtTransactions, owners, ownerTransactions, expenses, salesInvoices, salesInvoiceItems, salesReturns, salesReturnItems, purchaseReturns, purchaseReturnItems, customerReceipts, agentPayments, agentReceipts, representatives, notifications, warehouseTransfers, warehouseTransferItems, productDamages, productDamageItems, products, exportLogs, agentProductLoads, agentProductLoadItems, users, agentClients, agentLocations, units, categories, categoryGroups, addresses, supplierAddresses, warehouses, expenseTypes, inventory, currencyExchanges, companyProfile, transactions, systemSettings, supplierOrders, supplierOrderItems, companyBooks, bookTypes, auditLogs, loginAttempts } from "@shared/schema";
 
@@ -6297,6 +6298,9 @@ export async function registerRoutes(
       });
     } catch (e: any) { res.status(500).json({ message: e.message }); }
   });
+
+  // Supermarket (SM) ported feature routes — /api/branches, /api/shifts, etc.
+  registerSmRoutes(app);
 
   return httpServer;
 }

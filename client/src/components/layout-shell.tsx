@@ -327,8 +327,19 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/warehouse-transfer", icon: IconWarehouseTransfer, label: "Warehouse Transfer", color: "blue" },
   ];
 
+  const supermarketNavItems: NavItem[] = [
+    { href: "/sm/shifts", icon: IconStatementUsd, label: "كشف المواعيد", color: "blue" },
+    { href: "/sm/productions", icon: IconWarehouseTransfer, label: "تحويل وإنتاج", color: "teal" },
+    { href: "/sm/cashier", icon: IconPaymentUsd, label: "القاصة", color: "green" },
+    { href: "/sm/card-cashier", icon: IconPaymentIqd, label: "قاصة البطاقات", color: "orange" },
+    { href: "/sm/capital", icon: IconBank, label: "رأس المال", color: "emerald" },
+    { href: "/sm/branches", icon: IconCompany, label: "الفروع", color: "indigo" },
+    { href: "/sm/payment-cards", icon: IconAccounts, label: "بطاقات الدفع", color: "purple" },
+  ];
+
   const sidebarItems: NavEntry[] = [
     { href: "/", icon: IconDashboard, label: "Dashboard", color: "blue" },
+    { type: 'group', label: "سوبرماركت", icon: IconMaterial, color: "violet", children: supermarketNavItems },
     { type: 'group', label: "Sales Management", icon: IconSales, color: "green", children: salesNavItems },
     { type: 'group', label: "Supplier Management", icon: IconSupplier, color: "red", children: supplierNavItems },
     { type: 'group', label: "Agent Management", icon: IconAgent, color: "purple", children: agentManagementNavItems },

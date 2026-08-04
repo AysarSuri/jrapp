@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, serial, integer, timestamp, numeric, varchar, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric, varchar, boolean, jsonb, date, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -946,3 +946,432 @@ export const loginSchema = z.object({
   username: z.string(),
   password: z.string(),
 });
+
+/* ============================================================================
+ * Supermarket (SM) feature tables — ported from the supermarket ERP.
+ * All physical table names are prefixed with `sm_` to avoid colliding with the
+ * JR tables (products / expenses / suppliers / customers / supplier_payments …
+ * already exist here with a DIFFERENT shape). The exported JS identifiers keep
+ * the supermarket `...Table` naming so the ported routes need no renames.
+ * Run `npm run db:push` after adding these to create the tables.
+ * ========================================================================== */
+
+export const branchesTable = pgTable("sm_branches", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  address: text("address"),
+  phone: text("phone"),
+  mobile: text("mobile"),
+  notes: text("notes"),
+  isActive: boolean("is_active").notNull().default(true),
+  headerImage: text("header_image"),
+  qrImage: text("qr_image"),
+  storeName: text("store_name"),
+  storeLogo: text("store_logo"),
+  color: text("color").default("teal"),
+  quickKeys: jsonb("quick_keys").$type<Record<string, (number | null)[]>>().default({}).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const insertBranchSchema = createInsertSchema(branchesTable).omit({ id: true, createdAt: true });
+export type InsertBranch = z.infer<typeof insertBranchSchema>;
+export type Branch = typeof branchesTable.$inferSelect;
+
+export const shiftsTable = pgTable("sm_shifts", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id"),
+  userName: text("user_name"),
+  status: text("status").notNull().default("open"),
+  openingAmount: numeric("opening_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  totalSales: numeric("total_sales", { precision: 12, scale: 3 }).default("0"),
+  totalDiscounts: numeric("total_discounts", { precision: 12, scale: 3 }).default("0"),
+  totalCash: numeric("total_cash", { precision: 12, scale: 3 }).default("0"),
+  totalCard: numeric("total_card", { precision: 12, scale: 3 }).default("0"),
+  totalCredit: numeric("total_credit", { precision: 12, scale: 3 }).default("0"),
+  totalNet: numeric("total_net", { precision: 12, scale: 3 }).default("0"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const insertShiftSchema = createInsertSchema(shiftsTable).omit({ id: true, createdAt: true });
+export type InsertShift = z.infer<typeof insertShiftSchema>;
+export type Shift = typeof shiftsTable.$inferSelect;
+
+export const productsSmTable = pgTable("sm_products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  nameAr: text("name_ar").notNull(),
+  barcode: text("barcode").unique(),
+  sku: text("sku").unique(),
+  categoryId: integer("category_id"),
+  group: text("group"),
+  productType: text("product_type").notNull().default("جملة"),
+  description: text("description"),
+  unit: text("unit").notNull().default("قطعة"),
+  bigUnit: text("big_unit"),
+  smallUnit: text("small_unit"),
+  conversionFactor: integer("conversion_factor").default(1),
+  defaultPurchaseUnit: text("default_purchase_unit"),
+  defaultSaleUnit: text("default_sale_unit"),
+  purchasePrice: numeric("purchase_price", { precision: 12, scale: 3 }).notNull().default("0"),
+  salePrice: numeric("sale_price", { precision: 12, scale: 3 }).notNull().default("0"),
+  wholesalePrice: numeric("wholesale_price", { precision: 12, scale: 3 }).default("0"),
+  weight: numeric("weight", { precision: 10, scale: 3 }),
+  minStockLevel: integer("min_stock_level").notNull().default(5),
+  currentStock: integer("current_stock").notNull().default(0),
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  isHidden: boolean("is_hidden").notNull().default(false),
+  isFavorite: boolean("is_favorite").notNull().default(false),
+  isScale: boolean("is_scale").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ProductSm = typeof productsSmTable.$inferSelect;
+
+export const productStocksTable = pgTable("sm_product_stocks", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  branchId: integer("branch_id").notNull(),
+  quantity: integer("quantity").notNull().default(0),
+  openingStock: integer("opening_stock").notNull().default(0),
+  costPrice: numeric("cost_price", { precision: 12, scale: 3 }).notNull().default("0"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  smProductBranchUq: unique("sm_product_branch_uq").on(t.productId, t.branchId),
+}));
+export type ProductStock = typeof productStocksTable.$inferSelect;
+
+export const productionsTable = pgTable("sm_productions", {
+  id: serial("id").primaryKey(),
+  productionNumber: integer("production_number").notNull(),
+  branchId: integer("branch_id").notNull(),
+  sourceProductId: integer("source_product_id").notNull(),
+  sourceQuantity: numeric("source_quantity", { precision: 12, scale: 3 }).notNull(),
+  productionDate: text("production_date"),
+  productionTime: text("production_time"),
+  notes: text("notes"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const productionItemsTable = pgTable("sm_production_items", {
+  id: serial("id").primaryKey(),
+  productionId: integer("production_id").notNull(),
+  productId: integer("product_id").notNull(),
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+});
+export const insertProductionSchema = createInsertSchema(productionsTable).omit({ id: true, createdAt: true });
+export type InsertProduction = z.infer<typeof insertProductionSchema>;
+export type Production = typeof productionsTable.$inferSelect;
+export const insertProductionItemSchema = createInsertSchema(productionItemsTable).omit({ id: true });
+export type InsertProductionItem = z.infer<typeof insertProductionItemSchema>;
+export type ProductionItem = typeof productionItemsTable.$inferSelect;
+
+export const paymentCardsTable = pgTable("sm_payment_cards", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("other"),
+  notes: text("notes"),
+  mobile: text("mobile"),
+  barcode: text("barcode"),
+  openingBalance: numeric("opening_balance").notNull().default("0"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const insertPaymentCardSchema = createInsertSchema(paymentCardsTable).omit({ id: true, createdAt: true });
+export type InsertPaymentCard = z.infer<typeof insertPaymentCardSchema>;
+export type PaymentCard = typeof paymentCardsTable.$inferSelect;
+
+export const paymentCardBranchesTable = pgTable("sm_payment_card_branches", {
+  id: serial("id").primaryKey(),
+  cardId: integer("card_id").notNull().references(() => paymentCardsTable.id, { onDelete: "cascade" }),
+  branchId: integer("branch_id").notNull().references(() => branchesTable.id, { onDelete: "cascade" }),
+}, (t) => ({
+  smUniqCardBranch: unique("sm_card_branch_uq").on(t.cardId, t.branchId),
+}));
+export type PaymentCardBranch = typeof paymentCardBranchesTable.$inferSelect;
+
+/* --- Aggregation source tables used by SM reports (cashier / cards / capital /
+ *     shift report). Kept as sm_-prefixed copies so JR's own sales/purchases/…
+ *     stay untouched. Future porting can fill these. --- */
+
+export const salesTable = pgTable("sm_sales", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").unique(),
+  saleDate: text("sale_date"),
+  saleTime: text("sale_time"),
+  invoiceNumber: text("invoice_number").notNull().unique(),
+  totalAmount: numeric("total_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  discountAmount: numeric("discount_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  priceEditDiscount: numeric("price_edit_discount", { precision: 12, scale: 3 }).notNull().default("0"),
+  taxAmount: numeric("tax_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  netAmount: numeric("net_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paidAmount: numeric("paid_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  changeAmount: numeric("change_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paymentMethod: text("payment_method").notNull().default("cash"),
+  cardId: integer("card_id"),
+  customerName: text("customer_name"),
+  notes: text("notes"),
+  userId: text("user_id"),
+  userName: text("user_name"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  source: text("source").default("pos"),
+  editedById: integer("edited_by_id"),
+  editedByName: text("edited_by_name"),
+  editedAt: timestamp("edited_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const saleItemsTable = pgTable("sm_sale_items", {
+  id: serial("id").primaryKey(),
+  saleId: integer("sale_id").notNull(),
+  productId: integer("product_id").notNull(),
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 3 }).notNull(),
+  baseUnitPrice: numeric("base_unit_price", { precision: 12, scale: 3 }),
+  discount: numeric("discount", { precision: 12, scale: 3 }).notNull().default("0"),
+  totalPrice: numeric("total_price", { precision: 12, scale: 3 }).notNull(),
+});
+export type Sale = typeof salesTable.$inferSelect;
+export type SaleItem = typeof saleItemsTable.$inferSelect;
+
+export const purchasesTable = pgTable("sm_purchases", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number"),
+  supplierId: integer("supplier_id"),
+  invoiceNumber: text("invoice_number"),
+  totalAmount: numeric("total_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  discountAmount: numeric("discount_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  taxAmount: numeric("tax_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  netAmount: numeric("net_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paidAmount: numeric("paid_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paymentMethod: text("payment_method").notNull().default("cash"),
+  cardId: integer("card_id"),
+  status: text("status").notNull().default("completed"),
+  notes: text("notes"),
+  invoiceDate: timestamp("invoice_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: text("created_by"),
+  updatedBy: text("updated_by"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+});
+export const purchaseItemsTable = pgTable("sm_purchase_items", {
+  id: serial("id").primaryKey(),
+  purchaseId: integer("purchase_id").notNull(),
+  productId: integer("product_id").notNull(),
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 3 }).notNull(),
+  totalPrice: numeric("total_price", { precision: 12, scale: 3 }).notNull(),
+  productionDate: text("production_date"),
+  expiryDate: text("expiry_date"),
+  batchNumber: text("batch_number"),
+});
+export type Purchase = typeof purchasesTable.$inferSelect;
+export type PurchaseItem = typeof purchaseItemsTable.$inferSelect;
+
+export const supplierReturnsTable = pgTable("sm_supplier_returns", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number"),
+  supplierId: integer("supplier_id"),
+  invoiceNumber: text("invoice_number"),
+  totalAmount: numeric("total_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  taxAmount: numeric("tax_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  netAmount: numeric("net_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paidAmount: numeric("paid_amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  paymentMethod: text("payment_method").notNull().default("cash"),
+  cardId: integer("card_id"),
+  status: text("status").notNull().default("completed"),
+  notes: text("notes"),
+  invoiceDate: timestamp("invoice_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: text("created_by"),
+  updatedBy: text("updated_by"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+});
+export const supplierReturnItemsTable = pgTable("sm_supplier_return_items", {
+  id: serial("id").primaryKey(),
+  returnId: integer("return_id").notNull(),
+  productId: integer("product_id").notNull(),
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 3 }).notNull(),
+  totalPrice: numeric("total_price", { precision: 12, scale: 3 }).notNull(),
+  batchNumber: text("batch_number"),
+  expiryDate: text("expiry_date"),
+});
+export type SupplierReturn = typeof supplierReturnsTable.$inferSelect;
+export type SupplierReturnItem = typeof supplierReturnItemsTable.$inferSelect;
+
+export const expensesSmTable = pgTable("sm_expenses", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  expenseTypeId: integer("expense_type_id"),
+  expenseTypeName: text("expense_type_name"),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  cardId: integer("card_id"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  userId: integer("user_id"),
+  userName: text("user_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ExpenseSm = typeof expensesSmTable.$inferSelect;
+
+export const customerTransactionsTable = pgTable("sm_customer_transactions", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  customerId: integer("customer_id"),
+  customerName: text("customer_name"),
+  type: text("type").notNull().default("received"),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  cardId: integer("card_id"),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  userId: integer("user_id"),
+  userName: text("user_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type CustomerTransaction = typeof customerTransactionsTable.$inferSelect;
+
+export const supplierPaymentsSmTable = pgTable("sm_supplier_payments", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  locked: boolean("locked").notNull().default(false),
+  date: date("date").notNull(),
+  time: text("time").notNull(),
+  supplierId: integer("supplier_id"),
+  type: text("type").notNull().default("paid"),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  discount: numeric("discount", { precision: 12, scale: 3 }).notNull().default("0"),
+  cardId: integer("card_id"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: text("created_by"),
+  updatedBy: text("updated_by"),
+});
+export type SupplierPaymentSm = typeof supplierPaymentsSmTable.$inferSelect;
+
+export const ownerReturnsTable = pgTable("sm_owner_returns", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  cardId: integer("card_id"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  userId: integer("user_id"),
+  userName: text("user_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type OwnerReturn = typeof ownerReturnsTable.$inferSelect;
+
+export const ownerWithdrawalsTable = pgTable("sm_owner_withdrawals", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  cardId: integer("card_id"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  userId: integer("user_id"),
+  userName: text("user_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type OwnerWithdrawal = typeof ownerWithdrawalsTable.$inferSelect;
+
+export const customersSmTable = pgTable("sm_customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  address: text("address"),
+  notes: text("notes"),
+  openingBalance: numeric("opening_balance", { precision: 12, scale: 3 }).notNull().default("0"),
+  balance: numeric("balance", { precision: 12, scale: 3 }).notNull().default("0"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type CustomerSm = typeof customersSmTable.$inferSelect;
+
+export const suppliersSmTable = pgTable("sm_suppliers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contactPerson: text("contact_person"),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  taxNumber: text("tax_number"),
+  openingBalance: numeric("opening_balance", { precision: 12, scale: 3 }).notNull().default("0"),
+  balance: numeric("balance", { precision: 12, scale: 3 }).notNull().default("0"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type SupplierSm = typeof suppliersSmTable.$inferSelect;
+
+/* Extra movement tables the stock/cost recompute helpers read from. */
+export const damagesTable = pgTable("sm_damages", {
+  id: serial("id").primaryKey(),
+  listNumber: integer("list_number").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  productId: integer("product_id"),
+  productName: text("product_name").notNull(),
+  barcode: text("barcode"),
+  qtyBig: numeric("qty_big", { precision: 12, scale: 3 }).notNull().default("0"),
+  qtySmall: numeric("qty_small", { precision: 12, scale: 3 }).notNull().default("0"),
+  bigUnit: text("big_unit"),
+  smallUnit: text("small_unit"),
+  purchasePrice: numeric("purchase_price", { precision: 12, scale: 3 }).notNull().default("0"),
+  amount: numeric("amount", { precision: 12, scale: 3 }).notNull().default("0"),
+  reason: text("reason"),
+  notes: text("notes"),
+  branchId: integer("branch_id"),
+  branchName: text("branch_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type Damage = typeof damagesTable.$inferSelect;
+
+export const stockTransfersTable = pgTable("sm_stock_transfers", {
+  id: serial("id").primaryKey(),
+  transferNumber: integer("transfer_number").notNull(),
+  fromBranchId: integer("from_branch_id").notNull(),
+  toBranchId: integer("to_branch_id").notNull(),
+  notes: text("notes"),
+  status: text("status").notNull().default("completed"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const stockTransferItemsTable = pgTable("sm_stock_transfer_items", {
+  id: serial("id").primaryKey(),
+  transferId: integer("transfer_id").notNull(),
+  productId: integer("product_id").notNull(),
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(),
+});
+export type StockTransfer = typeof stockTransfersTable.$inferSelect;
+export type StockTransferItem = typeof stockTransferItemsTable.$inferSelect;
+
+export const inventoryAdjustmentsTable = pgTable("sm_inventory_adjustments", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  branchId: integer("branch_id"),
+  adjustmentType: text("adjustment_type").notNull(),
+  quantityChange: numeric("quantity_change", { precision: 12, scale: 3 }).notNull(),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type InventoryAdjustment = typeof inventoryAdjustmentsTable.$inferSelect;

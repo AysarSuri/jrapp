@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { useLang } from '@/contexts/LanguageContext';
-import { useBranch } from '@/contexts/BranchContext';
-import { resolveStoreIdentity } from "@/lib/print-store";
-import { DateInput } from "@/components/DateInput";
+import { useLang } from '@/sm/contexts/LanguageContext';
+import { useBranch } from '@/sm/contexts/BranchContext';
+import { resolveStoreIdentity } from "@/sm/lib/print-store";
+import { DateInput } from "@/sm/components/DateInput";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
-import { usePermissions } from "@/contexts/PermissionsContext";
+import { useAuth } from "@/sm/contexts/AuthContext";
+import { usePermissions } from "@/sm/contexts/PermissionsContext";
 import { useToast } from "@/hooks/use-toast";
-import { requireInvoicePrinter, requireReportPrinter } from "@/lib/printers";
-import { printHtmlDirect } from "@/lib/print-html-direct";
+import { requireInvoicePrinter, requireReportPrinter } from "@/sm/lib/printers";
+import { printHtmlDirect } from "@/sm/lib/print-html-direct";
 import {
   Clock, Play, Lock, Trash2, ChevronDown, ChevronUp, X, Loader2,
   User, Calendar, Banknote, CreditCard, Receipt, TrendingUp, Tag, Wallet, Users,
   Printer, FileText, AlertTriangle, RotateCcw
 } from "lucide-react";
 
-import { fmtN as _fmtBase, fetchJson, fetchOk } from "@/lib/utils";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { fmtN as _fmtBase, fetchJson, fetchOk } from "@/sm/lib/utils";
+import { useAppSettings } from "@/sm/contexts/AppSettingsContext";
 function fmtN(n: number) { return _fmtBase(Math.abs(n)); }
 
 function fmtDT(iso: string | null) {

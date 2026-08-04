@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Wallet, Boxes, Users, Truck, Printer, Building2, AlertCircle, Landmark, CreditCard } from "lucide-react";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
-import { useBranch } from "@/contexts/BranchContext";
-import { useAuth, canSeeAllBranches } from "@/contexts/AuthContext";
-import { resolveStoreIdentity } from "@/lib/print-store";
-import { requireReportPrinter } from "@/lib/printers";
-import { printHtmlDirect } from "@/lib/print-html-direct";
-import { buildCapitalReportHtml, type CapitalBranchRow, type CapitalTotals } from "@/lib/capital-report";
-import { fmtN, fetchJson } from "@/lib/utils";
-import { useLang } from "@/contexts/LanguageContext";
+import { useAppSettings } from "@/sm/contexts/AppSettingsContext";
+import { useBranch } from "@/sm/contexts/BranchContext";
+import { useAuth, canSeeAllBranches } from "@/sm/contexts/AuthContext";
+import { resolveStoreIdentity } from "@/sm/lib/print-store";
+import { requireReportPrinter } from "@/sm/lib/printers";
+import { printHtmlDirect } from "@/sm/lib/print-html-direct";
+import { buildCapitalReportHtml, type CapitalBranchRow, type CapitalTotals } from "@/sm/lib/capital-report";
+import { fmtN, fetchJson } from "@/sm/lib/utils";
+import { useLang } from "@/sm/contexts/LanguageContext";
 
 type CapitalResponse = {
   branches: CapitalBranchRow[];
