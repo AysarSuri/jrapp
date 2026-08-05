@@ -102,10 +102,12 @@ export default function ProductsPage() {
   const { toast } = useToast();
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchName, setSearchName]       = useState("");
+  const [searchBarcode, setSearchBarcode] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [formOpen, setFormOpen] = useState(false);
+  const [flagFilter, setFlagFilter]       = useState<"" | "hidden" | "favorite" | "hasScale">("");
+  const [currentPage, setCurrentPage]     = useState(1);
+  const [formOpen, setFormOpen]           = useState(false);
 
   const defaultCurrency = useDefaultCurrency();
   const isUsdDefault = defaultCurrency.code === "USD";
@@ -182,10 +184,15 @@ export default function ProductsPage() {
 
   const allProducts = productsList || [];
   const filtered = allProducts.filter((p) => {
-    const term = searchTerm.toLowerCase();
-    const matchSearch = !term || p.name.toLowerCase().includes(term) || p.barcode.toLowerCase().includes(term) || p.category.toLowerCase().includes(term);
-    const matchCat = !categoryFilter || p.category === categoryFilter;
-    return matchSearch && matchCat;
+    const matchName    = !searchName    || p.name.toLowerCase().includes(searchName.toLowerCase());
+    const matchBarcode = !searchBarcode || p.barcode.toLowerCase().includes(searchBarcode.toLowerCase());
+    const matchCat     = !categoryFilter || p.category === categoryFilter;
+    const matchFlag    =
+      flagFilter === ""         ? true :
+      flagFilter === "hidden"   ? (p.hidden   ?? false) :
+      flagFilter === "favorite" ? (p.favorite ?? false) :
+      flagFilter === "hasScale" ? ((p as any).hasScale ?? false) : true;
+    return matchName && matchBarcode && matchCat && matchFlag;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -253,42 +260,97 @@ export default function ProductsPage() {
         </div>
 
         {/* ── Search + Filter ── */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              className="ps-10 pe-10 h-11 rounded-xl border-border/60 bg-background shadow-sm"
-              placeholder={t("Search by name, barcode, category...")}
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              data-testid="input-search-products"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          <Select value={categoryFilter || "__all__"} onValueChange={(v) => { setCategoryFilter(v === "__all__" ? "" : v); setCurrentPage(1); }}>
-            <SelectTrigger className="h-11 min-w-[160px] rounded-xl border-border/60 font-semibold" data-testid="select-filter-category">
-              <Filter className="h-4 w-4 text-muted-foreground me-1" />
-              <SelectValue placeholder={t("All Categories")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t("All Categories")}</SelectItem>
-              {categoriesList?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+
+            {/* 1 — بحث بالاسم */}
+            <div className="relative">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                className="ps-9 pe-9 h-10 rounded-xl border-border/60 bg-background text-sm"
+                placeholder={t("Product Name")}
+                value={searchName}
+                onChange={(e) => { setSearchName(e.target.value); setCurrentPage(1); }}
+                data-testid="input-search-name"
+              />
+              {searchName && (
+                <button onClick={() => { setSearchName(""); setCurrentPage(1); }}
+                  className="absolute end-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* 2 — بحث بالباركود */}
+            <div className="relative">
+              <Shuffle className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                className="ps-9 pe-9 h-10 rounded-xl border-border/60 bg-background text-sm font-mono"
+                placeholder={t("Barcode")}
+                value={searchBarcode}
+                onChange={(e) => { setSearchBarcode(e.target.value); setCurrentPage(1); }}
+                data-testid="input-search-barcode"
+              />
+              {searchBarcode && (
+                <button onClick={() => { setSearchBarcode(""); setCurrentPage(1); }}
+                  className="absolute end-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* 3 — فلتر الفئة */}
+            <Select value={categoryFilter || "__all__"} onValueChange={(v) => { setCategoryFilter(v === "__all__" ? "" : v); setCurrentPage(1); }}>
+              <SelectTrigger className="h-10 rounded-xl border-border/60 text-sm font-medium" data-testid="select-filter-category">
+                <Filter className="h-4 w-4 text-muted-foreground me-1.5 shrink-0" />
+                <SelectValue placeholder={t("All Categories")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{t("All Categories")}</SelectItem>
+                {categoriesList?.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* 4 — فلتر الخصائص */}
+            <div className="flex gap-1.5">
+              {([
+                { value: "hidden",   label: t("Hidden"),   icon: EyeOff, active: "bg-slate-700 text-white border-slate-700" },
+                { value: "favorite", label: t("Favorite"), icon: Star,   active: "bg-amber-500 text-white border-amber-500" },
+                { value: "hasScale", label: t("Has Scale"), icon: Shuffle, active: "bg-blue-600 text-white border-blue-600" },
+              ] as const).map(({ value, label, icon: Icon, active }) => (
+                <button
+                  key={value}
+                  title={label}
+                  onClick={() => { setFlagFilter(f => f === value ? "" : value); setCurrentPage(1); }}
+                  className={`flex-1 h-10 rounded-xl border-2 text-xs font-bold flex items-center justify-center gap-1 transition-all duration-150
+                    ${flagFilter === value
+                      ? active
+                      : "border-border/60 bg-background text-muted-foreground hover:border-border hover:text-foreground"}`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{label}</span>
+                </button>
               ))}
-            </SelectContent>
-          </Select>
-          {categoryFilter && (
-            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl" onClick={() => setCategoryFilter("")}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-          <div className="ms-auto text-sm text-muted-foreground font-medium whitespace-nowrap">
-            {filtered.length} {t("products")}
+            </div>
           </div>
+
+          {/* Summary + clear all */}
+          {(searchName || searchBarcode || categoryFilter || flagFilter) && (
+            <div className="flex items-center justify-between pt-1 border-t border-border/40">
+              <span className="text-xs text-muted-foreground font-medium">
+                {filtered.length} {t("products")} {t("found") || "نتيجة"}
+              </span>
+              <button
+                onClick={() => { setSearchName(""); setSearchBarcode(""); setCategoryFilter(""); setFlagFilter(""); setCurrentPage(1); }}
+                className="text-xs text-destructive hover:text-destructive/80 font-bold flex items-center gap-1 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                {t("Clear All") || "مسح الكل"}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Product Dialog ── */}
