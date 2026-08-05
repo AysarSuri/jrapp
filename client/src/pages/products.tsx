@@ -293,7 +293,7 @@ export default function ProductsPage() {
 
         {/* ── Product Dialog ── */}
         <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
-          <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
+          <DialogContent className="max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg font-bold">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
