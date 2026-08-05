@@ -488,7 +488,20 @@ export default function ProductsPage() {
                       </FormItem>
                     )} />
 
-                    {/* 4. Small Unit */}
+                    {/* 4. Conversion Factor */}
+                    <FormField control={form.control} name="conversionFactor" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="1" className="h-10 text-sm"
+                            {...field} onChange={e => field.onChange(Number(e.target.value))}
+                            disabled={!!sameUnits} data-testid="input-conversion-factor" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 5. Small Unit */}
                     <FormField control={form.control} name="smallUnit" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Small Unit")}</FormLabel>
@@ -560,16 +573,7 @@ export default function ProductsPage() {
                       </FormItem>
                     )} />
 
-                    {/* 3. Conversion Factor */}
-                    <FormField control={form.control} name="conversionFactor" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="1" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* 4. Min Stock */}
+                    {/* 3. Min Stock */}
                     <FormField control={form.control} name="minStock" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
