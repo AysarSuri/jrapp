@@ -705,9 +705,9 @@ export default function ProductsPage() {
                 <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center mb-4">
                   <Package className="w-10 h-10 text-emerald-400" />
                 </div>
-                <h3 className="text-lg font-bold mb-1">{searchTerm || categoryFilter ? t("No products found") : t("No products yet")}</h3>
-                <p className="text-muted-foreground text-sm mb-4">{searchTerm || categoryFilter ? t("Try a different search term") : t("Add a new product to get started.")}</p>
-                {!searchTerm && !categoryFilter && (
+                <h3 className="text-lg font-bold mb-1">{searchName || searchBarcode || categoryFilter || flagFilter ? t("No products found") : t("No products yet")}</h3>
+                <p className="text-muted-foreground text-sm mb-4">{searchName || searchBarcode || categoryFilter || flagFilter ? t("Try a different search term") : t("Add a new product to get started.")}</p>
+                {!searchName && !searchBarcode && !categoryFilter && !flagFilter && (
                   <Button onClick={openAddForm} className="gap-2 bg-gradient-to-r from-emerald-600 to-teal-600">
                     <Plus className="h-4 w-4" /> {t("Add Product")}
                   </Button>
