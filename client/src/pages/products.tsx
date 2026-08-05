@@ -304,265 +304,320 @@ export default function ProductsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
 
-                {/* ── Basic Info ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <SectionLabel>{t("Basic Information")}</SectionLabel>
+                {/* ════════════════════════════════════════
+                    ROW 1 — بيانات أساسية (4 حقول)
+                ════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">{t("Basic Information")}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 p-4">
 
-                  {/* Barcode */}
-                  <FormField control={form.control} name="barcode" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Barcode")}</FormLabel>
-                      <div className="flex gap-1.5">
-                        <FormControl><Input placeholder="SCAN-123" className="h-11 font-mono" {...field} data-testid="input-barcode" /></FormControl>
-                        <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg" onClick={generateRandomBarcode} title={t("Generate Barcode")} data-testid="button-generate-barcode">
-                          <Shuffle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  {/* Arabic Name */}
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Name")}</FormLabel>
-                      <FormControl><Input placeholder={t("Product Name")} className="h-11" {...field} data-testid="input-product-name" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  {/* Latin Name */}
-                  <FormField control={form.control} name="nameEn" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">الاسم اللاتيني</FormLabel>
-                      <FormControl><Input placeholder="Latin / English name" className="h-11" {...field} data-testid="input-product-name-en" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  {/* Category */}
-                  <FormField control={form.control} name="category" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Category")}</FormLabel>
-                      <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11" data-testid="select-category"><SelectValue placeholder={t("Select Category")} /></SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categoriesList?.map((cat) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                  {/* Group */}
-                  <FormField control={form.control} name="groupName" render={({ field }) => {
-                    const selCat = categoriesList?.find(c => c.name === form.watch("category"));
-                    const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
-                    return (
+                    {/* 1. Barcode */}
+                    <FormField control={form.control} name="barcode" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold">{t("Group")}</FormLabel>
-                        <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
+                        <FormLabel className="font-bold text-sm">{t("Barcode")}</FormLabel>
+                        <div className="flex gap-1">
+                          <FormControl><Input placeholder="SCAN-123" className="h-10 font-mono text-sm" {...field} data-testid="input-barcode" /></FormControl>
+                          <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={generateRandomBarcode} title={t("Generate")} data-testid="button-generate-barcode">
+                            <Shuffle className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 2. Arabic Name */}
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Name")}</FormLabel>
+                        <FormControl><Input placeholder={t("Product Name")} className="h-10 text-sm" {...field} data-testid="input-product-name" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 3. Latin Name */}
+                    <FormField control={form.control} name="nameEn" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">الاسم اللاتيني</FormLabel>
+                        <FormControl><Input placeholder="Latin / English name" className="h-10 text-sm" {...field} data-testid="input-product-name-en" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 4. Weight */}
+                    <FormField control={form.control} name="weight" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+
+                {/* ════════════════════════════════════════
+                    ROW 2 — فئة / مجموعة / وحدات (4 حقول)
+                ════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-400">{t("Category & Units")}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 p-4">
+
+                    {/* 1. Category */}
+                    <FormField control={form.control} name="category" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
+                        <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-11" data-testid="select-group"><SelectValue placeholder={t("Select Group")} /></SelectTrigger>
+                            <SelectTrigger className="h-10 text-sm" data-testid="select-category">
+                              <SelectValue placeholder={t("Select Category")} />
+                            </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="__none__">{t("No Group")}</SelectItem>
-                            {groups.map((g: any) => <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>)}
+                            {categoriesList?.map((cat) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    );
-                  }} />
+                    )} />
 
-                  {/* Weight */}
-                  <FormField control={form.control} name="weight" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Weight (KG)")}</FormLabel>
-                      <FormControl><Input type="number" step="0.01" className="h-11" {...field} data-testid="input-weight" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
+                    {/* 2. Group */}
+                    <FormField control={form.control} name="groupName" render={({ field }) => {
+                      const selCat = categoriesList?.find(c => c.name === form.watch("category"));
+                      const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
+                      return (
+                        <FormItem>
+                          <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
+                          <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
+                            <FormControl>
+                              <SelectTrigger className="h-10 text-sm" data-testid="select-group">
+                                <SelectValue placeholder={t("Select Group")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="__none__">{t("No Group")}</SelectItem>
+                              {groups.map((g: any) => <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }} />
 
-                {/* ── Units ── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <SectionLabel>{t("Units & Conversion")}</SectionLabel>
-                  <FormField control={form.control} name="bigUnit" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Big Unit")}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger className="h-11" data-testid="select-big-unit"><SelectValue placeholder={t("Select Unit")} /></SelectTrigger></FormControl>
-                        <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="smallUnit" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Small Unit")}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger className="h-11" data-testid="select-small-unit"><SelectValue placeholder={t("Select Unit")} /></SelectTrigger></FormControl>
-                        <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="conversionFactor" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">{t("Conversion Factor")}</FormLabel>
-                      <FormControl><Input type="number" className="h-11" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-
-                {/* ── Selling Prices ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <SectionLabel>{t("Selling Prices")} ({currencyCode})</SectionLabel>
-                  {[
-                    { name: sellBigField, label: t("Big Unit Price") },
-                    { name: sellSmallField, label: t("Small Unit Price") },
-                    { name: wholesaleBigField, label: t("Big Unit Wholesale") },
-                    { name: wholesaleSmallField, label: t("Small Unit Wholesale") },
-                  ].map(({ name, label }) => (
-                    <FormField key={name} control={form.control} name={name as any} render={({ field }) => (
+                    {/* 3. Big Unit */}
+                    <FormField control={form.control} name="bigUnit" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-sm">{label}</FormLabel>
-                        <FormControl><Input type="number" step={priceStep} className="h-11" {...field} /></FormControl>
+                        <FormLabel className="font-bold text-sm">{t("Big Unit")}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10 text-sm" data-testid="select-big-unit">
+                              <SelectValue placeholder={t("Select Unit")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />
-                  ))}
-                </div>
 
-                {/* ── Cost Prices ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <SectionLabel>{t("Cost Prices")} ({currencyCode})</SectionLabel>
-                  {[
-                    { name: buyBigField, label: t("Big Unit Cost Price") },
-                    { name: buySmallField, label: t("Small Unit Cost Price") },
-                  ].map(({ name, label }) => (
-                    <FormField key={name} control={form.control} name={name as any} render={({ field }) => (
+                    {/* 4. Small Unit */}
+                    <FormField control={form.control} name="smallUnit" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-sm">{label}</FormLabel>
-                        <FormControl><Input type="number" step={priceStep} readOnly className="h-11 bg-muted/50 cursor-not-allowed" {...field} /></FormControl>
+                        <FormLabel className="font-bold text-sm">{t("Small Unit")}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10 text-sm" data-testid="select-small-unit">
+                              <SelectValue placeholder={t("Select Unit")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />
-                  ))}
-                </div>
-
-                {/* ── Stock & Options ── */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="h-px flex-1 bg-border/60" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">{t("Stock & Options")}</span>
-                    <div className="h-px flex-1 bg-border/60" />
                   </div>
-                  <div className="flex flex-wrap gap-4 items-end">
-                    <FormField control={form.control} name="openingQty" render={({ field }) => (
-                      <FormItem className="flex-1 min-w-[130px]">
-                        <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
-                        <FormControl><Input type="number" className="h-11" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="minStock" render={({ field }) => (
-                      <FormItem className="flex-1 min-w-[130px]">
-                        <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
-                        <FormControl><Input type="number" className="h-11" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                </div>
+
+                {/* ════════════════════════════════════════
+                    ROW 3 — أسعار البيع (4 حقول)
+                ════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-blue-500 to-cyan-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">{t("Selling Prices")} — {currencyCode}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 p-4">
+                    {[
+                      { name: sellBigField,       label: t("Big Unit Price") },
+                      { name: sellSmallField,     label: t("Small Unit Price") },
+                      { name: wholesaleBigField,  label: t("Big Unit Wholesale") },
+                      { name: wholesaleSmallField,label: t("Small Unit Wholesale") },
+                    ].map(({ name, label }) => (
+                      <FormField key={name} control={form.control} name={name as any} render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-bold text-sm">{label}</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-10 text-sm font-mono" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* ════════════════════════════════════════
+                    ROW 4 — تكلفة / مخزون / معامل (4 حقول)
+                ════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-amber-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">{t("Cost & Stock")}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 p-4">
+
+                    {/* 1. Big Unit Cost */}
+                    <FormField control={form.control} name={buyBigField as any} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Big Unit Cost")} ({currencyCode})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} readOnly className="h-10 text-sm font-mono bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
 
-                    {/* Toggle Buttons Row */}
-                    <div className="flex flex-wrap gap-2 items-center pb-0.5">
-                      <FormField control={form.control} name="hidden" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value}
-                              onChange={field.onChange}
-                              icon={EyeOff}
-                              label={t("Hidden")}
-                              activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="favorite" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value}
-                              onChange={field.onChange}
-                              icon={Star}
-                              label={t("Favorite")}
-                              activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="hasScale" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value ?? false}
-                              onChange={field.onChange}
-                              icon={Scale}
-                              label={t("Has Scale")}
-                              activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )} />
+                    {/* 2. Small Unit Cost */}
+                    <FormField control={form.control} name={buySmallField as any} render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Small Unit Cost")} ({currencyCode})</FormLabel>
+                        <FormControl><Input type="number" step={priceStep} readOnly className="h-10 text-sm font-mono bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 3. Conversion Factor */}
+                    <FormField control={form.control} name="conversionFactor" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="1" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 4. Min Stock */}
+                    <FormField control={form.control} name="minStock" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+
+                {/* ════════════════════════════════════════
+                    ROW 5 — خيارات (4 حقول)
+                ════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-4">
+                  <div className="px-4 py-2 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-rose-500 to-pink-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">{t("Options")}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 p-4 items-end">
+
+                    {/* 1. Opening Qty */}
+                    <FormField control={form.control} name="openingQty" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
+                    {/* 2. Toggles */}
+                    <div className="space-y-1.5">
+                      <FormLabel className="font-bold text-sm block">{t("Flags")}</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormField control={form.control} name="hidden" render={({ field }) => (
+                          <FormItem className="space-y-0 flex-1">
+                            <FormControl>
+                              <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
+                                activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                      </div>
                     </div>
 
-                    {/* Image upload */}
+                    {/* 3. Favorite + Scale toggles */}
                     <div className="space-y-1.5">
-                      <FormLabel className="flex items-center gap-1.5 font-bold text-sm">
-                        <ImageIcon className="w-4 h-4" /> {t("Product Image")}
-                      </FormLabel>
-                      {form.watch("image") ? (
-                        <div className="relative group inline-block">
-                          <img src={form.watch("image")!} alt={t("Product Image")} className="max-h-20 object-contain rounded-lg border bg-white p-1.5" data-testid="img-product-image" />
-                          <Button variant="destructive" size="icon" type="button" className="absolute -top-1.5 -right-1.5 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div
-                          className="inline-flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg px-5 py-3 cursor-pointer hover:bg-muted/30 transition-colors gap-1"
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file"; input.accept = "image/*";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (!file) return;
-                              if (file.size > 2 * 1024 * 1024) { toast({ title: t("Image size must be less than 2MB"), variant: "destructive" }); return; }
-                              const reader = new FileReader();
-                              reader.onload = () => form.setValue("image", reader.result as string);
-                              reader.readAsDataURL(file);
-                            };
-                            input.click();
-                          }}
-                          data-testid="upload-product-image-area"
-                        >
-                          <Upload className="w-5 h-5 text-muted-foreground" />
-                          <span className="text-[10px] text-muted-foreground">{t("Click to upload")}</span>
-                        </div>
-                      )}
+                      <FormLabel className="font-bold text-sm block invisible">.</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormField control={form.control} name="favorite" render={({ field }) => (
+                          <FormItem className="space-y-0 flex-1">
+                            <FormControl>
+                              <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
+                                activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                      </div>
+                    </div>
+
+                    {/* 4. Image + HasScale */}
+                    <div className="space-y-1.5">
+                      <FormLabel className="font-bold text-sm block invisible">.</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormField control={form.control} name="hasScale" render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
+                                activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+
+                        {/* Image upload */}
+                        {form.watch("image") ? (
+                          <div className="relative group">
+                            <img src={form.watch("image")!} alt="" className="h-10 w-10 object-cover rounded-lg border bg-white p-0.5" data-testid="img-product-image" />
+                            <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
+                              <X className="w-2.5 h-2.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="h-10 w-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center hover:bg-muted/40 transition-colors shrink-0"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file"; input.accept = "image/*";
+                              input.onchange = (e) => {
+                                const file = (e.target as HTMLInputElement).files?.[0];
+                                if (!file) return;
+                                if (file.size > 2 * 1024 * 1024) { toast({ title: t("Image size must be less than 2MB"), variant: "destructive" }); return; }
+                                const reader = new FileReader();
+                                reader.onload = () => form.setValue("image", reader.result as string);
+                                reader.readAsDataURL(file);
+                              };
+                              input.click();
+                            }}
+                            title={t("Product Image")}
+                            data-testid="upload-product-image-area"
+                          >
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* ── Submit ── */}
-                <div className="flex items-center gap-3 pt-1">
+                <div className="flex items-center gap-3">
                   <Button type="submit" disabled={isSaving} className="flex-1 h-11 font-bold text-base bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" data-testid="button-save-product">
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : null}
                     {editingProduct ? t("Update") : t("Save")}
