@@ -412,7 +412,7 @@ export default function ProductsPage() {
                     ROW 2 — فئة | مجموعة | وزن | خصائص
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid gap-3 p-4 items-end" style={{gridTemplateColumns: "1fr 1fr 100px 1fr"}}>
+                  <div className="grid gap-3 p-4 items-end" style={{gridTemplateColumns: "180px 180px 100px 1fr"}}>
 
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
