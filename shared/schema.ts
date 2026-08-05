@@ -126,6 +126,7 @@ export const products = pgTable("products", {
   image: text("image"),
   hidden: boolean("hidden").notNull().default(false),
   favorite: boolean("favorite").notNull().default(false),
+  hasScale: boolean("has_scale").notNull().default(false),
 });
 
 export const inventory = pgTable("inventory", {
