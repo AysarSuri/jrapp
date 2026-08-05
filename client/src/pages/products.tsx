@@ -366,19 +366,19 @@ export default function ProductsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-                {/* ════════════════════════════════════════
-                    ROW 1 — بيانات أساسية (4 حقول)
-                ════════════════════════════════════════ */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                {/* ══════════════════════════════════════════════════════
+                    ROW 1 — باركود | اسم | اسم لاتيني
+                ══════════════════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
                   <div className="px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-border/40 flex items-center gap-2">
                     <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">{t("Basic Information")}</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-4 p-4">
+                  <div className="grid grid-cols-3 gap-4 p-4">
 
-                    {/* 1. Barcode */}
+                    {/* Barcode */}
                     <FormField control={form.control} name="barcode" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Barcode")}</FormLabel>
@@ -392,7 +392,7 @@ export default function ProductsPage() {
                       </FormItem>
                     )} />
 
-                    {/* 2. Arabic Name */}
+                    {/* Name */}
                     <FormField control={form.control} name="name" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Name")}</FormLabel>
@@ -401,7 +401,7 @@ export default function ProductsPage() {
                       </FormItem>
                     )} />
 
-                    {/* 3. Latin Name */}
+                    {/* Latin Name */}
                     <FormField control={form.control} name="nameEn" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">الاسم اللاتيني</FormLabel>
@@ -409,29 +409,20 @@ export default function ProductsPage() {
                         <FormMessage />
                       </FormItem>
                     )} />
-
-                    {/* 4. Weight */}
-                    <FormField control={form.control} name="weight" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
                   </div>
                 </div>
 
-                {/* ════════════════════════════════════════
-                    ROW 2 — فئة / مجموعة / وحدات (4 حقول)
-                ════════════════════════════════════════ */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
+                {/* ══════════════════════════════════════════════════════
+                    ROW 2 — فئة | مجموعة | وزن | خصائص
+                ══════════════════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
                   <div className="px-4 py-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 border-b border-border/40 flex items-center gap-2">
                     <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-400">{t("Category & Units")}</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-400">{t("Category")} · {t("Options")}</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-4 p-4">
+                  <div className="grid grid-cols-4 gap-4 p-4 items-end">
 
-                    {/* 1. Category */}
+                    {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
@@ -449,7 +440,7 @@ export default function ProductsPage() {
                       </FormItem>
                     )} />
 
-                    {/* 2. Group */}
+                    {/* Group */}
                     <FormField control={form.control} name="groupName" render={({ field }) => {
                       const selCat = categoriesList?.find(c => c.name === form.watch("category"));
                       const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
@@ -472,141 +463,19 @@ export default function ProductsPage() {
                       );
                     }} />
 
-                    {/* 3. Big Unit */}
-                    <FormField control={form.control} name="bigUnit" render={({ field }) => (
+                    {/* Weight */}
+                    <FormField control={form.control} name="weight" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Big Unit")}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-10 text-sm" data-testid="select-big-unit">
-                              <SelectValue placeholder={t("Select Unit")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                        </Select>
+                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
 
-                    {/* 4. Conversion Factor */}
-                    <FormField control={form.control} name="conversionFactor" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="1" className="h-10 text-sm"
-                            {...field} onChange={e => field.onChange(Number(e.target.value))}
-                            disabled={!!sameUnits} data-testid="input-conversion-factor" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* 5. Small Unit */}
-                    <FormField control={form.control} name="smallUnit" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Small Unit")}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-10 text-sm" data-testid="select-small-unit">
-                              <SelectValue placeholder={t("Select Unit")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-                </div>
-
-                {/* ════════════════════════════════════════
-                    ROW 3 — أسعار البيع (4 حقول)
-                ════════════════════════════════════════ */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
-                  <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-blue-500 to-cyan-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">{t("Selling Prices")} — {currencyCode}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 p-4">
-                    {[
-                      { name: sellBigField,       label: t("Big Unit Price") },
-                      { name: sellSmallField,     label: t("Small Unit Price") },
-                      { name: wholesaleBigField,  label: t("Big Unit Wholesale") },
-                      { name: wholesaleSmallField,label: t("Small Unit Wholesale") },
-                    ].map(({ name, label }) => (
-                      <FormField key={name} control={form.control} name={name as any} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-bold text-sm">{label}</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-10 text-sm font-mono" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* ════════════════════════════════════════
-                    ROW 4 — تكلفة / مخزون / معامل (4 حقول)
-                ════════════════════════════════════════ */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-3">
-                  <div className="px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-amber-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">{t("Cost & Stock")}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 p-4">
-
-                    {/* 1. Big Unit Cost */}
-                    <FormField control={form.control} name={buyBigField as any} render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Big Unit Cost")} ({currencyCode})</FormLabel>
-                        <FormControl><Input type="number" step={priceStep} readOnly className="h-10 text-sm font-mono bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* 2. Small Unit Cost */}
-                    <FormField control={form.control} name={buySmallField as any} render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Small Unit Cost")} ({currencyCode})</FormLabel>
-                        <FormControl><Input type="number" step={priceStep} readOnly className="h-10 text-sm font-mono bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* 3. Min Stock */}
-                    <FormField control={form.control} name="minStock" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-                </div>
-
-                {/* ════════════════════════════════════════
-                    ROW 5 — خيارات (4 حقول)
-                ════════════════════════════════════════ */}
-                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden mb-4">
-                  <div className="px-4 py-2 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-rose-500 to-pink-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">{t("Options")}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 p-4 items-end">
-
-                    {/* 1. Opening Qty */}
-                    <FormField control={form.control} name="openingQty" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-
-                    {/* 2. Toggles */}
+                    {/* Flags — hidden / favorite / hasScale + image */}
                     <div className="space-y-1.5">
-                      <FormLabel className="font-bold text-sm block">{t("Flags")}</FormLabel>
-                      <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold block">{t("Flags")}</span>
+                      <div className="flex items-center gap-1.5">
                         <FormField control={form.control} name="hidden" render={({ field }) => (
                           <FormItem className="space-y-0 flex-1">
                             <FormControl>
@@ -615,13 +484,6 @@ export default function ProductsPage() {
                             </FormControl>
                           </FormItem>
                         )} />
-                      </div>
-                    </div>
-
-                    {/* 3. Favorite + Scale toggles */}
-                    <div className="space-y-1.5">
-                      <FormLabel className="font-bold text-sm block invisible">.</FormLabel>
-                      <div className="flex items-center gap-2">
                         <FormField control={form.control} name="favorite" render={({ field }) => (
                           <FormItem className="space-y-0 flex-1">
                             <FormControl>
@@ -630,55 +492,166 @@ export default function ProductsPage() {
                             </FormControl>
                           </FormItem>
                         )} />
-                      </div>
-                    </div>
-
-                    {/* 4. Image + HasScale */}
-                    <div className="space-y-1.5">
-                      <FormLabel className="font-bold text-sm block invisible">.</FormLabel>
-                      <div className="flex items-center gap-2">
                         <FormField control={form.control} name="hasScale" render={({ field }) => (
-                          <FormItem className="space-y-0">
+                          <FormItem className="space-y-0 flex-1">
                             <FormControl>
                               <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
                                 activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
                             </FormControl>
                           </FormItem>
                         )} />
-
-                        {/* Image upload */}
+                        {/* Image */}
                         {form.watch("image") ? (
-                          <div className="relative group">
+                          <div className="relative group flex-shrink-0">
                             <img src={form.watch("image")!} alt="" className="h-10 w-10 object-cover rounded-lg border bg-white p-0.5" data-testid="img-product-image" />
                             <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
                               <X className="w-2.5 h-2.5" />
                             </Button>
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            className="h-10 w-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center hover:bg-muted/40 transition-colors shrink-0"
-                            onClick={() => {
-                              const input = document.createElement("input");
-                              input.type = "file"; input.accept = "image/*";
-                              input.onchange = (e) => {
-                                const file = (e.target as HTMLInputElement).files?.[0];
-                                if (!file) return;
-                                if (file.size > 2 * 1024 * 1024) { toast({ title: t("Image size must be less than 2MB"), variant: "destructive" }); return; }
-                                const reader = new FileReader();
-                                reader.onload = () => form.setValue("image", reader.result as string);
-                                reader.readAsDataURL(file);
-                              };
-                              input.click();
-                            }}
-                            title={t("Product Image")}
-                            data-testid="upload-product-image-area"
-                          >
+                          <button type="button" className="h-10 w-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center hover:bg-muted/40 transition-colors flex-shrink-0"
+                            onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
+                            title={t("Product Image")} data-testid="upload-product-image-area">
                             <ImageIcon className="h-4 w-4 text-muted-foreground" />
                           </button>
                         )}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* ══════════════════════════════════════════════════════
+                    ROW 3 — وحدة كبرى ╳ وحدة صغرى (عمودي جنباً إلى جنب)
+                ══════════════════════════════════════════════════════ */}
+                <div className="grid grid-cols-2 gap-3">
+
+                  {/* ── كرت الوحدة الكبرى ── */}
+                  <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden">
+                    {/* Header */}
+                    <div className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                      <FormField control={form.control} name="bigUnit" render={({ field }) => (
+                        <div className="flex-1 flex items-center gap-2">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Big Unit")}:</span>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-big-unit">
+                                <SelectValue placeholder={t("Select Unit")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      )} />
+                    </div>
+                    {/* Body — prices stacked */}
+                    <div className="p-3 space-y-2.5 bg-emerald-50/30 dark:bg-emerald-950/10">
+                      {/* Sell Price */}
+                      <FormField control={form.control} name={sellBigField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      {/* Wholesale */}
+                      <FormField control={form.control} name={wholesaleBigField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Big Unit Wholesale")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      {/* Cost */}
+                      <FormField control={form.control} name={buyBigField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  {/* ── كرت الوحدة الصغرى ── */}
+                  <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden">
+                    {/* Header */}
+                    <div className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                      <FormField control={form.control} name="smallUnit" render={({ field }) => (
+                        <div className="flex-1 flex items-center gap-2">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Small Unit")}:</span>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-small-unit">
+                                <SelectValue placeholder={t("Select Unit")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      )} />
+                    </div>
+                    {/* Body — prices stacked */}
+                    <div className="p-3 space-y-2.5 bg-blue-50/30 dark:bg-blue-950/10">
+                      {/* Sell Price */}
+                      <FormField control={form.control} name={sellSmallField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      {/* Wholesale */}
+                      <FormField control={form.control} name={wholesaleSmallField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Small Unit Wholesale")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      {/* Cost */}
+                      <FormField control={form.control} name={buySmallField as any} render={({ field }) => (
+                        <FormItem className="flex items-center gap-3">
+                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
+                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ══════════════════════════════════════════════════════
+                    ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون
+                ══════════════════════════════════════════════════════ */}
+                <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+                  <div className="px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-b border-border/40 flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-amber-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">{t("Cost & Stock")}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 p-4">
+                    <FormField control={form.control} name="conversionFactor" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="1" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="openingQty" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="minStock" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
+                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
                   </div>
                 </div>
 
