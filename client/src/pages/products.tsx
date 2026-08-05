@@ -372,10 +372,6 @@ export default function ProductsPage() {
                     ROW 1 — باركود | اسم | اسم لاتيني
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">{t("Basic Information")}</span>
-                  </div>
                   <div className="grid grid-cols-3 gap-4 p-4">
 
                     {/* Barcode */}
@@ -416,10 +412,6 @@ export default function ProductsPage() {
                     ROW 2 — فئة | مجموعة | وزن | خصائص
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="px-4 py-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-violet-700 dark:text-violet-400">{t("Category")} · {t("Options")}</span>
-                  </div>
                   <div className="grid grid-cols-4 gap-4 p-4 items-end">
 
                     {/* Category */}
@@ -626,10 +618,6 @@ export default function ProductsPage() {
                     ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-b border-border/40 flex items-center gap-2">
-                    <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-orange-500 to-amber-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">{t("Cost & Stock")}</span>
-                  </div>
                   <div className="grid grid-cols-3 gap-4 p-4">
                     <FormField control={form.control} name="conversionFactor" render={({ field }) => (
                       <FormItem>
