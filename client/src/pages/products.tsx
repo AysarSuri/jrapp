@@ -417,10 +417,10 @@ export default function ProductsPage() {
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
+                        <FormLabel className="font-bold text-xs">{t("Category")}</FormLabel>
                         <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-10 text-sm" data-testid="select-category">
+                            <SelectTrigger className="h-8 text-xs" data-testid="select-category">
                               <SelectValue placeholder={t("Select Category")} />
                             </SelectTrigger>
                           </FormControl>
@@ -438,10 +438,10 @@ export default function ProductsPage() {
                       const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
                       return (
                         <FormItem>
-                          <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
+                          <FormLabel className="font-bold text-xs">{t("Group")}</FormLabel>
                           <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
                             <FormControl>
-                              <SelectTrigger className="h-10 text-sm" data-testid="select-group">
+                              <SelectTrigger className="h-8 text-xs" data-testid="select-group">
                                 <SelectValue placeholder={t("Select Group")} />
                               </SelectTrigger>
                             </FormControl>
@@ -458,53 +458,56 @@ export default function ProductsPage() {
                     {/* Weight */}
                     <FormField control={form.control} name="weight" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
+                        <FormLabel className="font-bold text-xs">{t("Weight (KG)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-8 text-xs" {...field} data-testid="input-weight" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
 
                     {/* Flags — hidden / favorite / hasScale + image */}
                     <div className="space-y-1.5">
-                      <span className="text-sm font-bold block">{t("Flags")}</span>
+                      <span className="text-xs font-bold block">{t("Flags")}</span>
                       <div className="flex items-center gap-1.5">
-                        <FormField control={form.control} name="hidden" render={({ field }) => (
-                          <FormItem className="space-y-0 flex-1">
-                            <FormControl>
-                              <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
-                                activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
-                            </FormControl>
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="favorite" render={({ field }) => (
-                          <FormItem className="space-y-0 flex-1">
-                            <FormControl>
-                              <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
-                                activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
-                            </FormControl>
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="hasScale" render={({ field }) => (
-                          <FormItem className="space-y-0 flex-1">
-                            <FormControl>
-                              <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
-                                activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
-                            </FormControl>
-                          </FormItem>
-                        )} />
-                        {/* Image */}
+                        <div className="flex flex-col gap-1 flex-1">
+                          <FormField control={form.control} name="hidden" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormControl>
+                                <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
+                                  activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="favorite" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormControl>
+                                <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
+                                  activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="hasScale" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormControl>
+                                <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
+                                  activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
+                              </FormControl>
+                            </FormItem>
+                          )} />
+                        </div>
+                        {/* Image — bigger */}
                         {form.watch("image") ? (
                           <div className="relative group flex-shrink-0">
-                            <img src={form.watch("image")!} alt="" className="h-10 w-10 object-cover rounded-lg border bg-white p-0.5" data-testid="img-product-image" />
+                            <img src={form.watch("image")!} alt="" className="h-16 w-16 object-cover rounded-xl border-2 border-border bg-white p-0.5" data-testid="img-product-image" />
                             <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
                               <X className="w-2.5 h-2.5" />
                             </Button>
                           </div>
                         ) : (
-                          <button type="button" className="h-10 w-10 rounded-lg border-2 border-dashed border-border flex items-center justify-center hover:bg-muted/40 transition-colors flex-shrink-0"
+                          <button type="button" className="h-16 w-16 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:bg-muted/40 transition-colors flex-shrink-0"
                             onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
                             title={t("Product Image")} data-testid="upload-product-image-area">
-                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-[9px] text-muted-foreground">{t("Image")}</span>
                           </button>
                         )}
                       </div>
