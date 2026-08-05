@@ -412,7 +412,7 @@ export default function ProductsPage() {
                     ROW 2 — فئة | مجموعة | وزن | خصائص
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-4 gap-4 p-4 items-end">
+                  <div className="grid gap-3 p-4 items-end" style={{gridTemplateColumns: "1fr 1fr 100px 1fr"}}>
 
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
@@ -468,9 +468,9 @@ export default function ProductsPage() {
                     <div className="space-y-1.5">
                       <span className="text-xs font-bold block">{t("Flags")}</span>
                       <div className="flex items-center gap-1.5">
-                        <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex flex-row gap-1.5 flex-1">
                           <FormField control={form.control} name="hidden" render={({ field }) => (
-                            <FormItem className="space-y-0">
+                            <FormItem className="space-y-0 flex-1">
                               <FormControl>
                                 <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
                                   activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
@@ -478,7 +478,7 @@ export default function ProductsPage() {
                             </FormItem>
                           )} />
                           <FormField control={form.control} name="favorite" render={({ field }) => (
-                            <FormItem className="space-y-0">
+                            <FormItem className="space-y-0 flex-1">
                               <FormControl>
                                 <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
                                   activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
@@ -486,7 +486,7 @@ export default function ProductsPage() {
                             </FormItem>
                           )} />
                           <FormField control={form.control} name="hasScale" render={({ field }) => (
-                            <FormItem className="space-y-0">
+                            <FormItem className="space-y-0 flex-1">
                               <FormControl>
                                 <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
                                   activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
