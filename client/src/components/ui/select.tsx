@@ -119,17 +119,13 @@ const SelectContent = React.forwardRef<
       >
         {/* ── Close bar ── */}
         {onClose && (
-          <div
-            className={cn(
-              "sticky top-0 z-10 flex items-center px-2 py-1.5",
-              "bg-popover border-b border-border/40",
-              isRtl ? "justify-start" : "justify-end"
-            )}
-          >
+          <div className="sticky top-0 z-10 flex items-center px-2 py-1.5 bg-popover border-b border-border/40">
+            {/* spacer pushes button to the correct side */}
+            {!isRtl && <span className="flex-1" />}
             <button
               type="button"
               onPointerDown={(e) => {
-                e.preventDefault()   // prevent blur on the trigger
+                e.preventDefault()
                 e.stopPropagation()
                 onClose()
               }}
@@ -145,6 +141,7 @@ const SelectContent = React.forwardRef<
               <X className="h-3.5 w-3.5" />
               <span>إغلاق</span>
             </button>
+            {isRtl && <span className="flex-1" />}
           </div>
         )}
 
