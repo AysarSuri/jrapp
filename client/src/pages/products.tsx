@@ -66,10 +66,10 @@ const ITEMS_PER_PAGE = 12;
 
 /* ─── toggle button for boolean fields ──────────────────────────────────── */
 function ToggleField({
-  value, onChange, icon: Icon, label, activeClass,
+  value, onChange, icon: Icon, label, activeClass, className = "",
 }: {
   value: boolean; onChange: (v: boolean) => void;
-  icon: React.ElementType; label: string; activeClass: string;
+  icon: React.ElementType; label: string; activeClass: string; className?: string;
 }) {
   return (
     <button
@@ -78,12 +78,12 @@ function ToggleField({
       className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-semibold text-sm transition-all duration-200 select-none ${
         value
           ? `${activeClass} border-transparent shadow-md`
-          : "bg-muted/40 border-border/50 text-muted-foreground hover:bg-muted"
-      }`}
+          : "bg-white/70 dark:bg-background/40 border-border/50 text-muted-foreground hover:bg-muted"
+      } ${className}`}
     >
-      <Icon className={`h-4 w-4 ${value ? "" : "opacity-60"}`} />
-      {label}
-      {value && <BadgeCheck className="h-3.5 w-3.5 opacity-80" />}
+      <Icon className={`h-4 w-4 shrink-0 ${value ? "" : "opacity-60"}`} />
+      <span className="flex-1 text-start">{label}</span>
+      {value && <BadgeCheck className="h-3.5 w-3.5 opacity-80 shrink-0" />}
     </button>
   );
 }
@@ -355,7 +355,7 @@ export default function ProductsPage() {
 
         {/* ── Product Dialog ── */}
         <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
-          <DialogContent className="max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto">
+          <DialogContent className="max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto py-3 px-5 gap-2">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg font-bold">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -366,13 +366,13 @@ export default function ProductsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
 
                 {/* ══════════════════════════════════════════════════════
                     ROW 1 — باركود | اسم | اسم لاتيني
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-4 p-4">
+                  <div className="grid grid-cols-3 gap-4 px-4 py-2">
 
                     {/* Barcode */}
                     <FormField control={form.control} name="barcode" render={({ field }) => (
@@ -409,18 +409,18 @@ export default function ProductsPage() {
                 </div>
 
                 {/* ══════════════════════════════════════════════════════
-                    ROW 2 — فئة | مجموعة | وزن | خصائص
+                    ROW 2 — فئة | مجموعة | وزن
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid gap-3 p-4 items-end" style={{gridTemplateColumns: "180px 180px 100px 1fr"}}>
+                  <div className="grid grid-cols-3 gap-4 px-4 py-2">
 
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-xs">{t("Category")}</FormLabel>
+                        <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
                         <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-8 text-xs" data-testid="select-category">
+                            <SelectTrigger className="h-10 text-sm" data-testid="select-category">
                               <SelectValue placeholder={t("Select Category")} />
                             </SelectTrigger>
                           </FormControl>
@@ -438,10 +438,10 @@ export default function ProductsPage() {
                       const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
                       return (
                         <FormItem>
-                          <FormLabel className="font-bold text-xs">{t("Group")}</FormLabel>
+                          <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
                           <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
                             <FormControl>
-                              <SelectTrigger className="h-8 text-xs" data-testid="select-group">
+                              <SelectTrigger className="h-10 text-sm" data-testid="select-group">
                                 <SelectValue placeholder={t("Select Group")} />
                               </SelectTrigger>
                             </FormControl>
@@ -458,72 +458,90 @@ export default function ProductsPage() {
                     {/* Weight */}
                     <FormField control={form.control} name="weight" render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-xs">{t("Weight (KG)")}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-8 text-xs" {...field} data-testid="input-weight" /></FormControl>
+                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
-
-                    {/* Flags — hidden / favorite / hasScale + image */}
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold block">{t("Flags")}</span>
-                      <div className="flex items-center gap-1.5">
-                        <div className="flex flex-row gap-1.5 flex-1">
-                          <FormField control={form.control} name="hidden" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
-                                  activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="favorite" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
-                                  activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="hasScale" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
-                                  activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
-                        </div>
-                        {/* Image — bigger */}
-                        {form.watch("image") ? (
-                          <div className="relative group flex-shrink-0">
-                            <img src={form.watch("image")!} alt="" className="h-16 w-16 object-cover rounded-xl border-2 border-border bg-white p-0.5" data-testid="img-product-image" />
-                            <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
-                              <X className="w-2.5 h-2.5" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <button type="button" className="h-16 w-16 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:bg-muted/40 transition-colors flex-shrink-0"
-                            onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
-                            title={t("Product Image")} data-testid="upload-product-image-area">
-                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-[9px] text-muted-foreground">{t("Image")}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 {/* ══════════════════════════════════════════════════════
-                    ROW 3 — وحدة كبرى ╳ وحدة صغرى (عمودي جنباً إلى جنب)
+                    ROW 3 — خصائص | وحدة كبرى | وحدة صغرى
                 ══════════════════════════════════════════════════════ */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(240px,0.78fr)_1fr_1fr] gap-3 items-stretch">
+
+                  {/* ── كرت الخصائص ── */}
+                  <div className="rounded-xl border-2 border-violet-200 dark:border-violet-800/50 overflow-hidden flex flex-col">
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-white/90" />
+                      <span className="text-xs font-black text-white uppercase tracking-wider">{t("Flags")}</span>
+                    </div>
+                    <div className="px-3 py-2 flex-1 flex flex-col gap-1.5 bg-violet-50/40 dark:bg-violet-950/20">
+                      <FormField control={form.control} name="hidden" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value}
+                              onChange={field.onChange}
+                              icon={EyeOff}
+                              label={t("Hidden")}
+                              className="w-full h-9"
+                              activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="favorite" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value}
+                              onChange={field.onChange}
+                              icon={Star}
+                              label={t("Favorite")}
+                              className="w-full h-9"
+                              activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="hasScale" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value ?? false}
+                              onChange={field.onChange}
+                              icon={Scale}
+                              label={t("Has Scale")}
+                              className="w-full h-9"
+                              activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      {form.watch("image") ? (
+                        <div className="relative group mt-auto">
+                          <img src={form.watch("image")!} alt="" className="h-16 w-full object-cover rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-white p-0.5" data-testid="img-product-image" />
+                          <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
+                            <X className="w-2.5 h-2.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <button type="button" className="mt-auto h-16 w-full rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 flex items-center justify-center gap-2 hover:bg-violet-100/60 dark:hover:bg-violet-900/20 transition-colors"
+                          onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
+                          title={t("Product Image")} data-testid="upload-product-image-area">
+                          <ImageIcon className="h-5 w-5 text-violet-500" />
+                          <span className="text-xs font-semibold text-violet-600 dark:text-violet-300">{t("Image")}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
                   {/* ── كرت الوحدة الكبرى ── */}
-                  <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden">
+                  <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden flex flex-col">
                     {/* Header */}
-                    <div className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-white/60" />
                       <FormField control={form.control} name="bigUnit" render={({ field }) => (
                         <div className="flex-1 flex items-center gap-2">
@@ -540,7 +558,7 @@ export default function ProductsPage() {
                       )} />
                     </div>
                     {/* Body — prices stacked */}
-                    <div className="p-3 space-y-2.5 bg-emerald-50/30 dark:bg-emerald-950/10">
+                    <div className="px-3 py-2 space-y-2 bg-emerald-50/30 dark:bg-emerald-950/10 flex-1">
                       {/* Sell Price */}
                       <FormField control={form.control} name={sellBigField as any} render={({ field }) => (
                         <FormItem className="flex items-center gap-3">
@@ -569,9 +587,9 @@ export default function ProductsPage() {
                   </div>
 
                   {/* ── كرت الوحدة الصغرى ── */}
-                  <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden">
+                  <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden flex flex-col">
                     {/* Header */}
-                    <div className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-white/60" />
                       <FormField control={form.control} name="smallUnit" render={({ field }) => (
                         <div className="flex-1 flex items-center gap-2">
@@ -588,7 +606,7 @@ export default function ProductsPage() {
                       )} />
                     </div>
                     {/* Body — prices stacked */}
-                    <div className="p-3 space-y-2.5 bg-blue-50/30 dark:bg-blue-950/10">
+                    <div className="px-3 py-2 space-y-2 bg-blue-50/30 dark:bg-blue-950/10 flex-1">
                       {/* Sell Price */}
                       <FormField control={form.control} name={sellSmallField as any} render={({ field }) => (
                         <FormItem className="flex items-center gap-3">
@@ -621,7 +639,7 @@ export default function ProductsPage() {
                     ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-4 p-4">
+                  <div className="grid grid-cols-3 gap-4 px-4 py-2">
                     <FormField control={form.control} name="conversionFactor" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
