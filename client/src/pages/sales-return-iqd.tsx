@@ -460,7 +460,7 @@ export default function SalesReturnIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-return-iqd-title">
             <Undo2 className="h-8 w-8 text-orange-600" />
-            {isEditMode ? t('Edit Sales Return - IQD') : t('Sales Return - IQD')}
+            {isEditMode ? t('Edit Sales Return - IQD') : t('Sales Return IQD')}
           </h1>
           <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit sales return in Iraqi Dinar') : t('Create sales return in Iraqi Dinar')}</p>
         </div>

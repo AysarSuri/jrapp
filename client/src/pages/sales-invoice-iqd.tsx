@@ -538,7 +538,7 @@ export default function SalesInvoiceIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-invoice-iqd-title">
             <IconDinar className="h-8 w-8 text-blue-600" />
-            {isEditMode ? t('Edit Sales Invoice - IQD') : t('Sales Invoice - IQD')}
+            {isEditMode ? t('Edit Sales Invoice - IQD') : t('Sales Invoice IQD')}
           </h1>
           <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit sales invoice in Iraqi Dinar') : t('Create sales invoice in Iraqi Dinar')}</p>
         </div>
