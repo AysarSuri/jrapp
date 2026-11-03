@@ -38,6 +38,7 @@ interface GeneralSettings {
   defaultSaleType: string;
   defaultCurrency: string;
   decimalPlaces: number;
+  currencyDecimals: Record<string, number>;
 }
 
 export const CURRENCY_OPTIONS = [
@@ -91,6 +92,14 @@ const defaultPrinterSettings: PrinterSettings = {
   barcodePrinter: "",
 };
 
+export const DEFAULT_CURRENCY_DECIMALS: Record<string, number> = {
+  IQD: 0, USD: 2, EUR: 2, IRR: 0, GBP: 2, TRY: 2, CNY: 2,
+};
+
+function defaultCurrencyDecimals(): Record<string, number> {
+  return { ...DEFAULT_CURRENCY_DECIMALS };
+}
+
 const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
@@ -98,6 +107,7 @@ const defaultGeneralSettings: GeneralSettings = {
   defaultSaleType: "retail",
   defaultCurrency: "IQD",
   decimalPlaces: 2,
+  currencyDecimals: defaultCurrencyDecimals(),
 };
 
 const defaultFieldVisibility: FieldVisibilitySettings = {
@@ -157,6 +167,12 @@ function savePrinterSettings(settings: PrinterSettings) {
   localStorage.setItem(PRINTER_SETTINGS_KEY, JSON.stringify(settings));
 }
 
+function clampDecimals(n: unknown): number {
+  const v = typeof n === "number" ? n : Number(n);
+  if (!Number.isFinite(v)) return 2;
+  return Math.max(0, Math.min(4, Math.round(v)));
+}
+
 function loadGeneralSettings(): GeneralSettings {
   try {
     const saved = localStorage.getItem(GENERAL_SETTINGS_KEY);
@@ -165,6 +181,18 @@ function loadGeneralSettings(): GeneralSettings {
       if (!CURRENCY_OPTIONS.some(c => c.code === parsed.defaultCurrency)) {
         parsed.defaultCurrency = defaultGeneralSettings.defaultCurrency;
       }
+      const storedDecimals = parsed.currencyDecimals && typeof parsed.currencyDecimals === "object"
+        ? parsed.currencyDecimals as Record<string, number>
+        : {};
+      parsed.currencyDecimals = { ...defaultCurrencyDecimals() };
+      for (const c of CURRENCY_OPTIONS) {
+        if (typeof storedDecimals[c.code] === "number") {
+          parsed.currencyDecimals[c.code] = clampDecimals(storedDecimals[c.code]);
+        } else if (c.code === parsed.defaultCurrency && typeof parsed.decimalPlaces === "number") {
+          parsed.currencyDecimals[c.code] = clampDecimals(parsed.decimalPlaces);
+        }
+      }
+      parsed.decimalPlaces = parsed.currencyDecimals[parsed.defaultCurrency] ?? 2;
       return parsed;
     }
   } catch {}
@@ -295,10 +323,12 @@ export default function SettingsPage() {
       }
     }
     const stored = loadGeneralSettings();
+    const currencyDecimals = { ...defaultCurrencyDecimals(), ...generalSettings.currencyDecimals };
     saveGeneralSettings({
       ...stored,
       defaultCurrency: generalSettings.defaultCurrency,
-      decimalPlaces: generalSettings.decimalPlaces,
+      currencyDecimals,
+      decimalPlaces: currencyDecimals[generalSettings.defaultCurrency] ?? 2,
     });
     saveExchangeRates({ base: generalSettings.defaultCurrency, rates: exchangeRates });
 
@@ -706,58 +736,83 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">{t('Currency icon and country shown across the system')}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold">{t('Default Currency')}</Label>
-                    <Select
-                      value={generalSettings.defaultCurrency}
-                      onValueChange={handleChangeDefaultCurrency}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold">{t('Default Currency')}</Label>
+                  <Select
+                    value={generalSettings.defaultCurrency}
+                    onValueChange={handleChangeDefaultCurrency}
+                  >
+                    <SelectTrigger
+                      className={`h-11 text-base font-semibold rounded-xl border-2 ${selectedCurrency?.color.border || ""} ${selectedCurrency?.color.bg || ""}`}
+                      data-testid="select-settings-currency"
                     >
-                      <SelectTrigger
-                        className={`h-11 text-base font-semibold rounded-xl border-2 ${selectedCurrency?.color.border || ""} ${selectedCurrency?.color.bg || ""}`}
-                        data-testid="select-settings-currency"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCY_OPTIONS.map(c => {
-                          const lang = i18n.language || 'en';
-                          const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
-                          return (
-                            <SelectItem key={c.code} value={c.code} className={`${c.color.bg} ${c.color.text}`}>
-                              <span className="flex items-center gap-2">
-                                <span className={`w-7 h-7 rounded-full ${c.color.badge} text-white text-[11px] font-black flex items-center justify-center shadow-sm`}>{c.symbol}</span>
-                                <span className="text-lg">{c.flag}</span>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCY_OPTIONS.map(c => {
+                        const lang = i18n.language || 'en';
+                        const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                        return (
+                          <SelectItem key={c.code} value={c.code} className={`${c.color.bg} ${c.color.text}`}>
+                            <span className="flex items-center gap-2">
+                              <span className={`w-7 h-7 rounded-full ${c.color.badge} text-white text-[11px] font-black flex items-center justify-center shadow-sm`}>{c.symbol}</span>
+                              <span className="text-lg">{c.flag}</span>
                                 <span className={`font-bold ${c.color.text}`}>{localized}</span>
                                 <span className="text-xs opacity-70">({c.code})</span>
-                              </span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
+                                <span className="text-xs opacity-70">{t("Decimal Places")}: {generalSettings.currencyDecimals?.[c.code] ?? DEFAULT_CURRENCY_DECIMALS[c.code] ?? 2}</span>
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-3">
+                  <div>
                     <Label className="text-sm font-bold flex items-center gap-2">
                       <Hash className="h-4 w-4 text-violet-600" />
                       {t('Decimal Places')}
                     </Label>
-                    <Select
-                      value={String(generalSettings.decimalPlaces)}
-                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, decimalPlaces: Number(val) }))}
-                    >
-                      <SelectTrigger className="h-11 text-base font-semibold rounded-xl" data-testid="select-settings-decimal-places">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[0, 1, 2, 3, 4].map(n => (
-                          <SelectItem key={n} value={String(n)}>
-                            {n} — {(1234.56789).toFixed(n)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">{t('Number of digits after decimal point in amounts')}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('Decimal places for each currency')}</p>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {CURRENCY_OPTIONS.map(c => {
+                      const lang = i18n.language || 'en';
+                      const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                      const dp = generalSettings.currencyDecimals?.[c.code] ?? DEFAULT_CURRENCY_DECIMALS[c.code] ?? 2;
+                      return (
+                        <div key={c.code} className={`flex items-center gap-3 p-3 rounded-xl border-2 ${c.color.bg} ${c.color.border}`}>
+                          <span className={`w-10 h-10 rounded-full ${c.color.badge} text-white text-sm font-black flex items-center justify-center shadow-sm shrink-0`}>{c.symbol}</span>
+                          <span className="text-2xl shrink-0">{c.flag}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-bold truncate ${c.color.text}`}>{localized}</p>
+                            <p className={`text-xs ${c.color.text} opacity-70`} dir="ltr">{c.code}</p>
+                          </div>
+                          <Select
+                            value={String(dp)}
+                            onValueChange={(val) => setGeneralSettings(prev => ({
+                              ...prev,
+                              currencyDecimals: { ...prev.currencyDecimals, [c.code]: Number(val) },
+                              decimalPlaces: c.code === prev.defaultCurrency ? Number(val) : prev.decimalPlaces,
+                            }))}
+                          >
+                            <SelectTrigger
+                              className={`h-10 w-[8.5rem] text-sm font-bold rounded-xl bg-white dark:bg-background ${c.color.input} ${c.color.text}`}
+                              data-testid={`select-decimal-places-${c.code}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[0, 1, 2, 3, 4].map(n => (
+                                <SelectItem key={n} value={String(n)}>
+                                  {n} — {(1234.56789).toFixed(n)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

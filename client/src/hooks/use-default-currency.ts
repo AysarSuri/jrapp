@@ -23,18 +23,55 @@ export function getCurrencyMeta(code: string) {
   return CURRENCY_META[code] || { symbol: code, flag: "💱" };
 }
 
-function readSettings(): { defaultCurrency: string; decimalPlaces: number } {
+const DEFAULT_CURRENCY_DECIMALS: Record<string, number> = {
+  IQD: 0, USD: 2, EUR: 2, IRR: 0, GBP: 2, TRY: 2, CNY: 2,
+};
+
+function clampDecimals(n: unknown, fallback = 2): number {
+  const v = typeof n === "number" ? n : Number(n);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.max(0, Math.min(4, Math.round(v)));
+}
+
+function readSettings(): { defaultCurrency: string; decimalPlaces: number; currencyDecimals: Record<string, number> } {
+  const currencyDecimals = { ...DEFAULT_CURRENCY_DECIMALS };
   try {
     const raw = localStorage.getItem(GENERAL_SETTINGS_KEY);
     if (raw) {
       const obj = JSON.parse(raw);
+      const defaultCurrency = CURRENCY_META[obj.defaultCurrency] ? obj.defaultCurrency : "IQD";
+      const stored = obj.currencyDecimals && typeof obj.currencyDecimals === "object" ? obj.currencyDecimals : {};
+      for (const code of Object.keys(CURRENCY_META)) {
+        if (typeof stored[code] === "number") currencyDecimals[code] = clampDecimals(stored[code], currencyDecimals[code] ?? 2);
+        else if (code === defaultCurrency && typeof obj.decimalPlaces === "number") currencyDecimals[code] = clampDecimals(obj.decimalPlaces, currencyDecimals[code] ?? 2);
+      }
       return {
-        defaultCurrency: CURRENCY_META[obj.defaultCurrency] ? obj.defaultCurrency : "IQD",
-        decimalPlaces: typeof obj.decimalPlaces === "number" ? obj.decimalPlaces : 2,
+        defaultCurrency,
+        decimalPlaces: currencyDecimals[defaultCurrency] ?? 2,
+        currencyDecimals,
       };
     }
   } catch {}
-  return { defaultCurrency: "IQD", decimalPlaces: 2 };
+  return { defaultCurrency: "IQD", decimalPlaces: currencyDecimals.IQD ?? 0, currencyDecimals };
+}
+
+export function getCurrencyDecimalPlaces(currencyCode?: string): number {
+  const s = readSettings();
+  const code = currencyCode || s.defaultCurrency;
+  return clampDecimals(s.currencyDecimals[code], s.decimalPlaces);
+}
+
+export function currencyInputStep(currencyCode?: string): string {
+  const dp = getCurrencyDecimalPlaces(currencyCode);
+  if (dp <= 0) return "1";
+  return (1 / 10 ** dp).toFixed(dp);
+}
+
+export function formatAmountInput(value: number | string, currencyCode?: string): string {
+  const dp = getCurrencyDecimalPlaces(currencyCode);
+  const num = typeof value === "string" ? parseFloat(value || "0") : (value || 0);
+  if (!Number.isFinite(num)) return (0).toFixed(dp);
+  return num.toFixed(dp);
 }
 
 export function useDefaultCurrency(): CurrencyInfo {
@@ -68,7 +105,7 @@ export function useDefaultCurrency(): CurrencyInfo {
 export function formatAmount(value: number | string, currencyCode?: string, decimalPlaces?: number): string {
   const s = readSettings();
   const code = currencyCode || s.defaultCurrency;
-  const dp = typeof decimalPlaces === "number" ? decimalPlaces : s.decimalPlaces;
+  const dp = typeof decimalPlaces === "number" ? decimalPlaces : getCurrencyDecimalPlaces(code);
   const num = typeof value === "string" ? parseFloat(value || "0") : (value || 0);
   const formatted = num.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
   const meta = getCurrencyMeta(code);

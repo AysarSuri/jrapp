@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from "@/hooks/use-clients";
 import { useAddresses } from "@/hooks/use-addresses";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SearchSelect } from "@/components/search-select";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { Plus, Loader2, Pencil, Trash2, Save, Printer, Phone, MapPin, Wallet } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, Save, Printer, Phone, MapPin, Wallet, X } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconCustomers, IconAddress, IconAgent } from "@/components/erp-icons";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ import { formatDate } from "@/lib/format-utils";
 import { PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { AddressSearchSelect } from "@/components/address-search-select";
 import { CURRENCY_OPTIONS, loadFieldVisibility } from "@/pages/settings";
-import { useDefaultCurrency, formatAmount, getCurrencyMeta } from "@/hooks/use-default-currency";
+import { useDefaultCurrency, formatAmount, formatAmountInput, getCurrencyDecimalPlaces, currencyInputStep, getCurrencyMeta } from "@/hooks/use-default-currency";
 
 type Client = {
   id: number;
@@ -73,6 +73,8 @@ export default function CustomersPage() {
   const [mobileFilter, setMobileFilter] = useState("");
   const [agentFilter, setAgentFilter] = useState("");
 
+  const [printPreviewHtml, setPrintPreviewHtml] = useState<string | null>(null);
+  const printFrameRef = useRef<HTMLIFrameElement>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
@@ -102,7 +104,7 @@ export default function CustomersPage() {
     setName("");
     setContact("");
     setAddress("");
-    setOldDebt("0");
+    setOldDebt(formatAmountInput(0, defaultCurrency.code));
     setDebtCurrency(defaultCurrency.code);
     setSelectedAgentId("");
   };
@@ -123,7 +125,7 @@ export default function CustomersPage() {
     setContact(client.contact || "");
     setAddress(client.address || "");
     const opening = openingBalanceOf(client, defaultCurrency.code);
-    setOldDebt(String(opening.amount));
+    setOldDebt(formatAmountInput(opening.amount, opening.currency));
     setDebtCurrency(opening.currency);
     const assignment = agentClientsList?.find(ac => ac.clientId === client.id);
     setSelectedAgentId(assignment?.agentUserId || "");
@@ -181,8 +183,8 @@ export default function CustomersPage() {
       type: "customer" as const,
       contact: contact.trim(),
       address: fv.customer_address ? address.trim() : "",
-      oldDebtUsd: showOpeningBalance && debtCurrency === "USD" ? (oldDebt.trim() || "0") : "0",
-      oldDebtIqd: showOpeningBalance && debtCurrency !== "USD" ? (oldDebt.trim() || "0") : "0",
+      oldDebtUsd: showOpeningBalance && debtCurrency === "USD" ? formatAmountInput(oldDebt, debtCurrency) : "0",
+      oldDebtIqd: showOpeningBalance && debtCurrency !== "USD" ? formatAmountInput(oldDebt, debtCurrency) : "0",
       oldDebtCurrency: showOpeningBalance ? debtCurrency : defaultCurrency.code,
     };
 
@@ -314,17 +316,18 @@ export default function CustomersPage() {
       : openingCell(0, defaultCurrency.code);
     const leadCols = 3 + (fv.customer_address ? 1 : 0) + (fv.customer_agent ? 1 : 0);
 
+    const reportFont = "Tahoma, 'Segoe UI', 'Noto Naskh Arabic', 'Noto Sans Arabic', 'Cairo', 'Tajawal', sans-serif";
     const html = `<!DOCTYPE html>
-<html dir="${dir}">
+<html dir="${dir}" lang="${i18n.language || "ar"}">
 <head>
   ${PRINT_FONT_LINKS}
   <meta charset="utf-8">
   <title>${title} — ${companyName}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
-      padding: 18px 22px;
+    html, body {
+      font-family: ${reportFont};
       font-size: 14px;
       font-weight: 700;
       direction: ${dir};
@@ -333,6 +336,7 @@ export default function CustomersPage() {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
+    body { padding: 18px 22px; }
     .top-bar {
       height: 6px;
       border-radius: 999px;
@@ -340,41 +344,49 @@ export default function CustomersPage() {
       margin-bottom: 16px;
     }
     .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
+      padding: 14px 18px 12px;
       margin-bottom: 14px;
       border: 2px solid ${accent}30;
       border-radius: 14px;
       background: linear-gradient(135deg, #fafbfc, ${accent}08);
     }
-    .header-center {
+    .company-block {
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex: 1;
       justify-content: center;
+      gap: 12px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid ${accent}22;
     }
-    .header-center img {
-      width: 60px;
-      height: 60px;
+    .company-block img {
+      width: 56px;
+      height: 56px;
       object-fit: contain;
       border-radius: 10px;
+      flex-shrink: 0;
     }
-    .header-center .company-name {
+    .company-name {
+      font-family: ${reportFont};
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 700;
       color: ${accent};
-      letter-spacing: -0.3px;
+      letter-spacing: 0;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .header-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
     .header-right {
       text-align: ${dir === "rtl" ? "right" : "left"};
-      min-width: 180px;
     }
     .header-right .report-title {
       font-size: 18px;
-      font-weight: 800;
+      font-weight: 700;
       color: ${accent};
       margin-bottom: 4px;
     }
@@ -385,7 +397,6 @@ export default function CustomersPage() {
     }
     .header-left {
       text-align: ${dir === "rtl" ? "left" : "right"};
-      min-width: 200px;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -448,6 +459,7 @@ export default function CustomersPage() {
       border: 1px solid #e2e8f0;
     }
     th {
+      font-family: ${reportFont};
       background: linear-gradient(145deg, ${accent}, ${accent}dd);
       color: #fff;
       padding: 10px 8px;
@@ -457,6 +469,7 @@ export default function CustomersPage() {
       white-space: nowrap;
     }
     td {
+      font-family: ${reportFont};
       border-bottom: 1px solid #eef2f7;
       padding: 9px 8px;
       text-align: center;
@@ -466,9 +479,16 @@ export default function CustomersPage() {
     }
     tr:nth-child(even) { background: #f8fafc; }
     tr:hover { background: #f1f5f9; }
-    .mono { font-family: 'Inter', monospace; letter-spacing: 0.3px; }
+    .mono { font-family: 'Tahoma', 'Segoe UI', sans-serif; letter-spacing: 0; }
     .num { font-weight: 700; color: #64748b; width: 36px; }
-    .name-cell { font-weight: 700; color: #1e293b; text-align: ${dir === "rtl" ? "right" : "left"}; }
+    .name-cell {
+      font-family: ${reportFont};
+      font-weight: 700;
+      color: #1e293b;
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      letter-spacing: 0;
+      line-height: 1.5;
+    }
     .price-usd { color: #16a34a; font-weight: 700; }
     .price-iqd { color: #2563eb; font-weight: 700; }
     .chip {
@@ -525,17 +545,19 @@ export default function CustomersPage() {
 <body>
   <div class="top-bar"></div>
   <div class="header-row">
-    <div class="header-right">
-      <div class="report-title">${title}</div>
-      <div class="report-date">${today}</div>
-    </div>
-    <div class="header-center">
+    <div class="company-block">
       ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
       <span class="company-name">${companyName}</span>
     </div>
-    <div class="header-left">
-      ${companyAddress ? `<div class="contact-item">\u{1F4CD} ${companyAddress}</div>` : ""}
-      ${companyMobile ? `<div class="contact-item">\u{1F4DE} ${companyMobile}</div>` : ""}
+    <div class="header-meta">
+      <div class="header-right">
+        <div class="report-title">${title}</div>
+        <div class="report-date">${today}</div>
+      </div>
+      <div class="header-left">
+        ${companyAddress ? `<div class="contact-item">\u{1F4CD} ${companyAddress}</div>` : ""}
+        ${companyMobile ? `<div class="contact-item">\u{1F4DE} ${companyMobile}</div>` : ""}
+      </div>
     </div>
   </div>
 
@@ -577,29 +599,17 @@ export default function CustomersPage() {
     <div class="footer-item">${t('Date')}: <span class="footer-value">${today}</span></div>
   </div>
 
-  <script>
-    window.onload = function() {
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function() { setTimeout(function() { window.print(); }, 300); });
-      } else {
-        setTimeout(function() { window.print(); }, 1200);
-      }
-    };
-  </script>
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const printWindow = window.open(url, "_blank");
-    if (!printWindow) {
-      const fallback = window.open("", "_blank");
-      if (fallback) {
-        fallback.document.open();
-        fallback.document.write(html);
-        fallback.document.close();
-      }
-    }
+    setPrintPreviewHtml(html);
+  };
+
+  const printPreview = () => {
+    const win = printFrameRef.current?.contentWindow;
+    if (!win) return;
+    win.focus();
+    win.print();
   };
 
   return (
@@ -610,8 +620,8 @@ export default function CustomersPage() {
             <IconCustomers className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t("Customers")}</h1>
-            <p className="text-muted-foreground text-sm">{t("Manage your customers")}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t("Customers")}</h1>
+            <p className="text-muted-foreground text-base">{t("Manage your customers")}</p>
           </div>
         </div>
         <Button
@@ -627,7 +637,7 @@ export default function CustomersPage() {
       <div className={`grid gap-4 ${showOpeningBalance ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
         <div className={`${panelClass} p-5 flex items-center justify-between gap-3`}>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("Total Customers")}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Total Customers")}</p>
             <p className="text-3xl font-black tracking-tight mt-1">{customers.length}</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 flex items-center justify-center">
@@ -637,7 +647,7 @@ export default function CustomersPage() {
         {showOpeningBalance && (
           <div className={`${panelClass} p-5 flex items-center justify-between gap-3`}>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("Opening Balance")}</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Opening Balance")}</p>
               {openingTotalEntries.length === 0 ? (
                 <p className="text-3xl font-black tracking-tight mt-1">{formatAmount(0, defaultCurrency.code)}</p>
               ) : (
@@ -670,7 +680,7 @@ export default function CustomersPage() {
         <div className="p-4 md:p-5 border-b border-black/[0.05] dark:border-white/10 bg-gradient-to-br from-sky-500/[0.06] via-transparent to-transparent">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2.5 items-end">
             <div className="space-y-1 min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Customer Name")}</p>
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Customer Name")}</p>
               <SearchSelect
                 items={customers.map((c) => ({ id: c.id, name: c.name, subtitle: c.contact || undefined }))}
                 value={customerFilter}
@@ -684,7 +694,7 @@ export default function CustomersPage() {
             </div>
             {fv.customer_address && (
               <div className="space-y-1 min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Address")}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Address")}</p>
                 <AddressSearchSelect
                   addresses={addresses}
                   value={addressFilter}
@@ -698,7 +708,7 @@ export default function CustomersPage() {
               </div>
             )}
             <div className="space-y-1 min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Mobile")}</p>
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Mobile")}</p>
               <SearchInput
                 placeholder={t("Mobile number...")}
                 className="h-10 rounded-xl"
@@ -710,7 +720,7 @@ export default function CustomersPage() {
             </div>
             {fv.customer_agent && (
               <div className="space-y-1 min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("Agent")}</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Agent")}</p>
                 <SearchSelect
                   items={agents.map((a) => ({ id: a.id, name: a.name, subtitle: a.mobile }))}
                   value={agentFilter}
@@ -757,14 +767,14 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-black/[0.05] dark:border-white/10">
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">#</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Name")}</TableHead>
-                  {fv.customer_address && <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Address")}</TableHead>}
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Contact")}</TableHead>
-                  {fv.customer_agent && <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Agent")}</TableHead>}
-                  {showOpeningBalance && <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">{t("Opening Balance")}</TableHead>}
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("Created By")}</TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">{t("Actions")}</TableHead>
+                  <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">#</TableHead>
+                  <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Name")}</TableHead>
+                  {fv.customer_address && <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Address")}</TableHead>}
+                  <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Contact")}</TableHead>
+                  {fv.customer_agent && <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Agent")}</TableHead>}
+                  {showOpeningBalance && <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground text-right">{t("Opening Balance")}</TableHead>}
+                  <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("Created By")}</TableHead>
+                  <TableHead className="text-sm font-bold uppercase tracking-wider text-muted-foreground text-center">{t("Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -880,6 +890,44 @@ export default function CustomersPage() {
         )}
       </div>
 
+      {printPreviewHtml && (
+        <div
+          className="fixed inset-0 z-[80] bg-zinc-950/70 backdrop-blur-sm flex flex-col p-3 md:p-6"
+          onClick={() => setPrintPreviewHtml(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="mx-auto w-full max-w-[1100px] flex-1 min-h-0 flex flex-col rounded-2xl overflow-hidden bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-slate-50">
+              <p className="font-bold text-base">{t("Preview")} — {t("Customers")}</p>
+              <div className="flex items-center gap-2">
+                <Button onClick={printPreview} className="h-10 px-4 rounded-xl gap-1.5">
+                  <Printer className="h-4 w-4" />
+                  {t("Print")}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setPrintPreviewHtml(null)}
+                  className="h-10 w-10 p-0 rounded-xl"
+                  aria-label={t("Cancel")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <iframe
+              ref={printFrameRef}
+              title={t("Preview")}
+              srcDoc={printPreviewHtml}
+              className="flex-1 w-full min-h-0 bg-white"
+            />
+          </div>
+        </div>
+      )}
+
       <Dialog
         open={formOpen}
         onOpenChange={(open) => {
@@ -888,7 +936,7 @@ export default function CustomersPage() {
         }}
       >
         <DialogContent
-          className="sm:max-w-2xl p-0 gap-0 overflow-visible"
+          className="sm:max-w-4xl w-[min(96vw,56rem)] p-0 gap-0 overflow-visible"
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="relative px-6 pt-6 pb-5 border-b border-border/50 bg-gradient-to-br from-sky-500/12 via-background to-background">
@@ -898,10 +946,10 @@ export default function CustomersPage() {
                   {editingId ? <Pencil className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
                 <div className="min-w-0 pe-8">
-                  <DialogTitle className="text-xl font-bold tracking-tight">
+                  <DialogTitle className="text-2xl font-bold tracking-tight">
                     {editingId ? t("Edit Customer") : t("Add New Customer")}
                   </DialogTitle>
-                  <DialogDescription className="mt-1">
+                  <DialogDescription className="mt-1 text-base">
                     {t("Fill in the customer details below.")}
                   </DialogDescription>
                 </div>
@@ -918,7 +966,7 @@ export default function CustomersPage() {
             <div className="px-6 py-5 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="customer-name" className="text-sm font-semibold flex items-center gap-1.5">
+                  <Label htmlFor="customer-name" className="text-base font-semibold flex items-center gap-1.5">
                     <IconCustomers className="h-3.5 w-3.5 text-sky-600" />
                     {t("Customer Name")}
                   </Label>
@@ -933,7 +981,7 @@ export default function CustomersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="customer-contact" className="text-sm font-semibold flex items-center gap-1.5">
+                  <Label htmlFor="customer-contact" className="text-base font-semibold flex items-center gap-1.5">
                     <Phone className="h-3.5 w-3.5 text-sky-600" />
                     {t("Contact")}
                   </Label>
@@ -952,7 +1000,7 @@ export default function CustomersPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {fv.customer_address && (
                     <div className="space-y-1.5">
-                      <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Label className="text-base font-semibold flex items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 text-sky-600" />
                         {t("Address")}
                       </Label>
@@ -968,7 +1016,7 @@ export default function CustomersPage() {
                   )}
                   {fv.customer_agent && (
                     <div className="space-y-1.5">
-                      <Label className="text-sm font-semibold flex items-center gap-1.5">
+                      <Label className="text-base font-semibold flex items-center gap-1.5">
                         <IconAgent className="h-3.5 w-3.5 text-sky-600" />
                         {t("Agent")}
                       </Label>
@@ -987,7 +1035,7 @@ export default function CustomersPage() {
 
               {showOpeningBalance && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="customer-opening-balance" className="text-sm font-semibold flex items-center gap-1.5">
+                  <Label htmlFor="customer-opening-balance" className="text-base font-semibold flex items-center gap-1.5">
                     <Wallet className="h-3.5 w-3.5 text-sky-600" />
                     {t("Opening Balance")}
                   </Label>
@@ -996,15 +1044,22 @@ export default function CustomersPage() {
                       id="customer-opening-balance"
                       data-testid="input-customer-opening-balance"
                       dir="ltr"
-                      className={`h-11 text-base font-semibold rounded-xl font-mono border-0 bg-transparent shadow-none focus-visible:ring-0 text-right pr-3 pl-[7.5rem] ${selectedDebtCurrency?.color.text || ""}`}
+                      className={`h-11 text-base font-semibold rounded-xl font-mono border-0 bg-transparent shadow-none focus-visible:ring-0 text-right pr-3 pl-[9.25rem] ${selectedDebtCurrency?.color.text || ""}`}
                       type="number"
-                      step={debtCurrency === "IQD" || debtCurrency === "IRR" ? "1" : "0.01"}
-                      placeholder="0"
+                      step={currencyInputStep(debtCurrency)}
+                      placeholder={formatAmountInput(0, debtCurrency)}
                       value={oldDebt}
                       onChange={(e) => setOldDebt(e.target.value)}
+                      onBlur={() => setOldDebt(formatAmountInput(oldDebt, debtCurrency))}
                     />
                     <div className="absolute inset-y-0 left-1 flex items-center">
-                      <Select value={debtCurrency} onValueChange={setDebtCurrency}>
+                      <Select
+                        value={debtCurrency}
+                        onValueChange={(code) => {
+                          setDebtCurrency(code);
+                          setOldDebt((prev) => formatAmountInput(prev, code));
+                        }}
+                      >
                         <SelectTrigger
                           className={`h-8 w-auto border-0 bg-transparent shadow-none px-1.5 gap-1 focus:ring-0 ${selectedDebtCurrency?.color.text || ""}`}
                           data-testid="select-customer-opening-currency"
@@ -1014,6 +1069,7 @@ export default function CustomersPage() {
                               {selectedDebtCurrency?.symbol || getCurrencyMeta(debtCurrency).symbol}
                             </span>
                             <span dir="ltr" className="font-mono text-sm font-black">{debtCurrency}</span>
+                            <span className="text-[10px] font-bold opacity-70">{getCurrencyDecimalPlaces(debtCurrency)}</span>
                           </div>
                         </SelectTrigger>
                         <SelectContent className="z-[80]">
@@ -1028,6 +1084,7 @@ export default function CustomersPage() {
                                   <span>{meta.flag}</span>
                                   <span className="font-bold">{localized}</span>
                                   <span className="text-xs opacity-70">({c.code})</span>
+                                  <span className="text-[10px] font-bold opacity-70">{t("Decimal Places")}: {getCurrencyDecimalPlaces(c.code)}</span>
                                 </span>
                               </SelectItem>
                             );
