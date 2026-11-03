@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { ArrowDownToLine, ArrowUpFromLine, ListChecks, ArrowRight } from "lucide-react";
 import { IconExternalDebt, IconDollar, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
-
 export default function ExternalDebtManagementPage() {
   const { t } = useTranslation();
 
@@ -60,9 +59,11 @@ export default function ExternalDebtManagementPage() {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("External Debt Management")}</h1>
-        <p className="text-muted-foreground text-sm">{t("Manage all external debt operations from one place")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("External Debt Management")}</h1>
+          <p className="text-muted-foreground text-sm">{t("Manage all external debt operations from one place")}</p>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

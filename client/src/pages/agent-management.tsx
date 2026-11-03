@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { IconCustomers, IconSupplierList, IconAddress, IconAgent } from "@/components/erp-icons";
-
 export default function AgentManagementPage() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === "rtl";
@@ -50,9 +49,11 @@ export default function AgentManagementPage() {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("Agent Management")}</h1>
-        <p className="text-muted-foreground text-sm mt-0.5">{t("Manage all agent operations from one place")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("Agent Management")}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{t("Manage all agent operations from one place")}</p>
+        </div>
       </div>
 
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">

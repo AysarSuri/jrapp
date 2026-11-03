@@ -36,32 +36,21 @@ export const SUB_PERMISSION_ACTIONS = [
 export const MODULE_FORMS: Record<string, FormPermission[]> = {
   sales_management: [
     { key: "customers", labelKey: "Customers", route: "/customers" },
-    { key: "sales_invoice_usd", labelKey: "Sales Invoice USD", route: "/sales-invoice-usd" },
     { key: "sales_invoice_iqd", labelKey: "Sales Invoice IQD", route: "/sales-invoice-iqd" },
-    { key: "pos_usd", labelKey: "POS USD", route: "/sales-by-category" },
     { key: "pos_iqd", labelKey: "POS IQD", route: "/pos-iqd" },
-    { key: "sales_return_usd", labelKey: "Sales Return USD", route: "/sales-return-usd" },
     { key: "sales_return_iqd", labelKey: "Sales Return IQD", route: "/sales-return-iqd" },
-    { key: "customer_receipt_usd", labelKey: "Customer Receipt USD", route: "/customer-receipt-usd" },
     { key: "customer_receipt_iqd", labelKey: "Customer Receipt IQD", route: "/customer-receipt-iqd" },
-    { key: "agent_payment_usd", labelKey: "Customer Payment USD", route: "/agent-payment-usd" },
-    { key: "agent_payment_iqd", labelKey: "Customer Payment IQD", route: "/agent-payment-iqd" },
-    { key: "agent_statement_usd", labelKey: "Customer Statement USD", route: "/agent-statement-usd" },
     { key: "agent_statement_iqd", labelKey: "Customer Statement IQD", route: "/agent-statement-iqd" },
     { key: "customer_debts", labelKey: "Customer Debts", route: "/customer-debts" },
   ],
   supplier_management: [
     { key: "suppliers", labelKey: "Suppliers", route: "/suppliers" },
-    { key: "purchase_invoice_usd", labelKey: "Purchase Invoice USD", route: "/purchase-invoice-usd" },
     { key: "purchase_invoice_iqd", labelKey: "Purchase Invoice IQD", route: "/purchase-invoice-iqd" },
-    { key: "purchase_return_usd", labelKey: "Purchase Return USD", route: "/purchase-return-usd" },
     { key: "purchase_return_iqd", labelKey: "Purchase Return IQD", route: "/purchase-return-iqd" },
     { key: "supplier_payments", labelKey: "Supplier Payments", route: "/supplier-payments" },
     { key: "supplier_adjustments", labelKey: "Supplier Adjustments", route: "/supplier-adjustments" },
-    { key: "supplier_statement_usd", labelKey: "Supplier Statement USD", route: "/supplier-statement-usd" },
     { key: "supplier_statement_iqd", labelKey: "Supplier Statement IQD", route: "/supplier-statement-iqd" },
     { key: "supplier_debts", labelKey: "Supplier Debts", route: "/supplier-debts" },
-    { key: "supplier_order_usd", labelKey: "Supplier Order USD", route: "/supplier-order-usd" },
     { key: "supplier_order_iqd", labelKey: "Supplier Order IQD", route: "/supplier-order-iqd" },
   ],
   agent_management: [
@@ -87,7 +76,6 @@ export const MODULE_FORMS: Record<string, FormPermission[]> = {
     { key: "banks", labelKey: "Banks", route: "/banks" },
     { key: "bank_receipts", labelKey: "Bank Receipts", route: "/bank-receipts" },
     { key: "bank_payments", labelKey: "Bank Payments", route: "/bank-payments" },
-    { key: "bank_statement_usd", labelKey: "Bank Statement USD", route: "/bank-statement-usd" },
     { key: "bank_statement_iqd", labelKey: "Bank Statement IQD", route: "/bank-statement-iqd" },
   ],
   clearance_management: [
@@ -95,7 +83,6 @@ export const MODULE_FORMS: Record<string, FormPermission[]> = {
     { key: "clearance_receipts", labelKey: "Clearance Receipts", route: "/clearance-receipts" },
     { key: "clearance_payments", labelKey: "Clearance Payments", route: "/clearance-payments" },
     { key: "clearance_purchase_invoices", labelKey: "Clearance Purchase Invoices", route: "/clearance-purchase-invoices" },
-    { key: "clearance_statement_usd", labelKey: "Clearance Statement USD", route: "/clearance-statement-usd" },
     { key: "clearance_statement_iqd", labelKey: "Clearance Statement IQD", route: "/clearance-statement-iqd" },
   ],
   office_management: [
@@ -162,13 +149,12 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Sales Management",
     routes: [
       "/sales-management", "/customers",
-      "/sales-invoice-usd", "/sales-invoice-iqd", "/sales-invoice",
-      "/sales-return-usd", "/sales-return-iqd", "/sales-return",
-      "/customer-receipt-usd", "/customer-receipt-iqd", "/customer-receipt",
-      "/agent-payment-usd", "/agent-payment-iqd", "/agent-payment",
-      "/agent-statement-usd", "/agent-statement-iqd", "/agent-statement",
+      "/sales-invoice-iqd", "/sales-invoice",
+      "/sales-return-iqd", "/sales-return",
+      "/customer-receipt-iqd", "/customer-receipt",
+      "/agent-statement-iqd", "/agent-statement",
       "/customer-debts",
-      "/sales-by-category", "/pos-iqd",
+      "/pos-iqd",
     ],
   },
   {
@@ -176,12 +162,12 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Supplier Management",
     routes: [
       "/supplier-management", "/suppliers",
-      "/purchase-invoice-usd", "/purchase-invoice-iqd", "/purchase-invoice",
-      "/purchase-return-usd", "/purchase-return-iqd", "/purchase-return",
+      "/purchase-invoice-iqd", "/purchase-invoice",
+      "/purchase-return-iqd", "/purchase-return",
       "/supplier-payments", "/supplier-adjustments",
-      "/supplier-statement-usd", "/supplier-statement-iqd", "/supplier-statement",
+      "/supplier-statement-iqd", "/supplier-statement",
       "/supplier-debts",
-      "/supplier-order-usd", "/supplier-order-iqd",
+      "/supplier-order-iqd",
     ],
   },
   {
@@ -211,7 +197,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     labelKey: "Bank Management",
     routes: [
       "/bank-management", "/banks", "/bank-receipts", "/bank-payments",
-      "/bank-statement-usd", "/bank-statement-iqd", "/bank-statement",
+      "/bank-statement-iqd", "/bank-statement",
     ],
   },
   {
@@ -221,7 +207,7 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       "/clearance-management", "/customs-clearances",
       "/clearance-receipts", "/clearance-payments",
       "/clearance-purchase-invoices",
-      "/clearance-statement-usd", "/clearance-statement-iqd", "/clearance-statement",
+      "/clearance-statement-iqd", "/clearance-statement",
     ],
   },
   {

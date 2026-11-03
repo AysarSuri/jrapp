@@ -17,8 +17,6 @@ const CURRENCY_META: Record<string, { symbol: string; flag: string }> = {
   GBP: { symbol: "£",   flag: "🇬🇧" },
   TRY: { symbol: "₺",   flag: "🇹🇷" },
   CNY: { symbol: "¥",   flag: "🇨🇳" },
-  AED: { symbol: "د.إ", flag: "🇦🇪" },
-  SAR: { symbol: "﷼",   flag: "🇸🇦" },
 };
 
 export function getCurrencyMeta(code: string) {
@@ -31,7 +29,7 @@ function readSettings(): { defaultCurrency: string; decimalPlaces: number } {
     if (raw) {
       const obj = JSON.parse(raw);
       return {
-        defaultCurrency: obj.defaultCurrency || "IQD",
+        defaultCurrency: CURRENCY_META[obj.defaultCurrency] ? obj.defaultCurrency : "IQD",
         decimalPlaces: typeof obj.decimalPlaces === "number" ? obj.decimalPlaces : 2,
       };
     }

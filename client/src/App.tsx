@@ -21,7 +21,6 @@ import WarehousesPage from "@/pages/warehouses";
 import TransferOfficesPage from "@/pages/transfer-offices";
 import BanksPage from "@/pages/banks";
 import CustomsClearancesPage from "@/pages/customs-clearances";
-import PurchaseInvoiceUsdPage from "@/pages/purchase-invoice-usd";
 import PurchaseInvoiceIqdPage from "@/pages/purchase-invoice-iqd";
 import SupplierPaymentsPage from "@/pages/supplier-payments";
 import SupplierAdjustmentsPage from "@/pages/supplier-adjustments";
@@ -34,19 +33,16 @@ import BankManagementPage from "@/pages/bank-management";
 import ClearanceManagementPage from "@/pages/clearance-management";
 import OfficeManagementPage from "@/pages/office-management";
 import ExpenseManagementPage from "@/pages/expense-management";
+import CardManagementPage from "@/pages/card-management";
 import ExternalDebtManagementPage from "@/pages/external-debt-management";
 import OwnerManagementPage from "@/pages/owner-management";
-import SupplierStatementPage from "@/pages/supplier-statement";
-import SupplierStatementUsdPage from "@/pages/supplier-statement-usd";
 import SupplierStatementIqdPage from "@/pages/supplier-statement-iqd";
 import BankReceiptsPage from "@/pages/bank-receipts";
 import BankPaymentsPage from "@/pages/bank-payments";
-import BankStatementUsdPage from "@/pages/bank-statement-usd";
 import BankStatementIqdPage from "@/pages/bank-statement-iqd";
 import ClearanceReceiptsPage from "@/pages/clearance-receipts";
 import ClearancePaymentsPage from "@/pages/clearance-payments";
 import ClearancePurchaseInvoicesPage from "@/pages/clearance-purchase-invoices";
-import ClearanceStatementUsdPage from "@/pages/clearance-statement-usd";
 import ClearanceStatementIqdPage from "@/pages/clearance-statement-iqd";
 import OfficeReceiptsPage from "@/pages/office-receipts";
 import OfficePaymentsPage from "@/pages/office-payments";
@@ -66,23 +62,15 @@ import OwnerWithdrawalsPage from "@/pages/owner-withdrawals";
 import OwnerReturnsPage from "@/pages/owner-returns";
 import OwnerStatementUsdPage from "@/pages/owner-statement-usd";
 import OwnerStatementIqdPage from "@/pages/owner-statement-iqd";
-import SalesInvoiceUsdPage from "@/pages/sales-invoice-usd";
 import SalesInvoiceIqdPage from "@/pages/sales-invoice-iqd";
-import SalesByCategoryPage from "@/pages/sales-by-category";
 import PosIqdPage from "@/pages/pos-iqd";
 
-import SalesReturnUsdPage from "@/pages/sales-return-usd";
 import SalesReturnIqdPage from "@/pages/sales-return-iqd";
-import PurchaseReturnUsdPage from "@/pages/purchase-return-usd";
 import PurchaseReturnIqdPage from "@/pages/purchase-return-iqd";
-import CustomerReceiptUsdPage from "@/pages/customer-receipt-usd";
 import CustomerReceiptIqdPage from "@/pages/customer-receipt-iqd";
-import AgentPaymentUsdPage from "@/pages/agent-payment-usd";
-import AgentPaymentIqdPage from "@/pages/agent-payment-iqd";
 import AgentReceiptPage from "@/pages/agent-receipt";
 import AgentReceiptStatementPage from "@/pages/agent-receipt-statement";
 import AgentExpenseStatementPage from "@/pages/agent-expense-statement";
-import AgentStatementUsdPage from "@/pages/agent-statement-usd";
 import AgentStatementIqdPage from "@/pages/agent-statement-iqd";
 import CurrencyExchangePage from "@/pages/currency-exchange";
 import WarehouseTransferPage from "@/pages/warehouse-transfer";
@@ -99,17 +87,7 @@ import MaxStockReportPage from "@/pages/max-stock-report";
 import ProfitsReportPage from "@/pages/profits-report";
 import SalesDiscountsGiftsReportPage from "@/pages/sales-discounts-gifts-report";
 import SupplierDiscountsGiftsReportPage from "@/pages/supplier-discounts-gifts-report";
-import SupplierOrderUsdPage from "@/pages/supplier-order-usd";
 import SupplierOrderIqdPage from "@/pages/supplier-order-iqd";
-import SalesInvoicePage from "@/pages/sales-invoice";
-import PurchaseInvoicePage from "@/pages/purchase-invoice";
-import SalesReturnPage from "@/pages/sales-return";
-import PurchaseReturnPage from "@/pages/purchase-return";
-import CustomerReceiptPage from "@/pages/customer-receipt";
-import AgentPaymentPage from "@/pages/agent-payment";
-import AgentStatementPage from "@/pages/agent-statement";
-import BankStatementPage from "@/pages/bank-statement";
-import ClearanceStatementPage from "@/pages/clearance-statement";
 import OfficeStatementPage from "@/pages/office-statement";
 import OwnerStatementPage from "@/pages/owner-statement";
 import BarcodePrintPage from "@/pages/barcode-print";
@@ -220,13 +198,13 @@ function Router() {
         <ProtectedRoute component={AccountsPage} />
       </Route>
       <Route path="/purchase-invoice-usd">
-        <ProtectedRoute component={PurchaseInvoiceUsdPage} />
+        <Redirect to="/purchase-invoice-iqd" />
       </Route>
       <Route path="/purchase-invoice-iqd">
         <ProtectedRoute component={PurchaseInvoiceIqdPage} />
       </Route>
       <Route path="/supplier-order-usd">
-        <ProtectedRoute component={SupplierOrderUsdPage} />
+        <Redirect to="/supplier-order-iqd" />
       </Route>
       <Route path="/supplier-order-iqd">
         <ProtectedRoute component={SupplierOrderIqdPage} />
@@ -261,6 +239,9 @@ function Router() {
       <Route path="/expense-management">
         <ProtectedRoute component={ExpenseManagementPage} />
       </Route>
+      <Route path="/card-management">
+        <ProtectedRoute component={CardManagementPage} />
+      </Route>
       <Route path="/external-debt-management">
         <ProtectedRoute component={ExternalDebtManagementPage} />
       </Route>
@@ -268,10 +249,10 @@ function Router() {
         <ProtectedRoute component={OwnerManagementPage} />
       </Route>
       <Route path="/supplier-statement">
-        <ProtectedRoute component={SupplierStatementPage} />
+        <Redirect to="/supplier-statement-iqd" />
       </Route>
       <Route path="/supplier-statement-usd">
-        <ProtectedRoute component={SupplierStatementUsdPage} />
+        <Redirect to="/supplier-statement-iqd" />
       </Route>
       <Route path="/supplier-statement-iqd">
         <ProtectedRoute component={SupplierStatementIqdPage} />
@@ -283,7 +264,7 @@ function Router() {
         <ProtectedRoute component={BankPaymentsPage} />
       </Route>
       <Route path="/bank-statement-usd">
-        <ProtectedRoute component={BankStatementUsdPage} />
+        <Redirect to="/bank-statement-iqd" />
       </Route>
       <Route path="/bank-statement-iqd">
         <ProtectedRoute component={BankStatementIqdPage} />
@@ -298,7 +279,7 @@ function Router() {
         <ProtectedRoute component={ClearancePurchaseInvoicesPage} />
       </Route>
       <Route path="/clearance-statement-usd">
-        <ProtectedRoute component={ClearanceStatementUsdPage} />
+        <Redirect to="/clearance-statement-iqd" />
       </Route>
       <Route path="/clearance-statement-iqd">
         <ProtectedRoute component={ClearanceStatementIqdPage} />
@@ -355,35 +336,35 @@ function Router() {
         <ProtectedRoute component={OwnerStatementIqdPage} />
       </Route>
       <Route path="/sales-invoice-usd">
-        <ProtectedRoute component={SalesInvoiceUsdPage} />
+        <Redirect to="/sales-invoice-iqd" />
       </Route>
       <Route path="/sales-invoice-iqd">
         <ProtectedRoute component={SalesInvoiceIqdPage} />
       </Route>
       <Route path="/sales-by-category">
-        <ProtectedRoute component={SalesByCategoryPage} />
+        <Redirect to="/pos-iqd" />
       </Route>
       <Route path="/pos-iqd">
         <ProtectedRoute component={PosIqdPage} />
       </Route>
 
       <Route path="/sales-return-usd">
-        <ProtectedRoute component={SalesReturnUsdPage} />
+        <Redirect to="/sales-return-iqd" />
       </Route>
       <Route path="/sales-return-iqd">
         <ProtectedRoute component={SalesReturnIqdPage} />
       </Route>
       <Route path="/customer-receipt-usd">
-        <ProtectedRoute component={CustomerReceiptUsdPage} />
+        <Redirect to="/customer-receipt-iqd" />
       </Route>
       <Route path="/customer-receipt-iqd">
         <ProtectedRoute component={CustomerReceiptIqdPage} />
       </Route>
       <Route path="/agent-payment-usd">
-        <ProtectedRoute component={AgentPaymentUsdPage} />
+        <Redirect to="/sales-management" />
       </Route>
       <Route path="/agent-payment-iqd">
-        <ProtectedRoute component={AgentPaymentIqdPage} />
+        <Redirect to="/sales-management" />
       </Route>
       <Route path="/agent-receipt">
         <ProtectedRoute component={AgentReceiptPage} />
@@ -395,7 +376,7 @@ function Router() {
         <ProtectedRoute component={AgentExpenseStatementPage} />
       </Route>
       <Route path="/agent-statement-usd">
-        <ProtectedRoute component={AgentStatementUsdPage} />
+        <Redirect to="/agent-statement-iqd" />
       </Route>
       <Route path="/agent-statement-iqd">
         <ProtectedRoute component={AgentStatementIqdPage} />
@@ -461,7 +442,7 @@ function Router() {
         <ProtectedRoute component={CompanyProfilePage} />
       </Route>
       <Route path="/purchase-return-usd">
-        <ProtectedRoute component={PurchaseReturnUsdPage} />
+        <Redirect to="/purchase-return-iqd" />
       </Route>
       <Route path="/purchase-return-iqd">
         <ProtectedRoute component={PurchaseReturnIqdPage} />
@@ -476,31 +457,31 @@ function Router() {
         <ProtectedRoute component={DataResetPage} />
       </Route>
       <Route path="/sales-invoice">
-        <ProtectedRoute component={SalesInvoicePage} />
+        <Redirect to="/sales-invoice-iqd" />
       </Route>
       <Route path="/purchase-invoice">
-        <ProtectedRoute component={PurchaseInvoicePage} />
+        <Redirect to="/purchase-invoice-iqd" />
       </Route>
       <Route path="/sales-return">
-        <ProtectedRoute component={SalesReturnPage} />
+        <Redirect to="/sales-return-iqd" />
       </Route>
       <Route path="/purchase-return">
-        <ProtectedRoute component={PurchaseReturnPage} />
+        <Redirect to="/purchase-return-iqd" />
       </Route>
       <Route path="/customer-receipt">
-        <ProtectedRoute component={CustomerReceiptPage} />
+        <Redirect to="/customer-receipt-iqd" />
       </Route>
       <Route path="/agent-payment">
-        <ProtectedRoute component={AgentPaymentPage} />
+        <Redirect to="/sales-management" />
       </Route>
       <Route path="/agent-statement">
-        <ProtectedRoute component={AgentStatementPage} />
+        <Redirect to="/agent-statement-iqd" />
       </Route>
       <Route path="/bank-statement">
-        <ProtectedRoute component={BankStatementPage} />
+        <Redirect to="/bank-statement-iqd" />
       </Route>
       <Route path="/clearance-statement">
-        <ProtectedRoute component={ClearanceStatementPage} />
+        <Redirect to="/clearance-statement-iqd" />
       </Route>
       <Route path="/office-statement">
         <ProtectedRoute component={OfficeStatementPage} />

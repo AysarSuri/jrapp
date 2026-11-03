@@ -55,10 +55,10 @@ export default function AgentSummaryBell() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-muted-foreground relative" data-testid="button-agent-summary">
-          <Users className="w-5 h-5" />
+        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/80" data-testid="button-agent-summary">
+          <Users className="w-[18px] h-[18px]" />
           {totalAgents > 0 && (
-            <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" data-testid="text-agent-summary-count">
+            <span className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-1 bg-emerald-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-background" data-testid="text-agent-summary-count">
               {totalAgents}
             </span>
           )}

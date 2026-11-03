@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
   LogOut,
-  Menu,
   Moon,
   Sun,
   Globe,
@@ -11,9 +10,6 @@ import {
   TrendingUp,
   TrendingDown,
   Gift,
-  X,
-  ArrowRight,
-  ArrowLeft,
   ShoppingCart,
   Store,
   Users,
@@ -28,14 +24,11 @@ import {
   Wallet,
   Factory,
   Building2,
-  Building,
   UserCheck,
-  Monitor,
   Banknote,
   MapPin,
 } from "lucide-react";
 import {
-  IconDashboard,
   IconSales,
   IconSupplier,
   IconAgent,
@@ -48,7 +41,6 @@ import {
   IconOwner,
   IconWarehouse,
   IconDamage,
-  IconBarcode,
   IconCurrencyExchange,
   IconSettings,
   IconUserManagement,
@@ -58,24 +50,15 @@ import {
   IconAddress,
   IconCustomers,
   IconInvoiceUsd,
-  IconInvoiceIqd,
-  IconPosUsd,
   IconPosIqd,
   IconReturnUsd,
-  IconReturnIqd,
   IconReceiptUsd,
-  IconReceiptIqd,
-  IconPaymentUsd,
-  IconPaymentIqd,
   IconStatementUsd,
-  IconStatementIqd,
   IconSupplierList,
-  IconPurchaseUsd,
   IconPurchaseIqd,
   IconSupplierPayment,
   IconSupplierAdjust,
   IconSupplierDebt,
-  IconSupplierOrderUsd,
   IconSupplierOrderIqd,
   IconCompanyBook,
   IconAuditLog,
@@ -120,13 +103,14 @@ import { hasRoutePermission } from "@/lib/permissions";
 import { useUnreadNotificationCount, useNotifications, useMarkNotificationRead } from "@/hooks/use-notifications";
 import { useApproveSalesInvoice } from "@/hooks/use-sales-invoices";
 import AgentSummaryBell from "@/components/agent-summary-bell";
+import { OPEN_HOME_EVENT, ExitToHomeButton } from "@/components/exit-to-home-button";
 
 interface LayoutShellProps {
   children: React.ReactNode;
 }
 
 type NavItem = { href: string; icon: any; label: string; color?: string };
-type NavGroup = { type: 'group'; label: string; icon: any; color: string; children: NavItem[] };
+type NavGroup = { type: 'group'; label: string; icon: any; color: string; children: NavItem[]; href?: string };
 type NavEntry = (NavItem & { color?: string }) | NavGroup;
 
 const COLORS: Record<string, { bg: string; text: string }> = {
@@ -174,6 +158,15 @@ export function LayoutShell({ children }: LayoutShellProps) {
     const dir = (lng === 'en' || lng === 'tr') ? 'ltr' : 'rtl';
     document.documentElement.dir = dir;
     document.documentElement.lang = lng;
+  }, []);
+
+  useEffect(() => {
+    const openHome = () => {
+      setMenuOpen(true);
+      setActiveGroup(null);
+    };
+    window.addEventListener(OPEN_HOME_EVENT, openHome);
+    return () => window.removeEventListener(OPEN_HOME_EVENT, openHome);
   }, []);
 
   useEffect(() => {
@@ -251,30 +244,24 @@ export function LayoutShell({ children }: LayoutShellProps) {
     });
   };
 
-  const isRtl = i18n.language === 'ar' || i18n.language === 'ckb';
-  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
-
   const salesNavItems: NavItem[] = [
     { href: "/customers", icon: IconCustomers, label: "Customers", color: "blue" },
-    { href: "/sales-invoice", icon: IconInvoiceUsd, label: "Sales Invoice", color: "green" },
-    { href: "/sales-by-category", icon: IconPosUsd, label: "POS USD", color: "purple" },
+    { href: "/sales-invoice-iqd", icon: IconInvoiceUsd, label: "Sales Invoice IQD", color: "green" },
     { href: "/pos-iqd", icon: IconPosIqd, label: "POS IQD", color: "violet" },
-    { href: "/sales-return", icon: IconReturnUsd, label: "Sales Return", color: "orange" },
-    { href: "/customer-receipt", icon: IconReceiptUsd, label: "Customer Receipt", color: "cyan" },
-    { href: "/agent-payment", icon: IconPaymentUsd, label: "Customer Payment", color: "pink" },
-    { href: "/agent-statement", icon: IconStatementUsd, label: "Agent Statement", color: "indigo" },
+    { href: "/sales-return-iqd", icon: IconReturnUsd, label: "Sales Return IQD", color: "orange" },
+    { href: "/customer-receipt-iqd", icon: IconReceiptUsd, label: "Customer Receipt IQD", color: "cyan" },
+    { href: "/agent-statement-iqd", icon: IconStatementUsd, label: "Agent Statement IQD", color: "indigo" },
     { href: "/customer-debts", icon: IconDebtReceipt, label: "Customer Debts", color: "red" },
   ];
 
   const supplierNavItems: NavItem[] = [
     { href: "/suppliers", icon: IconSupplierList, label: "Suppliers", color: "purple" },
-    { href: "/purchase-invoice", icon: IconPurchaseUsd, label: "Purchase Invoice", color: "blue" },
-    { href: "/purchase-return", icon: IconReturnUsd, label: "Purchase Return", color: "orange" },
+    { href: "/purchase-invoice-iqd", icon: IconPurchaseIqd, label: "Purchase Invoice IQD", color: "blue" },
+    { href: "/purchase-return-iqd", icon: IconReturnUsd, label: "Purchase Return IQD", color: "orange" },
     { href: "/supplier-payments", icon: IconSupplierPayment, label: "Supplier Payments", color: "green" },
     { href: "/supplier-adjustments", icon: IconSupplierAdjust, label: "Supplier Adjustments", color: "teal" },
-    { href: "/supplier-statement", icon: IconStatementUsd, label: "Supplier Statement", color: "indigo" },
+    { href: "/supplier-statement-iqd", icon: IconStatementUsd, label: "Supplier Statement IQD", color: "indigo" },
     { href: "/supplier-debts", icon: IconSupplierDebt, label: "Supplier Debts", color: "red" },
-    { href: "/supplier-order-usd", icon: IconSupplierOrderUsd, label: "Supplier Order USD", color: "pink" },
     { href: "/supplier-order-iqd", icon: IconSupplierOrderIqd, label: "Supplier Order IQD", color: "rose" },
   ];
 
@@ -282,7 +269,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/banks", icon: IconBank, label: "Banks", color: "emerald" },
     { href: "/bank-receipts", icon: IconBankReceipt, label: "Bank Receipts", color: "green" },
     { href: "/bank-payments", icon: IconBankPayment, label: "Bank Payments", color: "red" },
-    { href: "/bank-statement", icon: IconStatementUsd, label: "Bank Statement", color: "blue" },
+    { href: "/bank-statement-iqd", icon: IconStatementUsd, label: "Bank Statement IQD", color: "blue" },
   ];
 
   const clearanceNavItems: NavItem[] = [
@@ -290,7 +277,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
     { href: "/clearance-receipts", icon: IconClearanceReceipt, label: "Clearance Receipts", color: "green" },
     { href: "/clearance-payments", icon: IconClearancePayment, label: "Clearance Payments", color: "red" },
     { href: "/clearance-purchase-invoices", icon: IconClearanceInvoice, label: "Clearance Purchase Invoices", color: "blue" },
-    { href: "/clearance-statement", icon: IconStatementUsd, label: "Clearance Statement", color: "indigo" },
+    { href: "/clearance-statement-iqd", icon: IconStatementUsd, label: "Clearance Statement IQD", color: "indigo" },
   ];
 
   const officeNavItems: NavItem[] = [
@@ -356,30 +343,31 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const supermarketNavItems: NavItem[] = [
     { href: "/sm/productions", icon: Factory, label: "تحويل وإنتاج", color: "teal" },
     { href: "/sm/cashier", icon: Wallet, label: "القاصة", color: "green" },
-    { href: "/sm/card-cashier", icon: CreditCard, label: "قاصة البطاقات", color: "orange" },
     { href: "/sm/branches", icon: Building2, label: "الفروع", color: "indigo" },
-    { href: "/sm/payment-cards", icon: Banknote, label: "بطاقات الدفع", color: "purple" },
+  ];
+
+  const cardNavItems: NavItem[] = [
+    { href: "/sm/payment-cards", icon: Banknote, label: "Payment Cards", color: "purple" },
+    { href: "/sm/card-cashier", icon: CreditCard, label: "Card Cashier", color: "orange" },
   ];
 
   const sidebarItems: NavEntry[] = [
-    { href: "/", icon: Monitor, label: "Dashboard", color: "blue" },
     ...supermarketNavItems,
-    { type: 'group', label: "Sales Management", icon: ShoppingCart, color: "green", children: salesNavItems },
-    { type: 'group', label: "Supplier Management", icon: Store, color: "red", children: supplierNavItems },
-    { type: 'group', label: "Agent Management", icon: Users, color: "purple", children: agentManagementNavItems },
-    { type: 'group', label: "Material Management", icon: Package2, color: "teal", children: materialNavItems },
+    { type: 'group', label: "Card Management", icon: CreditCard, color: "orange", href: "/card-management", children: cardNavItems },
+    { type: 'group', label: "Sales Management", icon: ShoppingCart, color: "green", href: "/sales-management", children: salesNavItems },
+    { type: 'group', label: "Supplier Management", icon: Store, color: "red", href: "/supplier-management", children: supplierNavItems },
+    { type: 'group', label: "Agent Management", icon: Users, color: "purple", href: "/agent-management", children: agentManagementNavItems },
+    { type: 'group', label: "Material Management", icon: Package2, color: "teal", href: "/material-management", children: materialNavItems },
     { type: 'group', label: "Reports", icon: BarChart2, color: "indigo", children: reportsNavItems },
-    { type: 'group', label: "Bank Management", icon: Landmark, color: "emerald", children: bankNavItems },
-    { type: 'group', label: "Clearance Management", icon: BadgePercent, color: "cyan", children: clearanceNavItems },
-    { type: 'group', label: "Office Management", icon: Headset, color: "orange", children: officeNavItems },
-    { type: 'group', label: "Expense Management", icon: Calculator, color: "amber", children: expenseNavItems },
-    { type: 'group', label: "External Debt Management", icon: TrendingDown, color: "rose", children: externalDebtNavItems },
-    { type: 'group', label: "Owner Management", icon: HandCoins, color: "violet", children: ownerNavItems },
+    { type: 'group', label: "Bank Management", icon: Landmark, color: "emerald", href: "/bank-management", children: bankNavItems },
+    { type: 'group', label: "Clearance Management", icon: BadgePercent, color: "cyan", href: "/clearance-management", children: clearanceNavItems },
+    { type: 'group', label: "Office Management", icon: Headset, color: "orange", href: "/office-management", children: officeNavItems },
+    { type: 'group', label: "Expense Management", icon: Calculator, color: "amber", href: "/expense-management", children: expenseNavItems },
+    { type: 'group', label: "External Debt Management", icon: TrendingDown, color: "rose", href: "/external-debt-management", children: externalDebtNavItems },
+    { type: 'group', label: "Owner Management", icon: HandCoins, color: "violet", href: "/owner-management", children: ownerNavItems },
     { href: "/addresses", icon: MapPin, label: "Customer Addresses", color: "sky" },
     { href: "/supplier-addresses", icon: MapPin, label: "Supplier Addresses", color: "cyan" },
     { type: 'group', label: "Warehouse Management", icon: IconWarehouse, color: "teal", children: warehouseNavItems },
-    { href: "/barcode-print", icon: IconBarcode, label: "Barcode Print", color: "slate" },
-    { href: "/company-profile", icon: Building, label: "Company Profile", color: "emerald" },
     { href: "/currency-exchange", icon: IconCurrencyExchange, label: "Currency Exchange", color: "green" },
     { href: "/backup-restore", icon: IconBackupRestore, label: "Backup & Restore", color: "purple" },
     { href: "/settings", icon: IconSettings, label: "Settings", color: "slate" },
@@ -409,6 +397,12 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const handleCardClick = (entry: NavEntry) => {
     playSidebarClickSound();
     if ('type' in entry && entry.type === 'group') {
+      if (entry.href) {
+        navigate(entry.href);
+        setMenuOpen(false);
+        setActiveGroup(null);
+        return;
+      }
       setActiveGroup(entry.label);
     } else {
       const item = entry as NavItem;
@@ -481,160 +475,150 @@ export function LayoutShell({ children }: LayoutShellProps) {
     );
   };
 
+  const headerIconBtn =
+    "h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors";
+  const brandColor = companyProfile?.primaryColor || "#e11d48";
+
+  const notificationsMenu = (
+    <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className={`${headerIconBtn} relative`} data-testid="button-notifications">
+          <Bell className="w-[18px] h-[18px]" />
+          {(unreadCount?.count || 0) > 0 && (
+            <span className="absolute top-0.5 end-0.5 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-background" data-testid="text-notification-count">
+              {unreadCount?.count}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
+        {(!notificationsList || notificationsList.length === 0) ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">{t('No notifications')}</div>
+        ) : (
+          notificationsList.slice(0, 20).map((notif) => (
+            <DropdownMenuItem
+              key={notif.id}
+              className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${notif.isRead === 0 ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
+              onClick={() => {
+                if (notif.isRead === 0) markRead(notif.id);
+                if (notif.referenceType === 'sales_invoice' && notif.referenceId) {
+                  approveInvoice(notif.referenceId, {
+                    onSuccess: () => {
+                      toast({ title: t("Invoice approved successfully") });
+                    },
+                  });
+                }
+              }}
+              data-testid={`notification-item-${notif.id}`}
+            >
+              <span className="text-sm font-medium">{notif.title}</span>
+              <span className="text-xs text-muted-foreground">{notif.message}</span>
+              {notif.referenceType === 'sales_invoice' && (
+                <span className="text-xs font-semibold text-green-600 mt-1">{t('Click to approve')}</span>
+              )}
+            </DropdownMenuItem>
+          ))
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const languageMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className={headerIconBtn} data-testid="button-language">
+          <Globe className="w-[18px] h-[18px]" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-30 h-14 border-b border-border/60 bg-background/90 backdrop-blur-xl px-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => { setMenuOpen(true); setActiveGroup(null); }}
-            data-testid="button-menu-toggle"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          {!menuOpen && (
-            <Button
-              variant="outline"
-              onClick={() => { setMenuOpen(true); setActiveGroup(null); }}
-              className="gap-2.5 h-10 px-5 text-[14px] font-bold rounded-xl border-2 border-primary/30 bg-primary/5 hover:bg-primary/15 hover:border-primary/50 text-primary shadow-sm transition-all duration-200"
-              data-testid="button-exit-to-sidebar"
-            >
-              <BackArrow className="w-5 h-5" />
-              {t("Exit")}
-            </Button>
-          )}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-xs">JR</span>
-            </div>
-            <span className="font-bold text-lg hidden sm:inline">JR</span>
-          </div>
-
-          {user && (
-            <div className="hidden md:flex items-center gap-2 h-9 px-2.5 rounded-lg bg-muted/40 border border-border/50 ms-1">
-              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-                <span className="text-white font-bold text-[11px]">
-                  {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
-                </span>
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-[12px] font-semibold truncate max-w-[140px]" data-testid="text-header-user-name">{user?.fullName || user?.username}</span>
-                <span className="text-[10px] text-muted-foreground capitalize truncate max-w-[140px]">{user?.role}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="hidden md:flex items-center justify-center min-w-0">
-          {(companyProfile?.logo || companyProfile?.name) && (
-            <div className="inline-flex items-center gap-3 h-11 ps-2 pe-4 rounded-full bg-background border-2 shadow-md max-w-full"
-              style={{
-                borderColor: companyProfile?.primaryColor ? `${companyProfile.primaryColor}40` : undefined,
-              }}
-            >
-              {companyProfile?.logo ? (
-                <img
-                  src={companyProfile.logo}
-                  alt=""
-                  className="w-8 h-8 rounded-full object-contain bg-white p-0.5 shrink-0 ring-1 ring-border/50"
-                  data-testid="img-header-company-logo"
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                  style={{
-                    background: companyProfile?.primaryColor
-                      ? `linear-gradient(135deg, ${companyProfile.primaryColor}, ${companyProfile.primaryColor}cc)`
-                      : "linear-gradient(135deg, #10b981, #059669)",
-                  }}
-                >
-                  <span className="text-white font-bold text-sm">
-                    {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+      {menuOpen ? (
+      <header className="sticky top-0 z-30 px-3 sm:px-5 pt-3 pb-2">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 h-[58px] px-2 sm:px-3 rounded-2xl border border-black/[0.06] dark:border-white/10 bg-white/75 dark:bg-zinc-900/70 backdrop-blur-2xl shadow-[0_8px_28px_-12px_rgba(15,23,42,0.28)]">
+          <div className="flex items-center gap-2 min-w-0">
+            {user && (
+              <div className="hidden sm:flex items-center gap-2 h-10 ps-1 pe-3 rounded-full bg-muted/50 ring-1 ring-black/[0.04] dark:ring-white/10">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm ring-2 ring-white/80 dark:ring-zinc-900">
+                  <span className="text-white font-bold text-[11px]">
+                    {user?.fullName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || "U"}
                   </span>
                 </div>
-              )}
-              {companyProfile?.name && (
-                <span
-                  className="text-[15px] font-extrabold truncate tracking-wide leading-none"
-                  style={{ color: companyProfile?.primaryColor || undefined, maxWidth: "280px" }}
-                  data-testid="text-header-company-name"
-                  title={companyProfile.name}
-                >
-                  {companyProfile.name}
-                </span>
-              )}
+                <div className="flex flex-col leading-tight pe-1">
+                  <span className="text-[12px] font-semibold truncate max-w-[120px]" data-testid="text-header-user-name">{user?.fullName || user?.username}</span>
+                  <span className="text-[10px] text-muted-foreground capitalize truncate max-w-[120px]">{user?.role}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_12px_-3px_rgba(245,158,11,0.7)]">
+              <span className="text-white font-black text-[11px] tracking-wide">JR</span>
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="flex items-center gap-2 justify-end">
-          {(user?.role === 'admin' || user?.role === 'user') && (
-            <AgentSummaryBell />
-          )}
-          {(user?.role === 'admin' || user?.role === 'user') && (
-            <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground relative" data-testid="button-notifications">
-                  <Bell className="w-5 h-5" />
-                  {(unreadCount?.count || 0) > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold" data-testid="text-notification-count">
-                      {unreadCount?.count}
-                    </span>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
-                {(!notificationsList || notificationsList.length === 0) ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">{t('No notifications')}</div>
+          <div className="flex items-center justify-center min-w-0 px-1">
+            {(companyProfile?.logo || companyProfile?.name) && (
+              <div
+                className="relative inline-flex items-center gap-2.5 h-11 ps-1.5 pe-4 rounded-full bg-background/90 max-w-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.12)]"
+                style={{ boxShadow: `0 2px 14px -4px ${brandColor}55, inset 0 0 0 1.5px ${brandColor}40` }}
+              >
+                {companyProfile?.logo ? (
+                  <img
+                    src={companyProfile.logo}
+                    alt=""
+                    className="w-9 h-9 rounded-full object-contain bg-white p-0.5 shrink-0 shadow-sm"
+                    data-testid="img-header-company-logo"
+                  />
                 ) : (
-                  notificationsList.slice(0, 20).map((notif) => (
-                    <DropdownMenuItem
-                      key={notif.id}
-                      className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${notif.isRead === 0 ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
-                      onClick={() => {
-                        if (notif.isRead === 0) markRead(notif.id);
-                        if (notif.referenceType === 'sales_invoice' && notif.referenceId) {
-                          approveInvoice(notif.referenceId, {
-                            onSuccess: () => {
-                              toast({ title: t("Invoice approved successfully") });
-                            },
-                          });
-                        }
-                      }}
-                      data-testid={`notification-item-${notif.id}`}
-                    >
-                      <span className="text-sm font-medium">{notif.title}</span>
-                      <span className="text-xs text-muted-foreground">{notif.message}</span>
-                      {notif.referenceType === 'sales_invoice' && (
-                        <span className="text-xs font-semibold text-green-600 mt-1">{t('Click to approve')}</span>
-                      )}
-                    </DropdownMenuItem>
-                  ))
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                    style={{
+                      background: `linear-gradient(135deg, ${brandColor}, ${brandColor}cc)`,
+                    }}
+                  >
+                    <span className="text-white font-bold text-sm">
+                      {companyProfile?.name?.charAt(0)?.toUpperCase() || "C"}
+                    </span>
+                  </div>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                {companyProfile?.name && (
+                  <span
+                    className="text-[14px] sm:text-[15px] font-bold truncate tracking-wide leading-none"
+                    style={{ color: brandColor, maxWidth: "260px" }}
+                    data-testid="text-header-company-name"
+                    title={companyProfile.name}
+                  >
+                    {companyProfile.name}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <Globe className="w-5 h-5" />
+          <div className="flex items-center justify-end min-w-0">
+            <div className="inline-flex items-center gap-0.5 p-1 rounded-full bg-muted/50 ring-1 ring-black/[0.04] dark:ring-white/10">
+              <Button variant="ghost" size="icon" onClick={toggleTheme} className={headerIconBtn} data-testid="button-theme">
+                {theme === 'light' ? <Moon className="w-[18px] h-[18px]" /> : <Sun className="w-[18px] h-[18px]" />}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => changeLanguage('en')}>English</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeLanguage('ar')}>العربية</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeLanguage('ckb')}>کوردی</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeLanguage('tr')}>Türkçe</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground">
-            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          </Button>
+              {languageMenu}
+              {(user?.role === 'admin' || user?.role === 'user') && notificationsMenu}
+              {(user?.role === 'admin' || user?.role === 'user') && <AgentSummaryBell />}
+            </div>
+          </div>
         </div>
       </header>
+      ) : (
+      <div className="sticky top-0 z-30 flex items-center px-4 pt-3 pb-1">
+        <ExitToHomeButton />
+      </div>
+      )}
 
       {menuOpen ? (
         <div className="flex-1 flex flex-col overflow-hidden">

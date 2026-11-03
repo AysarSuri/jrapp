@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { ArrowDownToLine, ArrowUpFromLine, FileText, ArrowRight } from "lucide-react";
 import { IconBank } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
-
 export default function BankManagementPage() {
   const { t } = useTranslation();
 
@@ -33,14 +32,6 @@ export default function BankManagementPage() {
       iconColor: "text-orange-600 dark:text-orange-400",
     },
     {
-      href: "/bank-statement-usd",
-      icon: FileText,
-      label: "Bank Account Statement USD",
-      color: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/30",
-      iconColor: "text-purple-600 dark:text-purple-400",
-    },
-    {
       href: "/bank-statement-iqd",
       icon: FileText,
       label: "Bank Account Statement IQD",
@@ -52,9 +43,11 @@ export default function BankManagementPage() {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("Bank Management")}</h1>
-        <p className="text-muted-foreground text-sm">{t("Manage all bank operations from one place")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("Bank Management")}</h1>
+          <p className="text-muted-foreground text-sm">{t("Manage all bank operations from one place")}</p>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

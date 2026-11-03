@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowRight, FileText, Car } from "lucide-react";
-import { IconClearance, IconDollar, IconDinar } from "@/components/erp-icons";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowRight, Car } from "lucide-react";
+import { IconClearance, IconDinar } from "@/components/erp-icons";
 import { Card, CardContent } from "@/components/ui/card";
-
 export default function ClearanceManagementPage() {
   const { t } = useTranslation();
 
@@ -41,14 +40,6 @@ export default function ClearanceManagementPage() {
       iconColor: "text-purple-600 dark:text-purple-400",
     },
     {
-      href: "/clearance-statement-usd",
-      icon: IconDollar,
-      label: "Clearance Statement USD",
-      color: "from-green-500 to-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/30",
-      iconColor: "text-green-600 dark:text-green-400",
-    },
-    {
       href: "/clearance-statement-iqd",
       icon: IconDinar,
       label: "Clearance Statement IQD",
@@ -60,9 +51,11 @@ export default function ClearanceManagementPage() {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{t("Clearance Management")}</h1>
-        <p className="text-muted-foreground text-sm">{t("Manage all clearance operations from one place")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("Clearance Management")}</h1>
+          <p className="text-muted-foreground text-sm">{t("Manage all clearance operations from one place")}</p>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
