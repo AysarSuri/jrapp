@@ -9,6 +9,7 @@ export default function PurchaseInvoicePage() {
       UsdComponent={PurchaseInvoiceUsdPage}
       IqdComponent={PurchaseInvoiceIqdPage}
       testId="select-purchase-invoice-currency"
+      scope="purchase"
     />
   );
 }

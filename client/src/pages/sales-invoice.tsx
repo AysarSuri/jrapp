@@ -9,6 +9,7 @@ export default function SalesInvoicePage() {
       UsdComponent={SalesInvoiceUsdPage}
       IqdComponent={SalesInvoiceIqdPage}
       testId="select-sales-invoice-currency"
+      scope="sales"
     />
   );
 }

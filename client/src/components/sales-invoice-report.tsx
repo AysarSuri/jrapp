@@ -85,7 +85,7 @@ interface SalesInvoiceReportProps {
   invoiceId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currency: "USD" | "IQD";
+  currency: string;
 }
 
 export default function SalesInvoiceReport({ invoiceId, open, onOpenChange, currency }: SalesInvoiceReportProps) {

@@ -102,6 +102,33 @@ export function useDefaultCurrency(): CurrencyInfo {
   return info;
 }
 
+export function productUnitPrice(
+  product: {
+    bigUnit?: string;
+    smallUnit?: string;
+    bigUnitPriceUsd?: string | null;
+    bigUnitPriceIqd?: string | null;
+    smallUnitPriceUsd?: string | null;
+    smallUnitPriceIqd?: string | null;
+    bigUnitBuyPriceUsd?: string | null;
+    bigUnitBuyPriceIqd?: string | null;
+    smallUnitBuyPriceUsd?: string | null;
+    smallUnitBuyPriceIqd?: string | null;
+  },
+  currency: string,
+  kind: "sell" | "buy" = "sell",
+  unitName?: string,
+): string {
+  const isUsd = currency === "USD";
+  const isSmall = !!unitName && unitName === product.smallUnit;
+  if (kind === "buy") {
+    if (isSmall) return String((isUsd ? product.smallUnitBuyPriceUsd : product.smallUnitBuyPriceIqd) || "0");
+    return String((isUsd ? product.bigUnitBuyPriceUsd : product.bigUnitBuyPriceIqd) || "0");
+  }
+  if (isSmall) return String((isUsd ? product.smallUnitPriceUsd : product.smallUnitPriceIqd) || "0");
+  return String((isUsd ? product.bigUnitPriceUsd : product.bigUnitPriceIqd) || "0");
+}
+
 export function formatAmount(value: number | string, currencyCode?: string, decimalPlaces?: number): string {
   const s = readSettings();
   const code = currencyCode || s.defaultCurrency;
