@@ -683,7 +683,7 @@ export function LayoutShell({ children }: LayoutShellProps) {
         </div>
       ) : (
         <div className="flex-1 px-1 py-3 lg:px-2 lg:py-4 overflow-auto">
-          <div className={`${location === "/customers" ? "max-w-[1680px]" : "max-w-7xl"} mx-auto animate-fade-in`}>
+          <div className={`${location === "/customers" || location === "/products" ? "max-w-[1680px]" : "max-w-7xl"} mx-auto animate-fade-in`}>
             {children}
           </div>
         </div>

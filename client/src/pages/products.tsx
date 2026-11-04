@@ -356,7 +356,7 @@ export default function ProductsPage() {
         {/* ── Product Dialog ── */}
         <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
           <DialogContent
-            className="max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto !px-4 !py-2 !gap-1"
+            className="!max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto !px-4 !py-2 !gap-1"
             style={{ paddingTop: 8, paddingBottom: 8, rowGap: 6 }}
           >
             <DialogHeader className="pb-0">
@@ -708,7 +708,7 @@ export default function ProductsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/60">
-                        <TableHead className="font-bold text-sm py-3 ps-4 w-[220px]">{t("Product")}</TableHead>
+                        <TableHead className="font-bold text-sm py-3 ps-4 w-[280px]">{t("Product")}</TableHead>
                         <TableHead className="font-bold text-sm">{t("Category / Group")}</TableHead>
                         <TableHead className="font-bold text-sm text-center">{t("Units")}</TableHead>
                         <TableHead className="font-bold text-sm text-end">{t("Sell Price")} ({currencyCode})</TableHead>
@@ -736,7 +736,7 @@ export default function ProductsPage() {
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <div className="font-bold text-sm leading-tight truncate max-w-[170px]">{getProductName(product)}</div>
+                                <div className="font-bold text-sm leading-tight truncate max-w-[240px]">{getProductName(product)}</div>
                                 <div className="font-mono text-xs text-muted-foreground mt-0.5">{product.barcode}</div>
                               </div>
                             </div>
