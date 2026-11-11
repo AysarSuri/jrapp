@@ -111,13 +111,6 @@ export default function ProductsPage() {
 
   const defaultCurrency = useDefaultCurrency();
   const isUsdDefault = defaultCurrency.code === "USD";
-  const sellBigField = isUsdDefault ? "bigUnitPriceUsd" : "bigUnitPriceIqd";
-  const sellSmallField = isUsdDefault ? "smallUnitPriceUsd" : "smallUnitPriceIqd";
-  const buyBigField = isUsdDefault ? "bigUnitBuyPriceUsd" : "bigUnitBuyPriceIqd";
-  const buySmallField = isUsdDefault ? "smallUnitBuyPriceUsd" : "smallUnitBuyPriceIqd";
-  const wholesaleBigField = isUsdDefault ? "bigUnitWholesalePriceUsd" : "bigUnitWholesalePriceIqd";
-  const wholesaleSmallField = isUsdDefault ? "smallUnitWholesalePriceUsd" : "smallUnitWholesalePriceIqd";
-  const priceStep = isUsdDefault ? "0.01" : "250";
   const currencyCode = defaultCurrency.code;
   const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
     isUsdDefault ? `$${Number(usd ?? 0).toFixed(2)}` : `${Number(iqd ?? 0).toLocaleString()} ${currencyCode}`;
@@ -560,32 +553,65 @@ export default function ProductsPage() {
                         </div>
                       )} />
                     </div>
-                    {/* Body — prices stacked */}
+                    {/* Body — prices stacked (IQD + USD for each) */}
                     <div className="px-3 py-1.5 space-y-1.5 bg-emerald-50/30 dark:bg-emerald-950/10 flex-1">
-                      {/* Sell Price */}
-                      <FormField control={form.control} name={sellBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Wholesale */}
-                      <FormField control={form.control} name={wholesaleBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Big Unit Wholesale")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Cost */}
-                      <FormField control={form.control} name={buyBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("Sell Price")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="bigUnitPriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("Big Unit Wholesale")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="bigUnitWholesalePriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="bigUnitWholesalePriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("Cost Price")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="bigUnitBuyPriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="bigUnitBuyPriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -608,32 +634,65 @@ export default function ProductsPage() {
                         </div>
                       )} />
                     </div>
-                    {/* Body — prices stacked */}
+                    {/* Body — prices stacked (IQD + USD for each) */}
                     <div className="px-3 py-1.5 space-y-1.5 bg-blue-50/30 dark:bg-blue-950/10 flex-1">
-                      {/* Sell Price */}
-                      <FormField control={form.control} name={sellSmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Wholesale */}
-                      <FormField control={form.control} name={wholesaleSmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Small Unit Wholesale")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Cost */}
-                      <FormField control={form.control} name={buySmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t("Sell Price")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t("Small Unit Wholesale")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="smallUnitWholesalePriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="smallUnitWholesalePriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wide">{t("Cost Price")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField control={form.control} name="smallUnitBuyPriceIqd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">IQD</FormLabel>
+                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="smallUnitBuyPriceUsd" render={({ field }) => (
+                            <FormItem className="space-y-0.5">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground">USD</FormLabel>
+                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
