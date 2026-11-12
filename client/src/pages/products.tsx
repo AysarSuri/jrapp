@@ -969,9 +969,9 @@ export default function ProductsPage() {
 
                           {/* Units */}
                           <TableCell className="text-center">
-                            <div className="text-xs font-semibold whitespace-nowrap">
+                            <div className="text-xs font-bold whitespace-nowrap">
                               1 {resolveUnitName(product.bigUnit, unitsList)}
-                              <span className="text-muted-foreground mx-1">=</span>
+                              <span className="text-muted-foreground mx-1 font-bold">=</span>
                               {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
                             </div>
                           </TableCell>
@@ -980,7 +980,7 @@ export default function ProductsPage() {
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
                               <div className="text-xs font-bold font-mono">{formatNumber(product.bigUnitPriceIqd ?? 0, "IQD")} IQD</div>
-                              <div className="text-xs text-muted-foreground font-mono">{formatNumber(product.smallUnitPriceIqd ?? 0, "IQD")} IQD</div>
+                              <div className="text-xs font-bold text-muted-foreground font-mono">{formatNumber(product.smallUnitPriceIqd ?? 0, "IQD")} IQD</div>
                             </div>
                           </TableCell>
 
@@ -988,7 +988,7 @@ export default function ProductsPage() {
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
                               <div className="text-xs font-bold font-mono">${formatNumber(product.bigUnitPriceUsd ?? 0, "USD")}</div>
-                              <div className="text-xs text-muted-foreground font-mono">${formatNumber(product.smallUnitPriceUsd ?? 0, "USD")}</div>
+                              <div className="text-xs font-bold text-muted-foreground font-mono">${formatNumber(product.smallUnitPriceUsd ?? 0, "USD")}</div>
                             </div>
                           </TableCell>
 
@@ -1000,7 +1000,7 @@ export default function ProductsPage() {
                                 <span className="text-muted-foreground mx-1">/</span>
                                 ${formatNumber(product.bigUnitBuyPriceUsd ?? 0, "USD")}
                               </div>
-                              <div className="text-xs text-muted-foreground font-mono">
+                              <div className="text-xs font-bold text-muted-foreground font-mono">
                                 {formatNumber(product.smallUnitBuyPriceIqd ?? 0, "IQD")} IQD
                                 <span className="mx-1">/</span>
                                 ${formatNumber(product.smallUnitBuyPriceUsd ?? 0, "USD")}
@@ -1010,7 +1010,7 @@ export default function ProductsPage() {
 
                           {/* Weight */}
                           <TableCell className="text-center">
-                            <span className="text-xs font-mono font-semibold">{product.weight} kg</span>
+                            <span className="text-xs font-mono font-bold">{product.weight} kg</span>
                           </TableCell>
 
                           {/* Flags: favorite / hidden / hasScale */}
