@@ -37,7 +37,8 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
     const step = currencyInputStep(currency);
     const dp = getCurrencyDecimalPlaces(currency);
     const meta = getCurrencyMeta(currency);
-    const displayValue = value == null ? "" : String(value);
+    const isBlank = value == null || value === "";
+    const displayValue = isBlank ? "" : String(value);
 
     return (
       <div className="relative w-full min-w-0">
@@ -47,11 +48,16 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
           inputMode="decimal"
           dir="ltr"
           step={step}
-          placeholder={placeholder ?? formatAmountInput(0, currency)}
+          placeholder={placeholder ?? ""}
           value={displayValue}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => {
-            onChange(formatAmountInput(e.target.value || "0", currency));
+            const raw = e.target.value.trim();
+            if (raw === "") {
+              onChange("");
+            } else {
+              onChange(formatAmountInput(raw, currency));
+            }
             onBlur?.(e);
           }}
           className={cn(

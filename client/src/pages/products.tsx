@@ -9,7 +9,6 @@ type Product = typeof products.$inferSelect;
 import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
-import { useDefaultCurrency } from "@/hooks/use-default-currency";
 import { loadExchangeRates } from "@/pages/settings";
 import { useCategories, useCategoryGroups } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
@@ -35,6 +34,11 @@ import { AmountInput } from "@/components/amount-input";
 import { formatNumber } from "@/lib/format-utils";
 
 /* ─── schema extension ──────────────────────────────────────────────────── */
+const emptyToZeroNumber = z.preprocess(
+  (v) => (v === "" || v == null ? 0 : v),
+  z.coerce.number().int().min(0),
+);
+
 const productFormSchema = insertProductSchema.extend({
   barcode: z.string().min(1, "Barcode is required"),
   name: z.string().min(1, "Name is required"),
@@ -42,7 +46,8 @@ const productFormSchema = insertProductSchema.extend({
   bigUnit: z.string().min(1, "Big Unit is required"),
   smallUnit: z.string().min(1, "Small Unit is required"),
   weight: z.string().min(1, "Weight is required"),
-  openingQty: z.coerce.number().int().min(0),
+  openingQty: emptyToZeroNumber,
+  minStock: emptyToZeroNumber,
   hasScale: z.boolean().optional().default(false),
 }).superRefine((data, ctx) => {
   if (data.bigUnit && data.smallUnit && data.bigUnit === data.smallUnit && data.conversionFactor !== 1) {
@@ -52,18 +57,36 @@ const productFormSchema = insertProductSchema.extend({
 
 type FormValues = z.infer<typeof productFormSchema>;
 
-const defaultValues: FormValues = {
+/** Add-form defaults: numeric price/stock fields start blank; empty saves as 0. */
+type ProductFormInput = Omit<FormValues, "minStock" | "openingQty"> & {
+  minStock: number | "";
+  openingQty: number | "";
+};
+
+const defaultValues: ProductFormInput = {
   name: "", nameEn: "", barcode: "", category: "", groupName: null,
   bigUnit: "", smallUnit: "", conversionFactor: 1, weight: "0",
-  bigUnitPriceUsd: "0", bigUnitPriceIqd: "0",
-  smallUnitPriceUsd: "0", smallUnitPriceIqd: "0",
-  bigUnitBuyPriceUsd: "0", bigUnitBuyPriceIqd: "0",
-  smallUnitBuyPriceUsd: "0", smallUnitBuyPriceIqd: "0",
-  bigUnitWholesalePriceUsd: "0", bigUnitWholesalePriceIqd: "0",
-  smallUnitWholesalePriceUsd: "0", smallUnitWholesalePriceIqd: "0",
-  minStock: 0, dinarPerDollar: "0", openingQty: 0, image: null,
+  bigUnitPriceUsd: "", bigUnitPriceIqd: "",
+  smallUnitPriceUsd: "", smallUnitPriceIqd: "",
+  bigUnitBuyPriceUsd: "", bigUnitBuyPriceIqd: "",
+  smallUnitBuyPriceUsd: "", smallUnitBuyPriceIqd: "",
+  bigUnitWholesalePriceUsd: "", bigUnitWholesalePriceIqd: "",
+  smallUnitWholesalePriceUsd: "", smallUnitWholesalePriceIqd: "",
+  minStock: "", dinarPerDollar: "0", openingQty: "", image: null,
   hidden: false, favorite: false, hasScale: false,
 };
+
+function zeroAmount(v: unknown): string {
+  if (v === "" || v == null) return "0";
+  const n = parseFloat(String(v));
+  return Number.isFinite(n) ? String(v) : "0";
+}
+
+function zeroInt(v: unknown): number {
+  if (v === "" || v == null) return 0;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
 function getDefaultDinarPerDollar(): string {
   try {
@@ -130,14 +153,6 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage]     = useState(1);
   const [formOpen, setFormOpen]           = useState(false);
 
-  const defaultCurrency = useDefaultCurrency();
-  const isUsdDefault = defaultCurrency.code === "USD";
-  const currencyCode = defaultCurrency.code;
-  const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
-    isUsdDefault
-      ? `$${formatNumber(usd ?? 0, "USD")}`
-      : `${formatNumber(iqd ?? 0, currencyCode)} ${currencyCode}`;
-
   const { data: usdToIqdSetting } = useQuery<{ key: string; value: string | null }>({
     queryKey: ["/api/system-settings", "usd_to_iqd_rate"],
     queryFn: () => fetch("/api/system-settings/usd_to_iqd_rate").then((r) => r.json()),
@@ -149,8 +164,8 @@ export default function ProductsPage() {
     return getDefaultDinarPerDollar();
   })();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(productFormSchema),
+  const form = useForm<ProductFormInput>({
+    resolver: zodResolver(productFormSchema) as any,
     defaultValues: { ...defaultValues, dinarPerDollar: settingsDinarPerDollar },
   });
   const bigUnit = form.watch("bigUnit");
@@ -167,7 +182,7 @@ export default function ProductsPage() {
     }
   }, [settingsDinarPerDollar, formOpen, editingProduct]);
 
-  const buildDefaultFormValues = (): FormValues => ({
+  const buildDefaultFormValues = (): ProductFormInput => ({
     ...defaultValues,
     dinarPerDollar: settingsDinarPerDollar,
   });
@@ -214,13 +229,25 @@ export default function ProductsPage() {
     form.setValue("barcode", bc);
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (values: ProductFormInput) => {
     const payload = {
       ...values,
-      minStock: Number(values.minStock),
-      openingQty: Number(values.openingQty),
-      conversionFactor: Number(values.conversionFactor),
-      dinarPerDollar: String(values.dinarPerDollar ?? settingsDinarPerDollar ?? "0"),
+      bigUnitPriceUsd: zeroAmount(values.bigUnitPriceUsd),
+      bigUnitPriceIqd: zeroAmount(values.bigUnitPriceIqd),
+      smallUnitPriceUsd: zeroAmount(values.smallUnitPriceUsd),
+      smallUnitPriceIqd: zeroAmount(values.smallUnitPriceIqd),
+      bigUnitBuyPriceUsd: zeroAmount(values.bigUnitBuyPriceUsd),
+      bigUnitBuyPriceIqd: zeroAmount(values.bigUnitBuyPriceIqd),
+      smallUnitBuyPriceUsd: zeroAmount(values.smallUnitBuyPriceUsd),
+      smallUnitBuyPriceIqd: zeroAmount(values.smallUnitBuyPriceIqd),
+      bigUnitWholesalePriceUsd: zeroAmount(values.bigUnitWholesalePriceUsd),
+      bigUnitWholesalePriceIqd: zeroAmount(values.bigUnitWholesalePriceIqd),
+      smallUnitWholesalePriceUsd: zeroAmount(values.smallUnitWholesalePriceUsd),
+      smallUnitWholesalePriceIqd: zeroAmount(values.smallUnitWholesalePriceIqd),
+      minStock: zeroInt(values.minStock),
+      openingQty: zeroInt(values.openingQty),
+      conversionFactor: Number(values.conversionFactor) || 1,
+      dinarPerDollar: zeroAmount(values.dinarPerDollar || settingsDinarPerDollar),
     };
     if (editingProduct) {
       updateProduct({ id: editingProduct.id, data: payload }, {
@@ -791,14 +818,38 @@ export default function ProductsPage() {
                     <FormField control={form.control} name="openingQty" render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder=""
+                            className="h-10 text-sm"
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            value={field.value === "" || field.value == null ? "" : field.value}
+                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                            data-testid="input-opening-qty"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="minStock" render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder=""
+                            className="h-10 text-sm"
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            value={field.value === "" || field.value == null ? "" : field.value}
+                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                            data-testid="input-min-stock"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -868,8 +919,9 @@ export default function ProductsPage() {
                         <TableHead className="font-bold text-sm py-3 ps-4 w-[280px]">{t("Product")}</TableHead>
                         <TableHead className="font-bold text-sm">{t("Category / Group")}</TableHead>
                         <TableHead className="font-bold text-sm text-center">{t("Units")}</TableHead>
-                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} ({currencyCode})</TableHead>
-                        <TableHead className="font-bold text-sm text-end">{t("Cost Price")} ({currencyCode})</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} (IQD)</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} (USD)</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Cost Price")}</TableHead>
                         <TableHead className="font-bold text-sm text-center">{t("Weight")}</TableHead>
                         <TableHead className="font-bold text-sm text-center w-[100px]">{t("Flags")}</TableHead>
                         <TableHead className="font-bold text-sm text-center w-[90px]">{t("Actions")}</TableHead>
@@ -924,19 +976,35 @@ export default function ProductsPage() {
                             </div>
                           </TableCell>
 
-                          {/* Sell Price (big / small) */}
+                          {/* Sell Price IQD (big / small) */}
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
-                              <div className="text-xs font-bold font-mono">{fmtPrice(product.bigUnitPriceUsd, product.bigUnitPriceIqd)}</div>
-                              <div className="text-xs text-muted-foreground font-mono">{fmtPrice(product.smallUnitPriceUsd, product.smallUnitPriceIqd)}</div>
+                              <div className="text-xs font-bold font-mono">{formatNumber(product.bigUnitPriceIqd ?? 0, "IQD")} IQD</div>
+                              <div className="text-xs text-muted-foreground font-mono">{formatNumber(product.smallUnitPriceIqd ?? 0, "IQD")} IQD</div>
                             </div>
                           </TableCell>
 
-                          {/* Cost Price (big / small) */}
+                          {/* Sell Price USD (big / small) */}
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
-                              <div className="text-xs font-bold font-mono">{fmtPrice(product.bigUnitBuyPriceUsd, product.bigUnitBuyPriceIqd)}</div>
-                              <div className="text-xs text-muted-foreground font-mono">{fmtPrice(product.smallUnitBuyPriceUsd, product.smallUnitBuyPriceIqd)}</div>
+                              <div className="text-xs font-bold font-mono">${formatNumber(product.bigUnitPriceUsd ?? 0, "USD")}</div>
+                              <div className="text-xs text-muted-foreground font-mono">${formatNumber(product.smallUnitPriceUsd ?? 0, "USD")}</div>
+                            </div>
+                          </TableCell>
+
+                          {/* Cost Price (big / small) — IQD + USD */}
+                          <TableCell className="text-end">
+                            <div className="space-y-0.5">
+                              <div className="text-xs font-bold font-mono">
+                                {formatNumber(product.bigUnitBuyPriceIqd ?? 0, "IQD")} IQD
+                                <span className="text-muted-foreground mx-1">/</span>
+                                ${formatNumber(product.bigUnitBuyPriceUsd ?? 0, "USD")}
+                              </div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {formatNumber(product.smallUnitBuyPriceIqd ?? 0, "IQD")} IQD
+                                <span className="mx-1">/</span>
+                                ${formatNumber(product.smallUnitBuyPriceUsd ?? 0, "USD")}
+                              </div>
                             </div>
                           </TableCell>
 
