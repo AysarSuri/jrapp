@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
 import { useDefaultCurrency } from "@/hooks/use-default-currency";
+import { loadExchangeRates } from "@/pages/settings";
 import { useCategories, useCategoryGroups } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AmountInput } from "@/components/amount-input";
+import { formatNumber } from "@/lib/format-utils";
 
 /* ─── schema extension ──────────────────────────────────────────────────── */
 const productFormSchema = insertProductSchema.extend({
@@ -58,9 +61,27 @@ const defaultValues: FormValues = {
   smallUnitBuyPriceUsd: "0", smallUnitBuyPriceIqd: "0",
   bigUnitWholesalePriceUsd: "0", bigUnitWholesalePriceIqd: "0",
   smallUnitWholesalePriceUsd: "0", smallUnitWholesalePriceIqd: "0",
-  minStock: 0, openingQty: 0, image: null,
+  minStock: 0, dinarPerDollar: "0", openingQty: 0, image: null,
   hidden: false, favorite: false, hasScale: false,
 };
+
+function getDefaultDinarPerDollar(): string {
+  try {
+    const { base, rates } = loadExchangeRates();
+    if (base === "IQD") {
+      const usd = parseFloat(rates["USD"] || "");
+      if (usd > 0) return String(usd);
+    } else if (base === "USD") {
+      const iqd = parseFloat(rates["IQD"] || "");
+      if (iqd > 0) return String(Math.round(1 / iqd));
+    } else {
+      const usd = parseFloat(rates["USD"] || "");
+      const iqd = parseFloat(rates["IQD"] || "");
+      if (usd > 0 && iqd > 0) return String(Math.round(iqd / usd));
+    }
+  } catch {}
+  return "1500";
+}
 
 const ITEMS_PER_PAGE = 12;
 
@@ -113,21 +134,59 @@ export default function ProductsPage() {
   const isUsdDefault = defaultCurrency.code === "USD";
   const currencyCode = defaultCurrency.code;
   const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
-    isUsdDefault ? `$${Number(usd ?? 0).toFixed(2)}` : `${Number(iqd ?? 0).toLocaleString()} ${currencyCode}`;
+    isUsdDefault
+      ? `$${formatNumber(usd ?? 0, "USD")}`
+      : `${formatNumber(iqd ?? 0, currencyCode)} ${currencyCode}`;
 
-  const form = useForm<FormValues>({ resolver: zodResolver(productFormSchema), defaultValues });
+  const { data: usdToIqdSetting } = useQuery<{ key: string; value: string | null }>({
+    queryKey: ["/api/system-settings", "usd_to_iqd_rate"],
+    queryFn: () => fetch("/api/system-settings/usd_to_iqd_rate").then((r) => r.json()),
+  });
+
+  const settingsDinarPerDollar = (() => {
+    const fromApi = parseFloat(usdToIqdSetting?.value || "");
+    if (fromApi > 0) return String(fromApi);
+    return getDefaultDinarPerDollar();
+  })();
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: { ...defaultValues, dinarPerDollar: settingsDinarPerDollar },
+  });
   const bigUnit = form.watch("bigUnit");
   const smallUnit = form.watch("smallUnit");
   const sameUnits = bigUnit && smallUnit && bigUnit === smallUnit;
 
   useEffect(() => { if (sameUnits) form.setValue("conversionFactor", 1); }, [bigUnit, smallUnit, sameUnits]);
 
-  const openAddForm = () => { setEditingProduct(null); form.reset(defaultValues); setFormOpen(true); };
-  const cancelEdit = () => { setEditingProduct(null); form.reset(defaultValues); setFormOpen(false); };
+  useEffect(() => {
+    if (!formOpen || editingProduct) return;
+    const current = parseFloat(String(form.getValues("dinarPerDollar") || "0"));
+    if (!(current > 0) && parseFloat(settingsDinarPerDollar) > 0) {
+      form.setValue("dinarPerDollar", settingsDinarPerDollar);
+    }
+  }, [settingsDinarPerDollar, formOpen, editingProduct]);
+
+  const buildDefaultFormValues = (): FormValues => ({
+    ...defaultValues,
+    dinarPerDollar: settingsDinarPerDollar,
+  });
+
+  const openAddForm = () => {
+    setEditingProduct(null);
+    form.reset(buildDefaultFormValues());
+    setFormOpen(true);
+  };
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    form.reset(buildDefaultFormValues());
+    setFormOpen(false);
+  };
 
   const startEdit = (product: Product) => {
     setEditingProduct(product);
     setFormOpen(true);
+    const savedRate = parseFloat(String((product as any).dinarPerDollar ?? "0"));
     form.reset({
       name: product.name, nameEn: product.nameEn || "", barcode: product.barcode,
       category: product.category, groupName: product.groupName || null,
@@ -139,7 +198,9 @@ export default function ProductsPage() {
       smallUnitBuyPriceUsd: product.smallUnitBuyPriceUsd ?? "0", smallUnitBuyPriceIqd: product.smallUnitBuyPriceIqd ?? "0",
       bigUnitWholesalePriceUsd: product.bigUnitWholesalePriceUsd ?? "0", bigUnitWholesalePriceIqd: product.bigUnitWholesalePriceIqd ?? "0",
       smallUnitWholesalePriceUsd: product.smallUnitWholesalePriceUsd ?? "0", smallUnitWholesalePriceIqd: product.smallUnitWholesalePriceIqd ?? "0",
-      minStock: product.minStock, openingQty: product.openingQty ?? 0,
+      minStock: product.minStock,
+      dinarPerDollar: savedRate > 0 ? String(savedRate) : settingsDinarPerDollar,
+      openingQty: product.openingQty ?? 0,
       image: product.image || null, hidden: product.hidden ?? false,
       favorite: product.favorite ?? false,
       hasScale: (product as any).hasScale ?? false,
@@ -154,7 +215,13 @@ export default function ProductsPage() {
   };
 
   const onSubmit = (values: FormValues) => {
-    const payload = { ...values, minStock: Number(values.minStock), openingQty: Number(values.openingQty), conversionFactor: Number(values.conversionFactor) };
+    const payload = {
+      ...values,
+      minStock: Number(values.minStock),
+      openingQty: Number(values.openingQty),
+      conversionFactor: Number(values.conversionFactor),
+      dinarPerDollar: String(values.dinarPerDollar ?? settingsDinarPerDollar ?? "0"),
+    };
     if (editingProduct) {
       updateProduct({ id: editingProduct.id, data: payload }, {
         onSuccess: () => { cancelEdit(); toast({ title: t("Product updated successfully") }); },
@@ -162,7 +229,7 @@ export default function ProductsPage() {
       });
     } else {
       createProduct(payload, {
-        onSuccess: () => { form.reset(defaultValues); setFormOpen(false); toast({ title: t("Product added successfully") }); },
+        onSuccess: () => { form.reset(buildDefaultFormValues()); setFormOpen(false); toast({ title: t("Product added successfully") }); },
         onError: (err) => toast({ title: t("Failed to add product"), description: t(err.message), variant: "destructive" }),
       });
     }
@@ -561,7 +628,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -570,7 +637,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -582,7 +649,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -591,7 +658,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -603,7 +670,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -612,7 +679,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -648,7 +715,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -657,7 +724,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -669,7 +736,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -678,7 +745,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -690,7 +757,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
-                              <FormControl><Input type="number" step="250" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -699,7 +766,7 @@ export default function ProductsPage() {
                           <FormItem className="flex-1 space-y-0 min-w-0">
                             <div className="flex items-center gap-1">
                               <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
-                              <FormControl><Input type="number" step="0.01" placeholder="0" className="h-9 text-sm font-mono" {...field} /></FormControl>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -710,10 +777,10 @@ export default function ProductsPage() {
                 </div>
 
                 {/* ══════════════════════════════════════════════════════
-                    ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون
+                    ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون | دينار/دولار
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-4 px-4 py-1.5">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 py-1.5">
                     <FormField control={form.control} name="conversionFactor" render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
@@ -735,6 +802,25 @@ export default function ProductsPage() {
                         <FormMessage />
                       </FormItem>
                     )} />
+                    <FormField control={form.control} name="dinarPerDollar" render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <FormLabel className="font-bold text-sm">{t("Dinar per Dollar")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="any"
+                            min="0"
+                            inputMode="decimal"
+                            placeholder={settingsDinarPerDollar || "0"}
+                            className="h-10 text-sm"
+                            {...field}
+                            value={field.value ?? ""}
+                            data-testid="input-dinar-per-dollar"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
                   </div>
                 </div>
 
@@ -744,7 +830,7 @@ export default function ProductsPage() {
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : null}
                     {editingProduct ? t("Update") : t("Save")}
                   </Button>
-                  <Button type="button" variant="outline" className="h-10 px-5" onClick={() => form.reset(defaultValues)} data-testid="button-reset-form">
+                  <Button type="button" variant="outline" className="h-10 px-5" onClick={() => form.reset(buildDefaultFormValues())} data-testid="button-reset-form">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </div>

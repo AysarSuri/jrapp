@@ -118,6 +118,7 @@ export const products = pgTable("products", {
   smallUnitWholesalePriceUsd: numeric("small_unit_wholesale_price_usd").notNull().default("0"),
   smallUnitWholesalePriceIqd: numeric("small_unit_wholesale_price_iqd").notNull().default("0"),
   minStock: integer("min_stock").notNull().default(0),
+  dinarPerDollar: numeric("dinar_per_dollar").notNull().default("0"), // IQD per 1 USD at product entry
   openingQty: integer("opening_qty").notNull().default(0), // opening stock quantity in big units
   weight: numeric("weight").notNull().default("0"), // weight per big unit in KG
   bigUnit: text("big_unit").notNull(), // e.g. Box

@@ -132,9 +132,12 @@ export function productUnitPrice(
 export function formatAmount(value: number | string, currencyCode?: string, decimalPlaces?: number): string {
   const s = readSettings();
   const code = currencyCode || s.defaultCurrency;
-  const dp = typeof decimalPlaces === "number" ? decimalPlaces : getCurrencyDecimalPlaces(code);
+  const dp = typeof decimalPlaces === "number"
+    ? Math.max(0, Math.min(4, Math.round(decimalPlaces)))
+    : getCurrencyDecimalPlaces(code);
   const num = typeof value === "string" ? parseFloat(value || "0") : (value || 0);
-  const formatted = num.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  const safe = Number.isFinite(num) ? num : 0;
+  const formatted = safe.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
   const meta = getCurrencyMeta(code);
   return `${formatted} ${meta.symbol}`;
 }
