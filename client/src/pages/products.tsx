@@ -22,7 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   Plus, Loader2, Pencil, Trash2, Upload, ImageIcon, ArrowLeft, RotateCcw,
   ChevronLeft, ChevronRight, Filter, X, EyeOff, Star, Shuffle, Search,
-  Package, Scale, Tag, Layers, BadgeCheck
+  Package, Scale, Tag, Layers, BadgeCheck, FolderTree, Boxes, Ruler
 } from "lucide-react";
 import { IconProduct } from "@/components/erp-icons";
 import { Link } from "wouter";
@@ -507,7 +507,7 @@ export default function ProductsPage() {
 
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
-                      <FormItem className="space-y-1">
+                      <FormItem className="space-y-1.5">
                         <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
                         <FormControl>
                           <SearchableCombobox
@@ -521,6 +521,8 @@ export default function ProductsPage() {
                             placeholder={t("Select Category")}
                             searchPlaceholder={t("Search categories...")}
                             emptyText={t("No categories found")}
+                            icon={Layers}
+                            accent="amber"
                             data-testid="select-category"
                           />
                         </FormControl>
@@ -533,7 +535,7 @@ export default function ProductsPage() {
                       const selCat = categoriesList?.find(c => c.name === form.watch("category"));
                       const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
                       return (
-                        <FormItem className="space-y-1">
+                        <FormItem className="space-y-1.5">
                           <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
                           <FormControl>
                             <SearchableCombobox
@@ -550,6 +552,8 @@ export default function ProductsPage() {
                               allowClear
                               clearLabel={t("No Group")}
                               disabled={!selCat}
+                              icon={FolderTree}
+                              accent="slate"
                               data-testid="select-group"
                             />
                           </FormControl>
@@ -644,11 +648,14 @@ export default function ProductsPage() {
                   {/* ── كرت الوحدة الكبرى ── */}
                   <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden flex flex-col">
                     {/* Header */}
-                    <div className="px-4 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
+                      <Boxes className="h-3.5 w-3.5 text-white/90" />
+                      <span className="text-xs font-black text-white uppercase tracking-wider">{t("Big Unit")}</span>
+                    </div>
+                    {/* Body — unit picker + prices */}
+                    <div className="px-3 py-2 space-y-2 bg-emerald-50/30 dark:bg-emerald-950/10 flex-1">
                       <FormField control={form.control} name="bigUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2 min-w-0">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Big Unit")}:</span>
+                        <FormItem className="space-y-1">
                           <FormControl>
                             <SearchableCombobox
                               value={field.value}
@@ -661,15 +668,15 @@ export default function ProductsPage() {
                               placeholder={t("Select Unit")}
                               searchPlaceholder={t("Search units...")}
                               emptyText={t("No units found")}
+                              icon={Ruler}
+                              accent="emerald"
                               data-testid="select-big-unit"
-                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                              className="h-10 rounded-xl border-emerald-200/80 bg-white/90 dark:bg-background/70"
                             />
                           </FormControl>
-                        </div>
+                          <FormMessage />
+                        </FormItem>
                       )} />
-                    </div>
-                    {/* Body — one row per price: label | IQD | USD */}
-                    <div className="px-3 py-1.5 space-y-1.5 bg-emerald-50/30 dark:bg-emerald-950/10 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="w-24 shrink-0 text-xs font-black text-emerald-700 dark:text-emerald-400">{t("Sell Price")}</span>
                         <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
@@ -739,11 +746,14 @@ export default function ProductsPage() {
                   {/* ── كرت الوحدة الصغرى ── */}
                   <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden flex flex-col">
                     {/* Header */}
-                    <div className="px-4 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
+                      <Ruler className="h-3.5 w-3.5 text-white/90" />
+                      <span className="text-xs font-black text-white uppercase tracking-wider">{t("Small Unit")}</span>
+                    </div>
+                    {/* Body — unit picker + prices */}
+                    <div className="px-3 py-2 space-y-2 bg-blue-50/30 dark:bg-blue-950/10 flex-1">
                       <FormField control={form.control} name="smallUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2 min-w-0">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Small Unit")}:</span>
+                        <FormItem className="space-y-1">
                           <FormControl>
                             <SearchableCombobox
                               value={field.value}
@@ -756,15 +766,15 @@ export default function ProductsPage() {
                               placeholder={t("Select Unit")}
                               searchPlaceholder={t("Search units...")}
                               emptyText={t("No units found")}
+                              icon={Ruler}
+                              accent="blue"
                               data-testid="select-small-unit"
-                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                              className="h-10 rounded-xl border-blue-200/80 bg-white/90 dark:bg-background/70"
                             />
                           </FormControl>
-                        </div>
+                          <FormMessage />
+                        </FormItem>
                       )} />
-                    </div>
-                    {/* Body — one row per price: label | IQD | USD */}
-                    <div className="px-3 py-1.5 space-y-1.5 bg-blue-50/30 dark:bg-blue-950/10 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="w-24 shrink-0 text-xs font-black text-blue-700 dark:text-blue-400">{t("Sell Price")}</span>
                         <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
