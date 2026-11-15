@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -23,7 +23,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, EyeOff, Printer, Building2, Phone, MapPin, Wallet } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, EyeOff, Printer, Building2, Phone, MapPin, Wallet, AlertCircle, Hash, Lock } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconSupplierList, IconAddress } from "@/components/erp-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -31,20 +32,59 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usd, formatDate } from "@/lib/format-utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { formatDate } from "@/lib/format-utils";
 import { PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { AddressSearchSelect } from "@/components/address-search-select";
 import { cn } from "@/lib/utils";
+import { CURRENCY_OPTIONS } from "@/pages/settings";
+import {
+  useDefaultCurrency,
+  formatAmount,
+  formatAmountInput,
+  getCurrencyMeta,
+} from "@/hooks/use-default-currency";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
   name: z.string().min(1, "Supplier name is required"),
+  oldDebtCurrency: z.string().min(1).default("IQD"),
 });
 
 const ITEMS_PER_PAGE = 10;
 
+function openingBalanceOf(
+  client: Pick<Client, "oldDebtUsd" | "oldDebtIqd" | "oldDebtCurrency">,
+  fallbackCurrency = "IQD",
+) {
+  const usdAmt = Number(client.oldDebtUsd || 0);
+  const iqdAmt = Number(client.oldDebtIqd || 0);
+  const stored = client.oldDebtCurrency || "";
+  if (stored === "USD") return { amount: usdAmt, currency: "USD" };
+  if (stored && stored !== "IQD") return { amount: iqdAmt, currency: stored };
+  if (usdAmt !== 0 && iqdAmt === 0) return { amount: usdAmt, currency: "USD" };
+  if (iqdAmt !== 0) return { amount: iqdAmt, currency: stored || "IQD" };
+  if (usdAmt !== 0) return { amount: usdAmt, currency: "USD" };
+  return { amount: 0, currency: stored || fallbackCurrency };
+}
+
+function nextSupplierCode(suppliers: Client[]) {
+  let max = 0;
+  for (const s of suppliers) {
+    const fromCode = parseInt(String((s as any).code ?? ""), 10);
+    if (Number.isFinite(fromCode) && fromCode > max) max = fromCode;
+  }
+  if (max === 0) {
+    for (const s of suppliers) {
+      if (s.id > max) max = s.id;
+    }
+  }
+  return String(max + 1);
+}
+
 export default function SuppliersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const defaultCurrency = useDefaultCurrency();
   const { data: allClients, isLoading } = useClients();
   const { data: dbAddresses } = useSupplierAddresses();
   const { mutate: createSupplierAddr, isPending: isCreatingAddr } = useCreateSupplierAddress();
@@ -56,6 +96,8 @@ export default function SuppliersPage() {
   const { toast } = useToast();
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [duplicateNameAlert, setDuplicateNameAlert] = useState(false);
+  const [previewCode, setPreviewCode] = useState("1");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -64,7 +106,24 @@ export default function SuppliersPage() {
   const [addrName, setAddrName] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const emptyForm = { name: "", type: "supplier" as const, contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false };
+  const emptyForm = {
+    name: "",
+    type: "supplier" as const,
+    contact: "",
+    address: "",
+    oldDebtUsd: "0",
+    oldDebtIqd: "0",
+    oldDebtCurrency: defaultCurrency.code || "IQD",
+    hidden: false,
+  };
+
+  const isSupplierNameTaken = (name: string, excludeId?: number) => {
+    const normalized = name.trim().toLowerCase();
+    if (!normalized) return false;
+    return (allClients || [])
+      .filter((c) => c.type === "supplier")
+      .some((s) => s.name.trim().toLowerCase() === normalized && s.id !== excludeId);
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -82,20 +141,32 @@ export default function SuppliersPage() {
   });
 
   const openCreateDialog = () => {
+    const suppliersOnly = (allClients || []).filter((c) => c.type === "supplier");
     setEditingClient(null);
-    form.reset(emptyForm);
+    setDuplicateNameAlert(false);
+    setPreviewCode(nextSupplierCode(suppliersOnly));
+    form.reset({
+      ...emptyForm,
+      oldDebtCurrency: defaultCurrency.code || "IQD",
+      oldDebtUsd: "0",
+      oldDebtIqd: "0",
+    });
     setFormOpen(true);
   };
 
   const startEdit = (client: Client) => {
+    const opening = openingBalanceOf(client, defaultCurrency.code || "IQD");
     setEditingClient(client);
+    setDuplicateNameAlert(false);
+    setPreviewCode(String((client as any).code || client.id));
     form.reset({
       name: client.name,
       type: "supplier",
       contact: client.contact || "",
       address: client.address || "",
-      oldDebtUsd: client.oldDebtUsd || "0",
-      oldDebtIqd: client.oldDebtIqd || "0",
+      oldDebtUsd: opening.currency === "USD" ? formatAmountInput(opening.amount, "USD") : "0",
+      oldDebtIqd: opening.currency !== "USD" ? formatAmountInput(opening.amount, opening.currency) : "0",
+      oldDebtCurrency: opening.currency,
       hidden: client.hidden ?? false,
     });
     setFormOpen(true);
@@ -104,19 +175,30 @@ export default function SuppliersPage() {
   const closeFormDialog = () => {
     setFormOpen(false);
     setEditingClient(null);
+    setDuplicateNameAlert(false);
     form.reset(emptyForm);
   };
 
+  const showDuplicateNameError = () => {
+    setDuplicateNameAlert(true);
+    form.setError("name", {
+      type: "duplicate",
+      message: t("Supplier name already exists"),
+    });
+    toast({
+      title: t("Supplier name already exists"),
+      description: t("Please use a different name"),
+      variant: "destructive",
+    });
+  };
+
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
-    const existingSuppliers = allClients?.filter(c => c.type === "supplier") || [];
-    const isDuplicate = existingSuppliers.some(
-      s => s.name.trim().toLowerCase() === values.name.trim().toLowerCase() &&
-        (!editingClient || s.id !== editingClient.id)
-    );
-    if (isDuplicate) {
-      toast({ title: t("Supplier name already exists"), description: t("Please use a different name"), variant: "destructive" });
+    if (isSupplierNameTaken(values.name, editingClient?.id)) {
+      showDuplicateNameError();
       return;
     }
+
+    setDuplicateNameAlert(false);
 
     if (editingClient) {
       updateClient({ id: editingClient.id, data: { ...values, type: "supplier" } }, {
@@ -157,11 +239,51 @@ export default function SuppliersPage() {
   const filtered = suppliers.filter((c) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String((c as any).code || c.id).includes(searchTerm.trim())
   );
 
-  const totalOldDebtUsd = suppliers.reduce((sum, c) => sum + Number(c.oldDebtUsd || 0), 0);
-  const totalOldDebtIqd = suppliers.reduce((sum, c) => sum + Number(c.oldDebtIqd || 0), 0);
+  const openingTotalsByCurrency = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of suppliers) {
+      const opening = openingBalanceOf(s, defaultCurrency.code || "IQD");
+      if (!opening.amount) continue;
+      map.set(opening.currency, (map.get(opening.currency) || 0) + opening.amount);
+    }
+    return Array.from(map.entries())
+      .map(([currency, amount]) => ({ currency, amount }))
+      .sort((a, b) => a.currency.localeCompare(b.currency));
+  }, [suppliers, defaultCurrency.code]);
+
+  const debtCurrency = form.watch("oldDebtCurrency") || defaultCurrency.code || "IQD";
+  const selectedDebtCurrency = CURRENCY_OPTIONS.find((c) => c.code === debtCurrency);
+  const openingAmountValue = debtCurrency === "USD"
+    ? form.watch("oldDebtUsd") || "0"
+    : form.watch("oldDebtIqd") || "0";
+
+  const setOpeningAmount = (raw: string) => {
+    const formatted = formatAmountInput(raw, debtCurrency);
+    if (debtCurrency === "USD") {
+      form.setValue("oldDebtUsd", formatted, { shouldDirty: true });
+      form.setValue("oldDebtIqd", "0", { shouldDirty: true });
+    } else {
+      form.setValue("oldDebtIqd", formatted, { shouldDirty: true });
+      form.setValue("oldDebtUsd", "0", { shouldDirty: true });
+    }
+  };
+
+  const setOpeningCurrency = (code: string) => {
+    const current = openingAmountValue;
+    form.setValue("oldDebtCurrency", code, { shouldDirty: true });
+    const formatted = formatAmountInput(current, code);
+    if (code === "USD") {
+      form.setValue("oldDebtUsd", formatted, { shouldDirty: true });
+      form.setValue("oldDebtIqd", "0", { shouldDirty: true });
+    } else {
+      form.setValue("oldDebtIqd", formatted, { shouldDirty: true });
+      form.setValue("oldDebtUsd", "0", { shouldDirty: true });
+    }
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -183,20 +305,53 @@ export default function SuppliersPage() {
     const title = t('Suppliers');
 
     const visibleSuppliers = filtered.filter(s => !s.hidden);
+    const fallbackCur = defaultCurrency.code || "IQD";
 
-    const tableRows = visibleSuppliers.map((s, i) => `
+    const printTotals = new Map<string, number>();
+    for (const s of visibleSuppliers) {
+      const opening = openingBalanceOf(s, fallbackCur);
+      if (!opening.amount) continue;
+      printTotals.set(opening.currency, (printTotals.get(opening.currency) || 0) + opening.amount);
+    }
+    const printTotalsList = Array.from(printTotals.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+    const tableRows = visibleSuppliers.map((s) => {
+      const opening = openingBalanceOf(s, fallbackCur);
+      const openingText = opening.amount
+        ? `${formatAmount(opening.amount, opening.currency)} ${opening.currency}`
+        : "—";
+      return `
       <tr>
-        <td class="num">${i + 1}</td>
+        <td class="mono num">${String((s as any).code || s.id)}</td>
         <td class="name-cell">${s.name}</td>
-        <td>${s.address || '-'}</td>
         <td class="mono">${s.contact || '-'}</td>
-        <td class="mono price-usd">$${Number(s.oldDebtUsd || 0).toFixed(2)}</td>
-        <td class="mono price-iqd">${Number(s.oldDebtIqd || 0).toLocaleString()} IQD</td>
+        <td>${s.address || '-'}</td>
+        <td class="mono price-usd">${openingText}</td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
 
-    const totalUsd = visibleSuppliers.reduce((sum, s) => sum + Number(s.oldDebtUsd || 0), 0);
-    const totalIqd = visibleSuppliers.reduce((sum, s) => sum + Number(s.oldDebtIqd || 0), 0);
+    const summaryCards = `
+    <div class="stat-card blue">
+      <span class="stat-label">${t('Total Suppliers')}</span>
+      <span class="stat-value">${visibleSuppliers.length}</span>
+    </div>
+    ${printTotalsList.length === 0
+      ? `<div class="stat-card green"><span class="stat-label">${t("Total Opening Balances")}</span><span class="stat-value">—</span></div>`
+      : printTotalsList.map(([currency, amount]) => `
+    <div class="stat-card green">
+      <span class="stat-label">${t("Total Opening Balances")} (${currency})</span>
+      <span class="stat-value">${formatAmount(amount, currency)} ${currency}</span>
+    </div>`).join("")
+    }`;
+
+    const totalsFooter = printTotalsList.length === 0
+      ? `<tr class="total-row"><td colspan="4" class="name-cell">${t('Total')}</td><td class="mono">—</td></tr>`
+      : printTotalsList.map(([currency, amount], idx) => `
+      <tr class="total-row">
+        <td colspan="4" class="name-cell">${idx === 0 ? t('Total') : ""} — ${currency}</td>
+        <td class="mono price-usd">${formatAmount(amount, currency)} ${currency}</td>
+      </tr>`).join("");
 
     const html = `<!DOCTYPE html>
 <html dir="${dir}">
@@ -407,38 +562,22 @@ export default function SuppliersPage() {
   </div>
 
   <div class="summary-row">
-    <div class="stat-card blue">
-      <span class="stat-label">${t('Total Suppliers')}</span>
-      <span class="stat-value">${visibleSuppliers.length}</span>
-    </div>
-    <div class="stat-card green">
-      <span class="stat-label">${t('Total Opening Balances (USD)')}</span>
-      <span class="stat-value">$${totalUsd.toFixed(2)}</span>
-    </div>
-    <div class="stat-card orange">
-      <span class="stat-label">${t('Total Opening Balances (IQD)')}</span>
-      <span class="stat-value">${totalIqd.toLocaleString()} IQD</span>
-    </div>
+    ${summaryCards}
   </div>
 
   <table>
     <thead>
       <tr>
-        <th>#</th>
+        <th>${t("Supplier Code")}</th>
         <th>${t('Name')}</th>
-        <th>${t('Address')}</th>
         <th>${t('Contact')}</th>
-        <th>${t('Opening Balance (USD)')}</th>
-        <th>${t('Opening Balance (IQD)')}</th>
+        <th>${t('Address')}</th>
+        <th>${t("Opening Balance")}</th>
       </tr>
     </thead>
     <tbody>
       ${tableRows}
-      <tr class="total-row">
-        <td colspan="4" class="name-cell">${t('Total')}</td>
-        <td class="mono price-usd">$${totalUsd.toFixed(2)}</td>
-        <td class="mono price-iqd">${totalIqd.toLocaleString()} IQD</td>
-      </tr>
+      ${totalsFooter}
     </tbody>
   </table>
 
@@ -517,9 +656,42 @@ export default function SuppliersPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card">
               <div className="space-y-4 px-6 py-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {duplicateNameAlert && (
+                  <Alert
+                    variant="destructive"
+                    className="rounded-2xl border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-100 [&>svg]:text-rose-600 dark:[&>svg]:text-rose-300"
+                    data-testid="alert-duplicate-supplier-name"
+                  >
+                    <AlertCircle className="h-5 w-5" />
+                    <AlertTitle className="font-bold tracking-tight">
+                      {t("Supplier name already exists")}
+                    </AlertTitle>
+                    <AlertDescription className="text-sm font-medium text-rose-700/90 dark:text-rose-200/90">
+                      {t("Please use a different name")}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-[132px_1fr] gap-4">
+                  <div className="space-y-1.5">
+                    <FormLabel className="text-sm font-bold flex items-center gap-1.5">
+                      <Hash className="h-3.5 w-3.5 text-teal-600" />
+                      {t("Supplier Code")}
+                    </FormLabel>
+                    <div className="relative">
+                      <Input
+                        value={previewCode}
+                        readOnly
+                        disabled
+                        data-testid="input-supplier-code"
+                        className="h-11 rounded-xl border-border/70 bg-muted/60 text-base font-black font-mono tracking-wide pe-9"
+                      />
+                      <Lock className="absolute end-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  </div>
+
                   <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem className="sm:col-span-2 space-y-1.5">
+                    <FormItem className="space-y-1.5">
                       <FormLabel className="text-sm font-bold flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-teal-600" />
                         {t('Name')}
@@ -528,13 +700,33 @@ export default function SuppliersPage() {
                         <Input
                           data-testid="input-supplier-name"
                           placeholder={t('Supplier Name')}
-                          className="h-11 rounded-xl border-border/70 text-base font-semibold shadow-sm"
+                          className={cn(
+                            "h-11 rounded-xl border-border/70 text-base font-semibold shadow-sm transition-colors",
+                            duplicateNameAlert && "border-rose-400 focus-visible:ring-rose-300",
+                          )}
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (duplicateNameAlert) {
+                              setDuplicateNameAlert(false);
+                              form.clearErrors("name");
+                            }
+                          }}
+                          onBlur={(e) => {
+                            field.onBlur();
+                            const value = e.target.value;
+                            if (isSupplierNameTaken(value, editingClient?.id)) {
+                              showDuplicateNameError();
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                   <FormField control={form.control} name="contact" render={({ field }) => (
                     <FormItem className="space-y-1.5">
@@ -577,43 +769,61 @@ export default function SuppliersPage() {
                 <div className="rounded-2xl border border-teal-200/70 dark:border-teal-800/50 bg-teal-50/40 dark:bg-teal-950/20 p-4 space-y-3">
                   <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-700 dark:text-teal-300">
                     <Wallet className="h-3.5 w-3.5" />
-                    {t('Opening Balance (USD)')} / {t('Opening Balance (IQD)')}
+                    {t("Opening Balance")}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_150px] gap-3">
+                    <div className="space-y-1.5">
+                      <FormLabel className="text-sm font-bold">{t("Amount")}</FormLabel>
+                      <AmountInput
+                        currency={debtCurrency === "USD" ? "USD" : "IQD"}
+                        value={openingAmountValue}
+                        onChange={setOpeningAmount}
+                        className="h-11 rounded-xl text-base font-semibold"
+                        placeholder={formatAmountInput(0, debtCurrency)}
+                        data-testid="input-supplier-opening-balance"
+                      />
+                    </div>
+                    <FormField control={form.control} name="oldDebtCurrency" render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-sm font-bold">USD</FormLabel>
-                        <FormControl>
-                          <AmountInput
-                            currency="USD"
-                            value={field.value}
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                            className="h-11 rounded-xl text-base font-semibold"
-                            placeholder="0.00"
-                            data-testid="input-supplier-old-debt-usd"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-sm font-bold">IQD</FormLabel>
-                        <FormControl>
-                          <AmountInput
-                            currency="IQD"
-                            data-testid="input-supplier-old-debt-iqd"
-                            className="h-11 rounded-xl text-base font-semibold"
-                            value={field.value}
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                        </FormControl>
+                        <FormLabel className="text-sm font-bold">{t("Currency")}</FormLabel>
+                        <Select
+                          value={field.value || debtCurrency}
+                          onValueChange={(code) => {
+                            field.onChange(code);
+                            setOpeningCurrency(code);
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger
+                              className={cn(
+                                "h-11 rounded-xl font-bold",
+                                selectedDebtCurrency?.color.border,
+                                selectedDebtCurrency?.color.bg,
+                                selectedDebtCurrency?.color.text,
+                              )}
+                              data-testid="select-supplier-opening-currency"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="z-[80]">
+                            {CURRENCY_OPTIONS.map((c) => {
+                              const lang = i18n.language || "en";
+                              const localized = lang === "ar" ? c.nameAr : lang === "ckb" ? c.nameKu : lang === "tr" ? c.nameTr : c.nameEn;
+                              return (
+                                <SelectItem key={c.code} value={c.code}>
+                                  <span className="flex items-center gap-2">
+                                    <span className={`w-6 h-6 rounded-full ${c.color.badge} text-white text-[10px] font-black flex items-center justify-center`}>
+                                      {c.symbol}
+                                    </span>
+                                    <span className="font-bold">{c.code}</span>
+                                    <span className="text-xs text-muted-foreground">{localized}</span>
+                                  </span>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -676,8 +886,8 @@ export default function SuppliersPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid gap-2 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-2xl border-border/60 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Suppliers')}</CardTitle>
             <IconSupplierList className="h-5 w-5 text-muted-foreground" />
@@ -686,22 +896,38 @@ export default function SuppliersPage() {
             <div className="text-2xl font-bold">{suppliers.length}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Opening Balances (USD)')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usd(totalOldDebtUsd)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('Total Opening Balances (IQD)')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOldDebtIqd.toLocaleString()} IQD</div>
-          </CardContent>
-        </Card>
+        {openingTotalsByCurrency.length === 0 ? (
+          <Card className="rounded-2xl border-border/60 shadow-sm md:col-span-1 xl:col-span-3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">{t("Total Opening Balances")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-muted-foreground">—</div>
+            </CardContent>
+          </Card>
+        ) : (
+          openingTotalsByCurrency.map(({ currency, amount }) => {
+            const meta = getCurrencyMeta(currency);
+            const opt = CURRENCY_OPTIONS.find((c) => c.code === currency);
+            return (
+              <Card key={currency} className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {t("Total Opening Balances")} ({currency})
+                  </CardTitle>
+                  <span className={`w-7 h-7 rounded-full ${opt?.color.badge || "bg-slate-500"} text-white text-[11px] font-black flex items-center justify-center`}>
+                    {opt?.symbol || meta.symbol}
+                  </span>
+                </CardHeader>
+                <CardContent>
+                  <div className={cn("text-2xl font-bold font-mono", opt?.color.text)}>
+                    {formatAmount(amount, currency)} {currency}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       <Card className="border-border/50 shadow-sm">
@@ -767,23 +993,27 @@ export default function SuppliersPage() {
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="font-bold text-sm">#</TableHead>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="font-bold text-sm">{t("Supplier Code")}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Name')}</TableHead>
-                      <TableHead className="font-bold text-sm">{t('Address')}</TableHead>
                       <TableHead className="font-bold text-sm">{t('Contact')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Opening Balance (USD)')}</TableHead>
-                      <TableHead className="text-right font-bold text-sm">{t('Opening Balance (IQD)')}</TableHead>
+                      <TableHead className="font-bold text-sm">{t('Address')}</TableHead>
+                      <TableHead className="text-right font-bold text-sm">{t("Opening Balance")}</TableHead>
                       <TableHead className="text-center font-bold text-sm">{t('Hide')}</TableHead>
-                      <TableHead className="font-bold text-sm">{t('Created By')}</TableHead>
                       <TableHead className="text-right font-bold text-sm">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.map((client) => (
+                    {paginatedData.map((client) => {
+                      const opening = openingBalanceOf(client, defaultCurrency.code || "IQD");
+                      const openingOpt = CURRENCY_OPTIONS.find((c) => c.code === opening.currency);
+                      return (
                       <TableRow key={client.id} data-testid={`row-supplier-${client.id}`} className={editingClient?.id === client.id ? "bg-primary/5 ring-1 ring-primary/20" : ""}>
-                        <TableCell className="font-bold font-mono text-sm">{client.id}</TableCell>
+                        <TableCell className="font-black font-mono text-sm tracking-wide">
+                          {String((client as any).code || client.id)}
+                        </TableCell>
                         <TableCell className="font-bold text-sm">{client.name}</TableCell>
+                        <TableCell className="font-bold text-sm">{client.contact || '-'}</TableCell>
                         <TableCell className="font-bold text-sm">
                           {client.address ? (
                             <Badge variant="outline" className="gap-1 font-bold">
@@ -792,9 +1022,18 @@ export default function SuppliersPage() {
                             </Badge>
                           ) : '-'}
                         </TableCell>
-                        <TableCell className="font-bold text-sm">{client.contact || '-'}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{usd(client.oldDebtUsd || 0)}</TableCell>
-                        <TableCell className="text-right font-bold font-mono text-sm">{Number(client.oldDebtIqd || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm">
+                          {opening.amount ? (
+                            <span className={cn("inline-flex items-center gap-1.5", openingOpt?.color.text)}>
+                              <span className={`w-5 h-5 rounded-full ${openingOpt?.color.badge || "bg-slate-500"} text-white text-[9px] font-black flex items-center justify-center`}>
+                                {openingOpt?.symbol || getCurrencyMeta(opening.currency).symbol}
+                              </span>
+                              {formatAmount(opening.amount, opening.currency)} {opening.currency}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center">
                           {client.hidden ? (
                             <Badge variant="destructive" className="gap-1 text-xs font-bold">
@@ -805,16 +1044,15 @@ export default function SuppliersPage() {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm font-semibold">{client.createdBy || '-'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>
-                              <Pencil className="h-5 w-5" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => startEdit(client)} data-testid={`button-edit-supplier-${client.id}`}>
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" data-testid={`button-delete-supplier-${client.id}`}>
-                                  <Trash2 className="h-5 w-5" />
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-destructive hover:text-destructive" data-testid={`button-delete-supplier-${client.id}`}>
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -835,7 +1073,8 @@ export default function SuppliersPage() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

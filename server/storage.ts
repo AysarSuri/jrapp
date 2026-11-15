@@ -485,13 +485,49 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(clients);
   }
 
+  async getNextSupplierCode(): Promise<string> {
+    const rows = await db
+      .select({ code: clients.code, id: clients.id })
+      .from(clients)
+      .where(eq(clients.type, "supplier"));
+    let max = 0;
+    for (const row of rows) {
+      const fromCode = parseInt(String(row.code ?? ""), 10);
+      if (Number.isFinite(fromCode) && fromCode > max) max = fromCode;
+    }
+    if (max === 0) {
+      for (const row of rows) {
+        if (row.id > max) max = row.id;
+      }
+    }
+    return String(max + 1);
+  }
+
   async createClient(client: InsertClient): Promise<Client> {
-    const [created] = await db.insert(clients).values(client).returning();
+    const payload: InsertClient & { code?: string | null } = { ...client };
+    if (client.type === "supplier") {
+      // Retry a few times in case of concurrent inserts racing on unique code.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        payload.code = await this.getNextSupplierCode();
+        try {
+          const [created] = await db.insert(clients).values(payload).returning();
+          return created;
+        } catch (err: any) {
+          if (err?.code === "23505" && String(err?.constraint || "").includes("code")) {
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw new Error("Failed to allocate unique supplier code");
+    }
+    const [created] = await db.insert(clients).values(payload).returning();
     return created;
   }
 
   async updateClient(id: number, client: Partial<InsertClient>): Promise<Client> {
-    const [updated] = await db.update(clients).set(client).where(eq(clients.id, id)).returning();
+    const { code: _ignoredCode, ...safeClient } = client as Partial<InsertClient> & { code?: string | null };
+    const [updated] = await db.update(clients).set(safeClient).where(eq(clients.id, id)).returning();
     return updated;
   }
 

@@ -138,6 +138,7 @@ export const inventory = pgTable("inventory", {
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
+  code: text("code").unique(),
   name: text("name").notNull().unique(),
   type: text("type").notNull(), // 'supplier' | 'customer'
   contact: text("contact"),
@@ -520,7 +521,7 @@ export type CustomsClearance = typeof customsClearances.$inferSelect;
 
 export const insertUserSchema = createInsertSchema(users);
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
-export const insertClientSchema = createInsertSchema(clients).omit({ id: true });
+export const insertClientSchema = createInsertSchema(clients).omit({ id: true, code: true });
 export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true });
