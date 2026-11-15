@@ -23,7 +23,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, RotateCcw, EyeOff, Printer } from "lucide-react";
+import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, EyeOff, Printer, Building2, Phone, MapPin, Wallet } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { IconSupplierList, IconAddress } from "@/components/erp-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { usd, formatDate } from "@/lib/format-utils";
 import { PRINT_FONT_LINKS } from "@/lib/print-styles";
 import { AddressSearchSelect } from "@/components/address-search-select";
+import { cn } from "@/lib/utils";
 
 const supplierSchema = insertClientSchema.extend({
   type: z.literal("supplier").default("supplier"),
@@ -54,6 +55,7 @@ export default function SuppliersPage() {
   const { mutate: deleteClient } = useDeleteClient();
   const { toast } = useToast();
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -61,6 +63,8 @@ export default function SuppliersPage() {
   const [addrEditId, setAddrEditId] = useState<number | null>(null);
   const [addrName, setAddrName] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const emptyForm = { name: "", type: "supplier" as const, contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -74,8 +78,14 @@ export default function SuppliersPage() {
 
   const form = useForm<z.infer<typeof supplierSchema>>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: { name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false },
+    defaultValues: emptyForm,
   });
+
+  const openCreateDialog = () => {
+    setEditingClient(null);
+    form.reset(emptyForm);
+    setFormOpen(true);
+  };
 
   const startEdit = (client: Client) => {
     setEditingClient(client);
@@ -88,11 +98,13 @@ export default function SuppliersPage() {
       oldDebtIqd: client.oldDebtIqd || "0",
       hidden: client.hidden ?? false,
     });
+    setFormOpen(true);
   };
 
-  const cancelEdit = () => {
+  const closeFormDialog = () => {
+    setFormOpen(false);
     setEditingClient(null);
-    form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
+    form.reset(emptyForm);
   };
 
   const onSubmit = (values: z.infer<typeof supplierSchema>) => {
@@ -109,8 +121,7 @@ export default function SuppliersPage() {
     if (editingClient) {
       updateClient({ id: editingClient.id, data: { ...values, type: "supplier" } }, {
         onSuccess: () => {
-          setEditingClient(null);
-          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
+          closeFormDialog();
           toast({ title: t("Supplier updated successfully") });
         },
         onError: (err) => {
@@ -120,7 +131,7 @@ export default function SuppliersPage() {
     } else {
       createClient({ ...values, type: "supplier" }, {
         onSuccess: () => {
-          form.reset({ name: "", type: "supplier", contact: "", address: "", oldDebtUsd: "0", oldDebtIqd: "0", hidden: false });
+          closeFormDialog();
           toast({ title: t("Supplier created successfully") });
         },
         onError: (err) => {
@@ -134,7 +145,7 @@ export default function SuppliersPage() {
     deleteClient(id, {
       onSuccess: () => {
         toast({ title: t("Supplier deleted successfully") });
-        if (editingClient?.id === id) cancelEdit();
+        if (editingClient?.id === id) closeFormDialog();
       },
       onError: (err) => {
         toast({ title: t("Failed to delete supplier"), description: t(err.message), variant: "destructive" });
@@ -457,18 +468,213 @@ export default function SuppliersPage() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('Suppliers')}</h1>
           <p className="text-muted-foreground text-sm">{t('Manage your suppliers')}</p>
         </div>
-        <Link href="/supplier-management">
-          <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
-            <ArrowLeft className="h-5 w-5" />
-            {t("Supplier Management")}
+        <div className="flex items-center gap-2">
+          <Link href="/supplier-management">
+            <Button variant="outline" size="sm" className="gap-2" data-testid="button-back-supplier-management">
+              <ArrowLeft className="h-5 w-5" />
+              {t("Supplier Management")}
+            </Button>
+          </Link>
+          <Button
+            size="sm"
+            className="gap-2 shadow-sm"
+            onClick={openCreateDialog}
+            data-testid="button-add-supplier"
+          >
+            <Plus className="h-5 w-5" />
+            {t('Add New Supplier')}
           </Button>
-        </Link>
+        </div>
       </div>
+
+      <Dialog open={formOpen} onOpenChange={(open) => { if (!open) closeFormDialog(); else setFormOpen(true); }}>
+        <DialogContent className="sm:max-w-[640px] p-0 gap-0 overflow-hidden rounded-2xl border-border/60 shadow-2xl">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 px-6 py-5 text-white">
+            <div className="pointer-events-none absolute -top-16 -end-10 h-40 w-40 rounded-full bg-teal-400/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -start-10 h-44 w-44 rounded-full bg-cyan-400/10 blur-3xl" />
+            <DialogHeader className="relative space-y-2 text-start">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur">
+                  {editingClient ? <Pencil className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold tracking-tight text-white">
+                    {editingClient ? t('Edit Supplier') : t('Add New Supplier')}
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-white/70">
+                    {editingClient ? t('Manage your suppliers') : t('Add a new supplier to get started.')}
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="bg-card">
+              <div className="space-y-4 px-6 py-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem className="sm:col-span-2 space-y-1.5">
+                      <FormLabel className="text-sm font-bold flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-teal-600" />
+                        {t('Name')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-supplier-name"
+                          placeholder={t('Supplier Name')}
+                          className="h-11 rounded-xl border-border/70 text-base font-semibold shadow-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="contact" render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-bold flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5 text-teal-600" />
+                        {t('Contact')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          data-testid="input-supplier-contact"
+                          placeholder="0770-000-0000"
+                          className="h-11 rounded-xl border-border/70 text-base font-semibold shadow-sm"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-bold flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-teal-600" />
+                        {t('Address')}
+                      </FormLabel>
+                      <AddressSearchSelect
+                        addresses={addresses}
+                        value={field.value || ""}
+                        onValueChange={field.onChange}
+                        placeholder={t('Select address...')}
+                        data-testid="select-supplier-address"
+                        inputClassName="h-11 rounded-xl border-border/70 text-base font-semibold shadow-sm"
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <div className="rounded-2xl border border-teal-200/70 dark:border-teal-800/50 bg-teal-50/40 dark:bg-teal-950/20 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                    <Wallet className="h-3.5 w-3.5" />
+                    {t('Opening Balance (USD)')} / {t('Opening Balance (IQD)')}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-bold">USD</FormLabel>
+                        <FormControl>
+                          <AmountInput
+                            currency="USD"
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                            className="h-11 rounded-xl text-base font-semibold"
+                            placeholder="0.00"
+                            data-testid="input-supplier-old-debt-usd"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-bold">IQD</FormLabel>
+                        <FormControl>
+                          <AmountInput
+                            currency="IQD"
+                            data-testid="input-supplier-old-debt-iqd"
+                            className="h-11 rounded-xl text-base font-semibold"
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-muted/30 px-4 py-3">
+                  <FormField control={form.control} name="hidden" render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-supplier-hidden"
+                          className="h-5 w-5"
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-bold flex items-center gap-1.5 cursor-pointer">
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        {t('Hide')}
+                      </FormLabel>
+                    </FormItem>
+                  )} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-1.5 rounded-xl text-sm font-semibold"
+                    onClick={() => { setAddrEditId(null); setAddrName(""); setAddrDialogOpen(true); }}
+                    data-testid="button-manage-supplier-addresses"
+                  >
+                    <IconAddress className="h-4 w-4" />
+                    {t('Address')}
+                  </Button>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 border-t border-border/60 bg-muted/20 px-6 py-4 sm:space-x-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={closeFormDialog}
+                  data-testid="button-reset-form"
+                >
+                  {t('Cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  className={cn("rounded-xl min-w-[120px] font-bold")}
+                  data-testid="button-save-supplier"
+                >
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin me-2" /> : null}
+                  {editingClient ? t('Update') : t('Save')}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-2 md:grid-cols-3">
         <Card>
@@ -497,106 +703,6 @@ export default function SuppliersPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-primary/20 shadow-md">
-        <CardHeader className="pb-1 pt-3 px-4">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            {editingClient ? (
-              <><Pencil className="h-5 w-5 text-primary" /> {t('Edit Supplier')}</>
-            ) : (
-              <><Plus className="h-5 w-5 text-primary" /> {t('Add New Supplier')}</>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pb-3 px-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Name')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-name" placeholder={t('Supplier Name')} className="h-11 text-base font-semibold" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="contact" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Contact')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-contact" placeholder="0770-000-0000" className="h-11 text-base font-semibold" {...field} value={field.value ?? ""} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="address" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Address')}</FormLabel>
-                    <AddressSearchSelect
-                      addresses={addresses}
-                      value={field.value || ""}
-                      onValueChange={field.onChange}
-                      placeholder={t('Select address...')}
-                      data-testid="select-supplier-address"
-                      inputClassName="h-11 text-base font-semibold"
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Opening Balance (USD)')}</FormLabel>
-                    <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} className="h-11 text-base font-semibold" placeholder="0.00" data-testid="input-supplier-old-debt-usd" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-bold">{t('Opening Balance (IQD)')}</FormLabel>
-                    <FormControl><AmountInput currency="IQD" data-testid="input-supplier-old-debt-iqd" className="h-11 text-base font-semibold" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="flex items-center gap-4 pt-4">
-                  <FormField control={form.control} name="hidden" render={({ field }) => (
-                    <FormItem className="flex items-center gap-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-supplier-hidden"
-                          className="h-5 w-5"
-                        />
-                      </FormControl>
-                      <FormLabel className="text-base font-bold flex items-center gap-1.5 cursor-pointer">
-                        <EyeOff className="h-5 w-5 text-muted-foreground" />
-                        {t('Hide')}
-                      </FormLabel>
-                    </FormItem>
-                  )} />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-1.5 text-sm font-semibold"
-                    onClick={() => { setAddrEditId(null); setAddrName(""); setAddrDialogOpen(true); }}
-                    data-testid="button-manage-supplier-addresses"
-                  >
-                    <IconAddress className="h-4 w-4" />
-                    {t('Address')}
-                  </Button>
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button type="submit" disabled={isSaving} size="lg" className="text-base font-bold h-11 flex-1" data-testid="button-save-supplier">
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                    {editingClient ? t('Update') : t('Save')}
-                  </Button>
-                  <Button type="button" variant="outline" size="lg" className="h-11" onClick={cancelEdit} data-testid="button-reset-form">
-                    <RotateCcw className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-2 pt-3 px-4">

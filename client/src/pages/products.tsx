@@ -584,64 +584,103 @@ export default function ProductsPage() {
                       <Tag className="h-4 w-4 text-white/90" />
                       <span className="text-xs font-black text-white uppercase tracking-wider">{t("Flags")}</span>
                     </div>
-                    <div className="px-3 py-1.5 flex-1 flex flex-col gap-1 bg-violet-50/40 dark:bg-violet-950/20">
-                      <FormField control={form.control} name="hidden" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value}
-                              onChange={field.onChange}
-                              icon={EyeOff}
-                              label={t("Hidden")}
-                              className="w-full h-9"
-                              activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                    <div className="px-3 py-1.5 flex-1 grid grid-cols-2 gap-2 bg-violet-50/40 dark:bg-violet-950/20" dir="ltr">
+                      {/* Image — left */}
+                      <div className="min-h-[7.5rem] h-full">
+                        {form.watch("image") ? (
+                          <div className="relative group h-full">
+                            <img
+                              src={form.watch("image")!}
+                              alt=""
+                              className="h-full w-full object-cover rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-white p-0.5"
+                              data-testid="img-product-image"
                             />
-                          </FormControl>
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="favorite" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value}
-                              onChange={field.onChange}
-                              icon={Star}
-                              label={t("Favorite")}
-                              className="w-full h-9"
-                              activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="hasScale" render={({ field }) => (
-                        <FormItem className="space-y-0">
-                          <FormControl>
-                            <ToggleField
-                              value={field.value ?? false}
-                              onChange={field.onChange}
-                              icon={Scale}
-                              label={t("Has Scale")}
-                              className="w-full h-9"
-                              activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )} />
-                      {form.watch("image") ? (
-                        <div className="relative group mt-auto">
-                          <img src={form.watch("image")!} alt="" className="h-12 w-full object-cover rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-white p-0.5" data-testid="img-product-image" />
-                          <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
-                            <X className="w-2.5 h-2.5" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <button type="button" className="mt-auto h-12 w-full rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 flex items-center justify-center gap-2 hover:bg-violet-100/60 dark:hover:bg-violet-900/20 transition-colors"
-                          onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
-                          title={t("Product Image")} data-testid="upload-product-image-area">
-                          <ImageIcon className="h-5 w-5 text-violet-500" />
-                          <span className="text-xs font-semibold text-violet-600 dark:text-violet-300">{t("Image")}</span>
-                        </button>
-                      )}
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              type="button"
+                              className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                              onClick={() => form.setValue("image", null)}
+                              data-testid="button-remove-product-image"
+                            >
+                              <X className="w-2.5 h-2.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="h-full w-full min-h-[7.5rem] rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 flex flex-col items-center justify-center gap-1.5 hover:bg-violet-100/60 dark:hover:bg-violet-900/20 transition-colors"
+                            onClick={() => {
+                              const inp = document.createElement("input");
+                              inp.type = "file";
+                              inp.accept = "image/*";
+                              inp.onchange = (e) => {
+                                const f = (e.target as HTMLInputElement).files?.[0];
+                                if (!f) return;
+                                if (f.size > 2 * 1024 * 1024) {
+                                  toast({ title: t("Image size must be less than 2MB"), variant: "destructive" });
+                                  return;
+                                }
+                                const r = new FileReader();
+                                r.onload = () => form.setValue("image", r.result as string);
+                                r.readAsDataURL(f);
+                              };
+                              inp.click();
+                            }}
+                            title={t("Product Image")}
+                            data-testid="upload-product-image-area"
+                          >
+                            <ImageIcon className="h-6 w-6 text-violet-500" />
+                            <span className="text-xs font-semibold text-violet-600 dark:text-violet-300">{t("Image")}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Flags — right */}
+                      <div className="flex flex-col gap-1.5 h-full justify-center" dir="auto">
+                        <FormField control={form.control} name="hidden" render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <ToggleField
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={EyeOff}
+                                label={t("Hidden")}
+                                className="w-full h-9"
+                                activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="favorite" render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <ToggleField
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={Star}
+                                label={t("Favorite")}
+                                className="w-full h-9"
+                                activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="hasScale" render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <ToggleField
+                                value={field.value ?? false}
+                                onChange={field.onChange}
+                                icon={Scale}
+                                label={t("Has Scale")}
+                                className="w-full h-9"
+                                activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                      </div>
                     </div>
                   </div>
 
