@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Loader2, Pencil, Trash2, ArrowLeft, ChevronLeft, ChevronRight, EyeOff, Printer, Building2, Phone, MapPin, Wallet, AlertCircle, Hash, Lock } from "lucide-react";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { IconSupplierList, IconAddress } from "@/components/erp-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,13 +98,11 @@ export default function SuppliersPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [duplicateNameAlert, setDuplicateNameAlert] = useState(false);
   const [previewCode, setPreviewCode] = useState("1");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [addrDialogOpen, setAddrDialogOpen] = useState(false);
   const [addrEditId, setAddrEditId] = useState<number | null>(null);
   const [addrName, setAddrName] = useState("");
-  const searchRef = useRef<HTMLDivElement>(null);
 
   const emptyForm = {
     name: "",
@@ -124,16 +122,6 @@ export default function SuppliersPage() {
       .filter((c) => c.type === "supplier")
       .some((s) => s.name.trim().toLowerCase() === normalized && s.id !== excludeId);
   };
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const form = useForm<z.infer<typeof supplierSchema>>({
     resolver: zodResolver(supplierSchema),
@@ -236,12 +224,21 @@ export default function SuppliersPage() {
   };
 
   const suppliers = allClients?.filter(c => c.type === "supplier") || [];
-  const filtered = suppliers.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.contact?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String((c as any).code || c.id).includes(searchTerm.trim())
+  const supplierSearchOptions = useMemo(
+    () =>
+      suppliers.map((s) => {
+        const code = String((s as any).code || s.id);
+        return {
+          value: String(s.id),
+          label: `${code} — ${s.name}`,
+          keywords: [code, s.name, s.contact || "", s.address || ""].join(" "),
+        };
+      }),
+    [suppliers],
   );
+  const filtered = selectedSupplierId
+    ? suppliers.filter((c) => String(c.id) === selectedSupplierId)
+    : suppliers;
 
   const openingTotalsByCurrency = useMemo(() => {
     const map = new Map<string, number>();
@@ -295,17 +292,34 @@ export default function SuppliersPage() {
   const { data: companyProfile } = useQuery<{ id: number; name: string; logo: string | null; primaryColor: string; address: string; mobile1: string }>({ queryKey: ["/api/company-profile"] });
 
   const handlePrint = () => {
+    const esc = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const dir = (document.documentElement.dir || "ltr") as "rtl" | "ltr";
-    const accent = companyProfile?.primaryColor || "#6b8e23";
-    const companyName = companyProfile?.name || "";
+    const accent = companyProfile?.primaryColor || "#0f766e";
+    const companyName = esc(companyProfile?.name || "");
     const companyLogo = companyProfile?.logo || "";
-    const companyAddress = companyProfile?.address || "";
-    const companyMobile = companyProfile?.mobile1 || "";
+    const companyAddress = esc(companyProfile?.address || "");
+    const companyMobile = esc(companyProfile?.mobile1 || "");
     const today = formatDate(new Date());
-    const title = t('Suppliers');
+    const title = t("Suppliers");
+    const reportFont = "Tahoma, 'Segoe UI', 'Noto Naskh Arabic', 'Noto Sans Arabic', 'Cairo', 'Tajawal', sans-serif";
 
-    const visibleSuppliers = filtered.filter(s => !s.hidden);
+    const visibleSuppliers = filtered.filter((s) => !s.hidden);
     const fallbackCur = defaultCurrency.code || "IQD";
+
+    const openingColor = (code: string) => {
+      const map: Record<string, string> = {
+        IQD: "#d97706", USD: "#059669", EUR: "#2563eb", IRR: "#e11d48",
+        GBP: "#4f46e5", TRY: "#dc2626", CNY: "#ea580c",
+      };
+      return map[code] || "#334155";
+    };
+    const openingChip = (amount: number, currency: string) => {
+      if (!amount) return `<span class="muted">—</span>`;
+      const symbol = CURRENCY_OPTIONS.find((c) => c.code === currency)?.symbol || getCurrencyMeta(currency).symbol;
+      const color = openingColor(currency);
+      return `<span class="chip" style="color:${color};border-color:${color}33;background:${color}14"><span class="chip-dot" style="background:${color}">${esc(symbol)}</span><span dir="ltr">${esc(formatAmount(amount, currency))} ${esc(currency)}</span></span>`;
+    };
 
     const printTotals = new Map<string, number>();
     for (const s of visibleSuppliers) {
@@ -314,116 +328,116 @@ export default function SuppliersPage() {
       printTotals.set(opening.currency, (printTotals.get(opening.currency) || 0) + opening.amount);
     }
     const printTotalsList = Array.from(printTotals.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const totalsChips = printTotalsList.length
+      ? printTotalsList.map(([currency, amount]) => openingChip(amount, currency)).join(" ")
+      : `<span class="muted">—</span>`;
 
-    const tableRows = visibleSuppliers.map((s) => {
+    const tableRows = visibleSuppliers.map((s, i) => {
       const opening = openingBalanceOf(s, fallbackCur);
-      const openingText = opening.amount
-        ? `${formatAmount(opening.amount, opening.currency)} ${opening.currency}`
-        : "—";
+      const code = String((s as any).code || s.id);
       return `
       <tr>
-        <td class="mono num">${String((s as any).code || s.id)}</td>
-        <td class="name-cell">${s.name}</td>
-        <td class="mono">${s.contact || '-'}</td>
-        <td>${s.address || '-'}</td>
-        <td class="mono price-usd">${openingText}</td>
-      </tr>
-    `;
+        <td class="num">${i + 1}</td>
+        <td class="mono code-cell">${esc(code)}</td>
+        <td class="name-cell">${esc(s.name)}</td>
+        <td class="mono" dir="ltr">${esc(s.contact || "—")}</td>
+        <td>${esc(s.address || "—")}</td>
+        <td>${openingChip(opening.amount, opening.currency)}</td>
+      </tr>`;
     }).join("");
 
     const summaryCards = `
-    <div class="stat-card blue">
-      <span class="stat-label">${t('Total Suppliers')}</span>
+    <div class="stat-card teal">
+      <span class="stat-label">${t("Total Suppliers")}</span>
       <span class="stat-value">${visibleSuppliers.length}</span>
     </div>
-    ${printTotalsList.length === 0
-      ? `<div class="stat-card green"><span class="stat-label">${t("Total Opening Balances")}</span><span class="stat-value">—</span></div>`
-      : printTotalsList.map(([currency, amount]) => `
-    <div class="stat-card green">
-      <span class="stat-label">${t("Total Opening Balances")} (${currency})</span>
-      <span class="stat-value">${formatAmount(amount, currency)} ${currency}</span>
-    </div>`).join("")
-    }`;
-
-    const totalsFooter = printTotalsList.length === 0
-      ? `<tr class="total-row"><td colspan="4" class="name-cell">${t('Total')}</td><td class="mono">—</td></tr>`
-      : printTotalsList.map(([currency, amount], idx) => `
-      <tr class="total-row">
-        <td colspan="4" class="name-cell">${idx === 0 ? t('Total') : ""} — ${currency}</td>
-        <td class="mono price-usd">${formatAmount(amount, currency)} ${currency}</td>
-      </tr>`).join("");
+    <div class="stat-card amber">
+      <span class="stat-label">${t("Total Opening Balances")}</span>
+      <span class="stat-value chips">${totalsChips}</span>
+    </div>`;
 
     const html = `<!DOCTYPE html>
-<html dir="${dir}">
+<html dir="${dir}" lang="${i18n.language || "ar"}">
 <head>
   ${PRINT_FONT_LINKS}
   <meta charset="utf-8">
   <title>${title} — ${companyName}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Tajawal', 'Inter', -apple-system, sans-serif;
-      padding: 20px;
-      font-size: 10pt;
+    html, body {
+      font-family: ${reportFont};
+      font-size: 14px;
+      font-weight: 700;
       direction: ${dir};
-      color: #1a1a2e;
+      color: #0f172a;
       background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-
+    body { padding: 18px 22px; }
+    .top-bar {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, ${accent}, ${accent}88, #2dd4bf);
+      margin-bottom: 16px;
+    }
     .header-row {
+      padding: 14px 18px 12px;
+      margin-bottom: 14px;
+      border: 2px solid ${accent}30;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f8fffe, ${accent}0a);
+    }
+    .company-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid ${accent}22;
+    }
+    .company-block img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+    .company-name {
+      font-family: ${reportFont};
+      font-size: 20px;
+      font-weight: 800;
+      color: ${accent};
+      line-height: 1.5;
+      text-align: center;
+    }
+    .header-meta {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 20px;
-      margin-bottom: 14px;
-      border: 2px solid ${accent}30;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #fafbfc, ${accent}08);
-    }
-    .header-center {
-      display: flex;
-      align-items: center;
       gap: 12px;
-      flex: 1;
-      justify-content: center;
     }
-    .header-center img {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      border-radius: 10px;
-    }
-    .header-center .company-name {
-      font-size: 18pt;
-      font-weight: 800;
-      color: ${accent};
-      letter-spacing: -0.3px;
-    }
-    .header-right {
-      text-align: ${dir === "rtl" ? "right" : "left"};
-      min-width: 180px;
-    }
+    .header-right { text-align: ${dir === "rtl" ? "right" : "left"}; }
     .header-right .report-title {
-      font-size: 16pt;
+      font-size: 18px;
       font-weight: 800;
       color: ${accent};
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .header-right .report-date {
-      font-size: 9pt;
+      font-size: 13px;
       color: #64748b;
-      font-weight: 500;
+      font-weight: 700;
     }
     .header-left {
       text-align: ${dir === "rtl" ? "left" : "right"};
-      min-width: 200px;
       display: flex;
       flex-direction: column;
       gap: 3px;
-      font-size: 8.5pt;
+      font-size: 13px;
+      font-weight: 700;
       color: #64748b;
     }
     .header-left .contact-item {
@@ -432,113 +446,134 @@ export default function SuppliersPage() {
       gap: 5px;
       justify-content: ${dir === "rtl" ? "flex-start" : "flex-end"};
     }
-
     .summary-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       margin-bottom: 14px;
     }
     .stat-card {
       flex: 1;
-      border-radius: 10px;
-      padding: 10px 16px;
+      min-width: 180px;
+      border-radius: 14px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: relative;
+      gap: 12px;
       overflow: hidden;
     }
-    .stat-card.blue {
-      border: 2px solid #3b82f6;
-      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    .stat-card.teal {
+      border: 2px solid #14b8a6;
+      background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
     }
-    .stat-card.green {
-      border: 2px solid #22c55e;
-      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    }
-    .stat-card.orange {
+    .stat-card.amber {
       border: 2px solid #f59e0b;
       background: linear-gradient(135deg, #fffbeb, #fef3c7);
     }
     .stat-card .stat-label {
-      font-size: 9pt;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       color: #475569;
     }
     .stat-card .stat-value {
-      font-size: 16pt;
+      font-size: 18px;
       font-weight: 800;
     }
-    .stat-card.blue .stat-value { color: #2563eb; }
-    .stat-card.green .stat-value { color: #16a34a; }
-    .stat-card.orange .stat-value { color: #d97706; }
-
+    .stat-card .stat-value.chips {
+      font-size: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .stat-card.teal .stat-value { color: #0f766e; }
+    .stat-card.amber .stat-value { color: #b45309; }
     table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      font-size: 9pt;
-      border-radius: 10px;
+      font-size: 13px;
+      border-radius: 16px;
       overflow: hidden;
-      border: 1.5px solid #d4d4d8;
+      border: 1px solid #e2e8f0;
     }
     th {
+      font-family: ${reportFont};
       background: linear-gradient(145deg, ${accent}, ${accent}dd);
       color: #fff;
-      padding: 8px 7px;
+      padding: 11px 8px;
       text-align: center;
-      font-weight: 700;
-      font-size: 8.5pt;
+      font-weight: 800;
+      font-size: 13px;
       white-space: nowrap;
-      letter-spacing: 0.2px;
     }
     td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 6px 7px;
+      font-family: ${reportFont};
+      border-bottom: 1px solid #eef2f7;
+      padding: 10px 8px;
       text-align: center;
-      font-size: 9pt;
-      color: #334155;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
     }
     tr:nth-child(even) { background: #f8fafc; }
-    tr:hover { background: #f1f5f9; }
-    .mono { font-family: 'Inter', monospace; letter-spacing: 0.3px; }
-    .num { font-weight: 700; color: #64748b; width: 36px; }
-    .name-cell { font-weight: 700; color: #1e293b; text-align: ${dir === "rtl" ? "right" : "left"}; }
-    .price-usd { color: #16a34a; font-weight: 700; }
-    .price-iqd { color: #2563eb; font-weight: 700; }
-
-    .total-row { background: linear-gradient(145deg, #f0f4ff, #e8ecf4) !important; }
-    .total-row td { font-weight: 800; font-size: 9.5pt; color: #1e293b; border-top: 2px solid ${accent}; }
-
+    .mono { font-family: Tahoma, 'Segoe UI', sans-serif; }
+    .num { font-weight: 700; color: #94a3b8; width: 34px; }
+    .code-cell { font-weight: 800; color: #0f766e; letter-spacing: 0.3px; }
+    .name-cell {
+      font-weight: 800;
+      color: #0f172a;
+      text-align: ${dir === "rtl" ? "right" : "left"};
+      line-height: 1.45;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .chip-dot {
+      width: 18px; height: 18px; border-radius: 50%; color: #fff;
+      font-size: 9px; display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 900;
+    }
+    .muted { color: #94a3b8; }
+    .total-row { background: linear-gradient(145deg, #f0fdfa, #e6fffa) !important; }
+    .total-row td {
+      font-weight: 800;
+      font-size: 13px;
+      color: #0f172a;
+      border-top: 2px solid ${accent};
+      border-bottom: none;
+    }
     .report-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 14px;
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: 1.5px solid #e2e8f0;
+      margin-top: 16px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
       background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      font-size: 9pt;
+      font-size: 13px;
       color: #475569;
-      font-weight: 600;
-    }
-    .report-footer .footer-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 700;
     }
     .report-footer .footer-value {
       font-weight: 800;
       color: ${accent};
-      font-size: 10pt;
+      margin-inline-start: 4px;
     }
-
     @media print {
       body { padding: 6mm 8mm; }
       @page { margin: 5mm; size: A4; }
-      .stat-card, th, .report-footer, .total-row {
+      .stat-card, th, .report-footer, .total-row, .chip, .chip-dot, .top-bar {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -546,18 +581,21 @@ export default function SuppliersPage() {
   </style>
 </head>
 <body>
+  <div class="top-bar"></div>
   <div class="header-row">
-    <div class="header-right">
-      <div class="report-title">${title}</div>
-      <div class="report-date">${today}</div>
-    </div>
-    <div class="header-center">
+    <div class="company-block">
       ${companyLogo ? `<img src="${companyLogo}" alt="logo" />` : ""}
       <span class="company-name">${companyName}</span>
     </div>
-    <div class="header-left">
-      ${companyAddress ? `<div class="contact-item">📍 ${companyAddress}</div>` : ""}
-      ${companyMobile ? `<div class="contact-item">📞 ${companyMobile}</div>` : ""}
+    <div class="header-meta">
+      <div class="header-right">
+        <div class="report-title">${title}</div>
+        <div class="report-date">${today}</div>
+      </div>
+      <div class="header-left">
+        ${companyAddress ? `<div class="contact-item">\u{1F4CD} ${companyAddress}</div>` : ""}
+        ${companyMobile ? `<div class="contact-item">\u{1F4DE} ${companyMobile}</div>` : ""}
+      </div>
     </div>
   </div>
 
@@ -568,22 +606,26 @@ export default function SuppliersPage() {
   <table>
     <thead>
       <tr>
+        <th>#</th>
         <th>${t("Supplier Code")}</th>
-        <th>${t('Name')}</th>
-        <th>${t('Contact')}</th>
-        <th>${t('Address')}</th>
+        <th>${t("Name")}</th>
+        <th>${t("Contact")}</th>
+        <th>${t("Address")}</th>
         <th>${t("Opening Balance")}</th>
       </tr>
     </thead>
     <tbody>
-      ${tableRows}
-      ${totalsFooter}
+      ${tableRows || `<tr><td colspan="6" class="muted">${t("No suppliers found")}</td></tr>`}
+      <tr class="total-row">
+        <td colspan="5" class="name-cell">${t("Total")}</td>
+        <td>${totalsChips}</td>
+      </tr>
     </tbody>
   </table>
 
   <div class="report-footer">
-    <div class="footer-item">${t('Total Suppliers')}: <span class="footer-value">${visibleSuppliers.length}</span></div>
-    <div class="footer-item">${t('Date')}: <span class="footer-value">${today}</span></div>
+    <div class="footer-item">${t("Total Suppliers")}: <span class="footer-value">${visibleSuppliers.length}</span></div>
+    <div class="footer-item">${t("Date")}: <span class="footer-value">${today}</span></div>
   </div>
 
   <script>
@@ -902,7 +944,7 @@ export default function SuppliersPage() {
               <CardTitle className="text-sm font-medium">{t("Total Opening Balances")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-muted-foreground">—</div>
+              <div className="text-[16px] font-bold text-muted-foreground">—</div>
             </CardContent>
           </Card>
         ) : (
@@ -920,7 +962,7 @@ export default function SuppliersPage() {
                   </span>
                 </CardHeader>
                 <CardContent>
-                  <div className={cn("text-2xl font-bold font-mono", opt?.color.text)}>
+                  <div className={cn("text-[16px] font-bold font-mono", opt?.color.text)}>
                     {formatAmount(amount, currency)} {currency}
                   </div>
                 </CardContent>
@@ -933,40 +975,23 @@ export default function SuppliersPage() {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-2 pt-3 px-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="relative flex-1 min-w-[200px] max-w-sm" ref={searchRef}>
-              <SearchInput
-                placeholder={t('Search suppliers...')}
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); setSearchOpen(true); }}
-                onFocus={() => { if (searchTerm.trim()) setSearchOpen(true); }}
-                onClear={() => { setSearchTerm(""); setSearchOpen(false); }}
+            <div className="flex-1 min-w-[240px] max-w-md">
+              <SearchableCombobox
+                value={selectedSupplierId}
+                onValueChange={(val) => {
+                  setSelectedSupplierId(val);
+                  setCurrentPage(1);
+                }}
+                options={supplierSearchOptions}
+                placeholder={t("Search suppliers...")}
+                searchPlaceholder={t("Search suppliers...")}
+                emptyText={t("No suppliers found")}
+                allowClear
+                clearLabel={t("All Suppliers")}
+                icon={Building2}
+                accent="emerald"
                 data-testid="input-search-suppliers"
               />
-              {searchOpen && searchTerm.trim() && filtered.length > 0 && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filtered.slice(0, 10).map((client) => (
-                    <button
-                      key={client.id}
-                      type="button"
-                      className="w-full text-start px-3 py-2 hover:bg-muted/70 flex items-center justify-between gap-2 font-bold text-sm transition-colors"
-                      data-testid={`search-result-supplier-${client.id}`}
-                      onClick={() => {
-                        setSearchTerm(client.name);
-                        setSearchOpen(false);
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <span>{client.name}</span>
-                      {client.address && (
-                        <Badge variant="outline" className="gap-1 text-xs font-semibold shrink-0">
-                          <IconAddress className="h-3 w-3" />
-                          {client.address}
-                        </Badge>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-3">
               <div className="text-sm text-muted-foreground font-medium">
