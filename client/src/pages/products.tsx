@@ -27,11 +27,12 @@ import {
 import { IconProduct } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { getProductName, getUnitName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AmountInput } from "@/components/amount-input";
 import { formatNumber } from "@/lib/format-utils";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 
 /* ─── schema extension ──────────────────────────────────────────────────── */
 const emptyToZeroNumber = z.preprocess(
@@ -508,16 +509,21 @@ export default function ProductsPage() {
                     <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
-                        <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-10 text-sm" data-testid="select-category">
-                              <SelectValue placeholder={t("Select Category")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categoriesList?.map((cat) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <SearchableCombobox
+                            value={field.value}
+                            onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }}
+                            options={(categoriesList || []).map((cat) => ({
+                              value: cat.name,
+                              label: cat.name,
+                              keywords: [cat.nameEn, cat.nameKu, cat.nameTr].filter(Boolean).join(" "),
+                            }))}
+                            placeholder={t("Select Category")}
+                            searchPlaceholder={t("Search categories...")}
+                            emptyText={t("No categories found")}
+                            data-testid="select-category"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -529,17 +535,24 @@ export default function ProductsPage() {
                       return (
                         <FormItem className="space-y-1">
                           <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
-                          <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
-                            <FormControl>
-                              <SelectTrigger className="h-10 text-sm" data-testid="select-group">
-                                <SelectValue placeholder={t("Select Group")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="__none__">{t("No Group")}</SelectItem>
-                              {groups.map((g: any) => <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value || ""}
+                              onValueChange={(val) => field.onChange(val || null)}
+                              options={groups.map((g: any) => ({
+                                value: g.name,
+                                label: g.name,
+                                keywords: [g.nameEn, g.nameKu, g.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Group")}
+                              searchPlaceholder={t("Select Group")}
+                              emptyText={t("No Group")}
+                              allowClear
+                              clearLabel={t("No Group")}
+                              disabled={!selCat}
+                              data-testid="select-group"
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       );
@@ -634,16 +647,24 @@ export default function ProductsPage() {
                     <div className="px-4 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-white/60" />
                       <FormField control={form.control} name="bigUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Big Unit")}:</span>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-big-unit">
-                                <SelectValue placeholder={t("Select Unit")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                          </Select>
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Big Unit")}:</span>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              options={unitsList.map((u) => ({
+                                value: u.name,
+                                label: getUnitName(u),
+                                keywords: [u.name, u.nameEn, u.nameKu, u.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Unit")}
+                              searchPlaceholder={t("Search units...")}
+                              emptyText={t("No units found")}
+                              data-testid="select-big-unit"
+                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                            />
+                          </FormControl>
                         </div>
                       )} />
                     </div>
@@ -721,16 +742,24 @@ export default function ProductsPage() {
                     <div className="px-4 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-white/60" />
                       <FormField control={form.control} name="smallUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Small Unit")}:</span>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-small-unit">
-                                <SelectValue placeholder={t("Select Unit")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                          </Select>
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Small Unit")}:</span>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              options={unitsList.map((u) => ({
+                                value: u.name,
+                                label: getUnitName(u),
+                                keywords: [u.name, u.nameEn, u.nameKu, u.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Unit")}
+                              searchPlaceholder={t("Search units...")}
+                              emptyText={t("No units found")}
+                              data-testid="select-small-unit"
+                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                            />
+                          </FormControl>
                         </div>
                       )} />
                     </div>
