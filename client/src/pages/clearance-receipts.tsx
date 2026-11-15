@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CustomsClearance, CustomsClearanceTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/search-select";
@@ -403,12 +404,15 @@ export default function ClearanceReceiptsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number" step="0.01" min="0" placeholder="0.00"
-                    value={amountUsd} onChange={(e) => setAmountUsd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-clearance-receipt-usd"
-                  />
+                  <AmountInput
+                currency="USD"
+                min={0}
+                value={amountUsd}
+                onChange={setAmountUsd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-clearance-receipt-usd"
+                placeholder="0.00"
+              />
                 </CardContent>
               </Card>
               <Card className="border-orange-200 dark:border-orange-900">
@@ -419,12 +423,15 @@ export default function ClearanceReceiptsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number" step="250" min="0" placeholder="0"
-                    value={amountIqd} onChange={(e) => setAmountIqd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-clearance-receipt-iqd"
-                  />
+                  <AmountInput
+                currency="IQD"
+                min={0}
+                value={amountIqd}
+                onChange={setAmountIqd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-clearance-receipt-iqd"
+                placeholder="0"
+              />
                 </CardContent>
               </Card>
             </div>

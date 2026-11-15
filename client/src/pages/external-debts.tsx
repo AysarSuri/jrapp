@@ -6,6 +6,7 @@ import { externalDebts } from "@shared/schema";
 type ExternalDebt = typeof externalDebts.$inferSelect;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -197,24 +198,22 @@ export default function ExternalDebtsPage() {
             </div>
             <div className="w-full md:w-44">
               <label className="text-sm font-medium mb-1 block">{t('Opening Balance USD')}</label>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency="USD"
                 value={oldDebtUsd}
-                onChange={(e) => setOldDebtUsd(e.target.value)}
-                placeholder="0.00"
+                onChange={setOldDebtUsd}
                 data-testid="input-external-debt-old-debt-usd"
+                placeholder="0.00"
               />
             </div>
             <div className="w-full md:w-44">
               <label className="text-sm font-medium mb-1 block">{t('Opening Balance IQD')}</label>
-              <Input
-                type="number"
-                step="250"
+              <AmountInput
+                currency="IQD"
                 value={oldDebtIqd}
-                onChange={(e) => setOldDebtIqd(e.target.value)}
-                placeholder="0"
+                onChange={setOldDebtIqd}
                 data-testid="input-external-debt-old-debt-iqd"
+                placeholder="0"
               />
             </div>
             <div className="flex gap-2">

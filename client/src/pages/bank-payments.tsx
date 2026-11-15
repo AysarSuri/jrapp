@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Bank, BankTransaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/search-select";
@@ -274,12 +275,15 @@ export default function BankPaymentsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number" step="0.01" min="0" placeholder="0.00"
-                    value={amountUsd} onChange={(e) => setAmountUsd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-bank-payment-usd"
-                  />
+                  <AmountInput
+                currency="USD"
+                min={0}
+                value={amountUsd}
+                onChange={setAmountUsd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-bank-payment-usd"
+                placeholder="0.00"
+              />
                 </CardContent>
               </Card>
               <Card className="border-orange-200 dark:border-orange-900">
@@ -290,12 +294,15 @@ export default function BankPaymentsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number" step="250" min="0" placeholder="0"
-                    value={amountIqd} onChange={(e) => setAmountIqd(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-bank-payment-iqd"
-                  />
+                  <AmountInput
+                currency="IQD"
+                min={0}
+                value={amountIqd}
+                onChange={setAmountIqd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-bank-payment-iqd"
+                placeholder="0"
+              />
                 </CardContent>
               </Card>
             </div>
@@ -549,21 +556,27 @@ export default function BankPaymentsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input
-                  type="number" step="0.01" min="0" placeholder="0.00"
-                  value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-bank-payment-usd"
-                />
+                <AmountInput
+                currency="USD"
+                min={0}
+                value={editAmountUsd}
+                onChange={setEditAmountUsd}
+                className="font-mono"
+                data-testid="input-edit-bank-payment-usd"
+                placeholder="0.00"
+              />
               </div>
               <div className="space-y-2">
                 <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input
-                  type="number" step="250" min="0" placeholder="0"
-                  value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)}
-                  className="font-mono"
-                  data-testid="input-edit-bank-payment-iqd"
-                />
+                <AmountInput
+                currency="IQD"
+                min={0}
+                value={editAmountIqd}
+                onChange={setEditAmountIqd}
+                className="font-mono"
+                data-testid="input-edit-bank-payment-iqd"
+                placeholder="0"
+              />
               </div>
             </div>
             <div className="space-y-2">

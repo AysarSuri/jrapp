@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -542,14 +543,14 @@ export default function SuppliersPage() {
                 <FormField control={form.control} name="oldDebtUsd" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Opening Balance (USD)')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-old-debt-usd" type="number" step="0.01" placeholder="0.00" className="h-11 text-base font-semibold" {...field} /></FormControl>
+                    <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} className="h-11 text-base font-semibold" placeholder="0.00" data-testid="input-supplier-old-debt-usd" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="oldDebtIqd" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-bold">{t('Opening Balance (IQD)')}</FormLabel>
-                    <FormControl><Input data-testid="input-supplier-old-debt-iqd" type="number" step="1" placeholder="0" className="h-11 text-base font-semibold" {...field} /></FormControl>
+                    <FormControl><AmountInput currency="IQD" data-testid="input-supplier-old-debt-iqd" className="h-11 text-base font-semibold" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

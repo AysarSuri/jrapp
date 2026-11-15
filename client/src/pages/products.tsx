@@ -9,7 +9,7 @@ type Product = typeof products.$inferSelect;
 import { z } from "zod";
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from "@/hooks/use-products";
 import { useUnits } from "@/hooks/use-units";
-import { useDefaultCurrency } from "@/hooks/use-default-currency";
+import { loadExchangeRates } from "@/pages/settings";
 import { useCategories, useCategoryGroups } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +27,19 @@ import {
 import { IconProduct } from "@/components/erp-icons";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { getProductName, resolveUnitName } from "@/lib/language-utils";
+import { getProductName, getUnitName, resolveUnitName } from "@/lib/language-utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AmountInput } from "@/components/amount-input";
+import { formatNumber } from "@/lib/format-utils";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 
 /* ─── schema extension ──────────────────────────────────────────────────── */
+const emptyToZeroNumber = z.preprocess(
+  (v) => (v === "" || v == null ? 0 : v),
+  z.coerce.number().int().min(0),
+);
+
 const productFormSchema = insertProductSchema.extend({
   barcode: z.string().min(1, "Barcode is required"),
   name: z.string().min(1, "Name is required"),
@@ -39,7 +47,8 @@ const productFormSchema = insertProductSchema.extend({
   bigUnit: z.string().min(1, "Big Unit is required"),
   smallUnit: z.string().min(1, "Small Unit is required"),
   weight: z.string().min(1, "Weight is required"),
-  openingQty: z.coerce.number().int().min(0),
+  openingQty: emptyToZeroNumber,
+  minStock: emptyToZeroNumber,
   hasScale: z.boolean().optional().default(false),
 }).superRefine((data, ctx) => {
   if (data.bigUnit && data.smallUnit && data.bigUnit === data.smallUnit && data.conversionFactor !== 1) {
@@ -49,27 +58,63 @@ const productFormSchema = insertProductSchema.extend({
 
 type FormValues = z.infer<typeof productFormSchema>;
 
-const defaultValues: FormValues = {
+/** Add-form defaults: numeric price/stock fields start blank; empty saves as 0. */
+type ProductFormInput = Omit<FormValues, "minStock" | "openingQty"> & {
+  minStock: number | "";
+  openingQty: number | "";
+};
+
+const defaultValues: ProductFormInput = {
   name: "", nameEn: "", barcode: "", category: "", groupName: null,
   bigUnit: "", smallUnit: "", conversionFactor: 1, weight: "0",
-  bigUnitPriceUsd: "0", bigUnitPriceIqd: "0",
-  smallUnitPriceUsd: "0", smallUnitPriceIqd: "0",
-  bigUnitBuyPriceUsd: "0", bigUnitBuyPriceIqd: "0",
-  smallUnitBuyPriceUsd: "0", smallUnitBuyPriceIqd: "0",
-  bigUnitWholesalePriceUsd: "0", bigUnitWholesalePriceIqd: "0",
-  smallUnitWholesalePriceUsd: "0", smallUnitWholesalePriceIqd: "0",
-  minStock: 0, openingQty: 0, image: null,
+  bigUnitPriceUsd: "", bigUnitPriceIqd: "",
+  smallUnitPriceUsd: "", smallUnitPriceIqd: "",
+  bigUnitBuyPriceUsd: "", bigUnitBuyPriceIqd: "",
+  smallUnitBuyPriceUsd: "", smallUnitBuyPriceIqd: "",
+  bigUnitWholesalePriceUsd: "", bigUnitWholesalePriceIqd: "",
+  smallUnitWholesalePriceUsd: "", smallUnitWholesalePriceIqd: "",
+  minStock: "", dinarPerDollar: "0", openingQty: "", image: null,
   hidden: false, favorite: false, hasScale: false,
 };
+
+function zeroAmount(v: unknown): string {
+  if (v === "" || v == null) return "0";
+  const n = parseFloat(String(v));
+  return Number.isFinite(n) ? String(v) : "0";
+}
+
+function zeroInt(v: unknown): number {
+  if (v === "" || v == null) return 0;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function getDefaultDinarPerDollar(): string {
+  try {
+    const { base, rates } = loadExchangeRates();
+    if (base === "IQD") {
+      const usd = parseFloat(rates["USD"] || "");
+      if (usd > 0) return String(usd);
+    } else if (base === "USD") {
+      const iqd = parseFloat(rates["IQD"] || "");
+      if (iqd > 0) return String(Math.round(1 / iqd));
+    } else {
+      const usd = parseFloat(rates["USD"] || "");
+      const iqd = parseFloat(rates["IQD"] || "");
+      if (usd > 0 && iqd > 0) return String(Math.round(iqd / usd));
+    }
+  } catch {}
+  return "1500";
+}
 
 const ITEMS_PER_PAGE = 12;
 
 /* ─── toggle button for boolean fields ──────────────────────────────────── */
 function ToggleField({
-  value, onChange, icon: Icon, label, activeClass,
+  value, onChange, icon: Icon, label, activeClass, className = "",
 }: {
   value: boolean; onChange: (v: boolean) => void;
-  icon: React.ElementType; label: string; activeClass: string;
+  icon: React.ElementType; label: string; activeClass: string; className?: string;
 }) {
   return (
     <button
@@ -78,12 +123,12 @@ function ToggleField({
       className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-semibold text-sm transition-all duration-200 select-none ${
         value
           ? `${activeClass} border-transparent shadow-md`
-          : "bg-muted/40 border-border/50 text-muted-foreground hover:bg-muted"
-      }`}
+          : "bg-white/70 dark:bg-background/40 border-border/50 text-muted-foreground hover:bg-muted"
+      } ${className}`}
     >
-      <Icon className={`h-4 w-4 ${value ? "" : "opacity-60"}`} />
-      {label}
-      {value && <BadgeCheck className="h-3.5 w-3.5 opacity-80" />}
+      <Icon className={`h-4 w-4 shrink-0 ${value ? "" : "opacity-60"}`} />
+      <span className="flex-1 text-start">{label}</span>
+      {value && <BadgeCheck className="h-3.5 w-3.5 opacity-80 shrink-0" />}
     </button>
   );
 }
@@ -109,32 +154,55 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage]     = useState(1);
   const [formOpen, setFormOpen]           = useState(false);
 
-  const defaultCurrency = useDefaultCurrency();
-  const isUsdDefault = defaultCurrency.code === "USD";
-  const sellBigField = isUsdDefault ? "bigUnitPriceUsd" : "bigUnitPriceIqd";
-  const sellSmallField = isUsdDefault ? "smallUnitPriceUsd" : "smallUnitPriceIqd";
-  const buyBigField = isUsdDefault ? "bigUnitBuyPriceUsd" : "bigUnitBuyPriceIqd";
-  const buySmallField = isUsdDefault ? "smallUnitBuyPriceUsd" : "smallUnitBuyPriceIqd";
-  const wholesaleBigField = isUsdDefault ? "bigUnitWholesalePriceUsd" : "bigUnitWholesalePriceIqd";
-  const wholesaleSmallField = isUsdDefault ? "smallUnitWholesalePriceUsd" : "smallUnitWholesalePriceIqd";
-  const priceStep = isUsdDefault ? "0.01" : "250";
-  const currencyCode = defaultCurrency.code;
-  const fmtPrice = (usd: string | null | undefined, iqd: string | null | undefined) =>
-    isUsdDefault ? `$${Number(usd ?? 0).toFixed(2)}` : `${Number(iqd ?? 0).toLocaleString()} ${currencyCode}`;
+  const { data: usdToIqdSetting } = useQuery<{ key: string; value: string | null }>({
+    queryKey: ["/api/system-settings", "usd_to_iqd_rate"],
+    queryFn: () => fetch("/api/system-settings/usd_to_iqd_rate").then((r) => r.json()),
+  });
 
-  const form = useForm<FormValues>({ resolver: zodResolver(productFormSchema), defaultValues });
+  const settingsDinarPerDollar = (() => {
+    const fromApi = parseFloat(usdToIqdSetting?.value || "");
+    if (fromApi > 0) return String(fromApi);
+    return getDefaultDinarPerDollar();
+  })();
+
+  const form = useForm<ProductFormInput>({
+    resolver: zodResolver(productFormSchema) as any,
+    defaultValues: { ...defaultValues, dinarPerDollar: settingsDinarPerDollar },
+  });
   const bigUnit = form.watch("bigUnit");
   const smallUnit = form.watch("smallUnit");
   const sameUnits = bigUnit && smallUnit && bigUnit === smallUnit;
 
   useEffect(() => { if (sameUnits) form.setValue("conversionFactor", 1); }, [bigUnit, smallUnit, sameUnits]);
 
-  const openAddForm = () => { setEditingProduct(null); form.reset(defaultValues); setFormOpen(true); };
-  const cancelEdit = () => { setEditingProduct(null); form.reset(defaultValues); setFormOpen(false); };
+  useEffect(() => {
+    if (!formOpen || editingProduct) return;
+    const current = parseFloat(String(form.getValues("dinarPerDollar") || "0"));
+    if (!(current > 0) && parseFloat(settingsDinarPerDollar) > 0) {
+      form.setValue("dinarPerDollar", settingsDinarPerDollar);
+    }
+  }, [settingsDinarPerDollar, formOpen, editingProduct]);
+
+  const buildDefaultFormValues = (): ProductFormInput => ({
+    ...defaultValues,
+    dinarPerDollar: settingsDinarPerDollar,
+  });
+
+  const openAddForm = () => {
+    setEditingProduct(null);
+    form.reset(buildDefaultFormValues());
+    setFormOpen(true);
+  };
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    form.reset(buildDefaultFormValues());
+    setFormOpen(false);
+  };
 
   const startEdit = (product: Product) => {
     setEditingProduct(product);
     setFormOpen(true);
+    const savedRate = parseFloat(String((product as any).dinarPerDollar ?? "0"));
     form.reset({
       name: product.name, nameEn: product.nameEn || "", barcode: product.barcode,
       category: product.category, groupName: product.groupName || null,
@@ -146,7 +214,9 @@ export default function ProductsPage() {
       smallUnitBuyPriceUsd: product.smallUnitBuyPriceUsd ?? "0", smallUnitBuyPriceIqd: product.smallUnitBuyPriceIqd ?? "0",
       bigUnitWholesalePriceUsd: product.bigUnitWholesalePriceUsd ?? "0", bigUnitWholesalePriceIqd: product.bigUnitWholesalePriceIqd ?? "0",
       smallUnitWholesalePriceUsd: product.smallUnitWholesalePriceUsd ?? "0", smallUnitWholesalePriceIqd: product.smallUnitWholesalePriceIqd ?? "0",
-      minStock: product.minStock, openingQty: product.openingQty ?? 0,
+      minStock: product.minStock,
+      dinarPerDollar: savedRate > 0 ? String(savedRate) : settingsDinarPerDollar,
+      openingQty: product.openingQty ?? 0,
       image: product.image || null, hidden: product.hidden ?? false,
       favorite: product.favorite ?? false,
       hasScale: (product as any).hasScale ?? false,
@@ -160,8 +230,26 @@ export default function ProductsPage() {
     form.setValue("barcode", bc);
   };
 
-  const onSubmit = (values: FormValues) => {
-    const payload = { ...values, minStock: Number(values.minStock), openingQty: Number(values.openingQty), conversionFactor: Number(values.conversionFactor) };
+  const onSubmit = (values: ProductFormInput) => {
+    const payload = {
+      ...values,
+      bigUnitPriceUsd: zeroAmount(values.bigUnitPriceUsd),
+      bigUnitPriceIqd: zeroAmount(values.bigUnitPriceIqd),
+      smallUnitPriceUsd: zeroAmount(values.smallUnitPriceUsd),
+      smallUnitPriceIqd: zeroAmount(values.smallUnitPriceIqd),
+      bigUnitBuyPriceUsd: zeroAmount(values.bigUnitBuyPriceUsd),
+      bigUnitBuyPriceIqd: zeroAmount(values.bigUnitBuyPriceIqd),
+      smallUnitBuyPriceUsd: zeroAmount(values.smallUnitBuyPriceUsd),
+      smallUnitBuyPriceIqd: zeroAmount(values.smallUnitBuyPriceIqd),
+      bigUnitWholesalePriceUsd: zeroAmount(values.bigUnitWholesalePriceUsd),
+      bigUnitWholesalePriceIqd: zeroAmount(values.bigUnitWholesalePriceIqd),
+      smallUnitWholesalePriceUsd: zeroAmount(values.smallUnitWholesalePriceUsd),
+      smallUnitWholesalePriceIqd: zeroAmount(values.smallUnitWholesalePriceIqd),
+      minStock: zeroInt(values.minStock),
+      openingQty: zeroInt(values.openingQty),
+      conversionFactor: Number(values.conversionFactor) || 1,
+      dinarPerDollar: zeroAmount(values.dinarPerDollar || settingsDinarPerDollar),
+    };
     if (editingProduct) {
       updateProduct({ id: editingProduct.id, data: payload }, {
         onSuccess: () => { cancelEdit(); toast({ title: t("Product updated successfully") }); },
@@ -169,7 +257,7 @@ export default function ProductsPage() {
       });
     } else {
       createProduct(payload, {
-        onSuccess: () => { form.reset(defaultValues); setFormOpen(false); toast({ title: t("Product added successfully") }); },
+        onSuccess: () => { form.reset(buildDefaultFormValues()); setFormOpen(false); toast({ title: t("Product added successfully") }); },
         onError: (err) => toast({ title: t("Failed to add product"), description: t(err.message), variant: "destructive" }),
       });
     }
@@ -355,8 +443,11 @@ export default function ProductsPage() {
 
         {/* ── Product Dialog ── */}
         <Dialog open={formOpen} onOpenChange={(open) => { if (!open) cancelEdit(); else setFormOpen(true); }}>
-          <DialogContent className="max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent
+            className="!max-w-[96vw] w-[96vw] max-h-[92vh] overflow-y-auto !px-4 !py-2 !gap-1"
+            style={{ paddingTop: 8, paddingBottom: 8, rowGap: 6 }}
+          >
+            <DialogHeader className="pb-0">
               <DialogTitle className="flex items-center gap-2 text-lg font-bold">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                   {editingProduct ? <Pencil className="h-4 w-4 text-white" /> : <Plus className="h-4 w-4 text-white" />}
@@ -366,17 +457,17 @@ export default function ProductsPage() {
             </DialogHeader>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1.5">
 
                 {/* ══════════════════════════════════════════════════════
                     ROW 1 — باركود | اسم | اسم لاتيني
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-4 p-4">
+                  <div className="grid grid-cols-3 gap-4 px-4 py-1.5">
 
                     {/* Barcode */}
                     <FormField control={form.control} name="barcode" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Barcode")}</FormLabel>
                         <div className="flex gap-1">
                           <FormControl><Input placeholder="SCAN-123" className="h-10 font-mono text-sm" {...field} data-testid="input-barcode" /></FormControl>
@@ -390,7 +481,7 @@ export default function ProductsPage() {
 
                     {/* Name */}
                     <FormField control={form.control} name="name" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Name")}</FormLabel>
                         <FormControl><Input placeholder={t("Product Name")} className="h-10 text-sm" {...field} data-testid="input-product-name" /></FormControl>
                         <FormMessage />
@@ -399,7 +490,7 @@ export default function ProductsPage() {
 
                     {/* Latin Name */}
                     <FormField control={form.control} name="nameEn" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">الاسم اللاتيني</FormLabel>
                         <FormControl><Input placeholder="Latin / English name" className="h-10 text-sm" {...field} data-testid="input-product-name-en" /></FormControl>
                         <FormMessage />
@@ -409,25 +500,30 @@ export default function ProductsPage() {
                 </div>
 
                 {/* ══════════════════════════════════════════════════════
-                    ROW 2 — فئة | مجموعة | وزن | خصائص
+                    ROW 2 — فئة | مجموعة | وزن
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid gap-3 p-4 items-end" style={{gridTemplateColumns: "180px 180px 100px 1fr"}}>
+                  <div className="grid grid-cols-3 gap-4 px-4 py-1.5">
 
                     {/* Category */}
                     <FormField control={form.control} name="category" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-xs">{t("Category")}</FormLabel>
-                        <Select onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-8 text-xs" data-testid="select-category">
-                              <SelectValue placeholder={t("Select Category")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categoriesList?.map((cat) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="font-bold text-sm">{t("Category")}</FormLabel>
+                        <FormControl>
+                          <SearchableCombobox
+                            value={field.value}
+                            onValueChange={(val) => { field.onChange(val); form.setValue("groupName", null); }}
+                            options={(categoriesList || []).map((cat) => ({
+                              value: cat.name,
+                              label: cat.name,
+                              keywords: [cat.nameEn, cat.nameKu, cat.nameTr].filter(Boolean).join(" "),
+                            }))}
+                            placeholder={t("Select Category")}
+                            searchPlaceholder={t("Search categories...")}
+                            emptyText={t("No categories found")}
+                            data-testid="select-category"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -437,19 +533,26 @@ export default function ProductsPage() {
                       const selCat = categoriesList?.find(c => c.name === form.watch("category"));
                       const groups = selCat ? (allGroups || []).filter((g: any) => g.categoryId === selCat.id) : [];
                       return (
-                        <FormItem>
-                          <FormLabel className="font-bold text-xs">{t("Group")}</FormLabel>
-                          <Select onValueChange={(val) => field.onChange(val === "__none__" ? null : val)} value={field.value || "__none__"}>
-                            <FormControl>
-                              <SelectTrigger className="h-8 text-xs" data-testid="select-group">
-                                <SelectValue placeholder={t("Select Group")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="__none__">{t("No Group")}</SelectItem>
-                              {groups.map((g: any) => <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                        <FormItem className="space-y-1">
+                          <FormLabel className="font-bold text-sm">{t("Group")}</FormLabel>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value || ""}
+                              onValueChange={(val) => field.onChange(val || null)}
+                              options={groups.map((g: any) => ({
+                                value: g.name,
+                                label: g.name,
+                                keywords: [g.nameEn, g.nameKu, g.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Group")}
+                              searchPlaceholder={t("Select Group")}
+                              emptyText={t("No Group")}
+                              allowClear
+                              clearLabel={t("No Group")}
+                              disabled={!selCat}
+                              data-testid="select-group"
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       );
@@ -457,189 +560,344 @@ export default function ProductsPage() {
 
                     {/* Weight */}
                     <FormField control={form.control} name="weight" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold text-xs">{t("Weight (KG)")}</FormLabel>
-                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-8 text-xs" {...field} data-testid="input-weight" /></FormControl>
+                      <FormItem className="space-y-1">
+                        <FormLabel className="font-bold text-sm">{t("Weight (KG)")}</FormLabel>
+                        <FormControl><Input type="number" step="0.01" placeholder="0.00" className="h-10 text-sm" {...field} data-testid="input-weight" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
+                  </div>
+                </div>
 
-                    {/* Flags — hidden / favorite / hasScale + image */}
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold block">{t("Flags")}</span>
-                      <div className="flex items-center gap-1.5">
-                        <div className="flex flex-row gap-1.5 flex-1">
-                          <FormField control={form.control} name="hidden" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value} onChange={field.onChange} icon={EyeOff} label={t("Hidden")}
-                                  activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="favorite" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value} onChange={field.onChange} icon={Star} label={t("Favorite")}
-                                  activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="hasScale" render={({ field }) => (
-                            <FormItem className="space-y-0 flex-1">
-                              <FormControl>
-                                <ToggleField value={field.value ?? false} onChange={field.onChange} icon={Scale} label={t("Has Scale")}
-                                  activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" />
-                              </FormControl>
-                            </FormItem>
-                          )} />
+                {/* ══════════════════════════════════════════════════════
+                    ROW 3 — خصائص | وحدة كبرى | وحدة صغرى
+                ══════════════════════════════════════════════════════ */}
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(240px,0.78fr)_1fr_1fr] gap-2 items-stretch">
+
+                  {/* ── كرت الخصائص ── */}
+                  <div className="rounded-xl border-2 border-violet-200 dark:border-violet-800/50 overflow-hidden flex flex-col">
+                    <div className="px-4 py-1 bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-white/90" />
+                      <span className="text-xs font-black text-white uppercase tracking-wider">{t("Flags")}</span>
+                    </div>
+                    <div className="px-3 py-1.5 flex-1 flex flex-col gap-1 bg-violet-50/40 dark:bg-violet-950/20">
+                      <FormField control={form.control} name="hidden" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value}
+                              onChange={field.onChange}
+                              icon={EyeOff}
+                              label={t("Hidden")}
+                              className="w-full h-9"
+                              activeClass="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="favorite" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value}
+                              onChange={field.onChange}
+                              icon={Star}
+                              label={t("Favorite")}
+                              className="w-full h-9"
+                              activeClass="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="hasScale" render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <ToggleField
+                              value={field.value ?? false}
+                              onChange={field.onChange}
+                              icon={Scale}
+                              label={t("Has Scale")}
+                              className="w-full h-9"
+                              activeClass="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      {form.watch("image") ? (
+                        <div className="relative group mt-auto">
+                          <img src={form.watch("image")!} alt="" className="h-12 w-full object-cover rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-white p-0.5" data-testid="img-product-image" />
+                          <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
+                            <X className="w-2.5 h-2.5" />
+                          </Button>
                         </div>
-                        {/* Image — bigger */}
-                        {form.watch("image") ? (
-                          <div className="relative group flex-shrink-0">
-                            <img src={form.watch("image")!} alt="" className="h-16 w-16 object-cover rounded-xl border-2 border-border bg-white p-0.5" data-testid="img-product-image" />
-                            <Button variant="destructive" size="icon" type="button" className="absolute -top-1 -right-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onClick={() => form.setValue("image", null)} data-testid="button-remove-product-image">
-                              <X className="w-2.5 h-2.5" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <button type="button" className="h-16 w-16 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:bg-muted/40 transition-colors flex-shrink-0"
-                            onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
-                            title={t("Product Image")} data-testid="upload-product-image-area">
-                            <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-[9px] text-muted-foreground">{t("Image")}</span>
-                          </button>
-                        )}
+                      ) : (
+                        <button type="button" className="mt-auto h-12 w-full rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 flex items-center justify-center gap-2 hover:bg-violet-100/60 dark:hover:bg-violet-900/20 transition-colors"
+                          onClick={() => { const inp = document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.onchange=(e)=>{ const f=(e.target as HTMLInputElement).files?.[0]; if(!f) return; if(f.size>2*1024*1024){toast({title:t("Image size must be less than 2MB"),variant:"destructive"});return;} const r=new FileReader(); r.onload=()=>form.setValue("image",r.result as string); r.readAsDataURL(f);}; inp.click(); }}
+                          title={t("Product Image")} data-testid="upload-product-image-area">
+                          <ImageIcon className="h-5 w-5 text-violet-500" />
+                          <span className="text-xs font-semibold text-violet-600 dark:text-violet-300">{t("Image")}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── كرت الوحدة الكبرى ── */}
+                  <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden flex flex-col">
+                    {/* Header */}
+                    <div className="px-4 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                      <FormField control={form.control} name="bigUnit" render={({ field }) => (
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Big Unit")}:</span>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              options={unitsList.map((u) => ({
+                                value: u.name,
+                                label: getUnitName(u),
+                                keywords: [u.name, u.nameEn, u.nameKu, u.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Unit")}
+                              searchPlaceholder={t("Search units...")}
+                              emptyText={t("No units found")}
+                              data-testid="select-big-unit"
+                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                            />
+                          </FormControl>
+                        </div>
+                      )} />
+                    </div>
+                    {/* Body — one row per price: label | IQD | USD */}
+                    <div className="px-3 py-1.5 space-y-1.5 bg-emerald-50/30 dark:bg-emerald-950/10 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-emerald-700 dark:text-emerald-400">{t("Sell Price")}</span>
+                        <FormField control={form.control} name="bigUnitPriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="bigUnitPriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-emerald-700 dark:text-emerald-400">{t("Big Unit Wholesale")}</span>
+                        <FormField control={form.control} name="bigUnitWholesalePriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="bigUnitWholesalePriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-emerald-700 dark:text-emerald-400">{t("Cost Price")}</span>
+                        <FormField control={form.control} name="bigUnitBuyPriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="bigUnitBuyPriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── كرت الوحدة الصغرى ── */}
+                  <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden flex flex-col">
+                    {/* Header */}
+                    <div className="px-4 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-white/60" />
+                      <FormField control={form.control} name="smallUnit" render={({ field }) => (
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-black text-white/80 uppercase tracking-wider shrink-0">{t("Small Unit")}:</span>
+                          <FormControl>
+                            <SearchableCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              options={unitsList.map((u) => ({
+                                value: u.name,
+                                label: getUnitName(u),
+                                keywords: [u.name, u.nameEn, u.nameKu, u.nameTr].filter(Boolean).join(" "),
+                              }))}
+                              placeholder={t("Select Unit")}
+                              searchPlaceholder={t("Search units...")}
+                              emptyText={t("No units found")}
+                              data-testid="select-small-unit"
+                              className="h-8 rounded-lg border-white/30 bg-white/15 text-xs font-bold text-white shadow-none hover:bg-white/25 hover:border-white/50 hover:text-white focus-visible:ring-white/40 [&_span]:text-white [&_.opacity-50]:text-white/70"
+                            />
+                          </FormControl>
+                        </div>
+                      )} />
+                    </div>
+                    {/* Body — one row per price: label | IQD | USD */}
+                    <div className="px-3 py-1.5 space-y-1.5 bg-blue-50/30 dark:bg-blue-950/10 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-blue-700 dark:text-blue-400">{t("Sell Price")}</span>
+                        <FormField control={form.control} name="smallUnitPriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="smallUnitPriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-blue-700 dark:text-blue-400">{t("Small Unit Wholesale")}</span>
+                        <FormField control={form.control} name="smallUnitWholesalePriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="smallUnitWholesalePriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-black text-blue-700 dark:text-blue-400">{t("Cost Price")}</span>
+                        <FormField control={form.control} name="smallUnitBuyPriceIqd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">IQD</FormLabel>
+                              <FormControl><AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="smallUnitBuyPriceUsd" render={({ field }) => (
+                          <FormItem className="flex-1 space-y-0 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <FormLabel className="text-[10px] font-bold text-muted-foreground shrink-0 w-7">USD</FormLabel>
+                              <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} /></FormControl>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* ══════════════════════════════════════════════════════
-                    ROW 3 — وحدة كبرى ╳ وحدة صغرى (عمودي جنباً إلى جنب)
-                ══════════════════════════════════════════════════════ */}
-                <div className="grid grid-cols-2 gap-3">
-
-                  {/* ── كرت الوحدة الكبرى ── */}
-                  <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 overflow-hidden">
-                    {/* Header */}
-                    <div className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-white/60" />
-                      <FormField control={form.control} name="bigUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Big Unit")}:</span>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-big-unit">
-                                <SelectValue placeholder={t("Select Unit")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                      )} />
-                    </div>
-                    {/* Body — prices stacked */}
-                    <div className="p-3 space-y-2.5 bg-emerald-50/30 dark:bg-emerald-950/10">
-                      {/* Sell Price */}
-                      <FormField control={form.control} name={sellBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Wholesale */}
-                      <FormField control={form.control} name={wholesaleBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Big Unit Wholesale")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Cost */}
-                      <FormField control={form.control} name={buyBigField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-emerald-700 dark:text-emerald-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    </div>
-                  </div>
-
-                  {/* ── كرت الوحدة الصغرى ── */}
-                  <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800/50 overflow-hidden">
-                    {/* Header */}
-                    <div className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-white/60" />
-                      <FormField control={form.control} name="smallUnit" render={({ field }) => (
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-xs font-black text-white/80 uppercase tracking-wider">{t("Small Unit")}:</span>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-7 text-xs font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 flex-1 min-w-0" data-testid="select-small-unit">
-                                <SelectValue placeholder={t("Select Unit")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>{unitsList?.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                      )} />
-                    </div>
-                    {/* Body — prices stacked */}
-                    <div className="p-3 space-y-2.5 bg-blue-50/30 dark:bg-blue-950/10">
-                      {/* Sell Price */}
-                      <FormField control={form.control} name={sellSmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Sell Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Wholesale */}
-                      <FormField control={form.control} name={wholesaleSmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Small Unit Wholesale")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} placeholder="0" className="h-9 text-sm font-mono flex-1" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      {/* Cost */}
-                      <FormField control={form.control} name={buySmallField as any} render={({ field }) => (
-                        <FormItem className="flex items-center gap-3">
-                          <FormLabel className="font-bold text-xs text-blue-700 dark:text-blue-400 w-28 shrink-0">{t("Cost Price")} ({currencyCode})</FormLabel>
-                          <FormControl><Input type="number" step={priceStep} readOnly className="h-9 text-sm font-mono flex-1 bg-muted/60 cursor-not-allowed" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* ══════════════════════════════════════════════════════
-                    ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون
+                    ROW 4 — معامل التحويل | الكمية الافتتاحية | حد المخزون | دينار/دولار
                 ══════════════════════════════════════════════════════ */}
                 <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-4 p-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 py-1.5">
                     <FormField control={form.control} name="conversionFactor" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Conversion Factor")}</FormLabel>
                         <FormControl><Input type="number" placeholder="1" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} disabled={!!sameUnits} data-testid="input-conversion-factor" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="openingQty" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Opening Qty (Big Unit)")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-opening-qty" /></FormControl>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder=""
+                            className="h-10 text-sm"
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            value={field.value === "" || field.value == null ? "" : field.value}
+                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                            data-testid="input-opening-qty"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="minStock" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="space-y-1">
                         <FormLabel className="font-bold text-sm">{t("Min Stock Alert")}</FormLabel>
-                        <FormControl><Input type="number" placeholder="0" className="h-10 text-sm" {...field} onChange={e => field.onChange(Number(e.target.value))} data-testid="input-min-stock" /></FormControl>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder=""
+                            className="h-10 text-sm"
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                            value={field.value === "" || field.value == null ? "" : field.value}
+                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                            data-testid="input-min-stock"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="dinarPerDollar" render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <FormLabel className="font-bold text-sm">{t("Dinar per Dollar")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="any"
+                            min="0"
+                            inputMode="decimal"
+                            placeholder={settingsDinarPerDollar || "0"}
+                            className="h-10 text-sm"
+                            {...field}
+                            value={field.value ?? ""}
+                            data-testid="input-dinar-per-dollar"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -647,12 +905,12 @@ export default function ProductsPage() {
                 </div>
 
                 {/* ── Submit ── */}
-                <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={isSaving} className="flex-1 h-11 font-bold text-base bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" data-testid="button-save-product">
+                <div className="flex items-center gap-3 pt-0.5">
+                  <Button type="submit" disabled={isSaving} className="flex-1 h-10 font-bold text-base bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" data-testid="button-save-product">
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin me-2" /> : null}
                     {editingProduct ? t("Update") : t("Save")}
                   </Button>
-                  <Button type="button" variant="outline" className="h-11 px-5" onClick={() => form.reset(defaultValues)} data-testid="button-reset-form">
+                  <Button type="button" variant="outline" className="h-10 px-5" onClick={() => form.reset(buildDefaultFormValues())} data-testid="button-reset-form">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </div>
@@ -687,11 +945,12 @@ export default function ProductsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/60">
-                        <TableHead className="font-bold text-sm py-3 ps-4 w-[220px]">{t("Product")}</TableHead>
+                        <TableHead className="font-bold text-sm py-3 ps-4 w-[280px]">{t("Product")}</TableHead>
                         <TableHead className="font-bold text-sm">{t("Category / Group")}</TableHead>
                         <TableHead className="font-bold text-sm text-center">{t("Units")}</TableHead>
-                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} ({currencyCode})</TableHead>
-                        <TableHead className="font-bold text-sm text-end">{t("Cost Price")} ({currencyCode})</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} (IQD)</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Sell Price")} (USD)</TableHead>
+                        <TableHead className="font-bold text-sm text-end">{t("Cost Price")}</TableHead>
                         <TableHead className="font-bold text-sm text-center">{t("Weight")}</TableHead>
                         <TableHead className="font-bold text-sm text-center w-[100px]">{t("Flags")}</TableHead>
                         <TableHead className="font-bold text-sm text-center w-[90px]">{t("Actions")}</TableHead>
@@ -715,7 +974,7 @@ export default function ProductsPage() {
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <div className="font-bold text-sm leading-tight truncate max-w-[170px]">{getProductName(product)}</div>
+                                <div className="font-bold text-sm leading-tight truncate max-w-[240px]">{getProductName(product)}</div>
                                 <div className="font-mono text-xs text-muted-foreground mt-0.5">{product.barcode}</div>
                               </div>
                             </div>
@@ -739,32 +998,48 @@ export default function ProductsPage() {
 
                           {/* Units */}
                           <TableCell className="text-center">
-                            <div className="text-xs font-semibold whitespace-nowrap">
+                            <div className="text-xs font-bold whitespace-nowrap">
                               1 {resolveUnitName(product.bigUnit, unitsList)}
-                              <span className="text-muted-foreground mx-1">=</span>
+                              <span className="text-muted-foreground mx-1 font-bold">=</span>
                               {product.conversionFactor} {resolveUnitName(product.smallUnit, unitsList)}
                             </div>
                           </TableCell>
 
-                          {/* Sell Price (big / small) */}
+                          {/* Sell Price IQD (big / small) */}
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
-                              <div className="text-xs font-bold font-mono">{fmtPrice(product.bigUnitPriceUsd, product.bigUnitPriceIqd)}</div>
-                              <div className="text-xs text-muted-foreground font-mono">{fmtPrice(product.smallUnitPriceUsd, product.smallUnitPriceIqd)}</div>
+                              <div className="text-xs font-bold font-mono">{formatNumber(product.bigUnitPriceIqd ?? 0, "IQD")} IQD</div>
+                              <div className="text-xs font-bold text-muted-foreground font-mono">{formatNumber(product.smallUnitPriceIqd ?? 0, "IQD")} IQD</div>
                             </div>
                           </TableCell>
 
-                          {/* Cost Price (big / small) */}
+                          {/* Sell Price USD (big / small) */}
                           <TableCell className="text-end">
                             <div className="space-y-0.5">
-                              <div className="text-xs font-bold font-mono">{fmtPrice(product.bigUnitBuyPriceUsd, product.bigUnitBuyPriceIqd)}</div>
-                              <div className="text-xs text-muted-foreground font-mono">{fmtPrice(product.smallUnitBuyPriceUsd, product.smallUnitBuyPriceIqd)}</div>
+                              <div className="text-xs font-bold font-mono">${formatNumber(product.bigUnitPriceUsd ?? 0, "USD")}</div>
+                              <div className="text-xs font-bold text-muted-foreground font-mono">${formatNumber(product.smallUnitPriceUsd ?? 0, "USD")}</div>
+                            </div>
+                          </TableCell>
+
+                          {/* Cost Price (big / small) — IQD + USD */}
+                          <TableCell className="text-end">
+                            <div className="space-y-0.5">
+                              <div className="text-xs font-bold font-mono">
+                                {formatNumber(product.bigUnitBuyPriceIqd ?? 0, "IQD")} IQD
+                                <span className="text-muted-foreground mx-1">/</span>
+                                ${formatNumber(product.bigUnitBuyPriceUsd ?? 0, "USD")}
+                              </div>
+                              <div className="text-xs font-bold text-muted-foreground font-mono">
+                                {formatNumber(product.smallUnitBuyPriceIqd ?? 0, "IQD")} IQD
+                                <span className="mx-1">/</span>
+                                ${formatNumber(product.smallUnitBuyPriceUsd ?? 0, "USD")}
+                              </div>
                             </div>
                           </TableCell>
 
                           {/* Weight */}
                           <TableCell className="text-center">
-                            <span className="text-xs font-mono font-semibold">{product.weight} kg</span>
+                            <span className="text-xs font-mono font-bold">{product.weight} kg</span>
                           </TableCell>
 
                           {/* Flags: favorite / hidden / hasScale */}

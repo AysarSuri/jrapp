@@ -12,7 +12,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick, Coins, Hash, Building } from "lucide-react";
+import { Settings, Printer, Save, FileText, BarChart3, StickyNote, Cog, Eye, Monitor, Smartphone, TabletSmartphone, Volume2, MousePointerClick, Coins, Hash, Building, ShoppingCart, ShoppingBag } from "lucide-react";
 import { IconBarcode } from "@/components/erp-icons";
 import { loadSoundSettings, saveSoundSettings, type SoundSettings } from "@/lib/sounds";
 import { IconOwner, IconCustomers, IconSales, IconSupplierList, IconDollar, IconDinar, IconAgent, IconProduct } from "@/components/erp-icons";
@@ -38,6 +38,11 @@ interface GeneralSettings {
   defaultSaleType: string;
   defaultCurrency: string;
   decimalPlaces: number;
+  currencyDecimals: Record<string, number>;
+  salesCurrencies: string[];
+  salesDefaultCurrency: string;
+  purchaseCurrencies: string[];
+  purchaseDefaultCurrency: string;
 }
 
 export const CURRENCY_OPTIONS = [
@@ -91,6 +96,17 @@ const defaultPrinterSettings: PrinterSettings = {
   barcodePrinter: "",
 };
 
+export const SALES_FORM_CURRENCY_CODES = ["IQD", "USD"] as const;
+const MAX_SALES_CURRENCIES = 2;
+
+export const DEFAULT_CURRENCY_DECIMALS: Record<string, number> = {
+  IQD: 0, USD: 2, EUR: 2, IRR: 0, GBP: 2, TRY: 2, CNY: 2,
+};
+
+function defaultCurrencyDecimals(): Record<string, number> {
+  return { ...DEFAULT_CURRENCY_DECIMALS };
+}
+
 const defaultGeneralSettings: GeneralSettings = {
   adminSalesPrintMode: "thermal_80mm",
   agentSalesPrintMode: "thermal_80mm",
@@ -98,7 +114,31 @@ const defaultGeneralSettings: GeneralSettings = {
   defaultSaleType: "retail",
   defaultCurrency: "IQD",
   decimalPlaces: 2,
+  currencyDecimals: defaultCurrencyDecimals(),
+  salesCurrencies: ["IQD", "USD"],
+  salesDefaultCurrency: "IQD",
+  purchaseCurrencies: CURRENCY_OPTIONS.map(c => c.code),
+  purchaseDefaultCurrency: "IQD",
 };
+
+export function normalizeSalesCurrencies(codes: unknown): string[] {
+  const allowed = new Set<string>(SALES_FORM_CURRENCY_CODES);
+  const arr = Array.isArray(codes) ? codes.filter((c): c is string => typeof c === "string" && allowed.has(c)) : [];
+  const unique = [...new Set(arr)].slice(0, MAX_SALES_CURRENCIES);
+  return unique.length ? unique : ["IQD", "USD"];
+}
+
+export function normalizePurchaseCurrencies(codes: unknown): string[] {
+  const allowed = new Set(CURRENCY_OPTIONS.map(c => c.code));
+  const arr = Array.isArray(codes) ? codes.filter((c): c is string => typeof c === "string" && allowed.has(c)) : [];
+  const unique = [...new Set(arr)];
+  return unique.length ? unique : CURRENCY_OPTIONS.map(c => c.code);
+}
+
+function pickDefaultInList(preferred: unknown, list: string[], fallback: string): string {
+  if (typeof preferred === "string" && list.includes(preferred)) return preferred;
+  return list[0] || fallback;
+}
 
 const defaultFieldVisibility: FieldVisibilitySettings = {
   salesInvoice_address: true,
@@ -157,6 +197,12 @@ function savePrinterSettings(settings: PrinterSettings) {
   localStorage.setItem(PRINTER_SETTINGS_KEY, JSON.stringify(settings));
 }
 
+function clampDecimals(n: unknown): number {
+  const v = typeof n === "number" ? n : Number(n);
+  if (!Number.isFinite(v)) return 2;
+  return Math.max(0, Math.min(4, Math.round(v)));
+}
+
 function loadGeneralSettings(): GeneralSettings {
   try {
     const saved = localStorage.getItem(GENERAL_SETTINGS_KEY);
@@ -165,6 +211,22 @@ function loadGeneralSettings(): GeneralSettings {
       if (!CURRENCY_OPTIONS.some(c => c.code === parsed.defaultCurrency)) {
         parsed.defaultCurrency = defaultGeneralSettings.defaultCurrency;
       }
+      const storedDecimals = parsed.currencyDecimals && typeof parsed.currencyDecimals === "object"
+        ? parsed.currencyDecimals as Record<string, number>
+        : {};
+      parsed.currencyDecimals = { ...defaultCurrencyDecimals() };
+      for (const c of CURRENCY_OPTIONS) {
+        if (typeof storedDecimals[c.code] === "number") {
+          parsed.currencyDecimals[c.code] = clampDecimals(storedDecimals[c.code]);
+        } else if (c.code === parsed.defaultCurrency && typeof parsed.decimalPlaces === "number") {
+          parsed.currencyDecimals[c.code] = clampDecimals(parsed.decimalPlaces);
+        }
+      }
+      parsed.decimalPlaces = parsed.currencyDecimals[parsed.defaultCurrency] ?? 2;
+      parsed.salesCurrencies = normalizeSalesCurrencies(parsed.salesCurrencies);
+      parsed.salesDefaultCurrency = pickDefaultInList(parsed.salesDefaultCurrency, parsed.salesCurrencies, "IQD");
+      parsed.purchaseCurrencies = normalizePurchaseCurrencies(parsed.purchaseCurrencies);
+      parsed.purchaseDefaultCurrency = pickDefaultInList(parsed.purchaseDefaultCurrency, parsed.purchaseCurrencies, parsed.defaultCurrency);
       return parsed;
     }
   } catch {}
@@ -173,6 +235,22 @@ function loadGeneralSettings(): GeneralSettings {
 
 function saveGeneralSettings(settings: GeneralSettings) {
   localStorage.setItem(GENERAL_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+export function getSalesFormCurrencies(): string[] {
+  return loadGeneralSettings().salesCurrencies;
+}
+
+export function getSalesDefaultCurrency(): string {
+  return loadGeneralSettings().salesDefaultCurrency;
+}
+
+export function getPurchaseFormCurrencies(): string[] {
+  return loadGeneralSettings().purchaseCurrencies;
+}
+
+export function getPurchaseDefaultCurrency(): string {
+  return loadGeneralSettings().purchaseDefaultCurrency;
 }
 
 const EXCHANGE_RATES_KEY = "erp_exchange_rates";
@@ -295,10 +373,18 @@ export default function SettingsPage() {
       }
     }
     const stored = loadGeneralSettings();
+    const currencyDecimals = { ...defaultCurrencyDecimals(), ...generalSettings.currencyDecimals };
+    const salesCurrencies = normalizeSalesCurrencies(generalSettings.salesCurrencies);
+    const purchaseCurrencies = normalizePurchaseCurrencies(generalSettings.purchaseCurrencies);
     saveGeneralSettings({
       ...stored,
       defaultCurrency: generalSettings.defaultCurrency,
-      decimalPlaces: generalSettings.decimalPlaces,
+      currencyDecimals,
+      decimalPlaces: currencyDecimals[generalSettings.defaultCurrency] ?? 2,
+      salesCurrencies,
+      salesDefaultCurrency: pickDefaultInList(generalSettings.salesDefaultCurrency, salesCurrencies, "IQD"),
+      purchaseCurrencies,
+      purchaseDefaultCurrency: pickDefaultInList(generalSettings.purchaseDefaultCurrency, purchaseCurrencies, generalSettings.defaultCurrency),
     });
     saveExchangeRates({ base: generalSettings.defaultCurrency, rates: exchangeRates });
 
@@ -706,58 +792,208 @@ export default function SettingsPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">{t('Currency icon and country shown across the system')}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold">{t('Default Currency')}</Label>
-                    <Select
-                      value={generalSettings.defaultCurrency}
-                      onValueChange={handleChangeDefaultCurrency}
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold">{t('Default Currency')}</Label>
+                  <Select
+                    value={generalSettings.defaultCurrency}
+                    onValueChange={handleChangeDefaultCurrency}
+                  >
+                    <SelectTrigger
+                      className={`h-11 text-base font-semibold rounded-xl border-2 ${selectedCurrency?.color.border || ""} ${selectedCurrency?.color.bg || ""}`}
+                      data-testid="select-settings-currency"
                     >
-                      <SelectTrigger
-                        className={`h-11 text-base font-semibold rounded-xl border-2 ${selectedCurrency?.color.border || ""} ${selectedCurrency?.color.bg || ""}`}
-                        data-testid="select-settings-currency"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCY_OPTIONS.map(c => {
-                          const lang = i18n.language || 'en';
-                          const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
-                          return (
-                            <SelectItem key={c.code} value={c.code} className={`${c.color.bg} ${c.color.text}`}>
-                              <span className="flex items-center gap-2">
-                                <span className={`w-7 h-7 rounded-full ${c.color.badge} text-white text-[11px] font-black flex items-center justify-center shadow-sm`}>{c.symbol}</span>
-                                <span className="text-lg">{c.flag}</span>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCY_OPTIONS.map(c => {
+                        const lang = i18n.language || 'en';
+                        const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                        return (
+                          <SelectItem key={c.code} value={c.code} className={`${c.color.bg} ${c.color.text}`}>
+                            <span className="flex items-center gap-2">
+                              <span className={`w-7 h-7 rounded-full ${c.color.badge} text-white text-[11px] font-black flex items-center justify-center shadow-sm`}>{c.symbol}</span>
+                              <span className="text-lg">{c.flag}</span>
                                 <span className={`font-bold ${c.color.text}`}>{localized}</span>
                                 <span className="text-xs opacity-70">({c.code})</span>
-                              </span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
+                                <span className="text-xs opacity-70">{t("Decimal Places")}: {generalSettings.currencyDecimals?.[c.code] ?? DEFAULT_CURRENCY_DECIMALS[c.code] ?? 2}</span>
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-3">
+                  <div>
                     <Label className="text-sm font-bold flex items-center gap-2">
                       <Hash className="h-4 w-4 text-violet-600" />
                       {t('Decimal Places')}
                     </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('Decimal places for each currency')}</p>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {CURRENCY_OPTIONS.map(c => {
+                      const lang = i18n.language || 'en';
+                      const localized = lang === 'ar' ? c.nameAr : lang === 'ckb' ? c.nameKu : lang === 'tr' ? c.nameTr : c.nameEn;
+                      const dp = generalSettings.currencyDecimals?.[c.code] ?? DEFAULT_CURRENCY_DECIMALS[c.code] ?? 2;
+                      return (
+                        <div key={c.code} className={`flex items-center gap-3 p-3 rounded-xl border-2 ${c.color.bg} ${c.color.border}`}>
+                          <span className={`w-10 h-10 rounded-full ${c.color.badge} text-white text-sm font-black flex items-center justify-center shadow-sm shrink-0`}>{c.symbol}</span>
+                          <span className="text-2xl shrink-0">{c.flag}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-bold truncate ${c.color.text}`}>{localized}</p>
+                            <p className={`text-xs ${c.color.text} opacity-70`} dir="ltr">{c.code}</p>
+                          </div>
+                          <Select
+                            value={String(dp)}
+                            onValueChange={(val) => setGeneralSettings(prev => ({
+                              ...prev,
+                              currencyDecimals: { ...prev.currencyDecimals, [c.code]: Number(val) },
+                              decimalPlaces: c.code === prev.defaultCurrency ? Number(val) : prev.decimalPlaces,
+                            }))}
+                          >
+                            <SelectTrigger
+                              className={`h-10 w-[8.5rem] text-sm font-bold rounded-xl bg-white dark:bg-background ${c.color.input} ${c.color.text}`}
+                              data-testid={`select-decimal-places-${c.code}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[0, 1, 2, 3, 4].map(n => (
+                                <SelectItem key={n} value={String(n)}>
+                                  {n} — {(1234.56789).toFixed(n)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className={`${panelClass} p-5 space-y-4`}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center shrink-0">
+                      <ShoppingCart className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold">{t("Sales & POS currencies")}</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("Choose up to two currencies for sales and POS (USD and IQD only)")}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {CURRENCY_OPTIONS.filter(c => (SALES_FORM_CURRENCY_CODES as readonly string[]).includes(c.code)).map(c => {
+                      const lang = i18n.language || "en";
+                      const localized = lang === "ar" ? c.nameAr : lang === "ckb" ? c.nameKu : lang === "tr" ? c.nameTr : c.nameEn;
+                      const selected = generalSettings.salesCurrencies.includes(c.code);
+                      return (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => setGeneralSettings(prev => {
+                            const has = prev.salesCurrencies.includes(c.code);
+                            let next = has ? prev.salesCurrencies.filter(code => code !== c.code) : [...prev.salesCurrencies, c.code];
+                            next = normalizeSalesCurrencies(next);
+                            if (has && next.length === prev.salesCurrencies.length) return prev;
+                            const salesDefaultCurrency = next.includes(prev.salesDefaultCurrency) ? prev.salesDefaultCurrency : next[0];
+                            return { ...prev, salesCurrencies: next, salesDefaultCurrency };
+                          })}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 text-start transition-all ${
+                            selected ? `${c.color.bg} ${c.color.border} shadow-sm` : "bg-muted/20 border-border/60 opacity-70 hover:opacity-100"
+                          }`}
+                          data-testid={`toggle-sales-currency-${c.code}`}
+                        >
+                          <span className={`w-10 h-10 rounded-full ${c.color.badge} text-white text-sm font-black flex items-center justify-center shrink-0`}>{c.symbol}</span>
+                          <span className="text-2xl shrink-0">{c.flag}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-bold truncate ${c.color.text}`}>{localized}</p>
+                            <p className={`text-xs ${c.color.text} opacity-70`} dir="ltr">{c.code}</p>
+                          </div>
+                          <span className={`text-xs font-bold ${selected ? c.color.text : "text-muted-foreground"}`}>
+                            {selected ? t("Enabled") : t("Off")}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold">{t("Default sales currency")}</Label>
                     <Select
-                      value={String(generalSettings.decimalPlaces)}
-                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, decimalPlaces: Number(val) }))}
+                      value={generalSettings.salesDefaultCurrency}
+                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, salesDefaultCurrency: val }))}
                     >
-                      <SelectTrigger className="h-11 text-base font-semibold rounded-xl" data-testid="select-settings-decimal-places">
+                      <SelectTrigger className="h-11 text-sm font-bold rounded-xl" data-testid="select-sales-default-currency">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {[0, 1, 2, 3, 4].map(n => (
-                          <SelectItem key={n} value={String(n)}>
-                            {n} — {(1234.56789).toFixed(n)}
-                          </SelectItem>
+                        {CURRENCY_OPTIONS.filter(c => generalSettings.salesCurrencies.includes(c.code)).map(c => (
+                          <SelectItem key={c.code} value={c.code}>{c.flag} {c.code} — {c.symbol}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">{t('Number of digits after decimal point in amounts')}</p>
+                  </div>
+                </div>
+
+                <div className={`${panelClass} p-5 space-y-4`}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold">{t("Purchase currencies")}</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("Choose the currencies available on purchase forms")}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {CURRENCY_OPTIONS.map(c => {
+                      const lang = i18n.language || "en";
+                      const localized = lang === "ar" ? c.nameAr : lang === "ckb" ? c.nameKu : lang === "tr" ? c.nameTr : c.nameEn;
+                      const selected = generalSettings.purchaseCurrencies.includes(c.code);
+                      return (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => setGeneralSettings(prev => {
+                            const has = prev.purchaseCurrencies.includes(c.code);
+                            let next = has ? prev.purchaseCurrencies.filter(code => code !== c.code) : [...prev.purchaseCurrencies, c.code];
+                            next = normalizePurchaseCurrencies(next);
+                            if (has && next.length === prev.purchaseCurrencies.length) return prev;
+                            const purchaseDefaultCurrency = next.includes(prev.purchaseDefaultCurrency) ? prev.purchaseDefaultCurrency : next[0];
+                            return { ...prev, purchaseCurrencies: next, purchaseDefaultCurrency };
+                          })}
+                          className={`flex items-center gap-2.5 p-2.5 rounded-xl border-2 text-start transition-all ${
+                            selected ? `${c.color.bg} ${c.color.border} shadow-sm` : "bg-muted/20 border-border/60 opacity-70 hover:opacity-100"
+                          }`}
+                          data-testid={`toggle-purchase-currency-${c.code}`}
+                        >
+                          <span className={`w-8 h-8 rounded-full ${c.color.badge} text-white text-[11px] font-black flex items-center justify-center shrink-0`}>{c.symbol}</span>
+                          <span className="text-xl shrink-0">{c.flag}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-xs font-bold truncate ${c.color.text}`}>{localized}</p>
+                            <p className={`text-[11px] ${c.color.text} opacity-70`} dir="ltr">{c.code}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold">{t("Default purchase currency")}</Label>
+                    <Select
+                      value={generalSettings.purchaseDefaultCurrency}
+                      onValueChange={(val) => setGeneralSettings(prev => ({ ...prev, purchaseDefaultCurrency: val }))}
+                    >
+                      <SelectTrigger className="h-11 text-sm font-bold rounded-xl" data-testid="select-purchase-default-currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCY_OPTIONS.filter(c => generalSettings.purchaseCurrencies.includes(c.code)).map(c => (
+                          <SelectItem key={c.code} value={c.code}>{c.flag} {c.code} — {c.symbol}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>

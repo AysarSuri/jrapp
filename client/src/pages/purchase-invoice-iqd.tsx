@@ -8,6 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -35,6 +36,9 @@ import { SupplierSearchSelect } from "@/components/supplier-search-select";
 import { AddressSearchSelect } from "@/components/address-search-select";
 import { SearchInput } from "@/components/ui/search-input";
 import { SearchSelect } from "@/components/search-select";
+import { FormCurrencySelect } from "@/components/form-currency-select";
+import { getPurchaseDefaultCurrency, getPurchaseFormCurrencies } from "@/pages/settings";
+import { productUnitPrice } from "@/hooks/use-default-currency";
 import { useUnits } from "@/hooks/use-units";
 
 interface InvoiceItem {
@@ -96,6 +100,8 @@ export default function PurchaseInvoiceIqdPage() {
   const suppliersList = clients?.filter(c => c.type === "supplier" && !c.hidden) || [];
   const visibleProducts = products?.filter(p => !p.hidden) || [];
 
+  const purchaseCurrencies = getPurchaseFormCurrencies();
+  const [invoiceCurrency, setInvoiceCurrency] = useState(() => getPurchaseDefaultCurrency());
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [showStamp, setShowStamp] = useState(false);
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -269,11 +275,11 @@ export default function PurchaseInvoiceIqdPage() {
         productCode: product.barcode,
         productName: getProductName(product),
         unit: product.bigUnit,
-        price: product.bigUnitPriceIqd,
+        price: productUnitPrice(product, invoiceCurrency, "buy", product.bigUnit),
         weight: product.weight || "0",
       };
       const qty = parseFloat(updated[index].quantity || "0");
-      updated[index].amount = (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2);
+      updated[index].amount = (qty * parseFloat(productUnitPrice(product, invoiceCurrency, "buy", product.bigUnit))).toFixed(2);
       const lastRow = updated[updated.length - 1];
       if (lastRow.productId !== null) {
         updated.push(emptyItem());
@@ -284,7 +290,7 @@ export default function PurchaseInvoiceIqdPage() {
       const el = document.querySelector(`[data-testid="input-purchase-iqd-quantity-${index}"]`) as HTMLInputElement;
       if (el) { el.focus(); el.select(); }
     }, 50);
-  }, [products]);
+  }, [products, invoiceCurrency]);
 
   const [barcodeInput, setBarcodeInput] = useState("");
 
@@ -311,9 +317,9 @@ export default function PurchaseInvoiceIqdPage() {
         productName: getProductName(product),
         quantity: String(qty),
         unit: product.bigUnit,
-        price: product.bigUnitPriceIqd,
+        price: productUnitPrice(product, invoiceCurrency, "buy", product.bigUnit),
         weight: product.weight || "0",
-        amount: (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2),
+        amount: (qty * parseFloat(productUnitPrice(product, invoiceCurrency, "buy", product.bigUnit))).toFixed(2),
       };
       const lastRow = updated[updated.length - 1];
       if (lastRow.productId !== null) {
@@ -322,7 +328,7 @@ export default function PurchaseInvoiceIqdPage() {
       return updated;
     });
     setBarcodeInput("");
-  }, [products, t, toast]);
+  }, [products, t, toast, invoiceCurrency]);
 
   const addRow = () => {
     setItems(prev => [...prev, emptyItem()]);
@@ -425,7 +431,7 @@ export default function PurchaseInvoiceIqdPage() {
       remaining: remaining.toFixed(2),
       totalItems,
       totalQuantity: totalQuantity.toFixed(2),
-      currency: "IQD",
+      currency: invoiceCurrency,
       status: "approved",
     };
 
@@ -483,7 +489,7 @@ export default function PurchaseInvoiceIqdPage() {
     }
   };
 
-  const formatIQD = (val: number) => `${val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} IQD`;
+  const formatIQD = (val: number) => `${val.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${invoiceCurrency}`;
 
   return (
     <div className="space-y-3">
@@ -545,6 +551,22 @@ export default function PurchaseInvoiceIqdPage() {
                 </SelectContent>
               </Select>
             </div>
+            <FormCurrencySelect
+              value={invoiceCurrency}
+              onValueChange={(code) => {
+                setInvoiceCurrency(code);
+                setItems(prev => prev.map(item => {
+                  if (!item.productId) return item;
+                  const product = products?.find(p => p.id === item.productId);
+                  if (!product) return item;
+                  const price = productUnitPrice(product, code, "buy", item.unit);
+                  const qty = parseFloat(item.quantity || "0");
+                  return { ...item, price, amount: (qty * parseFloat(price || "0")).toFixed(2) };
+                }));
+              }}
+              codes={purchaseCurrencies}
+              testId="select-purchase-invoice-currency"
+            />
 
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Created By')}</Label>
@@ -634,15 +656,36 @@ export default function PurchaseInvoiceIqdPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Car Expense')}</Label>
-              <Input type="number" step="250" value={carExpense} onChange={(e) => setCarExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-expense" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={carExpense}
+                onChange={setCarExpense}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-car-expense"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Customs Expense')}</Label>
-              <Input type="number" step="250" value={customsExpense} onChange={(e) => setCustomsExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-customs-expense" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={customsExpense}
+                onChange={setCustomsExpense}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-customs-expense"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Other Expenses')}</Label>
-              <Input type="number" step="250" value={otherExpenses} onChange={(e) => setOtherExpenses(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-other-expenses" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={otherExpenses}
+                onChange={setOtherExpenses}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-other-expenses"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Total Expenses')}</Label>
@@ -760,7 +803,7 @@ export default function PurchaseInvoiceIqdPage() {
                         onValueChange={(val) => {
                           const product = products?.find(p => p.id === item.productId);
                           if (product) {
-                            const newPrice = val === product.bigUnit ? product.bigUnitPriceIqd : product.smallUnitPriceIqd;
+                            const newPrice = productUnitPrice(product, invoiceCurrency, "buy", val);
                             setItems(prev => {
                               const updated = [...prev];
                               updated[index] = { ...updated[index], unit: val, price: newPrice };
@@ -799,19 +842,18 @@ export default function PurchaseInvoiceIqdPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="250"
-                        min="0"
+                      <AmountInput
+                        currency={invoiceCurrency}
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-11 text-base font-bold text-center font-mono"
+                        onChange={(v) => updateItem(index, "price", v)}
+                        className="h-11 text-base font-bold text-center"
                         data-testid={`input-purchase-iqd-price-${index}`}
                       />
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-11 px-2 rounded bg-orange-50 dark:bg-orange-950/30 font-mono text-base font-bold text-orange-700 dark:text-orange-400">
-                        {Number(item.amount || "0").toLocaleString()} IQD
+                        {Number(item.amount || "0").toLocaleString()} {invoiceCurrency}
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
@@ -821,7 +863,7 @@ export default function PurchaseInvoiceIqdPage() {
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-11 px-2 rounded bg-amber-50 dark:bg-amber-950/30 font-mono text-base font-bold text-amber-700 dark:text-amber-400">
-                        {Number((getExpenseCost(item) + parseFloat(item.price || "0")).toFixed(0)).toLocaleString()} IQD
+                        {Number((getExpenseCost(item) + parseFloat(item.price || "0")).toFixed(0)).toLocaleString()} {invoiceCurrency}
                       </div>
                     </TableCell>
                     {showDates && (
@@ -894,14 +936,13 @@ export default function PurchaseInvoiceIqdPage() {
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Cash Amount Paid')}</span>
-              <Input
-                type="number"
-                step="250"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 className="w-32 text-right font-mono"
-                placeholder="0"
                 data-testid="input-purchase-iqd-amount-paid"
+                placeholder="0"
               />
             </div>
             <div className="flex justify-between items-center">
@@ -931,16 +972,15 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Discount')}</span>
-              <Input
-                type="number"
-                step="250"
-                min="0"
+              <AmountInput
+                currency={invoiceCurrency}
+                min={0}
                 value={discount}
-                onChange={(e) => {
-                  setDiscount(e.target.value);
+                onChange={(v) => {
+                  setDiscount(v);
                   setDiscountPercent("");
                 }}
-                className="w-32 text-right font-mono"
+                className="w-32 text-right"
                 placeholder="0"
                 data-testid="input-purchase-iqd-discount"
               />
@@ -965,7 +1005,7 @@ export default function PurchaseInvoiceIqdPage() {
               <Badge variant="secondary" className="ml-2">
                 {(() => {
                   const filtered = (invoicesList as PurchaseInvoice[] || []).filter(i => {
-                    if (i.currency !== 'IQD') return false;
+                    if (i.currency !== invoiceCurrency) return false;
                     if (historySupplierFilter !== 'all' && i.supplierId !== parseInt(historySupplierFilter)) return false;
                     const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
                     if (historyStartDate && invDate < historyStartDate) return false;
@@ -1011,7 +1051,7 @@ export default function PurchaseInvoiceIqdPage() {
         <CardContent>
           {(() => {
             const filteredInvoices = (invoicesList as PurchaseInvoice[] || []).filter(i => {
-              if (i.currency !== 'IQD') return false;
+              if (i.currency !== invoiceCurrency) return false;
               if (historySupplierFilter !== 'all' && i.supplierId !== parseInt(historySupplierFilter)) return false;
               const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
               if (historyStartDate && invDate < historyStartDate) return false;
@@ -1023,7 +1063,7 @@ export default function PurchaseInvoiceIqdPage() {
             const totDiscount = filteredInvoices.reduce((s, i) => s + Number(i.discount || 0), 0);
             const totAmountPaid = filteredInvoices.reduce((s, i) => s + Number(i.amountPaid || 0), 0);
             const totRemaining = filteredInvoices.reduce((s, i) => s + Number(i.remaining || 0), 0);
-            const fmtIQD = (v: number) => Number(v.toFixed(0)).toLocaleString() + " IQD";
+            const fmtIQD = (v: number) => Number(v.toFixed(0)).toLocaleString() + " " + invoiceCurrency;
             return (
               <div className="rounded-md border overflow-x-auto">
                 <Table>
@@ -1054,10 +1094,10 @@ export default function PurchaseInvoiceIqdPage() {
                             {inv.invoiceType === 'cash' ? t('Cash') : t('Credit')}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold">{Number(inv.subtotal).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-green-600">{Number(inv.amountPaid).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{Number(inv.discount).toLocaleString()} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-red-600">{Number(inv.remaining).toLocaleString()} IQD</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold">{Number(inv.subtotal).toLocaleString()} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-green-600">{Number(inv.amountPaid).toLocaleString()} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{Number(inv.discount).toLocaleString()} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-red-600">{Number(inv.remaining).toLocaleString()} {invoiceCurrency}</TableCell>
                         <TableCell className="text-sm font-semibold">{(inv as any).createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
@@ -1103,7 +1143,7 @@ export default function PurchaseInvoiceIqdPage() {
         invoiceId={reportInvoiceId}
         open={reportOpen}
         onOpenChange={setReportOpen}
-        currency="IQD"
+        currency={invoiceCurrency === "USD" ? "USD" : "IQD"}
         showStamp={showStamp}
       />
 

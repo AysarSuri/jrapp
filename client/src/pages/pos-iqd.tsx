@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesInvoice, Category, CategoryGroup } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +13,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { SearchSelect } from "@/components/search-select";
+import { FormCurrencySelect } from "@/components/form-currency-select";
+import { getSalesDefaultCurrency, getSalesFormCurrencies } from "@/pages/settings";
+import { productUnitPrice } from "@/hooks/use-default-currency";
 import { CustomerSearchSelect } from "@/components/customer-search-select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -120,6 +124,8 @@ export default function PosIqdPage() {
   const isFavoritesMode = selectedCategory === "__favorites__";
   const categoryProducts = products?.filter(p => !p.hidden && (isFavoritesMode ? p.favorite : p.category === selectedCategory) && (selectedGroup ? p.groupName === selectedGroup : true)) || [];
 
+  const salesCurrencies = getSalesFormCurrencies();
+  const [invoiceCurrency, setInvoiceCurrency] = useState(() => getSalesDefaultCurrency());
   const [formKey, setFormKey] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -231,9 +237,9 @@ export default function PosIqdPage() {
   };
 
   const { data: openingBalanceData } = useQuery<{ openingBalance: number }>({
-    queryKey: ["/api/customer-opening-balance", customerId, date, time, "IQD", inlineEditId],
+    queryKey: ["/api/customer-opening-balance", customerId, date, time, invoiceCurrency, inlineEditId],
     queryFn: async () => {
-      const params = new URLSearchParams({ customerId: String(customerId), date, time: time || "00:00", currency: "IQD" });
+      const params = new URLSearchParams({ customerId: String(customerId), date, time: time || "00:00", currency: invoiceCurrency });
       if (inlineEditId) params.set("excludeInvoiceId", String(inlineEditId));
       const res = await fetch(`/api/customer-opening-balance?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed");
@@ -301,12 +307,12 @@ export default function PosIqdPage() {
         gift: "0",
         unit: product.bigUnit,
         weight: ((qty + gift) * unitWeight).toFixed(2),
-        price: product.bigUnitPriceIqd,
-        amount: (qty * parseFloat(product.bigUnitPriceIqd)).toFixed(2),
+        price: productUnitPrice(product, invoiceCurrency, "sell", product.bigUnit),
+        amount: (qty * parseFloat(productUnitPrice(product, invoiceCurrency, "sell", product.bigUnit))).toFixed(2),
       };
       return [...prev, newItem];
     });
-  }, []);
+  }, [invoiceCurrency]);
 
   const handleBarcodeScan = useCallback((barcode: string) => {
     if (!barcode.trim()) return;
@@ -398,7 +404,7 @@ export default function PosIqdPage() {
       remaining: remaining.toFixed(2),
       totalItems,
       totalQuantity: totalQuantity.toFixed(2),
-      currency: "IQD",
+      currency: invoiceCurrency,
       status: isRep ? "pending" : "approved",
       createdBy: user?.username || null,
       createdByRole: userRole,
@@ -579,6 +585,22 @@ export default function PosIqdPage() {
                 </SelectContent>
               </Select>
             </div>
+            <FormCurrencySelect
+              value={invoiceCurrency}
+              onValueChange={(code) => {
+                setInvoiceCurrency(code);
+                setItems(prev => prev.map(item => {
+                  if (!item.productId) return item;
+                  const product = products?.find(p => p.id === item.productId);
+                  if (!product) return item;
+                  const price = productUnitPrice(product, code, "sell", item.unit);
+                  const qty = parseFloat(item.quantity || "0");
+                  return { ...item, price, amount: (qty * parseFloat(price || "0")).toFixed(2) };
+                }));
+              }}
+              codes={salesCurrencies}
+              testId="select-pos-currency"
+            />
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground">{t('Warehouse')}</Label>
@@ -839,7 +861,7 @@ export default function PosIqdPage() {
                             {getProductName(product)}
                           </p>
                           <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{product.barcode}</p>
-                          <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">{fmtIqd(product.bigUnitPriceIqd)} IQD</p>
+                          <p className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-0.5">{fmtIqd(productUnitPrice(product, invoiceCurrency, "sell", product.bigUnit))} {invoiceCurrency}</p>
                           {cartQty > 0 && (
                             <Badge className="absolute top-1 end-1 bg-purple-600 text-white text-xs" data-testid={`badge-sales-category-qty-${product.id}`}>
                               {cartQty}
@@ -936,19 +958,18 @@ export default function PosIqdPage() {
                             </div>
                           </TableCell>
                           <TableCell className="p-1">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
+                            <AmountInput
+                              currency={invoiceCurrency}
+                              min={0}
                               value={item.price}
-                              onChange={(e) => updateItem(index, "price", e.target.value)}
-                              className="h-7 text-sm text-center font-mono w-20"
+                              onChange={(v) => updateItem(index, "price", v)}
+                              className="h-7 text-sm text-center w-20"
                               data-testid={`input-sales-category-price-${index}`}
                             />
                           </TableCell>
                           <TableCell className="p-1">
                             <div className="flex items-center justify-center h-7 px-1 rounded bg-purple-50 dark:bg-purple-950/30 font-mono text-xs font-bold text-purple-700 dark:text-purple-400">
-                              {fmtIqd(item.amount || "0")} IQD
+                              {fmtIqd(item.amount || "0")} {invoiceCurrency}
                             </div>
                           </TableCell>
                           <TableCell className="p-1">
@@ -998,20 +1019,19 @@ export default function PosIqdPage() {
             <CardContent className="pt-4 space-y-2.5">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Invoice Total')}</span>
-                <span className="font-mono font-bold text-lg" data-testid="text-sales-category-subtotal">{fmtIqd(subtotal)} IQD</span>
+                <span className="font-mono font-bold text-lg" data-testid="text-sales-category-subtotal">{fmtIqd(subtotal)} {invoiceCurrency}</span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Amount Received')}</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  className="w-28 text-right font-mono h-8"
-                  placeholder="0.00"
-                  data-testid="input-sales-category-amount-paid"
-                />
+                <AmountInput
+                currency={invoiceCurrency}
+                value={amountPaid}
+                onChange={setAmountPaid}
+                className="w-28 text-right font-mono h-8"
+                data-testid="input-sales-category-amount-paid"
+                placeholder="0.00"
+              />
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Discount %')}</span>
@@ -1034,19 +1054,17 @@ export default function PosIqdPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Invoice Discount')}</span>
-                <Input
-                  type="number"
-                  step="0.01"
+                <AmountInput
+                  currency={invoiceCurrency}
                   value={discount}
-                  onChange={(e) => {
-                    setDiscount(e.target.value);
-                    const discVal = parseFloat(e.target.value) || 0;
+                  onChange={(v) => {
+                    setDiscount(v);
+                    const discVal = parseFloat(v) || 0;
                     if (subtotal > 0) {
                       setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
                     }
                   }}
-                  className="w-28 text-right font-mono h-8"
-                  placeholder="0.00"
+                  className="w-28 text-right h-8"
                   data-testid="input-sales-category-discount"
                 />
               </div>
@@ -1054,7 +1072,7 @@ export default function PosIqdPage() {
               <div className="flex justify-between items-center">
                 <span className="text-base font-bold text-red-600">{t('Remaining')}</span>
                 <span className="font-mono font-bold text-xl text-red-600" data-testid="text-sales-category-remaining">
-                  {fmtIqd(remaining)} IQD
+                  {fmtIqd(remaining)} {invoiceCurrency}
                 </span>
               </div>
             </CardContent>
@@ -1071,7 +1089,7 @@ export default function PosIqdPage() {
               <Badge variant="secondary" className="ml-2">
                 {(() => {
                   const filtered = (invoicesList as SalesInvoice[] || []).filter(i => {
-                    if (i.currency !== 'IQD') return false;
+                    if (i.currency !== invoiceCurrency) return false;
                     if (userRole === 'sales_rep' && i.createdBy !== user?.username) return false;
                     if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
                     const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
@@ -1121,7 +1139,7 @@ export default function PosIqdPage() {
         <CardContent>
           {(() => {
             const filteredInvoices = (invoicesList as SalesInvoice[] || []).filter(i => {
-              if (i.currency !== 'IQD') return false;
+              if (i.currency !== invoiceCurrency) return false;
               if (userRole === 'sales_rep' && i.createdBy !== user?.username) return false;
               if (historyCustomerFilter !== 'all' && i.customerId !== parseInt(historyCustomerFilter)) return false;
               const invDate = typeof i.date === 'string' ? i.date.split('T')[0] : new Date(i.date).toISOString().split('T')[0];
@@ -1178,10 +1196,10 @@ export default function PosIqdPage() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold">{fmtIqd(inv.subtotal)} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-green-600">{fmtIqd(inv.amountPaid)} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{fmtIqd(inv.discount)} IQD</TableCell>
-                        <TableCell className="text-right text-sm font-mono font-bold text-red-600">{fmtIqd(inv.remaining)} IQD</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold">{fmtIqd(inv.subtotal)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-green-600">{fmtIqd(inv.amountPaid)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-orange-600">{fmtIqd(inv.discount)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right text-sm font-mono font-bold text-red-600">{fmtIqd(inv.remaining)} {invoiceCurrency}</TableCell>
                         <TableCell className="text-sm font-semibold">{inv.createdBy || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1">
@@ -1207,10 +1225,10 @@ export default function PosIqdPage() {
                     {filteredInvoices.length > 0 && (
                       <TableRow className="bg-muted/50 font-bold border-t-2">
                         <TableCell colSpan={6} className="text-right font-bold text-base">{t('Total')}</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-base">{fmtIqd(totSubtotal)} IQD</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-base text-green-600">{fmtIqd(totAmountPaid)} IQD</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-base text-orange-600">{fmtIqd(totDiscount)} IQD</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-base text-red-600">{fmtIqd(totRemaining)} IQD</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base">{fmtIqd(totSubtotal)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-green-600">{fmtIqd(totAmountPaid)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-orange-600">{fmtIqd(totDiscount)} {invoiceCurrency}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-base text-red-600">{fmtIqd(totRemaining)} {invoiceCurrency}</TableCell>
                         <TableCell></TableCell>
                       </TableRow>
                     )}
@@ -1233,7 +1251,7 @@ export default function PosIqdPage() {
         invoiceId={reportInvoiceId}
         open={reportOpen}
         onOpenChange={setReportOpen}
-        currency="IQD"
+        currency={invoiceCurrency}
       />
 
       <AlertDialog open={!!deleteInvoiceData} onOpenChange={(open) => { if (!open) setDeleteInvoiceData(null); }}>

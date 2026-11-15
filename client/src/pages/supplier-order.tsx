@@ -8,6 +8,7 @@ import type { Product, Client, SupplierOrder } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -655,13 +656,12 @@ export default function SupplierOrderPage({ currency }: SupplierOrderPageProps) 
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                      <AmountInput
+                        currency={isUsd ? "USD" : "IQD"}
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-11 text-base font-bold text-center font-mono"
+                        onChange={(v) => updateItem(index, "price", v)}
+                        className="h-11 text-base font-bold text-center"
                         data-testid={`input-order-price-${index}`}
                       />
                     </TableCell>

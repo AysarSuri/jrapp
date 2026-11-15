@@ -11,18 +11,20 @@ const viteLogger = createLogger();
 export async function setupVite(server: Server, app: Express) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server, path: "/vite-hmr" },
+    hmr: false,
     allowedHosts: true as const,
   };
 
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
+    logLevel: "error",
     customLogger: {
       ...viteLogger,
+      info: () => {},
+      warn: () => {},
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
       },
     },
     server: serverOptions,

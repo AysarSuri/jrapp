@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrencyExchanges, useCreateCurrencyExchange, useDeleteCurrencyExchange } from "@/hooks/use-currency-exchanges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -184,15 +185,13 @@ export default function CurrencyExchangePage() {
 
             <div className="space-y-2">
               <Label>{t('Amount')}</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder={fromCurrency === "USD" ? "$0.00" : "0 IQD"}
+              <AmountInput
+                currency={fromCurrency}
+                min={0}
                 value={fromAmount}
-                onChange={(e) => setFromAmount(e.target.value)}
-                data-testid="input-from-amount"
+                onChange={setFromAmount}
                 className="font-mono"
+                data-testid="input-from-amount"
               />
             </div>
 

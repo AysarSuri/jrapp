@@ -9,6 +9,7 @@ export default function PurchaseReturnPage() {
       UsdComponent={PurchaseReturnUsdPage}
       IqdComponent={PurchaseReturnIqdPage}
       testId="select-purchase-return-currency"
+      scope="purchase"
     />
   );
 }

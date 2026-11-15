@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -291,27 +292,25 @@ export default function StatementEditDialog({ entry, open, onOpenChange }: State
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-base font-bold">{t("Amount")} ({entry?.currency})</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="h-11 text-base font-semibold font-mono"
-                    data-testid="input-edit-amount"
-                  />
+                  <AmountInput
+                currency={entry?.currency ?? "USD"}
+                min={0}
+                value={amount}
+                onChange={setAmount}
+                className="h-11 text-base font-semibold"
+                data-testid="input-edit-amount"
+              />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-base font-bold">{t("Discount")} ({entry?.currency})</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="h-11 text-base font-semibold font-mono"
-                    data-testid="input-edit-discount"
-                  />
+                  <AmountInput
+                currency={entry?.currency ?? "USD"}
+                min={0}
+                value={discount}
+                onChange={setDiscount}
+                className="h-11 text-base font-semibold"
+                data-testid="input-edit-discount"
+              />
                 </div>
               </div>
             )}

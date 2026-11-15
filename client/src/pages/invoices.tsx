@@ -9,6 +9,7 @@ import { useInvoices, useCreateInvoice } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -126,7 +127,7 @@ export default function InvoicesPage() {
                 <FormField control={form.control} name="total" render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('Total')}</FormLabel>
-                    <FormControl><Input data-testid="input-invoice-total" type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} data-testid="input-invoice-total" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

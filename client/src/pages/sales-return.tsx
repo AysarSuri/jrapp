@@ -9,6 +9,7 @@ export default function SalesReturnPage() {
       UsdComponent={SalesReturnUsdPage}
       IqdComponent={SalesReturnIqdPage}
       testId="select-sales-return-currency"
+      scope="sales"
     />
   );
 }

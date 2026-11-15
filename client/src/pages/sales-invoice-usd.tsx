@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -834,12 +835,11 @@ export default function SalesInvoiceUsdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                      <AmountInput
+                        currency={invoiceCurrency}
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
+                        onChange={(v) => updateItem(index, "price", v)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -848,7 +848,7 @@ export default function SalesInvoiceUsdPage() {
                             if (el) el.focus();
                           }
                         }}
-                        className="h-9 text-sm text-center font-mono"
+                        className="h-9 text-sm text-center"
                         data-testid={`input-sales-price-${index}`}
                       />
                     </TableCell>
@@ -910,14 +910,13 @@ export default function SalesInvoiceUsdPage() {
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Amount Received')}</span>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 className="w-32 text-right font-mono"
-                placeholder="0.00"
                 data-testid="input-sales-amount-paid"
+                placeholder="0.00"
               />
             </div>
             <div className="flex justify-between items-center">
@@ -941,18 +940,17 @@ export default function SalesInvoiceUsdPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Invoice Discount')}</span>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={discount}
-                onChange={(e) => {
-                  setDiscount(e.target.value);
-                  const discVal = parseFloat(e.target.value) || 0;
+                onChange={(v) => {
+                  setDiscount(v);
+                  const discVal = parseFloat(v) || 0;
                   if (subtotal > 0) {
                     setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
                   }
                 }}
-                className="w-32 text-right font-mono"
+                className="w-32 text-right"
                 placeholder="0.00"
                 data-testid="input-sales-discount"
               />

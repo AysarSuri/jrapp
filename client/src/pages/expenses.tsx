@@ -8,6 +8,7 @@ import { useDefaultCurrency, getCurrencyMeta, formatAmount } from "@/hooks/use-d
 import type { ExpenseType, Expense } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { ExpenseTypeSearchSelect } from "@/components/expense-type-search-select";
 import { SearchSelect } from "@/components/search-select";
@@ -541,12 +542,15 @@ export default function ExpensesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="md:col-span-2 space-y-2">
                     <Label className="text-xs">{t('Amount')}</Label>
-                    <Input
-                      type="number" step="0.01" min="0" placeholder="0.00"
-                      value={amount} onChange={(e) => setAmount(e.target.value)}
-                      className="text-lg font-mono text-center h-12"
-                      data-testid="input-expense-amount"
-                    />
+                    <AmountInput
+                currency={currency}
+                min={0}
+                value={amount}
+                onChange={setAmount}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-expense-amount"
+                placeholder="0.00"
+              />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs">{t('Currency')}</Label>

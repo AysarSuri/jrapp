@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesReturn } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -460,7 +461,7 @@ export default function SalesReturnIqdPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3" data-testid="text-sales-return-iqd-title">
             <Undo2 className="h-8 w-8 text-orange-600" />
-            {isEditMode ? t('Edit Sales Return - IQD') : t('Sales Return - IQD')}
+            {isEditMode ? t('Edit Sales Return - IQD') : t('Sales Return IQD')}
           </h1>
           <p className="text-muted-foreground text-sm">{isEditMode ? t('Edit sales return in Iraqi Dinar') : t('Create sales return in Iraqi Dinar')}</p>
         </div>
@@ -702,13 +703,12 @@ export default function SalesReturnIqdPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                      <AmountInput
+                        currency="IQD"
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-9 text-sm text-center font-mono"
+                        onChange={(v) => updateItem(index, "price", v)}
+                        className="h-9 text-sm text-center"
                         data-testid={`input-return-iqd-price-${index}`}
                       />
                     </TableCell>
@@ -766,14 +766,13 @@ export default function SalesReturnIqdPage() {
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Paid Amount')}</span>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency="IQD"
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 className="w-32 text-right font-mono"
-                placeholder="0"
                 data-testid="input-return-iqd-amount-paid"
+                placeholder="0"
               />
             </div>
             <Separator />
