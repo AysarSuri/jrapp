@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
@@ -671,11 +672,27 @@ export default function ClearanceStatementIqdPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-blue-600">{t('USD Amount')}</Label>
-                <Input type="number" step="0.01" min="0" placeholder="0.00" value={editAmountUsd} onChange={(e) => setEditAmountUsd(e.target.value)} className="font-mono" data-testid="input-edit-statement-iqd-usd" />
+                <AmountInput
+                currency="USD"
+                min={0}
+                value={editAmountUsd}
+                onChange={setEditAmountUsd}
+                className="font-mono"
+                data-testid="input-edit-statement-iqd-usd"
+                placeholder="0.00"
+              />
               </div>
               <div className="space-y-2">
                 <Label className="text-orange-600">{t('IQD Amount')}</Label>
-                <Input type="number" step="250" min="0" placeholder="0" value={editAmountIqd} onChange={(e) => setEditAmountIqd(e.target.value)} className="font-mono" data-testid="input-edit-statement-iqd-iqd" />
+                <AmountInput
+                currency="IQD"
+                min={0}
+                value={editAmountIqd}
+                onChange={setEditAmountIqd}
+                className="font-mono"
+                data-testid="input-edit-statement-iqd-iqd"
+                placeholder="0"
+              />
               </div>
             </div>
             <div className="space-y-2">

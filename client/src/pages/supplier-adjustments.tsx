@@ -7,6 +7,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Client, SupplierAdjustment, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import {
@@ -377,15 +378,14 @@ export default function SupplierAdjustmentsPage() {
                     <IconDollar className="h-5 w-5" />
                     {t("Amount")} (USD)
                   </div>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
+                  <AmountInput
+                    currency="USD"
+                    min={0}
                     value={amountUsd}
-                    onChange={e => setAmountUsd(e.target.value)}
+                    onChange={setAmountUsd}
                     className="text-lg font-bold border-blue-300 dark:border-blue-700"
                     data-testid="input-amount-usd"
+                    placeholder="0.00"
                   />
                 </CardContent>
               </Card>
@@ -396,13 +396,11 @@ export default function SupplierAdjustmentsPage() {
                     <IconDinar className="h-5 w-5" />
                     {t("Amount")} (IQD)
                   </div>
-                  <Input
-                    type="number"
-                    step="1"
-                    min="0"
-                    placeholder="0"
+                  <AmountInput
+                    currency="IQD"
+                    min={0}
                     value={amountIqd}
-                    onChange={e => setAmountIqd(e.target.value)}
+                    onChange={setAmountIqd}
                     className="text-lg font-bold border-orange-300 dark:border-orange-700"
                     data-testid="input-amount-iqd"
                   />

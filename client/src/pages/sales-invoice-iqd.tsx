@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -36,7 +37,7 @@ import { getProductName, resolveUnitName } from "@/lib/language-utils";
 import ProductSearchSelect from "@/components/product-search-select";
 import ProductCodeSearchSelect from "@/components/product-code-search-select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatDate, fmtIqd } from "@/lib/format-utils";
+import { formatDate, fmtIqd, fmtAmount } from "@/lib/format-utils";
 import { useUnits } from "@/hooks/use-units";
 import SalesInvoiceReport from "@/components/sales-invoice-report";
 import { AddressSearchSelect } from "@/components/address-search-select";
@@ -855,19 +856,18 @@ export default function SalesInvoiceIqdPage() {
                       />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                      <AmountInput
+                        currency={invoiceCurrency}
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-9 text-sm text-center font-mono"
+                        onChange={(v) => updateItem(index, "price", v)}
+                        className="h-9 text-sm text-center"
                         data-testid={`input-sales-iqd-price-${index}`}
                       />
                     </TableCell>
                     <TableCell className="p-1">
                       <div className="flex items-center justify-center h-9 px-2 rounded bg-blue-50 dark:bg-blue-950/30 font-mono text-sm font-bold text-blue-700 dark:text-blue-400">
-                        {parseFloat(item.amount || "0").toLocaleString('en-US')} {invoiceCurrency}
+                        {fmtAmount(item.amount || "0", invoiceCurrency)} {invoiceCurrency}
                       </div>
                     </TableCell>
                     <TableCell className="p-1">
@@ -923,14 +923,13 @@ export default function SalesInvoiceIqdPage() {
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Amount Received')}</span>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 className="w-32 text-right font-mono"
-                placeholder="0"
                 data-testid="input-sales-iqd-amount-paid"
+                placeholder="0"
               />
             </div>
             <div className="flex justify-between items-center">
@@ -954,18 +953,17 @@ export default function SalesInvoiceIqdPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Invoice Discount')}</span>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={discount}
-                onChange={(e) => {
-                  setDiscount(e.target.value);
-                  const discVal = parseFloat(e.target.value) || 0;
+                onChange={(v) => {
+                  setDiscount(v);
+                  const discVal = parseFloat(v) || 0;
                   if (subtotal > 0) {
                     setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
                   }
                 }}
-                className="w-32 text-right font-mono"
+                className="w-32 text-right"
                 placeholder="0"
                 data-testid="input-sales-iqd-discount"
               />

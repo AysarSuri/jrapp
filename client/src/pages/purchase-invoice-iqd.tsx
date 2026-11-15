@@ -8,6 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Product, Client, PurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -655,15 +656,36 @@ export default function PurchaseInvoiceIqdPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Car Expense')}</Label>
-              <Input type="number" step="250" value={carExpense} onChange={(e) => setCarExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-car-expense" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={carExpense}
+                onChange={setCarExpense}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-car-expense"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Customs Expense')}</Label>
-              <Input type="number" step="250" value={customsExpense} onChange={(e) => setCustomsExpense(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-customs-expense" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={customsExpense}
+                onChange={setCustomsExpense}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-customs-expense"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Other Expenses')}</Label>
-              <Input type="number" step="250" value={otherExpenses} onChange={(e) => setOtherExpenses(e.target.value)} placeholder="0" className="font-bold text-base h-11" data-testid="input-purchase-iqd-other-expenses" />
+              <AmountInput
+                currency={invoiceCurrency}
+                value={otherExpenses}
+                onChange={setOtherExpenses}
+                className="font-bold text-base h-11"
+                data-testid="input-purchase-iqd-other-expenses"
+                placeholder="0"
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">{t('Total Expenses')}</Label>
@@ -820,13 +842,12 @@ export default function PurchaseInvoiceIqdPage() {
                       </Select>
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input
-                        type="number"
-                        step="250"
-                        min="0"
+                      <AmountInput
+                        currency={invoiceCurrency}
+                        min={0}
                         value={item.price}
-                        onChange={(e) => updateItem(index, "price", e.target.value)}
-                        className="h-11 text-base font-bold text-center font-mono"
+                        onChange={(v) => updateItem(index, "price", v)}
+                        className="h-11 text-base font-bold text-center"
                         data-testid={`input-purchase-iqd-price-${index}`}
                       />
                     </TableCell>
@@ -915,14 +936,13 @@ export default function PurchaseInvoiceIqdPage() {
             <Separator />
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Cash Amount Paid')}</span>
-              <Input
-                type="number"
-                step="250"
+              <AmountInput
+                currency={invoiceCurrency}
                 value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
+                onChange={setAmountPaid}
                 className="w-32 text-right font-mono"
-                placeholder="0"
                 data-testid="input-purchase-iqd-amount-paid"
+                placeholder="0"
               />
             </div>
             <div className="flex justify-between items-center">
@@ -952,16 +972,15 @@ export default function PurchaseInvoiceIqdPage() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">{t('Discount')}</span>
-              <Input
-                type="number"
-                step="250"
-                min="0"
+              <AmountInput
+                currency={invoiceCurrency}
+                min={0}
                 value={discount}
-                onChange={(e) => {
-                  setDiscount(e.target.value);
+                onChange={(v) => {
+                  setDiscount(v);
                   setDiscountPercent("");
                 }}
-                className="w-32 text-right font-mono"
+                className="w-32 text-right"
                 placeholder="0"
                 data-testid="input-purchase-iqd-discount"
               />

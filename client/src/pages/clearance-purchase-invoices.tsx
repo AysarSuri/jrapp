@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CustomsClearance, ClearancePurchaseInvoice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import { SearchSelect } from "@/components/search-select";
 import {
@@ -401,27 +402,24 @@ export default function ClearancePurchaseInvoicesPage() {
                   <IconDollar className="h-5 w-5 text-blue-600" />
                   {t('Customs USD')}
                 </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={customsUsd}
-                  onChange={(e) => setCustomsUsd(e.target.value)}
-                  placeholder="0.00"
-                  className="font-mono"
-                  data-testid="input-customs-usd"
-                />
+                <AmountInput
+                currency="USD"
+                value={customsUsd}
+                onChange={setCustomsUsd}
+                className="font-mono"
+                data-testid="input-customs-usd"
+                placeholder="0.00"
+              />
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
                   <IconDinar className="h-5 w-5 text-orange-600" />
                   {t('Customs IQD')}
                 </Label>
-                <Input
-                  type="number"
-                  step="1"
+                <AmountInput
+                  currency="IQD"
                   value={customsIqd}
-                  onChange={(e) => setCustomsIqd(e.target.value)}
-                  placeholder="0"
+                  onChange={setCustomsIqd}
                   className="font-mono"
                   data-testid="input-customs-iqd"
                 />

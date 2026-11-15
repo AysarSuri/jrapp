@@ -6,6 +6,7 @@ import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { useUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -512,16 +513,15 @@ export default function AgentPaymentIqdPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Input
-                  type="number"
-                  step="250"
-                  min="0"
-                  placeholder="0"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="text-lg font-mono text-center h-12"
-                  data-testid="input-agent-payment-amount"
-                />
+                <AmountInput
+                currency="IQD"
+                min={0}
+                value={amount}
+                onChange={setAmount}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-agent-payment-amount"
+                placeholder="0"
+              />
               </CardContent>
             </Card>
 

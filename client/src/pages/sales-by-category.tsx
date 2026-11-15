@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Product, Client, SalesInvoice, Category, CategoryGroup } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -943,13 +944,12 @@ export default function SalesByCategoryPage() {
                             </div>
                           </TableCell>
                           <TableCell className="p-1">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
+                            <AmountInput
+                              currency="USD"
+                              min={0}
                               value={item.price}
-                              onChange={(e) => updateItem(index, "price", e.target.value)}
-                              className="h-7 text-sm text-center font-mono w-20"
+                              onChange={(v) => updateItem(index, "price", v)}
+                              className="h-7 text-sm text-center w-20"
                               data-testid={`input-sales-category-price-${index}`}
                             />
                           </TableCell>
@@ -1010,15 +1010,14 @@ export default function SalesByCategoryPage() {
               <Separator />
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Amount Received')}</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  className="w-28 text-right font-mono h-8"
-                  placeholder="0.00"
-                  data-testid="input-sales-category-amount-paid"
-                />
+                <AmountInput
+                currency="USD"
+                value={amountPaid}
+                onChange={setAmountPaid}
+                className="w-28 text-right font-mono h-8"
+                data-testid="input-sales-category-amount-paid"
+                placeholder="0.00"
+              />
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Discount %')}</span>
@@ -1041,19 +1040,17 @@ export default function SalesByCategoryPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium">{t('Invoice Discount')}</span>
-                <Input
-                  type="number"
-                  step="0.01"
+                <AmountInput
+                  currency="USD"
                   value={discount}
-                  onChange={(e) => {
-                    setDiscount(e.target.value);
-                    const discVal = parseFloat(e.target.value) || 0;
+                  onChange={(v) => {
+                    setDiscount(v);
+                    const discVal = parseFloat(v) || 0;
                     if (subtotal > 0) {
                       setDiscountPercent(((discVal / subtotal) * 100).toFixed(2));
                     }
                   }}
-                  className="w-28 text-right font-mono h-8"
-                  placeholder="0.00"
+                  className="w-28 text-right h-8"
                   data-testid="input-sales-category-discount"
                 />
               </div>

@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -450,24 +451,22 @@ export default function UserManagementPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-base font-bold">{t('Opening Balance')} (USD)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
+                    <AmountInput
+                      currency="USD"
                       className="h-11 text-base font-semibold"
                       value={debtUsd}
-                      onChange={(e) => setDebtUsd(e.target.value)}
+                      onChange={setDebtUsd}
                       placeholder="0.00"
                       data-testid="input-debt-usd"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-base font-bold">{t('Opening Balance')} (IQD)</Label>
-                    <Input
-                      type="number"
-                      step="1"
+                    <AmountInput
+                      currency="IQD"
                       className="h-11 text-base font-semibold"
                       value={debtIqd}
-                      onChange={(e) => setDebtIqd(e.target.value)}
+                      onChange={setDebtIqd}
                       placeholder="0"
                       data-testid="input-debt-iqd"
                     />

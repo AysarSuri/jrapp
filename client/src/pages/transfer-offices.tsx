@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useTransferOffices, useCreateTransferOffice, useUpdateTransferOffice, useDeleteTransferOffice } from "@/hooks/use-transfer-offices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -135,7 +136,7 @@ export default function TransferOfficesPage() {
                     <FormItem>
                       <FormLabel>{t('Opening Balance USD')}</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" data-testid="input-transfer-office-old-debt-usd" {...field} />
+                        <AmountInput currency="USD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} placeholder="0.00" data-testid="input-transfer-office-old-debt-usd" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -144,7 +145,7 @@ export default function TransferOfficesPage() {
                     <FormItem>
                       <FormLabel>{t('Opening Balance IQD')}</FormLabel>
                       <FormControl>
-                        <Input type="number" step="250" placeholder="0" data-testid="input-transfer-office-old-debt-iqd" {...field} />
+                        <AmountInput currency="IQD" value={field.value} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} placeholder="0" data-testid="input-transfer-office-old-debt-iqd" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

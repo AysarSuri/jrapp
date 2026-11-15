@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Client, Bank, TransferOffice } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -410,58 +411,54 @@ export default function SupplierPaymentsPage() {
                   )}
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{t('USD Payment')}</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      value={amountUsd}
-                      onChange={(e) => setAmountUsd(e.target.value)}
-                      className="text-lg font-mono text-center h-12"
-                      data-testid="input-payment-usd"
-                    />
+                    <AmountInput
+                currency="USD"
+                min={0}
+                value={amountUsd}
+                onChange={setAmountUsd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-payment-usd"
+                placeholder="0.00"
+              />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{t('Commission USD')}</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      value={commissionUsd}
-                      onChange={(e) => setCommissionUsd(e.target.value)}
-                      className="text-sm font-mono text-center h-10 bg-blue-50/30 dark:bg-blue-950/20"
-                      data-testid="input-commission-usd"
-                    />
+                    <AmountInput
+                currency="USD"
+                min={0}
+                value={commissionUsd}
+                onChange={setCommissionUsd}
+                className="text-sm font-mono text-center h-10 bg-blue-50/30 dark:bg-blue-950/20"
+                data-testid="input-commission-usd"
+                placeholder="0.00"
+              />
                   </div>
                   {isBank && usdExchangeType === "iqd" && (
                     <>
                       <Separator />
                       <div className="space-y-1.5">
                         <Label className="text-xs text-orange-600 font-semibold">{t('IQD Equivalent')}</Label>
-                        <Input
-                          type="number"
-                          step="250"
-                          min="0"
-                          placeholder="0"
-                          value={usdEquivalentAmount}
-                          onChange={(e) => setUsdEquivalentAmount(e.target.value)}
-                          className="text-lg font-mono text-center h-12 border-orange-300 dark:border-orange-800"
-                          data-testid="input-usd-equivalent-iqd"
-                        />
+                        <AmountInput
+                currency="IQD"
+                min={0}
+                value={usdEquivalentAmount}
+                onChange={setUsdEquivalentAmount}
+                className="text-lg font-mono text-center h-12 border-orange-300 dark:border-orange-800"
+                data-testid="input-usd-equivalent-iqd"
+                placeholder="0"
+              />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs text-orange-600 font-semibold">{t('IQD Commission')}</Label>
-                        <Input
-                          type="number"
-                          step="250"
-                          min="0"
-                          placeholder="0"
-                          value={usdEquivalentCommission}
-                          onChange={(e) => setUsdEquivalentCommission(e.target.value)}
-                          className="text-sm font-mono text-center h-10 border-orange-300 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/20"
-                          data-testid="input-usd-equivalent-commission-iqd"
-                        />
+                        <AmountInput
+                currency="IQD"
+                min={0}
+                value={usdEquivalentCommission}
+                onChange={setUsdEquivalentCommission}
+                className="text-sm font-mono text-center h-10 border-orange-300 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/20"
+                data-testid="input-usd-equivalent-commission-iqd"
+                placeholder="0"
+              />
                       </div>
                     </>
                   )}
@@ -492,58 +489,54 @@ export default function SupplierPaymentsPage() {
                   )}
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{t('IQD Payment')}</Label>
-                    <Input
-                      type="number"
-                      step="250"
-                      min="0"
-                      placeholder="0"
-                      value={amountIqd}
-                      onChange={(e) => setAmountIqd(e.target.value)}
-                      className="text-lg font-mono text-center h-12"
-                      data-testid="input-payment-iqd"
-                    />
+                    <AmountInput
+                currency="IQD"
+                min={0}
+                value={amountIqd}
+                onChange={setAmountIqd}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-payment-iqd"
+                placeholder="0"
+              />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{t('Commission IQD')}</Label>
-                    <Input
-                      type="number"
-                      step="250"
-                      min="0"
-                      placeholder="0"
-                      value={commissionIqd}
-                      onChange={(e) => setCommissionIqd(e.target.value)}
-                      className="text-sm font-mono text-center h-10 bg-orange-50/30 dark:bg-orange-950/20"
-                      data-testid="input-commission-iqd"
-                    />
+                    <AmountInput
+                currency="IQD"
+                min={0}
+                value={commissionIqd}
+                onChange={setCommissionIqd}
+                className="text-sm font-mono text-center h-10 bg-orange-50/30 dark:bg-orange-950/20"
+                data-testid="input-commission-iqd"
+                placeholder="0"
+              />
                   </div>
                   {isBank && iqdExchangeType === "usd" && (
                     <>
                       <Separator />
                       <div className="space-y-1.5">
                         <Label className="text-xs text-blue-600 font-semibold">{t('USD Equivalent')}</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          value={iqdEquivalentAmount}
-                          onChange={(e) => setIqdEquivalentAmount(e.target.value)}
-                          className="text-lg font-mono text-center h-12 border-blue-300 dark:border-blue-800"
-                          data-testid="input-iqd-equivalent-usd"
-                        />
+                        <AmountInput
+                currency="USD"
+                min={0}
+                value={iqdEquivalentAmount}
+                onChange={setIqdEquivalentAmount}
+                className="text-lg font-mono text-center h-12 border-blue-300 dark:border-blue-800"
+                data-testid="input-iqd-equivalent-usd"
+                placeholder="0.00"
+              />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs text-blue-600 font-semibold">{t('USD Commission')}</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          value={iqdEquivalentCommission}
-                          onChange={(e) => setIqdEquivalentCommission(e.target.value)}
-                          className="text-sm font-mono text-center h-10 border-blue-300 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/20"
-                          data-testid="input-iqd-equivalent-commission-usd"
-                        />
+                        <AmountInput
+                currency="USD"
+                min={0}
+                value={iqdEquivalentCommission}
+                onChange={setIqdEquivalentCommission}
+                className="text-sm font-mono text-center h-10 border-blue-300 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/20"
+                data-testid="input-iqd-equivalent-commission-usd"
+                placeholder="0.00"
+              />
                       </div>
                     </>
                   )}

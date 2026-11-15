@@ -6,6 +6,7 @@ import type { Client, Bank, TransferOffice, CustomerReceipt } from "@shared/sche
 import { useUser } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -521,16 +522,15 @@ export default function CustomerReceiptUsdPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-receipt-amount"
-                  />
+                  <AmountInput
+                currency="USD"
+                min={0}
+                value={amount}
+                onChange={setAmount}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-receipt-amount"
+                placeholder="0.00"
+              />
                 </CardContent>
               </Card>
 
@@ -542,16 +542,15 @@ export default function CustomerReceiptUsdPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="text-lg font-mono text-center h-12"
-                    data-testid="input-receipt-discount"
-                  />
+                  <AmountInput
+                currency="USD"
+                min={0}
+                value={discount}
+                onChange={setDiscount}
+                className="text-lg font-mono text-center h-12"
+                data-testid="input-receipt-discount"
+                placeholder="0.00"
+              />
                 </CardContent>
               </Card>
             </div>

@@ -4,6 +4,7 @@ import { type CustomsClearance } from "@shared/routes";
 import { useCustomsClearances, useCreateCustomsClearance, useUpdateCustomsClearance, useDeleteCustomsClearance } from "@/hooks/use-customs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AmountInput } from "@/components/amount-input";
 import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -145,24 +146,22 @@ export default function CustomsClearancesPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('Opening Balance USD')}</Label>
-              <Input
-                type="number"
-                step="0.01"
+              <AmountInput
+                currency="USD"
                 value={oldDebtUsd}
-                onChange={(e) => setOldDebtUsd(e.target.value)}
-                placeholder="0.00"
+                onChange={setOldDebtUsd}
                 data-testid="input-customs-clearance-old-debt-usd"
+                placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
               <Label>{t('Opening Balance IQD')}</Label>
-              <Input
-                type="number"
-                step="250"
+              <AmountInput
+                currency="IQD"
                 value={oldDebtIqd}
-                onChange={(e) => setOldDebtIqd(e.target.value)}
-                placeholder="0"
+                onChange={setOldDebtIqd}
                 data-testid="input-customs-clearance-old-debt-iqd"
+                placeholder="0"
               />
             </div>
           </div>
