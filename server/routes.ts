@@ -328,7 +328,7 @@ export async function registerRoutes(
     '/api/purchase-invoices': '/purchase-invoice-iqd',
     '/api/purchase-returns': '/purchase-return-iqd',
     '/api/supplier-payments': '/supplier-payments',
-    '/api/supplier-adjustments': '/supplier-adjustments',
+    '/api/supplier-adjustments': '/supplier-management',
     '/api/supplier-orders': '/supplier-order-iqd',
     '/api/products': '/products',
     '/api/units': '/units',
@@ -1664,68 +1664,6 @@ export async function registerRoutes(
     res.json(data);
   });
 
-  app.post(api.supplierAdjustments.create.path, requireAuth, async (req, res) => {
-    try {
-      const input = api.supplierAdjustments.create.input.parse(req.body);
-      const usdAmount = parseFloat(input.amountUsd || "0");
-      const iqdAmount = parseFloat(input.amountIqd || "0");
-
-      if (usdAmount <= 0 && iqdAmount <= 0) {
-        return res.status(400).json({ message: "At least one amount must be greater than zero" });
-      }
-
-      const userId = (req.session as any)?.userId;
-      const sessionUser = userId ? await storage.getUser(userId) : null;
-
-      const result = await db.transaction(async (tx) => {
-        const [supplier] = await tx.select().from(clients).where(eq(clients.id, input.supplierId));
-        const currentDebtUsd = parseFloat(supplier?.oldDebtUsd || "0");
-        const currentDebtIqd = parseFloat(supplier?.oldDebtIqd || "0");
-
-        let remainingUsd: number;
-        let remainingIqd: number;
-
-        if (input.type === "received") {
-          remainingUsd = currentDebtUsd + usdAmount;
-          remainingIqd = currentDebtIqd + iqdAmount;
-        } else {
-          remainingUsd = currentDebtUsd - usdAmount;
-          remainingIqd = currentDebtIqd - iqdAmount;
-        }
-
-        let receiptNumber = input.receiptNumber;
-        if (!receiptNumber) {
-          const [maxRow] = await tx.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierAdjustments);
-          receiptNumber = String((parseInt(maxRow?.maxNum || "0", 10) || 0) + 1).padStart(6, "0");
-        }
-
-        const [existing] = await tx.select({ id: supplierAdjustments.id }).from(supplierAdjustments).where(eq(supplierAdjustments.receiptNumber, receiptNumber));
-        if (existing) throw new Error("DUPLICATE_RECEIPT");
-
-        const [adj] = await tx.insert(supplierAdjustments).values({
-          ...input,
-          receiptNumber,
-          oldDebtUsd: String(currentDebtUsd),
-          oldDebtIqd: String(currentDebtIqd),
-          remainingUsd: String(remainingUsd),
-          remainingIqd: String(remainingIqd),
-          createdBy: sessionUser?.username || null,
-        }).returning();
-
-        return adj;
-      });
-      res.status(201).json(result);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
-      if (err instanceof Error && err.message === "DUPLICATE_RECEIPT") {
-        return res.status(400).json({ message: "Duplicate receipt number" });
-      }
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
   app.patch('/api/supplier-payments/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string, 10);
@@ -1837,41 +1775,6 @@ export async function registerRoutes(
       if (!payment) return res.status(404).json({ message: "Payment not found" });
       res.json(payment);
     } catch (err) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.patch('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string, 10);
-      const { supplierId, supplierName, type, amountUsd, amountIqd, payTo, payToName, note, date, time, receiptNumber } = req.body;
-      const [updated] = await db.update(supplierAdjustments).set({
-        supplierId, supplierName, type, amountUsd, amountIqd,
-        payTo, payToName, note, date, time, receiptNumber,
-      }).where(eq(supplierAdjustments.id, id)).returning();
-      if (!updated) return res.status(404).json({ message: "Adjustment not found" });
-      res.json(updated);
-    } catch (err) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.delete('/api/supplier-adjustments/:id', requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string, 10);
-      await db.delete(supplierAdjustments).where(eq(supplierAdjustments.id, id));
-      res.json({ success: true });
-    } catch (err) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.get('/api/supplier-adjustments/next-receipt-number', requireAuth, async (_req, res) => {
-    try {
-      const [maxRow] = await db.select({ maxNum: sql<string>`MAX(receipt_number)` }).from(supplierAdjustments);
-      const last = parseInt(maxRow?.maxNum || "0", 10) || 0;
-      res.json({ receiptNumber: String(last + 1).padStart(6, "0") });
-    } catch {
       res.status(500).json({ message: "Internal server error" });
     }
   });

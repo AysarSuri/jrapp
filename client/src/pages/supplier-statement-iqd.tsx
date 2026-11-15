@@ -210,7 +210,7 @@ export default function SupplierStatementIqdPage() {
       case "return_invoice": return `/api/purchase-returns/${entry.id}`;
       case "payment": return `/api/supplier-payments/${entry.id}`;
       case "adjustment_received":
-      case "adjustment_discount": return `/api/supplier-adjustments/${entry.id}`;
+      case "adjustment_discount": return null;
       default: return null;
     }
   };
@@ -232,7 +232,7 @@ export default function SupplierStatementIqdPage() {
       case "return_invoice": return `/purchase-return-iqd?edit=${entry.id}`;
       case "payment": return `/supplier-payments?edit=${entry.id}`;
       case "adjustment_received":
-      case "adjustment_discount": return `/supplier-adjustments?edit=${entry.id}`;
+      case "adjustment_discount": return null;
       default: return null;
     }
   };
@@ -846,9 +846,11 @@ export default function SupplierStatementIqdPage() {
                                   <Pencil className="h-3.5 w-3.5 text-orange-600" />
                                 </Button>
                               )}
+                              {getDeleteUrl(entry) && (
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteEntry(entry)} data-testid={`btn-delete-iqd-${entry.type}-${entry.id}`}>
                                 <Trash2 className="h-3.5 w-3.5 text-red-600" />
                               </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

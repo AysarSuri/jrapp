@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
-import { Undo2, ArrowDownToLine, FileSearch, ChevronLeft, ChevronRight } from "lucide-react";
+import { Undo2, FileSearch, ChevronLeft, ChevronRight } from "lucide-react";
 import { IconSupplierList, IconExpenseEntry, IconDinar, IconInventory, IconSupplierOrderIqd } from "@/components/erp-icons";
 
 export default function SupplierManagementPage() {
@@ -43,15 +43,6 @@ export default function SupplierManagementPage() {
       bg: "bg-fuchsia-50 dark:bg-fuchsia-900/20",
       iconColor: "text-fuchsia-600 dark:text-fuchsia-400",
       hoverBorder: "hover:border-fuchsia-300 dark:hover:border-fuchsia-700",
-    },
-    {
-      href: "/supplier-adjustments",
-      icon: ArrowDownToLine,
-      label: "Supplier Adjustments",
-      gradient: "from-rose-500 to-rose-600",
-      bg: "bg-rose-50 dark:bg-rose-900/20",
-      iconColor: "text-rose-600 dark:text-rose-400",
-      hoverBorder: "hover:border-rose-300 dark:hover:border-rose-700",
     },
     {
       href: "/supplier-statement-iqd",

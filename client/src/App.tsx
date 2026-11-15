@@ -23,7 +23,6 @@ import BanksPage from "@/pages/banks";
 import CustomsClearancesPage from "@/pages/customs-clearances";
 import PurchaseInvoiceIqdPage from "@/pages/purchase-invoice-iqd";
 import SupplierPaymentsPage from "@/pages/supplier-payments";
-import SupplierAdjustmentsPage from "@/pages/supplier-adjustments";
 import SupplierManagementPage from "@/pages/supplier-management";
 import SupplierDebtsPage from "@/pages/supplier-debts";
 import CustomerDebtsPage from "@/pages/customer-debts";
@@ -211,9 +210,6 @@ function Router() {
       </Route>
       <Route path="/supplier-payments">
         <ProtectedRoute component={SupplierPaymentsPage} />
-      </Route>
-      <Route path="/supplier-adjustments">
-        <ProtectedRoute component={SupplierAdjustmentsPage} />
       </Route>
       <Route path="/supplier-management">
         <ProtectedRoute component={SupplierManagementPage} />

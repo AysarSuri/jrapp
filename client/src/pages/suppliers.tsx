@@ -962,7 +962,7 @@ export default function SuppliersPage() {
                   </span>
                 </CardHeader>
                 <CardContent>
-                  <div className={cn("text-[16px] font-bold font-mono", opt?.color.text)}>
+                  <div className={cn("text-[16px] font-extrabold leading-none tracking-tight", opt?.color.text)}>
                     {formatAmount(amount, currency)} {currency}
                   </div>
                 </CardContent>
